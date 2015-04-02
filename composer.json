@@ -1,0 +1,21 @@
+{
+    "name": "bartonlp/site-class",
+    "description": "PHP framework to make creating websites easier",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Barton Phillips",
+            "email": "bartonphillips@gmail.com",
+            "homepage": "http://www.bartonphillips.com"
+        }
+    ],
+    "repositories": [
+      {
+        "type": "vcs",
+        "url": "https://github.com/bartonlp/SiteClass"
+      }
+    ],
+    "require": {
+        "php": "5.4"
+    }
+}
