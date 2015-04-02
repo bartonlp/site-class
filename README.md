@@ -14,6 +14,30 @@ This project has several parts that can function standalone or combined.
 * Error and Exception classes
 * SiteClass.class.php : tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.
 
+## Install
+To start this framework is ment for Linux not Windows. I don't use Windows, like it or have it so 
+nothing has been tried on Windows. I use Linux Mint which is an Ubuntu derivitive which is a Debian
+derivitive. I have not tried this package on any distributions that do not evolve from Debian.
+
+There are several ways to install this project. 
+
+### Download The ZIP File
+Download the ZIP file from GitHub. Expand it and move the 'src' directory somewhere and rename it
+'includes'. On a system with Apache2 I usually put the 'includes' directory in the /var/www directory
+that Apache creates. Apache also usually creates /var/www/html and makes this the default DocumentRoot.
+I put the 'includes' directory just outside of the DocumentRoot. In my servers I have /var/www and then
+have my virtual hosts off that directory. That way the 'includes' directory is easilly available to all
+of my virtual hosts.
+
+If you are testing with the PHP server I put a www directory off my $HOME and put the 
+'includes' directory there. 
+I then make my test DocumentRoot off &#126;/www like &#126;/www/test. I ```cd``` to the test directory and do
+``` php -S localhost:8080 ```. I can then use my browser and goto ``` localhost:8080``` and see my 
+'index.php' file.
+
+### Use Composer
+Working on this but don't have it all figured out yet.
+
 ## Examples
 Take a look at the .sitemap.php file. It has a fair amount of documentation.
 
@@ -45,6 +69,7 @@ EOF;
 
 That is the simplelest usage. You get a generic <head> a blank <header> and a generic footer. 
 No database or other stuff.
+<hr>
 
 You can extend this by adding a database either by instantiating the Database class directly or 
 indirectly. 
@@ -87,6 +112,7 @@ EOF;
 ```
 
 The above example uses the 'query' and 'fetchrow' methods to do some database operations.
+<hr>
 The database could also be instantiated explicitly as follows:
 
 ``` php
@@ -113,9 +139,10 @@ $siteifno['databaseClass'] = new Database($dbinfo);
 
 // The rest is like the above example. 
 ```
-
+<hr>
 You can also use the siteautoload.class.php and .sitemap.php to further automate working with the 
-framework.
+framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your
+project directory as '.sitemap.php' and edit it to match your needs.
 
 ``` php
 <?php
@@ -142,7 +169,7 @@ $top
 $footer
 EOF;
 ```
-
+<hr>
 In addition to the SiteClass and Database classes there are several others:
 * Error
 * SqlException
@@ -192,7 +219,7 @@ EOF;
 
 The maketable method takes several optional option to help setup the table. Using the options you can
 give your table an id or class or set any other attributes.
-
+<hr>
 # Class Methods
 
 While there are a number of methods for each of the major classes there are really only a small 
