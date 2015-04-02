@@ -190,8 +190,13 @@ $footer
 EOF;
 ```
 
-The mmaketable method takes several optional option to help setup the table. Using the options you can
+The maketable method takes several optional option to help setup the table. Using the options you can
 give your table an id or class or set any other attributes.
+
+# Class Methods
+
+While there are a number of methods for each of the major classes there are really only a small 
+handfull you will use on a regular bases. The one must used have some documentation with them.
 
 ## SiteClass methods:
 
@@ -205,7 +210,12 @@ give your table an id or class or set any other attributes.
 * public function getEmail() // if a memberTable
 * public function setEmail($email) // if a memberTable
 * public function getWhosBeenHereToday() // if a memberTable
-* public function getPageTopBottom($h, $b=null)
+* public function getPageTopBottom($h, $b=null)  
+This is the most used method. It takes one or two arguments which can be string|array|object.  
+$h can have 'title', 'desc', 'banner' and a couple of other less used options.  
+$b is for the footer or bottom. I usually just pass a &lt;hr&gt; but you can also pass a 'msg', 'msg1',
+'msg2' etc. I usually put things into the 'footerFile' but on ocasions a page needs something extra.  
+This method ends up calling getPageHead, getBanner(), getFooter().
 * public function getPageTop($header, $banner=null, $bodytag=null)
 * public function getDoctype()
 * public function getPageHead(/*$title, $desc=null, $extra=null, $doctype, $lang*/)
@@ -216,16 +226,31 @@ give your table an id or class or set any other attributes.
 
 ## Database methods:
 
+* constructor
 * public function getDb()
-* public function query($query)
-* public function fetchrow($result=null, $type="both")
+* public function query($query)  
+This is the workhourse of the database. It is used for 'select', 'update', 'insert' and basically
+anything you need to do like 'drop', 'alter' etc. $query is just sql.
+* public function fetchrow($result=null, $type="both")  
+Probably the second most used method. If it follows the 'query' the $result is not needed. The only
+time $result is needed is is there are other queries in a while loop. In that case you need to get
+the result of the query by calling the getResult() method before running the while loop.  
+The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only an associative array, while 'num'
+return a numberic array. I usually use a numeric array with
+``` php
+while(list($name, $email) = $S->fetchrow('num')) { ... }
+```
 * public function queryfetch($query, $retarray=false)
-* public function getLastInsertId()
-* public function getResult()
+* public function getLastInsertId()  
+After an 'insert' this method returns the new row primary key id.
+* public function getResult()  
+Returns the result object from the last 'query'. Usually not needed.
 * public function escape($string)
 * public function escapeDeep($value)
 * public function getNumRows($result=null)
-* public function prepare($query)
+* public function prepare($query)  
+Hardly ever use prepare(), bindParam(), bindResults() or execute() so they are not as well tested as 
+the other methods.
 * public function bindParam($format)
 * public function bindResults($format)
 * public function execute()
@@ -236,7 +261,16 @@ The database methods are implemented for all supported engines.
 ## dbTables methods:
 
 * public function makeresultrows($query, $rowdesc, array $extra=array())
-* public function maketable($query, array $extra=null)
+* public function maketable($query, array $extra=null)  
+$extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] 
+and $extra['attr'].  
+$extra['attr'] is an assoc array that can have attributes for the <table> tag, like 'id',
+ 'title', 'class', 'style' etc.  
+$extra['callback'] function that can modify the header after it is filled in.  
+$extra['footer'] a footer string   
+@return array [{string table}, {result}, {num}, {hdr}, table=>{string}, result=>{result},
+ num=>{num rows}, header=>{hdr}]  
+or === false
 
 ## Contact Me
 
