@@ -310,6 +310,3 @@ EOF;
                  'result'=>$result, 'num'=>$num, 'header'=>$header);
   }
 }
-// WARNING THERE MUST BE NOTHING AFTER THE CLOSING PHP TAG.
-// Really nothing not even a space!!!!
-?>
