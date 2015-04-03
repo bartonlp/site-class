@@ -64,6 +64,8 @@ $
 ```
 This should create the 'members' table in the 'test.sdb' database.
 <hr>
+These examples assume that the 'includes' directory is at /var/www as I suggested.
+
 There are a number of ways to use the framework:
 
 **First** you can just use the SiteClass all by itself.
@@ -91,7 +93,8 @@ $footer
 EOF;
 ```
 
-That is the simple lest usage. You get a generic <head> a blank <header> and a generic footer. 
+That is the simplest usage. You get a generic &lt;head&gt; a blank &lt;header&gt; and a generic 
+&lt;footer&gt;. 
 No database or other stuff.
 <hr>
 
@@ -109,6 +112,7 @@ $siteinfo = array(
   'siteName' => "Vbox Localhost",
   'copyright' => "2015 Barton L. Phillips",
   'memberTable' => 'members',
+  // Add dbinfo to the $siteinfo and SiteClass will instantiate the Database
   'dbinfo' => array(
     'database' => 'test.sdb',
     'engine' => 'sqlite3'
@@ -160,13 +164,15 @@ $dbinfo = array(
 
 $siteifno['databaseClass'] = new Database($dbinfo);
 
-// The rest is like the above example. 
+// by adding to the $siteinfo arrays 'databaseClass' element we let SiteClass
+// know that the database is active.
 
 $S = new SiteClass($siteinfo);
 
 list($top, $footer) = $S->getPageTopBottom();
 
 // Do some database operations
+
 $S->query("select fname||' '||lname from {$siteinfo['memberTable']}");
 
 $names = '';
@@ -186,7 +192,8 @@ EOF;
 <hr>
 You can also use the siteautoload.class.php and .sitemap.php to further automate working with the 
 framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your
-project directory as '.sitemap.php' and edit it to match your needs.
+project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php
+file in the 'tests' directory to see it you need to do ``` ls -a```.
 
 ``` php
 <?php
@@ -220,7 +227,7 @@ $footer
 EOF;
 ```
 <hr>
-In addition to the SiteClass and Database classes there are several others:
+In addition to the SiteClass and Database classes there are several others classes:
 * Error
 * SqlException
 * dbMysql
@@ -228,7 +235,7 @@ In addition to the SiteClass and Database classes there are several others:
 * dbSqlite
 * dbPod
 * dbTables
-* and helper functions.
+* and a file with helper functions.
 
 The dbTables class uses the Database class to make creating tables simple. For example:
 
@@ -269,13 +276,15 @@ $footer
 EOF;
 ```
 
-The maketable method takes several optional option to help setup the table. Using the options you can
-give your table an id or class or set any other attributes.
+The maketable method takes several optional options to help setup the table. Using the options you can
+give your table an id or class or set any other attributes. You can also pass 'callback' function
+which can modify the rows as they are selected.
+
 <hr>
 # Class Methods
 
 While there are a number of methods for each of the major classes there are really only a small 
-handful you will use on a regular bases. The one must used have some documentation with them.
+handful you will use on a regular bases. The ones must used have some documentation with them.
 
 ## SiteClass methods:
 
@@ -294,14 +303,14 @@ This is the most used method. It takes one or two arguments which can be string|
 $h can have 'title', 'desc', 'banner' and a couple of other less used options.  
 $b is for the footer or bottom. I usually just pass a &lt;hr&gt; but you can also pass a 'msg', 'msg1',
 'msg2' etc. I usually put things into the 'footerFile' but on occasions a page needs something extra.  
-This method ends up calling getPageHead, getBanner(), getFooter().
+This method calls getPageHead(), getBanner(), getFooter().
 * public function getPageTop($header, $banner=null, $bodytag=null)
 * public function getDoctype()
 * public function getPageHead(/*$title, $desc=null, $extra=null, $doctype, $lang*/)
 * public function getBanner($mainTitle, $nonav=false, $bodytag=null)
 * public function getFooter(/* mixed */)
 * public function __toString()
-* A number of 'protected' methods that can be used in a child class.
+* A number of 'protected' methods and properties that can be used in a child class.
 
 ## Database methods:
 
@@ -339,6 +348,7 @@ The database methods are implemented for all supported engines.
 
 ## dbTables methods:
 
+* constructor
 * public function makeresultrows($query, $rowdesc, array $extra=array())
 * public function maketable($query, array $extra=null)  
 $extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] 
