@@ -290,7 +290,7 @@ exception is thrown.
 Once a .sitemap.php file is found the information in it is read in via 'require_once'. There are several
 section to the .sitemap.php file. The first section defines the layout of the directorys. The second
 section defines some email information used to send error messages. The third section sets up the
-$siteinfo array. This array describes you site or page.
+$siteinfo array. This array describes your site or page.
 
 My usual directory structure starts under a www subdirectory. On an Apache2 host the structure looks
 like this:
@@ -309,7 +309,8 @@ directory.
 In the .sitemap.php's $siteinfo array there can be three elements that describe the location of 
 special files. These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.
 
-I put the tree special file in my /var/www/html/includes directory. Here is an example of my 'headFile':
+I put the three special file in my /var/www/html/includes directory. 
+Here is an example of my 'headFile':
 
 ``` php
 <?php
@@ -371,14 +372,14 @@ $S = new SiteClass($h);
 
 As you can see in the 'headFile' example the $this can also be used as in $this->copyright.
 
-The other special file have similarities and have their own file variable:
+The other special files have similarities and have their own file variable:
 * 'bannerFile' : $pageBannerText
 * 'footerFile' : $pageFooterText
 
-As these special file are PHP files you can do anything else that you need to including database
+As these special files are PHP files you can do anything else that you need to including database
 queries.
 
-I usually call these file 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything
+I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything
 you like. In the .sitemap.php $siteinfo array just add the full path to the file. For example:
 ``` php
 $siteinfo = array('siteDomain' => "bartonphillips.com",
