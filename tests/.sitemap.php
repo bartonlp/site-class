@@ -21,12 +21,7 @@ define('EMAILFROM', "webmaster@localhost");
 // Others may be added later
 // Change these to match your database information the following is just an example to be changed.
 
-$dbinfo = array('host' => 'localhost',
-                'user' => 'barton',
-                'password' => '7098653',
-                'database' => 'test.sdb',
-                'engine' => 'sqlite3'
-               );
+$dbinfo = array('database' => 'test.sdb', 'engine' => 'sqlite3');
 
 // SiteClass information
 // 'siteDomain' should be your domain name like 'bartonphillips.dyndns.org' without subdomains like

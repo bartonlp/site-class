@@ -281,6 +281,131 @@ give your table an id or class or set any other attributes. You can also pass 'c
 which can modify the rows as they are selected.
 
 <hr>
+## The dot sitemap File
+The .sitemap.php file is the site configuration file. siteautoload.clas.php looks for the .sitemap.php
+file in the current directory. If it does not find it there it moves up to the parent directory. This
+continues until the DocumentRoot of the domain is reached. If a .sitemap.php file is not found an 
+exception is thrown.
+
+Once a .sitemap.php file is found the information in it is read in via 'require_once'. There are several
+section to the .sitemap.php file. The first section defines the layout of the directorys. The second
+section defines some email information used to send error messages. The third section sets up the
+$siteinfo array. This array describes you site or page.
+
+My usual directory structure starts under a www subdirectory. On an Apache2 host the structure looks
+like this:
+
+```
+/var/www/includes        // this is where the SiteClass resides
+/var/www/html            // this is where your php files and js, css etc. directories live
+/var/www/html/includes   // this is where 'headFile', 'bannerFile', 'footerFile' and child classes live
+/var/www/html/otherstuff // other directories. These directories can have their own .sitemap.php files
+```
+
+If I have multiple virtual hosts they are all off the /var/www directory instead of a single html
+directory.
+
+### How the xxxFile files look
+In the .sitemap.php's $siteinfo array there can be three elements that describe the location of 
+special files. These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.
+
+I put the tree special file in my /var/www/html/includes directory. Here is an example of my 'headFile':
+
+``` php
+<?php
+// head.i.php for bartonphillips.com
+
+$pageHeadText = <<<EOF
+<head>
+  <title>{$arg['title']}</title>
+  <!-- METAs -->
+  <meta name=viewport content="width=device-width, initial-scale=1">
+  <meta charset='utf-8'/>
+  <meta name="copyright" content="$this->copyright">
+  <meta name="Author"
+    content="Barton L. Phillips, mailto:bartonphillips@gmail.com"/>
+  <meta name="description"
+    content="{$arg['desc']}"/>
+  <meta name="keywords"
+    content="Barton Phillips, Granby, Applitec Inc., Rotary, Programming, Tips and tricks, blog"/>
+  <!-- ICONS, RSS -->
+  <link rel="shortcut icon" href="http://www.bartonphillips.org/favicon.ico" />
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/rssfeed.xml" />
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/blp.css" title="blp default" />
+{$arg['link']}
+  <!-- jQuery -->
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+  <script async src="js/tracker.js"></script>
+{$arg['extra']}
+{$arg['script']}
+{$arg['css']}
+</head>
+EOF;
+```
+
+The $pageHeadText variable gets all of the &lt;head&gt; section code. The $arg array is created
+form the argument passed to the getPageTopBottom method. The getPageTopBottom method also has access to
+the SiteClass $this property.
+
+You will see as you delve into the SiteClass code that many things can be passed to the 
+getPageTopBottom method and the various sub-methods but the standard things are:
+* title
+* desc
+* link
+* extra
+* script
+* css
+
+As you saw in example 5 above (test5.php in the 'tests' directory) I passed a $h object to the
+SiteClass. For example:
+``` php
+$h->title = 'my title';
+$h->desc = 'This is the description';
+$h->link = '<link rel="stylesheet" href="test.css">';
+$h->extra = '<!-- this can be anything from a meta, link, script etc -->';
+$h->script = '<script> var a="test"; </script>';
+$h->css = '<style> /* some css */ #test { width: 10px; } </style>';
+$S = new SiteClass($h);
+```
+
+As you can see in the 'headFile' example the $this can also be used as in $this->copyright.
+
+The other special file have similarities and have their own file variable:
+* 'bannerFile' : $pageBannerText
+* 'footerFile' : $pageFooterText
+
+As these special file are PHP files you can do anything else that you need to including database
+queries.
+
+I usually call these file 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything
+you like. In the .sitemap.php $siteinfo array just add the full path to the file. For example:
+``` php
+$siteinfo = array('siteDomain' => "bartonphillips.com",
+                  'siteName' => "My Home Page",
+                  'copyright' => "2015 Barton L. Phillips",
+                  //'className' => "", // if you have sub-classed SiteClass
+                  'memberTable' => "members", 
+                  'headFile' => SITE_INCLUDES."/head.i.php",
+                  'bannerFile' => SITE_INCLUDES."/banner.i.php",
+                  footerFile => SITE_INCLUDES."/footer.i.php",
+                  'dbinfo' => array('database' => 'test.sdb', 'engine' => 'sqlite3'),
+                  'count' => false,
+                  'countMe' => true, // Count BLP
+                  'myUri' => "bartonphillips.dyndns.org"
+                 );
+```
+
+In the abovd example I have used the SITE_INCLUDES define from the .sitemap.php's first section.
+
+There is a default for the &lt;head&gt;, banner and footer section if you do not have special files. 
+The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the 
+getPageTopBottom method ($h->doctype='xxx').
+
+Creating the special files make the tedious boiler plate simple and yet configureable via the $arg 
+array.
+
+<hr>
 # Class Methods
 
 While there are a number of methods for each of the major classes there are really only a small 
