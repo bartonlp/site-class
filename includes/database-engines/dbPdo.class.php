@@ -123,7 +123,7 @@ class dbPdo extends dbAbstract {
       if($this->result) {
         $this->result->closeCursor();
       }
-      
+
       $result = $db->query($query);
 
       if($result === false) {
@@ -241,7 +241,6 @@ class dbPdo extends dbAbstract {
 
   public function getErrorInfo() {
     $err = $this->db->errorInfo;
-    vardump($err);
     $error = $err[2];
     $errno = $err[1];
     $err = array('errno'=>$errno, 'error'=>$error);

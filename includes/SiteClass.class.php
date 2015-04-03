@@ -55,6 +55,12 @@
 //  $S->query(...);
 // etc. and not have to do a '$db = $S->getDb(); $db->query(...); etc.
 
+// Setup Autoload for database engines etc.
+
+spl_autoload_register(function($class) {
+  require_once("database-engines/$class.class.php");
+});
+
 class SiteClass extends dbAbstract {
   // Current Doc Type
   public $doctype;

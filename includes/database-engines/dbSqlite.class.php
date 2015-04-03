@@ -2,22 +2,13 @@
 /**
  * dbSqlite Class
  *
- * General MySqli Database Class. 
+ * General Sqlite Database Class. 
  * @package Database
  * @author Barton Phillips <barton@bartonphillips.com>
  * @version 1.0
  * @link http://www.bartonphillips.com
  * @copyright Copyright (c) 2010, Barton Phillips
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
- */
-
-/**
- * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.
- * The mysqli extension allows you to access the functionality provided by MySQL 4.1 and above.
- * More information about the MySQL Database server can be found at » http://www.mysql.com/
- * An overview of software available for using MySQL from PHP can be found at Overview
- * Documentation for MySQL can be found at » http://dev.mysql.com/doc/.
- * Parts of this documentation included from MySQL manual with permissions of Oracle Corporation.
  */
 
 /**
@@ -33,8 +24,11 @@ class dbSqlite extends dbAbstract {
   public $db = 0;
 
   protected $host, $user, $password, $database;
-  private $result;
+  protected $result;
   
+  static public $lastQuery = null; // for debugging
+  static public $lastNonSelectResult = null; // for insert, update etc.
+
   /**
    * Constructor
    * @param string $filename .
@@ -64,8 +58,8 @@ class dbSqlite extends dbAbstract {
     if($this->db) {
       return $this->db;
     }
-    $db = new SQLiteDatabase($this->database);
-    //$db = @sqlite_open($this->database);
+    //$db = new SQLiteDatabase($this->database);
+    $db = new SQLite3($this->database);
 
     if($db === false) {
       throw new SqlException(__METHOD__ . ": Can't connect to database: {$db->loastError}", $this);
@@ -88,23 +82,26 @@ class dbSqlite extends dbAbstract {
   public function query($query) {
     $db = $this->opendb();
 
-    $err=0;
+    self::$lastQuery = $query; // for debugging
 
-    if(preg_match("/^select/i", $query)) {
-      $result = @$db->query($query, $err);
-      if($result === false) {
-        throw new SqlException($query, $this);
-      }
-      $numrows = $result->numRows();
-      $this->result = $result;
+    if(!preg_match("/^(?:select)/i", $query)) {
+      $result = $db->exec($query);
     } else {
-      $result = @$db->queryExec($query, $err);
-      if($result === false) {
-        throw new SqlException($query, $this);
-      }
+      $result = $db->query($query);
+    }
+    
+    if($result === false) {
+      throw(new SqlException($query, $this));
     }
 
-    if($err) cout($err);
+    if($result === true) { // did not return a result object 
+      $numrows = $db->changes();
+      self::$lastNonSelectResult = $result;
+    } else {
+      // NOTE: we don't change result for inserts etc. only for selects etc.
+      $this->result = $result;
+      $numrows = true;
+    }
 
     return $numrows;
   }
@@ -118,7 +115,7 @@ class dbSqlite extends dbAbstract {
    * 3) $stm->bind_param("s", $username);
    * 4) $stm->execute();
    * 5) $stm->bind_result($one, $two);
-   * 6) $stm->fetch();
+   * 6) $stm->fetchArray();
    * 7) echo "one=$one, two=$two<br>";
    */
   
@@ -137,15 +134,18 @@ class dbSqlite extends dbAbstract {
    */
   
   public function queryfetch($query, $returnarray=false) {
-    $numrows = $this->query($query);
-    
-    if(!$result) {
+    $this->query($query);
+
+    if(!$this->result) {
       throw new SqlException($query, $this);
     }
 
-    while($row = $result->fetch()) {
+    while($row = $this->result->fetchArray()) {
       $rows[] = $row;
     }
+
+    $numrows = count($rows);
+    
     return ($returnarray) ? array($rows, $numrows, result=>$rows, numrows=>$numrows) : $rows;
   }
 
@@ -171,19 +171,19 @@ class dbSqlite extends dbAbstract {
     
     switch($type) {
       case "assoc": // associative array
-        $row = $result->fetch(SQLITE_ASSOC);
+        $row = $result->fetchArray(SQLITE3_ASSOC);
         break;
       case "num":  // numerical array
-        $row = $result->fetch(SQLITE_NUM);
+        $row = $result->fetchArray(SQLITE3_NUM);
         break;
       case "both":
       default:
-        $row = $result->fetch(SQLITE_BOTH);
+        $row = $result->fetchArray(SQLITE3_BOTH);
         break;
     }
     return $row;
   }
-  
+    
   /**
    * getLastInsertId()
    *
@@ -198,9 +198,16 @@ class dbSqlite extends dbAbstract {
    * getNumRows()
    */
 
+/* Sqlite can't do this
+
   public function getNumRows($result=null) {
     if(!$result) $result = $this->result;
-    return $result->numRows();
+    return $result->num_rows;;
+  }
+*/
+
+  public function getResult() {
+    return $this->result;
   }
   
   /**
@@ -215,8 +222,8 @@ class dbSqlite extends dbAbstract {
   public function getErrorInfo() {
     $db = $this->opendb();
 
-    $errno = $db->lastError();
-    $error = sqlite_error_string($errno);
+    $errno = $db->lastErrorCode();
+    $error = $db->lastErrorMsg();
 
     $err = array('errno'=>$errno, 'error'=>$error);
     return $err;
@@ -290,7 +297,3 @@ if(!function_exists('vardump')) {
     echo "<pre>$msg" . (escapeltgt(print_r($value, true))) . "</pre>\n\n";
   }
 }
-
-// WARNING THERE MUST BE NOTHING AFTER THE CLOSING PHP TAG.
-// Really nothing not even a space!!!!
-?>

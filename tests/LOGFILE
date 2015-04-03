@@ -1,0 +1,725 @@
+2015-04-02 02:04:04
+SqlException: "select concat(fname, ' ', lname) from mymembers"
+error="Table 'barton.mymembers' doesn't exist", errno="1146"
+called from /home/barton/www/SiteClass/includes/database-engines/dbMysqli.class.php
+on line 108
+Back Trace:
+dbMysqli::query("select concat(fname, ' ', lname) from mymembers")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("select concat(fname, ' ', lname) from mymembers")
+in /home/barton/www/SiteClass/tests/test1.php
+on line 23
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 02:04:40
+SqlException: "select concat(fname, ' ', lname) from mymembers"
+error="Table 'barton.mymembers' doesn't exist", errno="1146"
+called from /home/barton/www/SiteClass/includes/database-engines/dbMysqli.class.php
+on line 108
+Back Trace:
+dbMysqli::query("select concat(fname, ' ', lname) from mymembers")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("select concat(fname, ' ', lname) from mymembers")
+in /home/barton/www/SiteClass/tests/test1.php
+on line 26
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 03:04:13
+Exception: Class: Exception
+Exception: "dbAbstract::query not implemented"
+in file /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 30
+Trace back:
+file: /home/barton/www/SiteClass/tests/test3.php
+line: 32
+class: dbAbstract
+function: query("select concat(fname, ' ', lname) from mymembers")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 03:04:02
+Exception: Class: Exception
+Exception: "dbAbstract::query not implemented"
+in file /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 30
+Trace back:
+file: /home/barton/www/SiteClass/tests/test3.php
+line: 32
+class: dbAbstract
+function: query("select concat(fname, ' ', lname) from pokermembers")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 03:04:32
+Exception: Class: Exception
+Exception: "dbAbstract::query not implemented"
+in file /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 30
+Trace back:
+file: /home/barton/www/SiteClass/tests/test3.php
+line: 35
+class: dbAbstract
+function: query("select concat(fname, ' ', lname) from pokermembers")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 03:04:59
+SqlException: "select concat(fname, ' ', lname) from pokerclub"
+error="Table 'barton.pokerclub' doesn't exist", errno="1146"
+called from /home/barton/www/SiteClass/includes/database-engines/dbMysqli.class.php
+on line 108
+Back Trace:
+dbMysqli::query("select concat(fname, ' ', lname) from pokerclub")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("select concat(fname, ' ', lname) from pokerclub")
+in /home/barton/www/SiteClass/tests/test4.php
+on line 19
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 03:04:30
+SqlException: "select concat(fname, ' ', lname) from pokerclubmembers"
+error="Table 'barton.pokerclubmembers' doesn't exist", errno="1146"
+called from /home/barton/www/SiteClass/includes/database-engines/dbMysqli.class.php
+on line 108
+Back Trace:
+dbMysqli::query("select concat(fname, ' ', lname) from pokerclubmembers")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("select concat(fname, ' ', lname) from pokerclubmembers")
+in /home/barton/www/SiteClass/tests/test4.php
+on line 19
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 03:04:54
+SqlException: "dbPdo::opendb Connection failed: sqlite:barton.db"
+error="could not find driver", errno="0"
+called from /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 93
+Back Trace:
+dbPdo::opendb()
+in /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 72
+dbPdo::__construct('localhost', 'barton', '7098653', 'barton', 'sqlite')
+in /home/barton/www/SiteClass/includes/database-engines/Database.class.php
+on line 77
+Database::__construct(array(host=>'localhost', user=>'barton', password=>'7098653', database=>'barton', engine=>'sqlite'))
+in /home/barton/www/SiteClass/tests/test3.php
+on line 26
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 03:04:13
+SqlException: "dbPdo::opendb Connection failed: sqlite:barton.db"
+error="could not find driver", errno="0"
+called from /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 93
+Back Trace:
+dbPdo::opendb()
+in /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 72
+dbPdo::__construct('localhost', 'barton', '7098653', 'barton', 'sqlite')
+in /home/barton/www/SiteClass/includes/database-engines/Database.class.php
+on line 77
+Database::__construct(array(host=>'localhost', user=>'barton', password=>'7098653', database=>'barton', engine=>'sqlite'))
+in /home/barton/www/SiteClass/tests/test3.php
+on line 26
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 03:04:03
+SqlException: "dbPdo::opendb Connection failed: sqlite:barton.db"
+error="could not find driver", errno="0"
+called from /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 93
+Back Trace:
+dbPdo::opendb()
+in /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 72
+dbPdo::__construct('localhost', 'barton', '7098653', 'barton', 'sqlite')
+in /home/barton/www/SiteClass/includes/database-engines/Database.class.php
+on line 78
+Database::__construct(array(host=>'localhost', user=>'barton', password=>'7098653', database=>'barton', engine=>'sqlite'))
+in /home/barton/www/SiteClass/tests/test3.php
+on line 26
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 03:04:44
+SqlException: "dbPdo::opendb Connection failed: sqlite:barton.db"
+error="could not find driver", errno="0"
+called from /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 93
+Back Trace:
+dbPdo::opendb()
+in /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 72
+dbPdo::__construct('localhost', 'barton', '7098653', 'barton', 'sqlite')
+in /home/barton/www/SiteClass/includes/database-engines/Database.class.php
+on line 77
+Database::__construct(array(host=>'localhost', user=>'barton', password=>'7098653', database=>'barton', engine=>'sqlite'))
+in /home/barton/www/SiteClass/tests/test3.php
+on line 26
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 03:04:51
+Exception: Class: Exception
+Exception: "dbAbstract::query not implemented"
+in file /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 30
+Trace back:
+file: /home/barton/www/SiteClass/tests/test3.php
+line: 35
+class: dbAbstract
+function: query("select concat(fname, ' ', lname) from pokermembers")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 04:04:53
+SqlException: "insert into counter (filename, count) values('/test3.php', '1')"
+error="", errno=""
+called from /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 119
+Back Trace:
+dbPdo::query("insert into counter (filename, count) values('/test3.php', '1')")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("insert into counter (filename, count) values('/test3.php', '1')")
+in /home/barton/www/SiteClass/includes/SiteClass.class.php
+on line 933
+SiteClass::tableUpdate("update counter set count=count+1 where filename='/test3.php'", "insert into counter (filename, count) values('/test3.php', '1')")
+in /home/barton/www/SiteClass/includes/SiteClass.class.php
+on line 857
+SiteClass::counter()
+in /home/barton/www/SiteClass/includes/SiteClass.class.php
+on line 186
+SiteClass::__construct(array(siteDomain=>'localhost', siteName=>'Vbox Localhost', copyright=>'2015 Barton L. Phillips', memberTable=>'pokermembers', databaseClass=>Database))
+in /home/barton/www/SiteClass/tests/test3.php
+on line 30
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 04:04:39
+SqlException: "insert into counter (filename, count) values('/test3.php', '1')"
+error="", errno=""
+called from /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 119
+Back Trace:
+dbPdo::query("insert into counter (filename, count) values('/test3.php', '1')")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("insert into counter (filename, count) values('/test3.php', '1')")
+in /home/barton/www/SiteClass/includes/SiteClass.class.php
+on line 933
+SiteClass::tableUpdate("update counter set count=count+1 where filename='/test3.php'", "insert into counter (filename, count) values('/test3.php', '1')")
+in /home/barton/www/SiteClass/includes/SiteClass.class.php
+on line 857
+SiteClass::counter()
+in /home/barton/www/SiteClass/includes/SiteClass.class.php
+on line 186
+SiteClass::__construct(array(siteDomain=>'localhost', siteName=>'Vbox Localhost', copyright=>'2015 Barton L. Phillips', memberTable=>'members', databaseClass=>Database))
+in /home/barton/www/SiteClass/tests/test3.php
+on line 30
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 04:04:38
+SqlException: "select concat(fname, ' ', lname) from members"
+error="", errno=""
+called from /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 131
+Back Trace:
+dbPdo::query("select concat(fname, ' ', lname) from members")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("select concat(fname, ' ', lname) from members")
+in /home/barton/www/SiteClass/tests/test3.php
+on line 36
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 04:04:41
+SqlException: "select concat(fname, ' ', lname) from members"
+error="", errno=""
+called from /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 132
+Back Trace:
+dbPdo::query("select concat(fname, ' ', lname) from members")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("select concat(fname, ' ', lname) from members")
+in /home/barton/www/SiteClass/tests/test3.php
+on line 36
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 04:04:58
+SqlException: "select concat(fname, ' ', lname) from members"
+error="", errno=""
+called from /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 131
+Back Trace:
+dbPdo::query("select concat(fname, ' ', lname) from members")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("select concat(fname, ' ', lname) from members")
+in /home/barton/www/SiteClass/tests/test3.php
+on line 36
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 04:04:48
+SqlException: "select concat(fname, ' ', lname) from members"
+error="", errno=""
+called from /home/barton/www/SiteClass/includes/database-engines/dbPdo.class.php
+on line 131
+Back Trace:
+dbPdo::query("select concat(fname, ' ', lname) from members")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("select concat(fname, ' ', lname) from members")
+in /home/barton/www/SiteClass/tests/test3.php
+on line 36
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 04:04:30
+SqlException: "select concat(fname, ' ', lname) from members"
+error="no such function: concat", errno="1"
+called from /home/barton/www/SiteClass/includes/database-engines/dbSqlite.class.php
+on line 90
+Back Trace:
+dbSqlite::query("select concat(fname, ' ', lname) from members")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("select concat(fname, ' ', lname) from members")
+in /home/barton/www/SiteClass/tests/test3.php
+on line 36
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 04:04:17
+SqlException: "insert into counter (filename, count) values('/test4.php', '1')"
+error="no such table: counter", errno="1"
+called from /home/barton/www/SiteClass/includes/database-engines/dbSqlite.class.php
+on line 90
+Back Trace:
+dbSqlite::query("insert into counter (filename, count) values('/test4.php', '1')")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("insert into counter (filename, count) values('/test4.php', '1')")
+in /home/barton/www/SiteClass/includes/SiteClass.class.php
+on line 933
+SiteClass::tableUpdate("update counter set count=count+1 where filename='/test4.php'", "insert into counter (filename, count) values('/test4.php', '1')")
+in /home/barton/www/SiteClass/includes/SiteClass.class.php
+on line 857
+SiteClass::counter()
+in /home/barton/www/SiteClass/includes/SiteClass.class.php
+on line 186
+SiteClass::__construct(array(siteDomain=>'localhost', siteName=>'Vbox Localhost', copyright=>'2015 Barton L. Phillips', memberTable=>'members', dbinfo=>array(host=>'localhost', user=>'barton', password=>'7098653', database=>'test.sdb', engine=>'sqlite3')myUri=>'bartonphillips.dyndns.org'))
+in /home/barton/www/SiteClass/tests/test4.php
+on line 13
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 04:04:39
+SqlException: "select concat(fname, ' ', lname) from members"
+error="no such function: concat", errno="1"
+called from /home/barton/www/SiteClass/includes/database-engines/dbSqlite.class.php
+on line 90
+Back Trace:
+dbSqlite::query("select concat(fname, ' ', lname) from members")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("select concat(fname, ' ', lname) from members")
+in /home/barton/www/SiteClass/tests/test4.php
+on line 18
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 04:04:23
+SqlException: "select fname||' '||lname) from members"
+error="near ")": syntax error", errno="17"
+called from /home/barton/www/SiteClass/includes/database-engines/dbSqlite.class.php
+on line 90
+Back Trace:
+dbSqlite::query("select fname||' '||lname) from members")
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 28
+dbAbstract::query("select fname||' '||lname) from members")
+in /home/barton/www/SiteClass/tests/test4.php
+on line 18
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 06:04:28
+SqlException: "select * from members"
+error="not an error", errno="0"
+called from /home/barton/www/SiteClass/includes/database-engines/dbSqlite.class.php
+on line 140
+Back Trace:
+dbSqlite::queryfetch('select * from members')
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 44
+dbAbstract::queryfetch('select * from members')
+in /home/barton/www/SiteClass/tests/sqlite.php
+on line 7
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 06:04:12
+SqlException: "select * from members"
+error="not an error", errno="0"
+called from /home/barton/www/SiteClass/includes/database-engines/dbSqlite.class.php
+on line 140
+Back Trace:
+dbSqlite::queryfetch('select * from members')
+in /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 44
+dbAbstract::queryfetch('select * from members')
+in /home/barton/www/SiteClass/tests/sqlite.php
+on line 10
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 06:04:23
+Exception: Class: Exception
+Exception: "dbAbstract::getResult not implemented"
+in file /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 62
+Trace back:
+file: /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+line: 60
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 124
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 291
+class: dbTables
+function: makeresultrows("select * from members", "*", "Array
+(
+    [return] => 1
+    [callback] => 
+    [callback2] => 
+    [header] => 
+%*%
+    [delim] => Array
+        (
+            [0] => 
+            [1] => 
+        )
+)
+")
+file: /home/barton/www/SiteClass/tests/test5.php
+line: 33
+class: dbTables
+function: maketable("select * from members")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 06:04:54
+Exception: Class: Exception
+Exception: "dbAbstract::getResult not implemented"
+in file /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 62
+Trace back:
+file: /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+line: 60
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 124
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 291
+class: dbTables
+function: makeresultrows("select * from members", "*", "Array
+(
+    [return] => 1
+    [callback] => 
+    [callback2] => 
+    [header] => 
+%*%
+    [delim] => Array
+        (
+            [0] => 
+            [1] => 
+        )
+)
+")
+file: /home/barton/www/SiteClass/tests/test5.php
+line: 27
+class: dbTables
+function: maketable("select * from members")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 06:04:40
+Exception: Class: Exception
+Exception: "dbAbstract::getResult not implemented"
+in file /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 62
+Trace back:
+file: /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+line: 60
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 124
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 291
+class: dbTables
+function: makeresultrows("select * from members", "*", "Array
+(
+    [return] => 1
+    [callback] => 
+    [callback2] => 
+    [header] => 
+%*%
+    [delim] => Array
+        (
+            [0] => 
+            [1] => 
+        )
+)
+")
+file: /home/barton/www/SiteClass/tests/test5.php
+line: 28
+class: dbTables
+function: maketable("select * from members")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 06:04:33
+Exception: Class: Exception
+Exception: "dbAbstract::getResult not implemented"
+in file /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 62
+Trace back:
+file: /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+line: 60
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 124
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 291
+class: dbTables
+function: makeresultrows("select * from members", "*", "Array
+(
+    [return] => 1
+    [callback] => 
+    [callback2] => 
+    [header] => 
+%*%
+    [delim] => Array
+        (
+            [0] => 
+            [1] => 
+        )
+)
+")
+file: /home/barton/www/SiteClass/tests/test5.php
+line: 27
+class: dbTables
+function: maketable("select * from members")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 06:04:57
+Exception: Class: Exception
+Exception: "dbAbstract::getResult not implemented"
+in file /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 62
+Trace back:
+file: /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+line: 60
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 125
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 292
+class: dbTables
+function: makeresultrows("select * from members", "*", "Array
+(
+    [return] => 1
+    [callback] => 
+    [callback2] => 
+    [header] => 
+%*%
+    [delim] => Array
+        (
+            [0] => 
+            [1] => 
+        )
+)
+")
+file: /home/barton/www/SiteClass/tests/test5.php
+line: 27
+class: dbTables
+function: maketable("select * from members")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 06:04:32
+Exception: Class: Exception
+Exception: "dbAbstract::getResult not implemented"
+in file /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 62
+Trace back:
+file: /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+line: 60
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 129
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 296
+class: dbTables
+function: makeresultrows("select * from members", "*", "Array
+(
+    [return] => 1
+    [callback] => 
+    [callback2] => 
+    [header] => 
+%*%
+    [delim] => Array
+        (
+            [0] => 
+            [1] => 
+        )
+)
+")
+file: /home/barton/www/SiteClass/tests/test5.php
+line: 27
+class: dbTables
+function: maketable("select * from members")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 07:04:52
+Exception: Class: Exception
+Exception: "dbAbstract::getResult not implemented"
+in file /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 62
+Trace back:
+file: /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+line: 60
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 129
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 296
+class: dbTables
+function: makeresultrows("select * from members", "*", "Array
+(
+    [return] => 1
+    [callback] => 
+    [callback2] => 
+    [header] => 
+%*%
+    [delim] => Array
+        (
+            [0] => 
+            [1] => 
+        )
+)
+")
+file: /home/barton/www/SiteClass/tests/test5.php
+line: 27
+class: dbTables
+function: maketable("select * from members")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 07:04:54
+Exception: Class: Exception
+Exception: "dbAbstract::getResult not implemented"
+in file /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+on line 62
+Trace back:
+file: /home/barton/www/SiteClass/includes/database-engines/dbAbstract.class.php
+line: 60
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 129
+class: dbAbstract
+function: getResult()
+file: /home/barton/www/SiteClass/includes/database-engines/dbTables.class.php
+line: 296
+class: dbTables
+function: makeresultrows("select * from members", "*", "Array
+(
+    [return] => 1
+    [callback] => 
+    [callback2] => 
+    [header] => 
+%*%
+    [delim] => Array
+        (
+            [0] => 
+            [1] => 
+        )
+)
+")
+file: /home/barton/www/SiteClass/tests/test5.php
+line: 27
+class: dbTables
+function: maketable("select * from members")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****
+2015-04-02 07:04:15
+Exception: Class: Exception
+Exception: "Unable to expand filepath"
+in file /home/barton/www/SiteClass/includes/database-engines/dbSqlite.class.php
+on line 62
+Trace back:
+file: /home/barton/www/SiteClass/includes/database-engines/dbSqlite.class.php
+line: 62
+class: SQLite3
+function: __construct("")
+file: /home/barton/www/SiteClass/includes/database-engines/dbSqlite.class.php
+line: 47
+class: dbSqlite
+function: opendb()
+file: /home/barton/www/SiteClass/includes/database-engines/Database.class.php
+line: 94
+class: dbSqlite
+function: __construct("localhost", "", "", "", "pgsql")
+file: /home/barton/www/SiteClass/tests/test3.php
+line: 22
+class: Database
+function: __construct("Array
+(
+    [host] => localhost
+    [engine] => sqlite3
+)
+")
+User: IP=127.0.0.1, AGENT=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36
+*****

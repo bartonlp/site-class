@@ -87,7 +87,7 @@ class Database extends dbAbstract {
           throw(new SqlException(__METHOD__ .": Class Not Found : $class<br>"));
         }      
         break;
-      case "sqlite2":
+      case "sqlite3":
         // This is native sqlite not via pdo.
         $class = "dbSqlite";
         if(class_exists($class)) {

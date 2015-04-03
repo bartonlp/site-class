@@ -6,7 +6,7 @@ This project has several parts that can function standalone or combined.
 * Database.class.php : provides a wrapper for several different database engines.
 <ul>
 1. Mysql  (depreciated)
-2. Mysqli (most rigerously tested)
+2. Mysqli (most rigorously tested)
 3. sqlite 
 4. POD    (least tested)
 </ul>
@@ -15,40 +15,64 @@ This project has several parts that can function standalone or combined.
 * SiteClass.class.php : tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.
 
 ## Install
-To start this framework is ment for Linux not Windows. I don't use Windows, like it or have it so 
-nothing has been tried on Windows. I use Linux Mint which is an Ubuntu derivitive which is a Debian
-derivitive. I have not tried this package on any distributions that do not evolve from Debian.
+To start this framework is meant for Linux not Windows. I don't use Windows, like it or have it so 
+nothing has been tried on Windows. I use Linux Mint which is an Ubuntu derivative which is a Debian
+derivative. I have not tried this package on any distributions that do not evolve from Debian.
 
 There are several ways to install this project. 
 
 ### Download The ZIP File
-Download the ZIP file from GitHub. Expand it and move the 'src' directory somewhere and rename it
-'includes'. On a system with Apache2 I usually put the 'includes' directory in the /var/www directory
+Download the ZIP file from GitHub. Expand it and move the 'includes' directory somewhere.
+On a system with Apache2 I usually put the 'includes' directory in the /var/www directory
 that Apache creates. Apache also usually creates /var/www/html and makes this the default DocumentRoot.
 I put the 'includes' directory just outside of the DocumentRoot. In my servers I have /var/www and then
-have my virtual hosts off that directory. That way the 'includes' directory is easilly available to all
+have my virtual hosts off that directory. That way the 'includes' directory is easily available to all
 of my virtual hosts.
 
 If you are testing with the PHP server I put a www directory off my $HOME and put the 
 'includes' directory there. 
-I then make my test DocumentRoot off &#126;/www like &#126;/www/test. I ```cd``` to the test directory and do
+I then make my test DocumentRoot off &#126;/www like &#126;/www/test. 
+I ```cd``` to the test directory and do
 ``` php -S localhost:8080 ```. I can then use my browser and goto ``` localhost:8080``` and see my 
 'index.php' file.
 
 ### Use Composer
 Working on this but don't have it all figured out yet.
 
-## Examples
-Take a look at the .sitemap.php file. It has a fair amount of documentation.
+## Examples and TESTS
+The code shown below can be found in the 'tests' directory at http://github.com/bartonlp/SiteClass. 
+The code there is slightly different to enable it to require from the 'includes' directory 
+relative to the 'tests' directory. Also error reporting is enabled. 
 
+The 'tests' code uses the 'sqlite3' engine. I have included a 'sqlite.sql' file that can be run from
+the command line. You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.
+From the command line in the directory where the SiteClass
+was downloaded:
+```
+$ cd tests
+$ sqlite3 test.sdb
+sqlite> .read sqlite.sql
+sqlite> .table
+members
+sqlite> select * from members;
+Big|Joe
+Little|Joe
+Barton|Phillips
+Someone|Else
+sqlite> .quit
+$
+```
+This should create the 'members' table in the 'test.sdb' database.
+<hr>
 There are a number of ways to use the framework:
 
-First you can just use the SiteClass all by itself.
+**First** you can just use the SiteClass all by itself.
 
 ``` php
 <?php
+// test1.php
+
 require-once('/var/www/includes/SiteClass.class.php'); // path to your SiteClass.class.php file.
-require-once('/var/www/includes/database-engines/Database.class.php'); // path to Database.class.php
 
 $siteinfo = array(
   'siteDomain' => "localhost",
@@ -61,13 +85,13 @@ $S = new SiteClass($siteinfo);
 list($top, $footer) = $S->getPageTopBottom();
 echo <<<EOF
 $top
-<h1>Banner</h1>
+<h1>Test 1</h1>
 <p>Stuff</p>
 $footer
 EOF;
 ```
 
-That is the simplelest usage. You get a generic <head> a blank <header> and a generic footer. 
+That is the simple lest usage. You get a generic <head> a blank <header> and a generic footer. 
 No database or other stuff.
 <hr>
 
@@ -76,37 +100,38 @@ indirectly.
 
 ``` php
 <?php
+// test2.php
+
 require-once('/var/www/includes/SiteClass.class.php'); // path to your SiteClass.class.php file.
-require-once('/var/www/includes/database-engines/Database.class.php'); // path to Database.class.php
 
 $siteinfo = array(
   'siteDomain' => "localhost",
   'siteName' => "Vbox Localhost",
   'copyright' => "2015 Barton L. Phillips",
-  'memberTable' => 'mymembers',
+  'memberTable' => 'members',
   'dbinfo' => array(
-    'host' => 'localhost',
-    'user' => 'barton',
-    'password' => '7098653',
-    'database' => 'barton',
-    'engine' => 'mysqli'
+    'database' => 'test.sdb',
+    'engine' => 'sqlite3'
   ),
 );
 
 $S = new SiteClass($siteinfo);
 
 list($top, $footer) = $S->getPageTopBottom();
+
 // Do some database operations
-$S->query("select concat(fname, ' ', lname) from {$siteinfo['memberTable']}";
+
+$S->query("select fname||' '||lname) from {$siteinfo['memberTable']}";
 $names = '';
+
 while(list($name) = $S->fetchrow('num')) {
   $names .= "$name<br>";
 }
 
 echo <<<EOF
 $top
-<h1>Banner</h1>
-<p>$nammes</p>
+<h1>Test 2</h1>
+<p>$names</p>
 $footer
 EOF;
 ```
@@ -117,27 +142,46 @@ The database could also be instantiated explicitly as follows:
 
 ``` php
 <?php
+// test3.php
+
 require-once('/var/www/includes/SiteClass.class.php'); // path to your SiteClass.class.php file.
-require-once('/var/www/includes/database-engines/Database.class.php'); // path to Database.class.php
 
 $siteinfo = array(
   'siteDomain' => "localhost",
   'siteName' => "Vbox Localhost",
   'copyright' => "2015 Barton L. Phillips",
-  'memberTable' => 'mymembers',
+  'memberTable' => 'members',
 );
 
 $dbinfo = array(
-  'host' => 'localhost',
-  'user' => 'barton',
-  'password' => '7098653',
-  'database' => 'barton',
+  'database' => 'test.sdb',
   'engine' => 'mysqli'
 );
 
 $siteifno['databaseClass'] = new Database($dbinfo);
 
 // The rest is like the above example. 
+
+$S = new SiteClass($siteinfo);
+
+list($top, $footer) = $S->getPageTopBottom();
+
+// Do some database operations
+$S->query("select fname||' '||lname from {$siteinfo['memberTable']}");
+
+$names = '';
+
+while(list($name) = $S->fetchrow('num')) {
+  $names .= "$name<br>";
+}
+
+echo <<<EOF
+$top
+<h1>Test 3</h1>
+<p>$names</p>
+<hr>
+$footer
+EOF;
 ```
 <hr>
 You can also use the siteautoload.class.php and .sitemap.php to further automate working with the 
@@ -146,6 +190,8 @@ project directory as '.sitemap.php' and edit it to match your needs.
 
 ``` php
 <?php
+// test4.php
+
 require_once('/var/www/includes/siteautoload.class.php'); // path to siteautoload.class.php
 // the siteautoload.class.php first looks for the .sitemap.php file and then sets up class autoloader.
 // Now the class autoloader finds the classes that are required. The .sitemap.php has all the 
@@ -155,17 +201,21 @@ require_once('/var/www/includes/siteautoload.class.php'); // path to siteautoloa
 $S = new SiteClass($siteinfo);
 
 list($top, $footer) = $S->getPageTopBottom();
+
 // Do some database operations
+
 $S->query("select concat(fname, ' ', lname) from {$siteinfo['memberTable']}";
+
 $names = '';
+
 while(list($name) = $S->fetchrow('num')) {
   $names .= "$name<br>";
 }
 
 echo <<<EOF
 $top
-<h1>Banner</h1>
-<p>$nammes</p>
+<h1>Test 4</h1>
+<p>$names</p>
 $footer
 EOF;
 ```
@@ -190,8 +240,8 @@ $S = new SiteClass($siteinfo);
 $T = new dbTables($S);
 
 // Pass some info to getPageTopBottom method
-$h->title = "Table Test"; // Goes in the <title></title>
-$h->banner = "<h1>Create a table from the members database table</h1>; // becomes the <header> section
+$h->title = "Table Test 5"; // Goes in the <title></title>
+$h->banner = "<h1>Test 5</h1>"; // becomes the <header> section
 // Add some local css to but a border and padding on the table 
 $h->css = <<<EOF
   <style>
@@ -210,9 +260,11 @@ list($tbl) = $T->maketable($sql);
 echo <<<EOF
 $top
 <main>
+<h3>Create a table from the members database table</h3>
 <p>The members table follows:</p>
 $tbl
 </main>
+<hr>
 $footer
 EOF;
 ```
@@ -223,7 +275,7 @@ give your table an id or class or set any other attributes.
 # Class Methods
 
 While there are a number of methods for each of the major classes there are really only a small 
-handfull you will use on a regular bases. The one must used have some documentation with them.
+handful you will use on a regular bases. The one must used have some documentation with them.
 
 ## SiteClass methods:
 
@@ -241,7 +293,7 @@ handfull you will use on a regular bases. The one must used have some documentat
 This is the most used method. It takes one or two arguments which can be string|array|object.  
 $h can have 'title', 'desc', 'banner' and a couple of other less used options.  
 $b is for the footer or bottom. I usually just pass a &lt;hr&gt; but you can also pass a 'msg', 'msg1',
-'msg2' etc. I usually put things into the 'footerFile' but on ocasions a page needs something extra.  
+'msg2' etc. I usually put things into the 'footerFile' but on occasions a page needs something extra.  
 This method ends up calling getPageHead, getBanner(), getFooter().
 * public function getPageTop($header, $banner=null, $bodytag=null)
 * public function getDoctype()
@@ -263,7 +315,7 @@ Probably the second most used method. If it follows the 'query' the $result is n
 time $result is needed is is there are other queries in a while loop. In that case you need to get
 the result of the query by calling the getResult() method before running the while loop.  
 The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only an associative array, while 'num'
-return a numberic array. I usually use a numeric array with
+return a numeric array. I usually use a numeric array with
 ``` php
 while(list($name, $email) = $S->fetchrow('num')) { ... }
 ```

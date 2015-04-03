@@ -120,7 +120,6 @@ class dbTables {
     }
 
     // A call back could do a select so we need to keep this local!!
-    
     $result = $this->db->getResult(); 
 
     $delim = $extra['delim'];
