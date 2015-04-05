@@ -18,4 +18,5 @@
     "require": {
         "php": ">=5.4",
         "bartonlp/site-class" : "dev-master"
+    }
 }
