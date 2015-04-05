@@ -21,8 +21,6 @@
     },
     "minimum-stability": "stable",
     "autoload" : {
-        "classmap": [
-            "includes"
-        ]
+        "psr-4": {"SiteClass" : "includes/"}
     }
 }
