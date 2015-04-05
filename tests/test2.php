@@ -9,13 +9,10 @@ $siteinfo = array(
   'siteDomain' => "localhost",
   'siteName' => "Vbox Localhost",
   'copyright' => "2015 Barton L. Phillips",
-  'memberTable' => 'pokermembers',
+  'memberTable' => 'members',
   'dbinfo' => array(
-    'host' => 'localhost',
-    'user' => 'barton',
-    'password' => '7098653',
-    'database' => 'barton',
-    'engine' => 'mysqli'
+    'database' => 'test.sdb',
+    'engine' => 'sqlite3'
   ),
 );
 
@@ -27,7 +24,7 @@ $S = new SiteClass($siteinfo);
 list($top, $footer) = $S->getPageTopBottom();
 
 // Do some database operations
-$S->query("select concat(fname, ' ', lname) from {$siteinfo['memberTable']}");
+$S->query("select fname||' '||lname from {$siteinfo['memberTable']}");
 
 $names = '';
 
