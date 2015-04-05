@@ -10,10 +10,10 @@
         }
     ],
     "repositories": [
-      {
-        "type": "vcs",
-        "url": "https://github.com/bartonlp/SiteClass.git"
-      }
+        {
+            "type": "vcs",
+            "url": "https://github.com/bartonlp/SiteClass.git"
+        }
     ],
     "require": {
         "php": ">=5.4",
