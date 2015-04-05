@@ -20,6 +20,6 @@
     },
     "minimum-stability": "stable",
     "autoload" : {
-        "psr-4": {"site-class" : "includes/"}
+        "psr-4": {"site-class\/" : "includes/"}
     }
 }
