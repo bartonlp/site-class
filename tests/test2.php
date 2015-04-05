@@ -14,6 +14,7 @@ $siteinfo = array(
     'database' => 'test.sdb',
     'engine' => 'sqlite3'
   ),
+  'count' => false
 );
 
 Error::setNoEmailErrs(true);
