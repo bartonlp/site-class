@@ -25,7 +25,7 @@
             "includes/database-engines"
         ],
         "files": [
-            "includes/database-enbines/helper-functions.php"
+            "includes/database-engines/helper-functions.php"
         ]
     }
 }
