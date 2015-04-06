@@ -23,7 +23,7 @@
         "classmap": [
             "includes",
             "includes/database-engines"
-        ].
+        ],
         "files": [
             "includes/database-enbines/helper-functions.php"
         ]
