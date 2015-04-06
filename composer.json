@@ -27,5 +27,8 @@
         "files": [
             "includes/database-engines/helper-functions.php"
         ]
+    },
+    "scripts" : {
+        "post-install-cmd" : "cp -r vendor/bartonlp/site-class/tests examples"
     }
 }

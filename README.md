@@ -37,10 +37,28 @@ I ```cd``` to the test directory and do
 'index.php' file.
 
 ### Use Composer
-Working on this but don't have it all figured out yet.
+Create a directory and add the following to 'composer.json':
+```
+{
+  "require": {
+      "php": ">=5.4",
+      "bartonlp/site-class": "dev-master"
+  }
+}
+```
+
+Then run ```composer install```.
+
+In you php file add ```require_once($PATH . 'vendor/autoload.php');``` where 'vendor' 
+is the path to the 'vendor' directory like './' or '../' etc.
+
+There are some example files in the 'tests' directory at '/vendor/bartonlp/site-class/tests'.
+The files start 'composer-test' and a number dot php.
 
 ## Examples and TESTS
-The code shown below can be found in the 'tests' directory at http://github.com/bartonlp/SiteClass. 
+The code shown below can be found in the 'tests' directory at 
+http://github.com/bartonlp/SiteClass or at 'vendor/bartonlp/site-class/tests' along with
+more documentation. 
 The code there is slightly different to enable it to require from the 'includes' directory 
 relative to the 'tests' directory. Also error reporting is enabled. 
 
