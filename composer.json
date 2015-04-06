@@ -22,7 +22,7 @@
     "autoload" : {
         "classmap": [
             "includes",
-            "includes/database_engines"
+            "includes/database-engines"
         ]
     }
 }
