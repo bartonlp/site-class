@@ -19,11 +19,10 @@
         "php": ">=5.4"
     },
     "minimum-stability": "stable",
-        "autoload" : {
-            "classmap": [
-                "includes",
-                "includes/database_engines"
-            ]
-        }
+    "autoload" : {
+        "classmap": [
+            "includes",
+            "includes/database_engines"
+        ]
     }
 }
