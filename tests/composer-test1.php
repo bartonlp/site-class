@@ -1,7 +1,7 @@
 <?php
-// test1.php
+// composer-test1.php
 
-require_once("../includes/SiteClass.class.php");
+require_once("../vendor/autoload.php");
 
 $siteinfo = array(
   'siteDomain' => "localhost",

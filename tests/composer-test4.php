@@ -1,19 +1,8 @@
-<?php  
-// test2.php
+<?php
+// composer-test4.php
 
-require_once("../includes/SiteClass.class.php");
-
-$siteinfo = array(
-  'siteDomain' => "localhost",
-  'siteName' => "Vbox Localhost",
-  'copyright' => "2015 Barton L. Phillips",
-  'memberTable' => 'members',
-  'dbinfo' => array(
-    'database' => 'test.sdb',
-    'engine' => 'sqlite3'
-  ),
-  'count' => false
-);
+require_once("../vendor/autoload.php");
+require_once(".sitemap.php");
 
 Error::setNoEmailErrs(true);
 Error::setDevelopment(true);
@@ -26,14 +15,13 @@ list($top, $footer) = $S->getPageTopBottom();
 $S->query("select fname||' '||lname from {$siteinfo['memberTable']}");
 
 $names = '';
-
 while(list($name) = $S->fetchrow('num')) {
   $names .= "$name<br>";
 }
 
 echo <<<EOF
 $top
-<h1>Test 2</h1>
+<h1>Test 4</h1>
 <p>$names</p>
 <hr>
 $footer

@@ -1,22 +1,27 @@
-<?php  
-// test2.php
+<?php
+// composer-test3.php
 
-require_once("../includes/SiteClass.class.php");
+require_once("../vendor/autoload.php");
 
 $siteinfo = array(
   'siteDomain' => "localhost",
   'siteName' => "Vbox Localhost",
   'copyright' => "2015 Barton L. Phillips",
   'memberTable' => 'members',
-  'dbinfo' => array(
-    'database' => 'test.sdb',
-    'engine' => 'sqlite3'
-  ),
-  'count' => false
+  'count' => false,
+);
+
+$dbinfo = array(
+  'database' => 'test.sdb',
+  'engine' => 'sqlite3'
 );
 
 Error::setNoEmailErrs(true);
 Error::setDevelopment(true);
+
+$siteinfo['databaseClass'] = new Database($dbinfo);
+
+// The rest is like the above example. 
 
 $S = new SiteClass($siteinfo);
 
@@ -33,7 +38,7 @@ while(list($name) = $S->fetchrow('num')) {
 
 echo <<<EOF
 $top
-<h1>Test 2</h1>
+<h1>Test 3</h1>
 <p>$names</p>
 <hr>
 $footer

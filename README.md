@@ -37,15 +37,23 @@ I ```cd``` to the test directory and do
 'index.php' file.
 
 ### Use Composer
-Create a directory and add the following to 'composer.json':
+Create a directory and add the following to 'composer.json', just cut and past:
 ```
 {
   "require": {
       "php": ">=5.4",
       "bartonlp/site-class": "dev-master"
+  },
+  "scripts": {
+      "post-install-cmd": [
+          "ln -s vendor/bartonlp/site-class/tests examples"
+      ]
   }
 }
 ```
+
+The &quot;scripts&quot; section in the composer.json creates a symbolic link to the 'tests'
+directory in your project root. All of the examples and documentation will be in 'examples'.
 
 Then run ```composer install```.
 
@@ -56,9 +64,9 @@ There are some example files in the 'tests' directory at '/vendor/bartonlp/site-
 The files start 'composer-test' and a number dot php.
 
 ## Examples and TESTS
-The code shown below can be found in the 'tests' directory at 
+The code shown below can be found in the 'examples' directory or the 'tests' directory at 
 http://github.com/bartonlp/SiteClass or at 'vendor/bartonlp/site-class/tests' along with
-more documentation. 
+more <a href="examples/EXAMPLES.html">documentation</a>. 
 The code there is slightly different to enable it to require from the 'includes' directory 
 relative to the 'tests' directory. Also error reporting is enabled. 
 
