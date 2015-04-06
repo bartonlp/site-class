@@ -29,6 +29,9 @@
         ]
     },
     "scripts" : {
-        "post-install-cmd" : "cp -r vendor/bartonlp/site-class/tests examples"
+        "post-package-install" : [
+            "ln -s vendor/bartonlp/site-class/tests examples",
+            "echo 'Finished Symlink of examples'"
+        ]
     }
 }
