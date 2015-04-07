@@ -1,7 +1,7 @@
 <?php
 // insert-update.php
 
-require_once("../includes/siteautoload.class.php");
+require_once("../vendor/bartonlp/site-class/includes/siteautoload.class.php");
 
 Error::setNoEmailErrs(true);
 Error::setDevelopment(true);

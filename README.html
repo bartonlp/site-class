@@ -28,21 +28,19 @@
   &quot;require&quot;: {
       &quot;php&quot;: &quot;&gt;=5.4&quot;,
       &quot;bartonlp/site-class&quot;: &quot;dev-master&quot;
-  },
-  &quot;scripts&quot;: {
-      &quot;post-install-cmd&quot;: [
-          &quot;ln -s vendor/bartonlp/site-class/tests examples&quot;
-      ]
   }
 }</code></pre>
-<p>The &quot;scripts&quot; section in the composer.json creates a symbolic link to the 'tests'<br />directory in your project root. All of the examples and documentation will be in 'examples'.</p>
+<p>The &quot;scripts&quot; section in the composer.json creates a symbolic link to the 'examples'<br />directory in your project root. All of the examples and documentation will be in 'examples'.</p>
 <p>Then run <code>composer install</code>.</p>
 <p>In you php file add <code>require_once($PATH . 'vendor/autoload.php');</code> where 'vendor'<br />is the path to the 'vendor' directory like './' or '../' etc.</p>
-<p>There are some example files in the 'tests' directory at '/vendor/bartonlp/site-class/tests'.<br />The files start 'composer-test' and a number dot php.</p>
-<h2 id="examples-and-tests">Examples and TESTS</h2>
-<p>The code shown below can be found in the 'examples' directory or the 'tests' directory at<br /><a href="http://github.com/bartonlp/SiteClass">http://github.com/bartonlp/SiteClass</a> or at 'vendor/bartonlp/site-class/tests' along with<br />more <a href="examples/EXAMPLES.html">documentation</a>.<br />The code there is slightly different to enable it to require from the 'includes' directory<br />relative to the 'tests' directory. Also error reporting is enabled.</p>
-<p>The 'tests' code uses the 'sqlite3' engine. I have included a 'sqlite.sql' file that can be run from<br />the command line. You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.<br />From the command line in the directory where the SiteClass<br />was downloaded:</p>
-<pre><code>$ cd tests
+<p>There are some example files in the 'examples' directory at<br />'/vendor/bartonlp/site-class/examples'.<br />The files start 'composer-test' and a number dot php.</p>
+<h2 id="examples">Examples</h2>
+<p>The code shown below can be found in the 'examples' directory at<br /><a href="http://github.com/bartonlp/site-class">http://github.com/bartonlp/site-class</a> or at 'vendor/bartonlp/site-class/examples' along with<br />more <a href="examples/EXAMPLES.html">documentation</a>. You should copy (or move) the examples<br />to your project root directory before running them. If you don't have Apache or Nginx installed<br />on your computer you can use the PHP server. Do the following:</p>
+<pre><code>cd examples
+php -S localhost:8080</code></pre>
+<p>Then use your browser by entering <code>http://localhost:8080/EXAMPLES.html</code> in the browsers<br />location bar.</p>
+<p>The 'examples' code uses the 'sqlite3' engine. I have included a 'sqlite.sql' file that can be run from<br />the command line. You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.<br />From the command line in the directory where the SiteClass<br />was downloaded:</p>
+<pre><code>$ cd examples
 $ sqlite3 test.sdb
 sqlite&gt; .read sqlite.sql
 sqlite&gt; .table
@@ -161,7 +159,7 @@ $</code></pre>
 <span class="kw">EOF;</span></code></pre>
 <hr>
 
-<p>You can also use the siteautoload.class.php and .sitemap.php to further automate working with the<br />framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your<br />project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php<br />file in the 'tests' directory to see it you need to do <code>ls -a</code>.</p>
+<p>You can also use the siteautoload.class.php and .sitemap.php to further automate working with the<br />framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your<br />project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php<br />file in the 'examples' directory to see it you need to do <code>ls -a</code>.</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// test4.php</span>
 
@@ -294,7 +292,7 @@ $</code></pre>
 <li>script<br /></li>
 <li>css</li>
 </ul>
-<p>As you saw in example 5 above (test5.php in the 'tests' directory) I passed a $h object to the<br />SiteClass. For example:</p>
+<p>As you saw in example 5 above (test5.php in the 'examples' directory)<br />I passed a $h object to the SiteClass. For example:</p>
 <pre class="sourceCode php"><code class="sourceCode php">$h-&gt;title = &#39;my title&#39;;
 $h-&gt;desc = &#39;This is the description&#39;;
 $h-&gt;link = &#39;&lt;link rel=&quot;stylesheet&quot; href=&quot;test.css&quot;&gt;&#39;;

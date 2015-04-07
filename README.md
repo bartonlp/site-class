@@ -43,16 +43,11 @@ Create a directory and add the following to 'composer.json', just cut and past:
   "require": {
       "php": ">=5.4",
       "bartonlp/site-class": "dev-master"
-  },
-  "scripts": {
-      "post-install-cmd": [
-          "ln -s vendor/bartonlp/site-class/tests examples"
-      ]
   }
 }
 ```
 
-The &quot;scripts&quot; section in the composer.json creates a symbolic link to the 'tests'
+The &quot;scripts&quot; section in the composer.json creates a symbolic link to the 'examples'
 directory in your project root. All of the examples and documentation will be in 'examples'.
 
 Then run ```composer install```.
@@ -60,22 +55,31 @@ Then run ```composer install```.
 In you php file add ```require_once($PATH . 'vendor/autoload.php');``` where 'vendor' 
 is the path to the 'vendor' directory like './' or '../' etc.
 
-There are some example files in the 'tests' directory at '/vendor/bartonlp/site-class/tests'.
+There are some example files in the 'examples' directory at
+'/vendor/bartonlp/site-class/examples'.
 The files start 'composer-test' and a number dot php.
 
-## Examples and TESTS
-The code shown below can be found in the 'examples' directory or the 'tests' directory at 
-http://github.com/bartonlp/SiteClass or at 'vendor/bartonlp/site-class/tests' along with
-more <a href="examples/EXAMPLES.html">documentation</a>. 
-The code there is slightly different to enable it to require from the 'includes' directory 
-relative to the 'tests' directory. Also error reporting is enabled. 
+## Examples
+The code shown below can be found in the 'examples' directory at 
+http://github.com/bartonlp/site-class or at 'vendor/bartonlp/site-class/examples' along with
+more <a href="examples/EXAMPLES.html">documentation</a>. You should copy (or move) the examples 
+to your project root directory before running them. If you don't have Apache or Nginx installed
+on your computer you can use the PHP server. Do the following:
 
-The 'tests' code uses the 'sqlite3' engine. I have included a 'sqlite.sql' file that can be run from
+```
+cd examples
+php -S localhost:8080
+```
+
+Then use your browser by entering ```http://localhost:8080/EXAMPLES.html``` in the browsers
+location bar.
+
+The 'examples' code uses the 'sqlite3' engine. I have included a 'sqlite.sql' file that can be run from
 the command line. You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.
 From the command line in the directory where the SiteClass
 was downloaded:
 ```
-$ cd tests
+$ cd examples
 $ sqlite3 test.sdb
 sqlite> .read sqlite.sql
 sqlite> .table
@@ -219,7 +223,7 @@ EOF;
 You can also use the siteautoload.class.php and .sitemap.php to further automate working with the 
 framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your
 project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php
-file in the 'tests' directory to see it you need to do ``` ls -a```.
+file in the 'examples' directory to see it you need to do ``` ls -a```.
 
 ``` php
 <?php
@@ -384,8 +388,9 @@ getPageTopBottom method and the various sub-methods but the standard things are:
 * script
 * css
 
-As you saw in example 5 above (test5.php in the 'tests' directory) I passed a $h object to the
-SiteClass. For example:
+As you saw in example 5 above (test5.php in the 'examples' directory) 
+I passed a $h object to the SiteClass. For example:
+
 ``` php
 $h->title = 'my title';
 $h->desc = 'This is the description';

@@ -6,6 +6,7 @@ DocumentRoot (look at /etc/apache2/sites-enabled/000-default.conf the default si
 configuration file).
 
 The following examples are provided:
+
 1. <a href="test1.php">test1.php</a>
 2. <a href="test2.php">test2.php</a>
 3. <a href="test3.php">test3.php</a>
@@ -17,6 +18,7 @@ or the siteautoload.class.php via '../includes/'.
 
 The next five examples use the composer autoloader:
 ```require_once('../vendor/autoload.php');```
+
 1. <a href="composer-test1.php">composer-test1.php</a>
 2. <a href="composer-test2.php">composer-test2.php</a>
 3. <a href="composer-test3.php">composer-test3.php</a>
@@ -24,6 +26,7 @@ The next five examples use the composer autoloader:
 5. <a href="composer-test5.php">composer-test5.php</a>
 
 The next two examples show insertion and updating of the database and dbTables useage.
+
 1. <a href="insert-update.php">insert-update.php</a>
 2. <a href="composer-insert-update.php">composer-insert-update.php</a>
 

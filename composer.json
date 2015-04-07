@@ -27,11 +27,5 @@
         "files": [
             "includes/database-engines/helper-functions.php"
         ]
-    },
-    "scripts" : {
-        "post-autoload-dump" : [
-            "ln -s vendor/bartonlp/site-class/tests examples",
-            "echo 'Finished Symlink of examples'"
-        ]
     }
 }

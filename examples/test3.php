@@ -1,7 +1,7 @@
 <?php
 // test3.php
 
-require_once("../includes/SiteClass.class.php");
+require_once("../vendor/bartonlp/site-class/includes/SiteClass.class.php");
 
 $siteinfo = array(
   'siteDomain' => "localhost",

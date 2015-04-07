@@ -1,7 +1,7 @@
 <?php
 // test5.php
 
-require_once('../includes/siteautoload.class.php'); // path to siteautoload.class.php
+require_once('../vendor/bartonlp/site-class/includes/siteautoload.class.php'); // path to siteautoload.class.php
 
 Error::setNoEmailErrs(true);
 Error::setDevelopment(true);
