@@ -12,7 +12,7 @@
 <ol>
 <li>Mysql (depreciated)<br /></li>
 <li>Mysqli (most rigorously tested)<br /></li>
-<li>sqlite<br /></li>
+<li>sqlite3 (used for the examples)<br /></li>
 <li>POD (least tested)</li>
 </ol>
 <h2 id="disclamer">Disclamer</h2>
@@ -46,24 +46,26 @@ cp vendor/bartonlp/site-class/README.html .</code></pre>
 <p>If you don't have Apache or Nginx installed on your computer you can use the PHP server.<br />Do the following from your project root:</p>
 <pre><code>php -S localhost:8080</code></pre>
 <p>Then use your browser by entering <code>http://localhost:8080/README.html</code> in the browsers<br />location bar.</p>
-<p>The 'examples' code uses the <strong>sqlite3</strong> engine.<br />I have included a 'sqlite.sql' file that can be run from the command line.<br />You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.<br />From the command line in the directory where the SiteClass was downloaded:</p>
+<p>The 'examples' code uses the <strong>sqlite3</strong> engine.<br />There should be a 'test.sdb' database file in the 'examples' directory already.</p>
+<p>I have included a 'sqlite.sql' file that can be run from the command line if you want to<br />recreate the 'members' table.<br />You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.<br />From the command line in the directory where the SiteClass was downloaded:</p>
 <pre><code>$ cd examples
 $ sqlite3 test.sdb
+sqlite&gt; drop table members;
 sqlite&gt; .read sqlite.sql
 sqlite&gt; .table
 members
-sqlite&gt; select * from members;
-Big|Joe
-Little|Joe
-Barton|Phillips
-Someone|Else
+sqlite&gt; select rowid,* from members;
+1|Big|Joe
+2|Little|Joe
+3|Barton|Phillips
+4|Someone|Else
 sqlite&gt; .quit
 $</code></pre>
-<p>This should create the 'members' table in the 'test.sdb' database.</p>
+<p>This should create a new 'members' table in the 'test.sdb' database.</p>
 <hr>
 
 
-<p>These examples assume that the 'includes' directory is at /var/www as I suggested.</p>
+<p>These examples assume that the 'includes' directory is at /var/www as I suggested.<br />The files in the 'examples' directory use either '../vendor/bartonlp/site-class/includes' or<br />'../vendor/autoload.php' for the 'composer-*' variants.</p>
 <p>There are a number of ways to use the framework:</p>
 <p><strong>First</strong> you can just use the SiteClass all by itself.</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>

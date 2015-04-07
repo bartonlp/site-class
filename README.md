@@ -11,10 +11,10 @@ This project has several parts that can function standalone or combined.
 
 The following database engines are provided:
 
-1. Mysql  (depreciated)
-2. Mysqli (most rigorously tested)
-3. sqlite 
-4. POD    (least tested)
+1. Mysql   (depreciated)
+2. Mysqli  (most rigorously tested)
+3. sqlite3 (used for the examples)
+4. POD     (least tested)
 
 ## Disclamer
 
@@ -102,31 +102,37 @@ php -S localhost:8080
 Then use your browser by entering ```http://localhost:8080/README.html``` in the browsers
 location bar.
 
-The 'examples' code uses the **sqlite3** engine. 
-I have included a 'sqlite.sql' file that can be run from the command line. 
+The 'examples' code uses the **sqlite3** engine.
+There should be a 'test.sdb' database file in the 'examples' directory already.
+
+I have included a 'sqlite.sql' file that can be run from the command line if you want to
+recreate the 'members' table.
 You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.
 From the command line in the directory where the SiteClass was downloaded:
 
 ```
 $ cd examples
 $ sqlite3 test.sdb
+sqlite> drop table members;
 sqlite> .read sqlite.sql
 sqlite> .table
 members
-sqlite> select * from members;
-Big|Joe
-Little|Joe
-Barton|Phillips
-Someone|Else
+sqlite> select rowid,* from members;
+1|Big|Joe
+2|Little|Joe
+3|Barton|Phillips
+4|Someone|Else
 sqlite> .quit
 $
 ```
 
-This should create the 'members' table in the 'test.sdb' database.
+This should create a new 'members' table in the 'test.sdb' database.
 
 <hr>
 
 These examples assume that the 'includes' directory is at /var/www as I suggested.
+The files in the 'examples' directory use either '../vendor/bartonlp/site-class/includes' or
+'../vendor/autoload.php' for the 'composer-*' variants.
 
 There are a number of ways to use the framework:
 
