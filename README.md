@@ -17,12 +17,15 @@ This project has several parts that can function standalone or combined.
 * Error and Exception classes
 * SiteClass.class.php : tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.
 
-## Install
+## Disclamer
 
 To start, this framework is meant for Linux not Windows. I don't use Windows, 
-like it or have it so nothing has been tried on Windows. 
+like it or have it, so nothing has been tried on Windows. 
+
 I use Linux Mint which is an Ubuntu derivative which is a Debian
 derivative. I have not tried this package on any distributions that do not evolve from Debian.
+
+## Install
 
 There are several ways to install this project. 
 
