@@ -3,43 +3,51 @@
 <p>This project has several parts that can function standalone or combined.</p>
 <ul>
 <li>siteautoload.class.php : Autoload classes and reads a .sitemap.php file to initialize the system.<br /></li>
-<li>Database.class.php : provides a wrapper for several different database engines.<br /><ul><br /></li>
+<li>Database.class.php : provides a wrapper for several different database engines.</li>
 </ul>
-<ol>
-<li>Mysql (depreciated)<br /></li>
-<li>Mysqli (most rigorously tested)<br /></li>
-<li>sqlite<br /></li>
-<li>POD (least tested)<br /></ul><br /></li>
-</ol>
+<ul>
+1. Mysql  (depreciated)
+2. Mysqli (most rigorously tested)
+3. sqlite 
+4. POD    (least tested)
+</ul>
+
+
 <ul>
 <li>dbTables.class.php : uses the functionality of Database.class.php to make creating tables easy.<br /></li>
 <li>Error and Exception classes<br /></li>
 <li>SiteClass.class.php : tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.</li>
 </ul>
 <h2 id="install">Install</h2>
-<p>To start this framework is meant for Linux not Windows. I don't use Windows, like it or have it so<br />nothing has been tried on Windows. I use Linux Mint which is an Ubuntu derivative which is a Debian<br />derivative. I have not tried this package on any distributions that do not evolve from Debian.</p>
+<p>To start, this framework is meant for Linux not Windows. I don't use Windows,<br />like it or have it so nothing has been tried on Windows.<br />I use Linux Mint which is an Ubuntu derivative which is a Debian<br />derivative. I have not tried this package on any distributions that do not evolve from Debian.</p>
 <p>There are several ways to install this project.</p>
 <h3 id="download-the-zip-file">Download The ZIP File</h3>
 <p>Download the ZIP file from GitHub. Expand it and move the 'includes' directory somewhere.<br />On a system with Apache2 I usually put the 'includes' directory in the /var/www directory<br />that Apache creates. Apache also usually creates /var/www/html and makes this the default DocumentRoot.<br />I put the 'includes' directory just outside of the DocumentRoot. In my servers I have /var/www and then<br />have my virtual hosts off that directory. That way the 'includes' directory is easily available to all<br />of my virtual hosts.</p>
 <p>If you are testing with the PHP server I put a www directory off my $HOME and put the<br />'includes' directory there.<br />I then make my test DocumentRoot off ~/www like ~/www/test.<br />I <code>cd</code> to the test directory and do<br /><code>php -S localhost:8080</code>. I can then use my browser and goto <code>localhost:8080</code> and see my<br />'index.php' file.</p>
 <h3 id="use-composer">Use Composer</h3>
-<p>Create a directory and add the following to 'composer.json', just cut and past:</p>
+<p>If you have Apache or Nginx installed then you should made your project root somewhere<br />withing your DocumentRoot (/var/www/html for Apache2 on Ubuntu).</p>
+<p>Create a directory <code>mkdir myproject; cd myproject</code>, this is your project root directory.<br />Add the following to 'composer.json', just cut and past:</p>
 <pre><code>{
   &quot;require&quot;: {
       &quot;php&quot;: &quot;&gt;=5.4&quot;,
       &quot;bartonlp/site-class&quot;: &quot;dev-master&quot;
   }
 }</code></pre>
-<p>The &quot;scripts&quot; section in the composer.json creates a symbolic link to the 'examples'<br />directory in your project root. All of the examples and documentation will be in 'examples'.</p>
 <p>Then run <code>composer install</code>.</p>
-<p>In you php file add <code>require_once($PATH . 'vendor/autoload.php');</code> where 'vendor'<br />is the path to the 'vendor' directory like './' or '../' etc.</p>
-<p>There are some example files in the 'examples' directory at<br />'/vendor/bartonlp/site-class/examples'.<br />The files start 'composer-test' and a number dot php.</p>
+<p><strong>OR</strong> you can just run <code>composer require bartonlp/site-class:dev-master</code> which will create<br />the 'composer.json' for you and load the package like 'install'.</p>
+<p>In your PHP file add <code>require_once($PATH . 'vendor/autoload.php');</code> where '$PATH'<br />is the path to the 'vendor' directory like './' or '../' etc.</p>
+<p>There are some example files in the 'examples' directory at<br />'/vendor/bartonlp/site-class/examples' or 'examples' in your project root if you copied<br />the it there.</p>
 <h2 id="examples">Examples</h2>
-<p>The code shown below can be found in the 'examples' directory at<br /><a href="http://github.com/bartonlp/site-class">http://github.com/bartonlp/site-class</a> or at 'vendor/bartonlp/site-class/examples' along with<br />more <a href="examples/EXAMPLES.html">documentation</a>. You should copy (or move) the examples<br />to your project root directory before running them. If you don't have Apache or Nginx installed<br />on your computer you can use the PHP server. Do the following:</p>
-<pre><code>cd examples
-php -S localhost:8080</code></pre>
-<p>Then use your browser by entering <code>http://localhost:8080/EXAMPLES.html</code> in the browsers<br />location bar.</p>
-<p>The 'examples' code uses the 'sqlite3' engine. I have included a 'sqlite.sql' file that can be run from<br />the command line. You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.<br />From the command line in the directory where the SiteClass<br />was downloaded:</p>
+<p>The code shown below can be found in the 'examples' directory at<br /><a href="http://github.com/bartonlp/site-class">http://github.com/bartonlp/site-class</a> or at 'vendor/bartonlp/site-class/examples' along with<br />more <a href="examples/EXAMPLES.html">documentation</a>.</p>
+<p>You may want to copy (or move)<br />the examples and the 'README.html' to your project root directory before running them.</p>
+<p>From your project root do:</p>
+<pre><code>cp -r vendor/bartonlp/site-class/examples .
+cp vendor/bartonlp/site-class/README.html .</code></pre>
+<p>If you have Apache or Nginx installed then you should have made your project root somewhere<br />withing your DocumentRoot, for example /var/www/html/myproject.</p>
+<p>If you don't have Apache or Nginx installed on your computer you can use the PHP server.<br />Do the following from your project root:</p>
+<pre><code>php -S localhost:8080</code></pre>
+<p>Then use your browser by entering <code>http://localhost:8080/README.html</code> in the browsers<br />location bar.</p>
+<p>The 'examples' code uses the <strong>sqlite3</strong> engine.<br />I have included a 'sqlite.sql' file that can be run from the command line.<br />You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.<br />From the command line in the directory where the SiteClass was downloaded:</p>
 <pre><code>$ cd examples
 $ sqlite3 test.sdb
 sqlite&gt; .read sqlite.sql
@@ -52,7 +60,11 @@ Barton|Phillips
 Someone|Else
 sqlite&gt; .quit
 $</code></pre>
-<p>This should create the 'members' table in the 'test.sdb' database.<br /><hr><br />These examples assume that the 'includes' directory is at /var/www as I suggested.</p>
+<p>This should create the 'members' table in the 'test.sdb' database.</p>
+<hr>
+
+
+<p>These examples assume that the 'includes' directory is at /var/www as I suggested.</p>
 <p>There are a number of ways to use the framework:</p>
 <p><strong>First</strong> you can just use the SiteClass all by itself.</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
@@ -75,7 +87,10 @@ $</code></pre>
 <span class="st">&lt;p&gt;Stuff&lt;/p&gt;</span>
 <span class="kw">$footer</span>
 <span class="kw">EOF;</span></code></pre>
-<p>That is the simplest usage. You get a generic &lt;head&gt; a blank &lt;header&gt; and a generic<br />&lt;footer&gt;.<br />No database or other stuff.<br /><hr></p>
+<p>That is the simplest usage. You get a generic &lt;head&gt; a blank &lt;header&gt; and a generic<br />&lt;footer&gt;.<br />No database or other stuff.</p>
+<hr>
+
+
 <p>You can extend this by adding a database either by instantiating the Database class directly or<br />indirectly.</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// test2.php</span>
@@ -113,7 +128,11 @@ $</code></pre>
 <span class="st">&lt;p&gt;</span><span class="kw">$names</span><span class="st">&lt;/p&gt;</span>
 <span class="kw">$footer</span>
 <span class="kw">EOF;</span></code></pre>
-<p>The above example uses the 'query' and 'fetchrow' methods to do some database operations.<br /><hr><br />The database could also be instantiated explicitly as follows:</p>
+<p>The above example uses the 'query' and 'fetchrow' methods to do some database operations.</p>
+<hr>
+
+
+<p>The database could also be instantiated explicitly as follows:</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// test3.php</span>
 
@@ -159,6 +178,7 @@ $</code></pre>
 <span class="kw">EOF;</span></code></pre>
 <hr>
 
+
 <p>You can also use the siteautoload.class.php and .sitemap.php to further automate working with the<br />framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your<br />project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php<br />file in the 'examples' directory to see it you need to do <code>ls -a</code>.</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// test4.php</span>
@@ -190,6 +210,7 @@ $</code></pre>
 <span class="kw">$footer</span>
 <span class="kw">EOF;</span></code></pre>
 <hr>
+
 
 <p>In addition to the SiteClass and Database classes there are several others classes:</p>
 <ul>
@@ -239,6 +260,7 @@ $</code></pre>
 <span class="kw">EOF;</span></code></pre>
 <p>The maketable method takes several optional options to help setup the table. Using the options you can<br />give your table an id or class or set any other attributes. You can also pass 'callback' function<br />which can modify the rows as they are selected.</p>
 <hr>
+
 
 <h2 id="the-dot-sitemap-file">The dot sitemap File</h2>
 <p>The .sitemap.php file is the site configuration file. siteautoload.clas.php looks for the .sitemap.php<br />file in the current directory. If it does not find it there it moves up to the parent directory. This<br />continues until the DocumentRoot of the domain is reached. If a .sitemap.php file is not found an<br />exception is thrown.</p>
