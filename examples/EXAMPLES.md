@@ -5,7 +5,10 @@ is installed on a Ubuntu system. By default the Apache2 install makes /var/www/h
 DocumentRoot (look at /etc/apache2/sites-enabled/000-default.conf the default site 
 configuration file).
 
-The following examples are provided:
+The following examples are provided.
+
+The first examples either 'require_once' the SiteClass.class.php
+or the siteautoload.class.php via '../vendor/bartonlp/site-class/includes/'.
 
 1. <a href="test1.php">test1.php</a>
 2. <a href="test2.php">test2.php</a>
@@ -13,12 +16,7 @@ The following examples are provided:
 4. <a href="test4.php">test4.php</a>
 5. <a href="test5.php">test5.php</a>
 
-The five above examples either ```require_once``` the SiteClass.class.php
-or the siteautoload.class.php via '../vendor/bartonlp/site-class/includes/'.
-
 The next five examples use the composer autoloader:
-
-```require_once('../vendor/autoload.php');```
 
 1. <a href="composer-test1.php">composer-test1.php</a>
 2. <a href="composer-test2.php">composer-test2.php</a>
