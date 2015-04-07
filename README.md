@@ -76,7 +76,8 @@ the it there.
 
 ## Examples
 The code shown below can be found in the 'examples' directory at 
-http://github.com/bartonlp/site-class or at 'vendor/bartonlp/site-class/examples' along with
+http://github.com/bartonlp/site-class or from your project root 
+at 'vendor/bartonlp/site-class/examples' along with
 more <a href="examples/EXAMPLES.html">documentation</a>. 
 
 You may want to copy (or move) 
