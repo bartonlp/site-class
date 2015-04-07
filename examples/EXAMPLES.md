@@ -14,9 +14,10 @@ The following examples are provided:
 5. <a href="test5.php">test5.php</a>
 
 The five above examples either ```require_once``` the SiteClass.class.php
-or the siteautoload.class.php via '../includes/'.
+or the siteautoload.class.php via '../vendor/bartonlp/site-class/includes/'.
 
 The next five examples use the composer autoloader:
+
 ```require_once('../vendor/autoload.php');```
 
 1. <a href="composer-test1.php">composer-test1.php</a>
