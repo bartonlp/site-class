@@ -1,6 +1,6 @@
 <?php
 // .sitemap.php for test4.php and test5.php
-define('TOP', '../');
+define('TOP', '../vendor/bartonlp/site-class');
 define('INCLUDES', TOP."/includes");
 define('DATABASE_ENGINES', INCLUDES."/database-engines");
 define('SITE_INCLUDES', SITE_ROOT."/includes"); // SITE_ROOT is defined in siteautoload.php!

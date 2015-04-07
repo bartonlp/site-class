@@ -71,9 +71,12 @@ $dbinfo = array('host' => 'localhost',
 // directly use 'className'=>'SiteClass' if you extend SiteClass via MyClass then
 // 'className'=>'MyClass'.
 // 'memberTable' if you have a table that has member or user information. If you have a
-// 'memberTable' it must have several fields. You can add additional fields and if you do so you
-// will probably need to extend SiteClass. See SiteClsss.class.php for a list of the required
-// fields.
+//   'memberTable' it must have several fields.
+//   You can add additional fields and if you do so you will probably need to
+//   extend SiteClass. See SiteClsss.class.php for a list of the required fields.
+//   Also, if 'memberTable' is defined you also need a 'memberpagecnt' table! You can pass
+//   'nomemberpagecnt' true to the SiteClass constructor if you have a member table and you
+//   do NOT want to count members.
 // 'headFile' SiteClass can provide a generic <head> section but you can provide your own
 // customized <head> section in a file.
 // 'bannerFile' as above.
@@ -81,8 +84,10 @@ $dbinfo = array('host' => 'localhost',
 // 'dbinfo' if you have a database above ($dbinfo). See info on the Database class and
 // 'databaseClass' passed to the SiteClass constructor.
 // 'count' should hits be counted. If yes then your database must have a 'counter' table as
-// described in SiteInfo.class.php.
-// 'countMe' should the webmaster or someone special be counted or not.
+// described in SiteInfo.class.php. If 'count' is ture then the following tables are required:
+//   counter, daycount and tracker. If you don't have these tables in your database DON'T
+//   enable 'count'! 'count' is false by default.
+// 'countMe' should the webmaster or someone special be counted or not. 'countMe' default false.
 // 'myUrl' the webmaster or someone special's domain.
 // You can extend the $siteinfo array to include things you may in an extended child class of
 // SiteInfo.
@@ -99,8 +104,8 @@ $siteinfo = array('siteDomain' => "localhost",
                   //'bannerFile' => SITE_INCLUDES."/banner.i.php",
                   //footerFile => SITE_INCLUDES."/footer.i.php"
                   'dbinfo' => $dbinfo,
-                  'count' => true,
-                  'countMe' => true, // Count BLP
+                  'count' => true, // NOTE this defaults to false
+                  'countMe' => true, // Count BLP. Also defaults to false
                   'myUri' => "bartonphillips.dyndns.org"
                  );
 

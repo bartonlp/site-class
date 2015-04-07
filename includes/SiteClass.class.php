@@ -1,8 +1,5 @@
 <?php
-// BLP 2015-04-01 -- if database info pressent and no databaseClass then instantiate the
-// database.
-// BLP 2014-12-31 -- Added Error::init() to constructor.
-// Added $h->footer to getPageTopBottom()
+// BLP 2015-04-07 -- For SiteClass project on github.com/bartonlp/site-class
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -20,7 +17,8 @@
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
  */
 
-// Note: the $this->memberTable format should have these fields as a minimum!
+// If we have a Database then the following applies:
+// The $this->memberTable format should have these fields as a minimum!
 // id: auto_increment
 // fname and lname: member's name
 // email: member's email address
@@ -28,11 +26,15 @@
 // lasttime: timestamp
 // visittime: datetime last visit. Set explicitly by logic not a timestamp
 //
-// We also create logip, logagent, memberpagecnt, and counter tables if they do not exist.
-// If you need more extensive table extend this class and overlay the methods you need
+// We also require logip, logagent, memberpagecnt, and counter tables if $this->nodb is false,
+// if $this->nodb is true then these table are not used.
+// 
+// If you need more extensive tables extend this class and overlay the methods you need
 // to change.
-// The following methods create or use tables:
-//   checkId(), daycount(), counter(), tracker(), getWhosBeenHereToday(), 
+//
+// The following methods use tables:
+//  checkId(), daycount(), counter(), tracker(), getWhosBeenHereToday()
+//  check these methods for more information about the table requirements.
 
 /**
  * @package SiteClass
@@ -70,7 +72,7 @@ class SiteClass extends dbAbstract {
   protected $databaseClass = null;
   protected $nodb = null;
   protected $nomemberpagecnt = false; // BLP 2014-09-16 -- don't do memberpagecnt  
-  protected $count=true;   // if true we do the counters, if false then no counters. Default is true
+  protected $count=false;   // if true we do the counters, if false then no counters.
   protected $countMe=false; // if true we count me (ie. webmaster). Default is false
   protected $siteDomain = null;   // site's domain name, like granbyrotary.org etc
   protected $subDomain = null;    // this is the 4th parameter to setcookie()
@@ -935,18 +937,20 @@ EOF;
         if($e->getCode() == 1062) {
           // Duplicate key error. Try update again
           $n = $this->query($q1);
-          if($n) {
+          if(defined(EMAILADDRESS) { // Only if we have somewhere to send this.
+            if($n) {
             // Success, send me an email
-            mail(EMAILADDRESS, "tableUpdate $this->self", "First update failed, insert got dup key error:\n" .
-                 "second update OK. q1=$q1, q2=$q2\n" .
-                 "No error displayed\n".
-                 "ip=$this->ip, agent=$this->agent\n", EMAILFROM, "-f ".EMAILRETURN);
-          } else {
+              mail(EMAILADDRESS, "tableUpdate $this->self", "First update failed, insert got dup key error:\n" .
+                   "second update OK. q1=$q1, q2=$q2\n" .
+                   "No error displayed\n".
+                   "ip=$this->ip, agent=$this->agent\n", EMAILFROM, "-f ".EMAILRETURN);
+            } else {
             // Failed again
-            mail(EMAILADDRESS, "tableUpdate $this->self", "First update failed, insert got dup key error:\n" .
-                 "Second update FAILED. q1=$q1, q2=$q2\n" .
-                 "No error displayed\n".
-                 "ip=$this->ip, agent=$this->agent\n", EMAILFROM, "-f ".EMAILRETURN);
+              mail(EMAILADDRESS, "tableUpdate $this->self", "First update failed, insert got dup key error:\n" .
+                   "Second update FAILED. q1=$q1, q2=$q2\n" .
+                   "No error displayed\n".
+                   "ip=$this->ip, agent=$this->agent\n", EMAILFROM, "-f ".EMAILRETURN);
+            }
           }
         } else {
           // Was an error other than dup key
