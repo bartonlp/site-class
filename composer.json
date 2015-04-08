@@ -16,9 +16,7 @@
         }
     ],
     "require": {
-        "php": ">=5.4",
-        "mnsami/composer-custom-directory-installer": "1.0.*",
-        "bartonlp/site-class-examples": "dev-master"
+        "php": ">=5.4"
     },
     "minimum-stability": "stable",
     "autoload" : {
@@ -29,10 +27,6 @@
         "files": [
             "includes/database-engines/helper-functions.php"
         ]
-    },
-    "extra": {
-        "installer-path": {
-            "./examples/": ["bartonlp/site-class-examples"]
-        }
-    }    
+    }
+    
 }
