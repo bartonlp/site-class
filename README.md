@@ -548,17 +548,13 @@ The database methods are implemented for all supported engines. There are some m
 * constructor
 * public function makeresultrows($query, $rowdesc, array $extra=array())
 * public function maketable($query, array $extra=null)  
-$extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] and $extra['attr'].
-
+$extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] and $extra['attr'].  
 $extra['attr'] is an assoc array that can have attributes for the <table> tag, like 'id', 'title', 'class', 'style' etc.  
-
 $extra['callback'] function that can modify the header after it is filled in.  
-
 $extra['footer'] a footer string   
-
 @return array [{string table}, {result}, {num}, {hdr}, table=>{string}, result=>{result},
  num=>{num rows}, header=>{hdr}]  
-or === false
+ or === false
 
 ## Contact Me
 
