@@ -17,8 +17,7 @@
     ],
     "require": {
         "php": ">=5.4",
-        "mnsami/composer-custom-directory-installer": "1.0.*",
-        "bartonlp/site-class-examples": "dev-master"
+        "mnsami/composer-custom-directory-installer": "1.0.*"
     },
     "minimum-stability": "stable",
     "autoload" : {
