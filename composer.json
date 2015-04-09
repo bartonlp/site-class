@@ -1,6 +1,7 @@
 {
     "name": "bartonlp/site-class",
     "description": "PHP framework to make creating websites easier",
+    "version": "1.0.0",
     "license": "MIT",
     "authors": [
         {
@@ -16,9 +17,7 @@
         }
     ],
     "require": {
-        "php": ">=5.4",
-        "mnsami/composer-custom-directory-installer": "1.0.*",
-        "bartonlp/site-class-examples" : "dev-master"
+        "php": ">=5.4"
     },
     "minimum-stability": "stable",
     "autoload" : {
@@ -29,10 +28,5 @@
         "files": [
             "includes/database-engines/helper-functions.php"
         ]
-    },
-    "extra": {
-        "install-paths": {
-            "/examples/": "bartonlp/site-class-examples"
-        }
     }    
 }

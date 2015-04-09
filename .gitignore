@@ -1,5 +1,6 @@
 /vendor/
 /vendor
+/examples/vendor
 LOGFILE
 composer.lock
 

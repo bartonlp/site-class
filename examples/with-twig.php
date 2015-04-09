@@ -1,12 +1,19 @@
 <?php
-// insert-update.php
+// with-twig.php
 
-require_once("../vendor/bartonlp/site-class/includes/siteautoload.class.php");
+require_once("../vendor/autoload.php");
+require_once(".sitemap.php");
 
 Error::setNoEmailErrs(true);
 Error::setDevelopment(true);
 
 $S = new SiteClass($siteinfo);
+
+// To run this file you need to install Twig. You can do that in this ('examples') directory
+// with the command 'composer require twig/twig:~1.0'
+// I have NOT included Twig in this repository!
+
+$twig = new Twig;
 
 // FORM POST 'insert' into database
 
@@ -101,8 +108,7 @@ function callback(&$row, &$desc) {
 // We use the 'as' to give our column headers nice names otherwise they would be
 // 'fname' and 'lname'.
 
-$sql = "select rowid as ID, fname as 'First Name', lname as 'Last Name' ".
-       "from {$siteinfo['memberTable']}";
+$sql = "select rowid as ID, fname as 'First Name', lname as 'Last Name' from {$siteinfo['memberTable']}";
 
 // The second argument to the maketable method is an array with the following properties:
 // 'callback', 'callback2', 'footer'] 'attr'.
