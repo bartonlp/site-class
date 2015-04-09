@@ -37,9 +37,9 @@ I put the 'includes' directory just outside of the DocumentRoot. In my servers I
 have my virtual hosts off that directory. That way the 'includes' directory is easily available to all
 of my virtual hosts.
 
-If you are testing with the PHP server I put a www directory off my $HOME and put the 
+If you are testing with the PHP server I put a 'www' directory off my $HOME and put the 
 'includes' directory there. 
-I then make my test DocumentRoot off &#126;/www like &#126;/www/test. 
+I then make my test DocumentRoot off '&#126;/www' like '&#126;/www/test'. 
 I ```cd``` to the test directory and do
 ``` php -S localhost:8080 ```. I can then use my browser and goto ``` localhost:8080``` and see my 
 'index.php' file.
@@ -47,7 +47,7 @@ I ```cd``` to the test directory and do
 ### Use Composer
 
 If you have Apache or Nginx installed then you should made your project root somewhere
-withing your DocumentRoot (/var/www/html for Apache2 on Ubuntu).
+withing your DocumentRoot ('/var/www/html' for Apache2 on Ubuntu).
 
 
 Create a directory ```mkdir myproject; cd myproject```, this is your project root directory.
@@ -72,16 +72,19 @@ is the path to the 'vendor' directory like './' or '../' etc.
 
 There are some example files in the 'examples' directory at
 '/vendor/bartonlp/site-class/examples' or 'examples' in your project root if you copied
-the it there.
+it there.
 
 ## Examples
+
 The code shown below can be found in the 'examples' directory at 
 http://github.com/bartonlp/site-class or from your project root 
 at 'vendor/bartonlp/site-class/examples' along with
 more <a href="examples/EXAMPLES.html">documentation</a>. 
 
+<p style="color: pink">The code in the 'examples' directory has actually been tested and runs. The code in this README was originally copied in from the examples code but may have changed for some reason. Therefore you should use the examples code rather than doing a copy and past from this README.</p>
+
 You may want to copy (or move) 
-the examples and the 'README.html' to your project root directory before running them. 
+the examples and the 'README.html' (both at 'vendor/bartonlp/site-class') to your project root directory before starting. 
 
 From your project root do:
 
@@ -90,8 +93,7 @@ cp -r vendor/bartonlp/site-class/examples .
 cp vendor/bartonlp/site-class/README.html .
 ```
 
-If you have Apache or Nginx installed then you should have made your project root somewhere
-withing your DocumentRoot, for example /var/www/html/myproject.
+If you have Apache or Nginx installed then you should have made your project root somewhere within your DocumentRoot, for example '/var/www/html/myproject'.
 
 If you don't have Apache or Nginx installed on your computer you can use the PHP server. 
 Do the following from your project root:
@@ -100,10 +102,9 @@ Do the following from your project root:
 php -S localhost:8080
 ```
 
-Then use your browser by entering ```http://localhost:8080/README.html``` in the browsers
-location bar.
+Then use your browser by entering ```http://localhost:8080/README.html``` in the browsers location bar.
 
-The 'examples' code uses the **sqlite3** engine.
+The code in the 'examples' directory uses the **sqlite3** engine.
 There should be a 'test.sdb' database file in the 'examples' directory already.
 
 I have included a 'sqlite.sql' file that can be run from the command line if you want to
@@ -133,7 +134,7 @@ This should create a new 'members' table in the 'test.sdb' database.
 
 These examples assume that the 'includes' directory is at /var/www as I suggested.
 The files in the 'examples' directory use either '../vendor/bartonlp/site-class/includes' or
-'../vendor/autoload.php' for the 'composer-*' variants.
+'../vendor/autoload.php' for the 'composer-*' variants. The examples assume that you have copied the 'examples' directory from the 'vendor/bartonlp/site-class' directory to your project root.
 
 There are a number of ways to use the framework:
 
@@ -168,8 +169,7 @@ No database or other stuff.
 
 <hr>
 
-You can extend this by adding a database either by instantiating the Database class directly or 
-indirectly. 
+You can extend this by adding a database either by instantiating the Database class directly or indirectly. 
 
 ``` php
 <?php
@@ -264,10 +264,9 @@ EOF;
 
 <hr>
 
-You can also use the siteautoload.class.php and .sitemap.php to further automate working with the 
-framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your
-project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php
-file in the 'examples' directory to see it you need to do ``` ls -a```.
+You can also use the siteautoload.class.php and .sitemap.php to further automate working with the framework. 
+There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your
+project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php file in the 'examples' directory to see it you need to do ``` ls -a```.
 
 ``` php
 <?php
@@ -314,6 +313,8 @@ In addition to the SiteClass and Database classes there are several others class
 * dbTables
 * and a file with helper functions.
 
+<hr>
+
 The dbTables class uses the Database class to make creating tables simple. For example:
 
 ``` php
@@ -324,9 +325,12 @@ $S = new SiteClass($siteinfo);
 $T = new dbTables($S);
 
 // Pass some info to getPageTopBottom method
+
 $h->title = "Table Test 5"; // Goes in the <title></title>
 $h->banner = "<h1>Test 5</h1>"; // becomes the <header> section
+
 // Add some local css to but a border and padding on the table 
+
 $h->css = <<<EOF
   <style>
 main table * {
@@ -339,6 +343,7 @@ EOF;
 list($top, $footer) = $S->getPageTopBottom($h);
 
 // create a table from the memberTable
+
 $sql = "select * from {$siteinfo['memberTable']}";
 list($tbl) = $T->maketable($sql);
 echo <<<EOF
@@ -353,42 +358,37 @@ $footer
 EOF;
 ```
 
-The maketable method takes several optional options to help setup the table. Using the options you can
-give your table an id or class or set any other attributes. You can also pass 'callback' function
-which can modify the rows as they are selected.
+The maketable method takes several optional arguments (options) to help setup the table. Using the options you can give your table an id or class or set any other attributes. You can also pass a 'callback' function which can modify the rows as they are selected (see the 'insert-update.php' file in the 'examples' directory for more information).
 
 <hr>
 
 ## The dot sitemap File
 
-The .sitemap.php file is the site configuration file. siteautoload.clas.php looks for the .sitemap.php
-file in the current directory. If it does not find it there it moves up to the parent directory. This
-continues until the DocumentRoot of the domain is reached. If a .sitemap.php file is not found an 
-exception is thrown.
+The .sitemap.php file is the site configuration file. siteautoload.clas.php looks for the .sitemap.php file in the current directory. If it does not find it there it moves up to the parent directory. This continues until the DocumentRoot of the domain is reached. If a .sitemap.php file is not found an exception is thrown.
 
-Once a .sitemap.php file is found the information in it is read in via 'require_once'. There are several
-section to the .sitemap.php file. The first section defines the layout of the directorys. The second
-section defines some email information used to send error messages. The third section sets up the
-$siteinfo array. This array describes your site or page.
+Once a .sitemap.php file is found the information in it is read in via 'require_once'. There are several section to the .sitemap.php file. The first section defines the layout of the directorys. The second section defines some email information used to send error messages (if these are not present then no emails are sent). The third section sets up the $siteinfo array. This array describes your site or page.
 
-My usual directory structure starts under a www subdirectory. On an Apache2 host the structure looks
-like this:
+My usual directory structure starts under a 'www' subdirectory. On an Apache2 host the structure looks like this:
 
 ```
 /var/www/includes        // this is where the SiteClass resides
-/var/www/html            // this is where your php files and js, css etc. directories live
-/var/www/html/includes   // this is where 'headFile', 'bannerFile', 'footerFile' and child classes live
-/var/www/html/otherstuff // other directories. These directories can have their own .sitemap.php files
+/var/www/html            // this is where your php files and js, css etc. 
+                         // directories live
+/var/www/html/includes   // this is where 'headFile', 'bannerFile', 
+                         // 'footerFile' and child classes live
+/var/www/html/otherstuff // other directories. 
+                         // These directories can have their own 
+                         // .sitemap.php files
 ```
 
-If I have multiple virtual hosts they are all off the /var/www directory instead of a single html
-directory.
+If I have multiple virtual hosts they are all off the '/var/www' directory instead of a single 'html' directory.
 
 ### How the xxxFile files look
-In the .sitemap.php's $siteinfo array there can be three elements that describe the location of 
-special files. These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.
 
-I put the three special file in my /var/www/html/includes directory. 
+In the .sitemap.php's $siteinfo array there can be three elements that describe the location of special files. These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.
+
+I put the three special file in my '/var/www/html/includes' directory (where 'html' may be one of your virtual hosts and not named 'html'). 
+
 Here is an example of my 'headFile':
 
 ``` php
@@ -424,12 +424,11 @@ $pageHeadText = <<<EOF
 EOF;
 ```
 
-The $pageHeadText variable gets all of the &lt;head&gt; section code. The $arg array is created
-form the argument passed to the getPageTopBottom method. The getPageTopBottom method also has access to
-the SiteClass $this property.
+The $pageHeadText variable gets all of the &lt;head&gt; section code. The $arg array is created form the argument passed to the getPageTopBottom method. The getPageTopBottom method also has access to the SiteClass $this property.
 
-You will see as you delve into the SiteClass code that many things can be passed to the 
-getPageTopBottom method and the various sub-methods but the standard things are:
+You will see if you delve into the SiteClass code that many things can be passed to the 
+getPageTopBottom method, and the various sub-methods, but the standard things are:
+
 * title
 * desc
 * link
@@ -438,7 +437,7 @@ getPageTopBottom method and the various sub-methods but the standard things are:
 * css
 
 As you saw in example 5 above (test5.php in the 'examples' directory) 
-I passed a $h object to the SiteClass. For example:
+I passed a $h object to the SiteClass. For example it might look like this:
 
 ``` php
 $h->title = 'my title';
@@ -450,17 +449,16 @@ $h->css = '<style> /* some css */ #test { width: 10px; } </style>';
 $S = new SiteClass($h);
 ```
 
-As you can see in the 'headFile' example the $this can also be used as in $this->copyright.
+As you can see in the 'headFile' example the $this can also be used as in $this->copyright. Any of the pulic, protected or private $this properties can be used in any of the special files as they are all included within SiteClass.class.php.
 
 The other special files have similarities and have their own file variable:
 * 'bannerFile' : $pageBannerText
 * 'footerFile' : $pageFooterText
 
-As these special files are PHP files you can do anything else that you need to including database
-queries.
+As these special files are PHP files you can do anything else that you need to, including database queries. Just remember that you need to use $this. For example, to do a query do ```$this->query($sql);``` not ```$S->query($sql);```. You can't use the variable from your project file that you created via the ```$S = new SiteClass($h);``` because it is NOT within scope.
 
-I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything
-you like. In the .sitemap.php $siteinfo array just add the full path to the file. For example:
+I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything you like. In the .sitemap.php $siteinfo array just add the full path to the file. For example:
+
 ``` php
 $siteinfo = array('siteDomain' => "bartonphillips.com",
                   'siteName' => "My Home Page",
@@ -480,17 +478,15 @@ $siteinfo = array('siteDomain' => "bartonphillips.com",
 In the abovd example I have used the SITE_INCLUDES define from the .sitemap.php's first section.
 
 There is a default for the &lt;head&gt;, banner and footer section if you do not have special files. 
-The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the 
-getPageTopBottom method ($h->doctype='xxx').
+The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the getPageTopBottom method ($h->doctype='xxx').
 
-Creating the special files make the tedious boiler plate simple and yet configureable via the $arg 
-array.
+Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.
 
 <hr>
+
 # Class Methods
 
-While there are a number of methods for each of the major classes there are really only a small 
-handful you will use on a regular bases. The ones must used have some documentation with them.
+While there are a number of methods for each of the major classes there are really only a small handful you will use on a regular bases. The ones most used have some documentation with them.
 
 ## SiteClass methods:
 
@@ -507,8 +503,7 @@ handful you will use on a regular bases. The ones must used have some documentat
 * public function getPageTopBottom($h, $b=null)  
 This is the most used method. It takes one or two arguments which can be string|array|object.  
 $h can have 'title', 'desc', 'banner' and a couple of other less used options.  
-$b is for the footer or bottom. I usually just pass a &lt;hr&gt; but you can also pass a 'msg', 'msg1',
-'msg2' etc. I usually put things into the 'footerFile' but on occasions a page needs something extra.  
+$b is for the footer or bottom. I sometimes pass a &lt;hr&gt; but you can also pass a 'msg', 'msg1', 'msg2' (see the code). I usually put things into the 'footerFile' but on occasions a page needs something extra.  
 This method calls getPageHead(), getBanner(), getFooter().
 * public function getPageTop($header, $banner=null, $bodytag=null)
 * public function getDoctype()
@@ -523,14 +518,11 @@ This method calls getPageHead(), getBanner(), getFooter().
 * constructor
 * public function getDb()
 * public function query($query)  
-This is the workhourse of the database. It is used for 'select', 'update', 'insert' and basically
-anything you need to do like 'drop', 'alter' etc. $query is just sql.
+This is the workhourse of the database. It is used for 'select', 'update', 'insert' and basically anything you need to do like 'drop', 'alter' etc. $query is the sql statement.
 * public function fetchrow($result=null, $type="both")  
-Probably the second most used method. If it follows the 'query' the $result is not needed. The only
-time $result is needed is is there are other queries in a while loop. In that case you need to get
-the result of the query by calling the getResult() method before running the while loop.  
-The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only an associative array, while 'num'
-return a numeric array. I usually use a numeric array with
+Probably the second most used method. If it follows the 'query' the $result is not needed. The only time $result is needed is if there are other queries in a while loop. In that case you need to get the result of the query by calling the getResult() method before running the while loop.  
+The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only an associative array, while 'num' return a numeric array. I usually use a numeric array with
+
 ``` php
 while(list($name, $email) = $S->fetchrow('num')) { ... }
 ```
@@ -543,26 +535,27 @@ Returns the result object from the last 'query'. Usually not needed.
 * public function escapeDeep($value)
 * public function getNumRows($result=null)
 * public function prepare($query)  
-Hardly ever use prepare(), bindParam(), bindResults() or execute() so they are not as well tested as 
-the other methods.
+I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are not as well tested as the other methods.
 * public function bindParam($format)
 * public function bindResults($format)
 * public function execute()
 * public function getErrorInfo()
 
-The database methods are implemented for all supported engines.
+The database methods are implemented for all supported engines. There are some minor   behavioral differences, for example in the syntax the engine queries uses or the return values. For example sqlite3 does not support a number of rows returned functionality and there are also several (many) syntactial differenced between sqlite and mysql when it comes to supported functions etc. (caviat emptor).
 
 ## dbTables methods:
 
 * constructor
 * public function makeresultrows($query, $rowdesc, array $extra=array())
 * public function maketable($query, array $extra=null)  
-$extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] 
-and $extra['attr'].  
-$extra['attr'] is an assoc array that can have attributes for the <table> tag, like 'id',
- 'title', 'class', 'style' etc.  
+$extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] and $extra['attr'].
+
+$extra['attr'] is an assoc array that can have attributes for the <table> tag, like 'id', 'title', 'class', 'style' etc.  
+
 $extra['callback'] function that can modify the header after it is filled in.  
+
 $extra['footer'] a footer string   
+
 @return array [{string table}, {result}, {num}, {hdr}, table=>{string}, result=>{result},
  num=>{num rows}, header=>{hdr}]  
 or === false
