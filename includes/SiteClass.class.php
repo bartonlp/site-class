@@ -708,7 +708,11 @@ EOF;
         $pageFooterText .= "<div id='footerMsg'>{$arg['msg']}{$arg['msg1']}</div>\n";
       }
 
-      $pageFooterText .= $counterWigget;
+      // BLP 2015-04-10 -- only if we are counting
+      
+      if($this->count) {
+        $pageFooterText .= $counterWigget;
+      }
 
       $rdate = getlastmod();
       $date = date("M d, Y H:i:s", $rdate);
