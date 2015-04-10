@@ -302,6 +302,3 @@ class dbMysqli extends dbAbstract {
     return __CLASS__;
   }
 }
-// WARNING THERE MUST BE NOTHING AFTER THE CLOSING PHP TAG.
-// Really nothing not even a space!!!!
-?>

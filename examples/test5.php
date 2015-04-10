@@ -1,7 +1,14 @@
 <?php
 // test5.php
 
-require_once('../vendor/bartonlp/site-class/includes/siteautoload.class.php'); // path to siteautoload.class.php
+// Check if we are in development mode. If there is an 'includes' directory just above
+// 'examples' then development.
+  
+if(file_exists("../includes")) {
+  require_once("../includes/siteautoload.class.php");
+} else {
+  require_once("../vendor/bartonlp/site-class/includes/siteautoload.class.php");
+}
 
 Error::setNoEmailErrs(true);
 Error::setDevelopment(true);

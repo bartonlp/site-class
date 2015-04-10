@@ -10,12 +10,13 @@ This project has several parts that can function standalone or combined.
 * Error and Exception classes
 * SiteClass.class.php : tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.
 
-The following database engines are provided:
+The following database engines are provided as the following classes:
 
-1. Mysql   (depreciated)
-2. Mysqli  (most rigorously tested)
-3. sqlite3 (used for the examples)
-4. POD     (least tested)
+1. dbMysql         (depreciated)
+2. dbMysqli        (most rigorously tested)
+3. dbSqlite        sqlite3 (used for the examples)
+4. dbPod           PHP POD, works with 'pdo_sqlite' and 'pdo_pgsql'
+5  dbPostgreSql    (new and lest tested but works with 'test.php'
 
 ## Disclamer
 

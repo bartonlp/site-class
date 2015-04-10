@@ -157,7 +157,3 @@ EOF;
     return array($error, $Errno);
   }
 } // End SqlException Class
-
-// WARNING THERE MUST BE NOTHING AFTER THE CLOSING PHP TAG.
-// Really nothing not even a space!!!!
-?>

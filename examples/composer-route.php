@@ -21,10 +21,10 @@ $twig = new Twig_Environment(new Twig_Loader_Filesystem('.'));
 
 $router = new AltoRouter();
 
-// Create the routes for 'home', 'edit', 'update', 'post' and 'reset'
+// Create the routes for '/', 'home', 'edit', 'update', 'post' and 'reset'
 // First the method, the route, the function
 
-$router->map('GET','/', 'home');
+$router->map('GET','/', 'home'); // 4th arg 'name' not used.
 $router->map('GET','/home', 'home'); // another name for /
 $router->map('GET','/edit/[i:id]', 'edit');
 $router->map('POST','/update/[i:id]', 'update_post');
@@ -35,7 +35,7 @@ $router->map('POST','/reset', 'resetdb');
 
 $match = $router->match();
 
-// $match array has 'target', 'params', 'name'
+// $match array has 'target', 'params', 'name'. We don't use 'name'.
 // 'target' is the function name
 // 'params' is a numeric array of arguments, in our case $match['params']['id'] is what we
 // want. The function will get the id as $params['id'].
@@ -44,11 +44,11 @@ if($match && is_callable( $match['target'])) {
 	call_user_func_array($match['target'], $match['params']); 
 } else {
 	// no route was matched
-  echo "FILE <b>{$_SERVER['REQUEST_URI']}</b> NOT FOUND<br>404 Not Found<br>";
+  echo "<h1>404 Not Found</h1><p>FILE <b>{$_SERVER['REQUEST_URI']}</b> NOT FOUND</p>";
 	header($_SERVER["SERVER_PROTOCOL"] . ' 404 Not Found');
 }
 
-// HOME
+// HOME Page
 
 function home() {
   global $S, $twig;
@@ -132,7 +132,7 @@ EOF;
                     );
 }
 
-// Edit
+// Edit Page
 
 function edit($params) {
   global $S, $twig;
@@ -155,10 +155,10 @@ function edit($params) {
                     );
 }
 
-// UPDATE or POST
+// UPDATE or POST. Does the action and then calls home().
 
 function update_post($params) {
-  global $S, $twig;
+  global $S;
 
   $id = $params['id'];
   $fname = $_POST['fname'];
@@ -174,8 +174,10 @@ function update_post($params) {
   home();
 }
 
+// RESET database to initial values. Does the action and then calls home().
+
 function resetdb() {
-  global $S, $twig;
+  global $S;
 
   // Here we have a complex single liner with three seperate sql statements.
   // we drop the table. Create the table again fresh, and then insert the inital rows.

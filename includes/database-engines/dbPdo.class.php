@@ -1,4 +1,6 @@
 <?php
+// BLP 2015-04-10 -- tested with 'test.php' and seems to work ok with 'pdo_sqlite'
+// and 'pdo_pgsql'
 /**
  * Database Class
  *
@@ -23,7 +25,7 @@ class dbPdo extends dbAbstract {
   
   public $db = 0;
 
-  protected $host, $user, $password, $database;
+  protected $host, $user, $password, $database, $dbtype;
   private $result;
   
   /**
@@ -32,14 +34,14 @@ class dbPdo extends dbAbstract {
    * @param string $user user name for database
    * @param string $password user's password for database
    * @param string $database name of the database
-   *
+   * @param string $dbtype can be 'pdo_sqlite' or 'pdo_pgsql', 'mysql', 'mysqli'.
+   *   Defaults to 'pdo_sqlite'.
    * as a side effect opens the database, that is connects and selects the database
+   * NOTE: the Database class does not understand PDO mysql or mysqli it uses the native
+   *   mysql drivers NOT PDO.
    */
-
-  // add $dbtype which will be 'mysql', 'mysqli', 'sqlite'
   
-  public function __construct($host, $user, $password, $database, $dbtype='sqlite') {
-    //echo "host=$host, database=$database, dbtype=$dbtype<br>";
+  public function __construct($host, $user, $password, $database, $dbtype='pdo_sqlite') {
     if(preg_match("/^(.*?):(.*)$/", $host, $m)) {
       $host = $m[1];
       $post = $m[2];
@@ -50,13 +52,11 @@ class dbPdo extends dbAbstract {
       case 'mysqli':
         $this->host = "mysql:dbname=$database;host=$host";
         break;
-      case 'sqlite':
-        $this->host = "sqlite:$database.db";
+      case 'pdo_sqlite':
+        $fulldsn = realpath($database);
+        $this->host = "sqlite:$fulldsn";
         break;
-      case 'sqlite-no-add-db':
-        $this->host = "sqlite:$database";
-        break;
-      case 'pgsql':
+      case 'pdo_pgsql':
         if(isset($port)) {
           $post = "port=$port;";
         } else $port = '';
@@ -64,11 +64,13 @@ class dbPdo extends dbAbstract {
         $this->host = "pgsql:host=$host;{$port}dbname=$database";
         break;
       default:
-        $this->host = "sqlite:$database.db";
+        $fulldsn = realpath($database);
+        $this->host = "sqlite:$fulldsn";
     }
     $this->user = $user;
     $this->password = $password;
     $this->database = $database;
+    $this->dbtype = $dbtype;
     $this->opendb();
   }
   
@@ -101,8 +103,7 @@ class dbPdo extends dbAbstract {
   /**
    * Query database table
    * @param string $query SQL statement.
-   * @param bool retarray default false. If true then returns an array with result, num_rows
-   * @return mixed result-set for select etc, true/false for insert etc.
+   * @return numrows 
    * On error calls SqlError() and exits.
    */
 
@@ -118,12 +119,12 @@ class dbPdo extends dbAbstract {
         // error
         throw new SqlException($query, $this);
       }
-      //return $numrows;
+      return $numrows;
     } else {
       if($this->result) {
         $this->result->closeCursor();
       }
-
+            
       $result = $db->query($query);
 
       if($result === false) {
@@ -134,11 +135,10 @@ class dbPdo extends dbAbstract {
       $this->result = $result;
       $numrows = $result->rowCount();
     }
-    if($retarray) {
-      return array($result, $numrows, 'result'=>$result, 'numrows'=>$numrows);
-    } else {
-      return $result;
+    if($this->dbtype == 'pdo_sqlite') {
+      $numrows = 1;
     }
+    return $numrows;
   }
 
   /**
@@ -213,21 +213,39 @@ class dbPdo extends dbAbstract {
 
   /**
    * getLastInsertId()
-   *
+   * NOTE: this does not work for Postgresql so if this returs null
+   * use 'select lastval() ...' instead in your code.
    */
 
   public function getLastInsertId() {
     $db = $this->opendb();
+
+    if($this->dbtype == 'pdo_pgsql') {
+      return null;
+    }
     return $db->lastInsertId();
   }
   
   /**
    * getNumRows()
+   * NOTE: this does not work with sqlite so return 1
    */
 
   public function getNumRows($result=null) {
-    if(!$result) $result = $this->result;
+    if(!$result) {
+      $result = $this->result;
+    }
+
+    if($this->dbtype == 'pdo_sqlite') {
+      return 1;
+    }
     return $result->rowCount();
+  }
+
+  // BLP 2015-04-10 -- added
+  
+  public function getResult() {
+    return $this->result;
   }
   
   /**
@@ -240,7 +258,7 @@ class dbPdo extends dbAbstract {
   }
 
   public function getErrorInfo() {
-    $err = $this->db->errorInfo;
+    $err = $this->db->errorInfo(); // BLP 2015-04-10 -- this is a function not a prop
     $error = $err[2];
     $errno = $err[1];
     $err = array('errno'=>$errno, 'error'=>$error);
@@ -284,7 +302,3 @@ class dbPdo extends dbAbstract {
 // ********************************************************************************
 // END OF Database Class
 // ********************************************************************************
-
-// WARNING THERE MUST BE NOTHING AFTER THE CLOSING PHP TAG.
-// Really nothing not even a space!!!!
-?>
