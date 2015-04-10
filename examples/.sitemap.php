@@ -3,7 +3,11 @@
 define('TOP', '../vendor/bartonlp/site-class');
 define('INCLUDES', TOP."/includes");
 define('DATABASE_ENGINES', INCLUDES."/database-engines");
-define('SITE_INCLUDES', SITE_ROOT."/includes"); // SITE_ROOT is defined in siteautoload.php!
+if(defined(SITE_ROOT)) {
+  define('SITE_INCLUDES', SITE_ROOT."/includes"); // SITE_ROOT is defined in siteautoload.php!
+} else {
+  define('SITE_INCLUDES', __DIR__."/includes");
+}
 
 // The following defines three email addresses are used in SiteClass.class.php to send error info
 
@@ -56,7 +60,7 @@ $siteinfo = array('siteDomain' => "localhost",
                   'copyright' => "2015 Barton L. Phillips",
                   //'className' => "",
                   'memberTable' => "members", // Don't set the memberTable!!! 6/9/2013
-                  //'headFile' => SITE_INCLUDES."/head.i.php",
+                  'headFile' => SITE_INCLUDES."/head.i.php",
                   //'bannerFile' => SITE_INCLUDES."/banner.i.php",
                   //footerFile => SITE_INCLUDES."/footer.i.php"
                   'dbinfo' => $dbinfo,

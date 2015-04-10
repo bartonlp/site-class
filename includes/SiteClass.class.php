@@ -65,7 +65,7 @@ spl_autoload_register(function($class) {
 
 class SiteClass extends dbAbstract {
   // Current Doc Type
-  public $doctype;
+  public $doctype = "<!DOCTYPE html>";
   
   private $hitCount = null;
   
@@ -598,7 +598,7 @@ EOF;
 
     // Default header has < /> elements. If not XHTML we remove the /> at the end!
     $pageHead = <<<EOF
-{$arg['preheadcomment']}{$xml}{$dtype}
+{$arg['preheadcomment']}{$dtype}
 $pageHeadText
 
 EOF;
@@ -937,7 +937,7 @@ EOF;
         if($e->getCode() == 1062) {
           // Duplicate key error. Try update again
           $n = $this->query($q1);
-          if(defined(EMAILADDRESS) { // Only if we have somewhere to send this.
+          if(defined(EMAILADDRESS)) { // Only if we have somewhere to send this.
             if($n) {
             // Success, send me an email
               mail(EMAILADDRESS, "tableUpdate $this->self", "First update failed, insert got dup key error:\n" .

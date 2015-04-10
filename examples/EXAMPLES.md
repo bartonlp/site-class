@@ -29,3 +29,57 @@ The next two examples show insertion and updating of the database and dbTables u
 1. <a href="insert-update.php">insert-update.php</a>
 2. <a href="composer-insert-update.php">composer-insert-update.php</a>
 
+You can use other frameworks or templeting engines. Here we will use Twig a popular
+templet engine. Twig is a super powerful templet engine with looping and conditional 
+statements and much more. Here we do just about the minimum just as an example.
+
+To use this example you need to install Twig in the 'examples' directory as it is NOT 
+part of this package by default.
+
+```
+composer require twig/twig:~1.0
+```
+
+<a href="composer-with-twig.php">composer-with-twig.php</a>
+
+If you need ReST routing (or pretty routing or SEO friendly routing as it is sometime called) 
+you could use one of the popular routing engines like **Meteor** or **Laravel** 
+but then again by that point you might as well just bite the bullet and spend the hours or 
+days trying to figure those frameworks out.
+
+There is a pretty simple router called Altorouter which can be used without too much work. To 
+install Altorouter do ``` composer require altorouter/altorouter:1.1.0 ``` in the 'examples'
+directory.
+
+The file 'composer-route.php' would normally be your 'index.php' in a production environment. 
+When using a server with Apache2 you would need a '.htaccess' file in the directory where
+the 'index.php' lives. The '.htaccess' file would look like this:
+
+```
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule . index.php [L]
+```
+
+This says that if the requested filename does not exist go to the 'index.php' file instead.
+
+Now to test this without renaming the 'composer-route.php' you can use the PHP server like this:
+
+```
+php -S localhost:8080 composer-route.php
+```
+
+The PHP server uses the composer-route.php file and you don't need a '.htaccess' file.
+
+Now you can run the program. It will display a table and a form you can use to insert new
+records. Also a button lets you reset the database table to its original state. If you click
+on a number in the 'ID' column you get an edit page where you can change the names.
+
+You can also get to the edit page by entering the URI '/edit/3' for example. That will take 
+you to the edit page for 'ID' three. From that page you and enter the URI '/home' which will
+take you back to the home page.
+
+
+
+
+

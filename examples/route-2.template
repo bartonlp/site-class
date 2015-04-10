@@ -1,0 +1,10 @@
+{{ top|raw }}
+<form method="post" action="/update/{{ id }}">
+First Name: <input type="text" name="fname" value="{{ fname }}"><br>
+Last Name : <input type="text" name="lname" value="{{ lname }}"><br>
+<input type="submit" value="Submit">
+<input type="hidden" name="page" value="update">
+<input type="hidden" name="id" value="{{ id }}">
+</form>
+<hr>
+{{ footer|raw }}

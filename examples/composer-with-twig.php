@@ -1,19 +1,26 @@
 <?php
 // with-twig.php
 
-require_once("../vendor/autoload.php");
-require_once(".sitemap.php");
+// To run this file you need to install Twig. You can do that in this ('examples') directory
+// with the command 'composer require twig/twig:~1.0'
+// I have NOT included Twig in this repository!
+
+require_once("vendor/autoload.php"); // for the installed vendor for Twig!
+
+require_once("../vendor/autoload.php"); // for the vendor installed for SiteClass
+require_once(".sitemap.php"); // configuration for site and database
+
+// For error messages
 
 Error::setNoEmailErrs(true);
 Error::setDevelopment(true);
 
 $S = new SiteClass($siteinfo);
 
-// To run this file you need to install Twig. You can do that in this ('examples') directory
-// with the command 'composer require twig/twig:~1.0'
-// I have NOT included Twig in this repository!
+// Instantiate twig with the filesystem loader. The templates are in this ('examples')
+// directory.
 
-$twig = new Twig;
+$twig = new Twig_Environment(new Twig_Loader_Filesystem('.'));
 
 // FORM POST 'insert' into database
 
@@ -31,6 +38,20 @@ if($_POST['page'] == "post") {
   goto START;
 }
 
+if($_POST['page'] == "reset") {
+  // Here we have a complex single liner with three seperate sql statements.
+  // we drop the table. Create the table again fresh, and then insert the inital rows.
+  
+  $sql = "drop table members;".
+         "create table members (fname text, lname text);".
+         "insert into members (fname, lname) values('Big', 'Joe'),('Little', 'Joe'),".
+         "('Barton','Phillips'),('Someone','Else');";
+
+  $S->query($sql);
+
+  goto START;
+}
+
 // GET 'update'
 
 if($_GET['page'] == "update") {
@@ -42,17 +63,14 @@ if($_GET['page'] == "update") {
   $h->banner = "<h1>Update Record</h1>";
   list($top, $footer) = $S->getPageTopBottom($h);
 
-  echo <<<EOF
-$top
-<form method="post">
-First Name: <input type="text" name="fname" value="$fname"><br>
-Last Name : <input type="text" name="lname" value="$lname"><br>
-<input type="submit" value="Submit">
-<input type="hidden" name="page" value="post">
-<input type="hidden" name="id" value="$id">
-</form>
-$footer
-EOF;
+  // Use twit to render the second template
+  
+  echo $twig->render('with-twig-2.template',
+                     array('top'=>$top, 'footer'=>$footer,
+                           'fname'=>$fname, 'lname'=>$lname, 'id'=>$id
+                          )
+                    );
+
   exit();
 }
 
@@ -102,7 +120,7 @@ function callback(&$row, &$desc) {
     $row['First Name'] = "<span class='odd'>".$row['First Name']."</span>";
     $desc = preg_replace('~<tr>~', "<tr class='oddtr'>", $desc);
   }
-  $row['ID'] = "<a href='insert-update.php?page=update&id=".$row['ID']."'>".$row['ID']."</a>";
+  $row['ID'] = "<a href='composer-with-twig.php?page=update&id=".$row['ID']."'>".$row['ID']."</a>";
 }
 
 // We use the 'as' to give our column headers nice names otherwise they would be
@@ -119,6 +137,7 @@ $sql = "select rowid as ID, fname as 'First Name', lname as 'Last Name' from {$s
 // 'footer' is a footer string 
 
 $f = "<tfoot><tr><th colspan='2'>Footer goes here</th></tr><tfoot>";
+
 list($tbl) = $T->maketable($sql, array(
                                        'footer'=>$f,
                                        'callback'=>callback,
@@ -126,15 +145,9 @@ list($tbl) = $T->maketable($sql, array(
                                       )
                           );
 
-echo <<<EOF
-$top
-$tbl
-<h2>Enter a first and last name to insert</h2>
-<form method="post">
-<input type="text" name="fname" placeholder="first name" autofocus>
-<input type="text" name='lname' placeholder="last name"><br>
-<input type="submit" value="Submit">
-<input type="hidden" name="page" value="post">
-</form>
-$footer
-EOF;
+// Use twig to render the first template
+                          
+echo $twig->render('with-twig-1.template',
+                   array('top'=>$top, 'footer'=>$footer, 'tbl'=>$tbl
+                        )
+                  );

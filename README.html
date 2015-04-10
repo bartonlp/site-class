@@ -1,5 +1,5 @@
 <h1 id="siteclass">SiteClass</h1>
-<p>SiteClass PHP class mini framework for simple, small websites.</p>
+<p><strong>SiteClass</strong> is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.</p>
 <p>This project has several parts that can function standalone or combined.</p>
 <ul>
 <li>siteautoload.class.php : Autoload classes and reads a .sitemap.php file to initialize the system.<br /></li>
@@ -22,9 +22,9 @@
 <p>There are several ways to install this project.</p>
 <h3 id="download-the-zip-file">Download The ZIP File</h3>
 <p>Download the ZIP file from GitHub. Expand it and move the 'includes' directory somewhere.<br />On a system with Apache2 I usually put the 'includes' directory in the /var/www directory<br />that Apache creates. Apache also usually creates /var/www/html and makes this the default DocumentRoot.<br />I put the 'includes' directory just outside of the DocumentRoot. In my servers I have /var/www and then<br />have my virtual hosts off that directory. That way the 'includes' directory is easily available to all<br />of my virtual hosts.</p>
-<p>If you are testing with the PHP server I put a www directory off my $HOME and put the<br />'includes' directory there.<br />I then make my test DocumentRoot off ~/www like ~/www/test.<br />I <code>cd</code> to the test directory and do<br /><code>php -S localhost:8080</code>. I can then use my browser and goto <code>localhost:8080</code> and see my<br />'index.php' file.</p>
+<p>If you are testing with the PHP server I put a 'www' directory off my $HOME and put the<br />'includes' directory there.<br />I then make my test DocumentRoot off '~/www' like '~/www/test'.<br />I <code>cd</code> to the test directory and do<br /><code>php -S localhost:8080</code>. I can then use my browser and goto <code>localhost:8080</code> and see my<br />'index.php' file.</p>
 <h3 id="use-composer">Use Composer</h3>
-<p>If you have Apache or Nginx installed then you should made your project root somewhere<br />withing your DocumentRoot (/var/www/html for Apache2 on Ubuntu).</p>
+<p>If you have Apache or Nginx installed then you should made your project root somewhere<br />withing your DocumentRoot ('/var/www/html' for Apache2 on Ubuntu).</p>
 <p>Create a directory <code>mkdir myproject; cd myproject</code>, this is your project root directory.<br />Add the following to 'composer.json', just cut and past:</p>
 <pre><code>{
   &quot;require&quot;: {
@@ -35,18 +35,21 @@
 <p>Then run <code>composer install</code>.</p>
 <p><strong>OR</strong> you can just run <code>composer require bartonlp/site-class:dev-master</code> which will create<br />the 'composer.json' for you and load the package like 'install'.</p>
 <p>In your PHP file add <code>require_once($PATH . 'vendor/autoload.php');</code> where '$PATH'<br />is the path to the 'vendor' directory like './' or '../' etc.</p>
-<p>There are some example files in the 'examples' directory at<br />'/vendor/bartonlp/site-class/examples' or 'examples' in your project root if you copied<br />the it there.</p>
+<p>There are some example files in the 'examples' directory at<br />'/vendor/bartonlp/site-class/examples' or 'examples' in your project root if you copied<br />it there.</p>
 <h2 id="examples">Examples</h2>
 <p>The code shown below can be found in the 'examples' directory at<br /><a href="http://github.com/bartonlp/site-class">http://github.com/bartonlp/site-class</a> or from your project root<br />at 'vendor/bartonlp/site-class/examples' along with<br />more <a href="examples/EXAMPLES.html">documentation</a>.</p>
-<p>You may want to copy (or move)<br />the examples and the 'README.html' to your project root directory before running them.</p>
+<p style="color: pink">The code in the 'examples' directory has actually been tested and runs. The code in this README was originally copied in from the examples code but may have changed for some reason. Therefore you should use the examples code rather than doing a copy and past from this README.</p>
+
+
+<p>You may want to copy (or move)<br />the examples and the 'README.html' (both at 'vendor/bartonlp/site-class') to your project root directory before starting.</p>
 <p>From your project root do:</p>
 <pre><code>cp -r vendor/bartonlp/site-class/examples .
 cp vendor/bartonlp/site-class/README.html .</code></pre>
-<p>If you have Apache or Nginx installed then you should have made your project root somewhere<br />withing your DocumentRoot, for example /var/www/html/myproject.</p>
+<p>If you have Apache or Nginx installed then you should have made your project root somewhere within your DocumentRoot, for example '/var/www/html/myproject'.</p>
 <p>If you don't have Apache or Nginx installed on your computer you can use the PHP server.<br />Do the following from your project root:</p>
 <pre><code>php -S localhost:8080</code></pre>
-<p>Then use your browser by entering <code>http://localhost:8080/README.html</code> in the browsers<br />location bar.</p>
-<p>The 'examples' code uses the <strong>sqlite3</strong> engine.<br />There should be a 'test.sdb' database file in the 'examples' directory already.</p>
+<p>Then use your browser by entering <code>http://localhost:8080/README.html</code> in the browsers location bar.</p>
+<p>The code in the 'examples' directory uses the <strong>sqlite3</strong> engine.<br />There should be a 'test.sdb' database file in the 'examples' directory already.</p>
 <p>I have included a 'sqlite.sql' file that can be run from the command line if you want to<br />recreate the 'members' table.<br />You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.<br />From the command line in the directory where the SiteClass was downloaded:</p>
 <pre><code>$ cd examples
 $ sqlite3 test.sdb
@@ -65,7 +68,7 @@ $</code></pre>
 <hr>
 
 
-<p>These examples assume that the 'includes' directory is at /var/www as I suggested.<br />The files in the 'examples' directory use either '../vendor/bartonlp/site-class/includes' or<br />'../vendor/autoload.php' for the 'composer-*' variants.</p>
+<p>These examples assume that the 'includes' directory is at /var/www as I suggested.<br />The files in the 'examples' directory use either '../vendor/bartonlp/site-class/includes' or<br />'../vendor/autoload.php' for the 'composer-*' variants. The examples assume that you have copied the 'examples' directory from the 'vendor/bartonlp/site-class' directory to your project root.</p>
 <p>There are a number of ways to use the framework:</p>
 <p><strong>First</strong> you can just use the SiteClass all by itself.</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
@@ -92,7 +95,7 @@ $</code></pre>
 <hr>
 
 
-<p>You can extend this by adding a database either by instantiating the Database class directly or<br />indirectly.</p>
+<p>You can extend this by adding a database either by instantiating the Database class directly or indirectly.</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// test2.php</span>
 
@@ -180,7 +183,7 @@ $</code></pre>
 <hr>
 
 
-<p>You can also use the siteautoload.class.php and .sitemap.php to further automate working with the<br />framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your<br />project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php<br />file in the 'examples' directory to see it you need to do <code>ls -a</code>.</p>
+<p>You can also use the siteautoload.class.php and .sitemap.php to further automate working with the framework.<br />There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your<br />project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php file in the 'examples' directory to see it you need to do <code>ls -a</code>.</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// test4.php</span>
 
@@ -224,6 +227,9 @@ $</code></pre>
 <li>dbTables<br /></li>
 <li>and a file with helper functions.</li>
 </ul>
+<hr>
+
+
 <p>The dbTables class uses the Database class to make creating tables simple. For example:</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="kw">require_once</span><span class="ot">(</span><span class="st">&#39;/var/www/includes/siteautoload.class.php&#39;</span><span class="ot">);</span> <span class="co">// path to siteautoload.class.php</span>
@@ -232,9 +238,12 @@ $</code></pre>
 <span class="kw">$T</span> = <span class="kw">new</span> dbTables<span class="ot">(</span><span class="kw">$S</span><span class="ot">);</span>
 
 <span class="co">// Pass some info to getPageTopBottom method</span>
+
 <span class="kw">$h</span>-&gt;title = <span class="st">&quot;Table Test 5&quot;</span><span class="ot">;</span> <span class="co">// Goes in the &lt;title&gt;&lt;/title&gt;</span>
 <span class="kw">$h</span>-&gt;banner = <span class="st">&quot;&lt;h1&gt;Test 5&lt;/h1&gt;&quot;</span><span class="ot">;</span> <span class="co">// becomes the &lt;header&gt; section</span>
+
 <span class="co">// Add some local css to but a border and padding on the table </span>
+
 <span class="kw">$h</span>-&gt;css = <span class="kw">&lt;&lt;&lt;EOF</span>
 <span class="st">  &lt;style&gt;</span>
 <span class="st">main table * {</span>
@@ -247,6 +256,7 @@ $</code></pre>
 <span class="fu">list</span><span class="ot">(</span><span class="kw">$top</span><span class="ot">,</span> <span class="kw">$footer</span><span class="ot">)</span> = <span class="kw">$S</span>-&gt;getPageTopBottom<span class="ot">(</span><span class="kw">$h</span><span class="ot">);</span>
 
 <span class="co">// create a table from the memberTable</span>
+
 <span class="kw">$sql</span> = <span class="st">&quot;select * from </span><span class="kw">{$siteinfo[&#39;memberTable&#39;]}</span><span class="st">&quot;</span><span class="ot">;</span>
 <span class="fu">list</span><span class="ot">(</span><span class="kw">$tbl</span><span class="ot">)</span> = <span class="kw">$T</span>-&gt;maketable<span class="ot">(</span><span class="kw">$sql</span><span class="ot">);</span>
 <span class="fu">echo</span> <span class="kw">&lt;&lt;&lt;EOF</span>
@@ -259,22 +269,27 @@ $</code></pre>
 <span class="st">&lt;hr&gt;</span>
 <span class="kw">$footer</span>
 <span class="kw">EOF;</span></code></pre>
-<p>The maketable method takes several optional options to help setup the table. Using the options you can<br />give your table an id or class or set any other attributes. You can also pass 'callback' function<br />which can modify the rows as they are selected.</p>
+<p>The maketable method takes several optional arguments (options) to help setup the table. Using the options you can give your table an id or class or set any other attributes. You can also pass a 'callback' function which can modify the rows as they are selected (see the 'insert-update.php' file in the 'examples' directory for more information).</p>
 <hr>
 
 
 <h2 id="the-dot-sitemap-file">The dot sitemap File</h2>
-<p>The .sitemap.php file is the site configuration file. siteautoload.clas.php looks for the .sitemap.php<br />file in the current directory. If it does not find it there it moves up to the parent directory. This<br />continues until the DocumentRoot of the domain is reached. If a .sitemap.php file is not found an<br />exception is thrown.</p>
-<p>Once a .sitemap.php file is found the information in it is read in via 'require_once'. There are several<br />section to the .sitemap.php file. The first section defines the layout of the directorys. The second<br />section defines some email information used to send error messages. The third section sets up the<br />$siteinfo array. This array describes your site or page.</p>
-<p>My usual directory structure starts under a www subdirectory. On an Apache2 host the structure looks<br />like this:</p>
+<p>The .sitemap.php file is the site configuration file. siteautoload.clas.php looks for the .sitemap.php file in the current directory. If it does not find it there it moves up to the parent directory. This continues until the DocumentRoot of the domain is reached. If a .sitemap.php file is not found an exception is thrown.</p>
+<p>Once a .sitemap.php file is found the information in it is read in via 'require_once'. There are several section to the .sitemap.php file. The first section defines the layout of the directorys. The second section defines some email information used to send error messages (if these are not present then no emails are sent). The third section sets up the $siteinfo array. This array describes your site or page.</p>
+<p>My usual directory structure starts under a 'www' subdirectory. On an Apache2 host the structure looks like this:</p>
 <pre><code>/var/www/includes        // this is where the SiteClass resides
-/var/www/html            // this is where your php files and js, css etc. directories live
-/var/www/html/includes   // this is where &#39;headFile&#39;, &#39;bannerFile&#39;, &#39;footerFile&#39; and child classes live
-/var/www/html/otherstuff // other directories. These directories can have their own .sitemap.php files</code></pre>
-<p>If I have multiple virtual hosts they are all off the /var/www directory instead of a single html<br />directory.</p>
+/var/www/html            // this is where your php files and js, css etc. 
+                         // directories live
+/var/www/html/includes   // this is where &#39;headFile&#39;, &#39;bannerFile&#39;, 
+                         // &#39;footerFile&#39; and child classes live
+/var/www/html/otherstuff // other directories. 
+                         // These directories can have their own 
+                         // .sitemap.php files</code></pre>
+<p>If I have multiple virtual hosts they are all off the '/var/www' directory instead of a single 'html' directory.</p>
 <h3 id="how-the-xxxfile-files-look">How the xxxFile files look</h3>
-<p>In the .sitemap.php's $siteinfo array there can be three elements that describe the location of<br />special files. These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.</p>
-<p>I put the three special file in my /var/www/html/includes directory.<br />Here is an example of my 'headFile':</p>
+<p>In the .sitemap.php's $siteinfo array there can be three elements that describe the location of special files. These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.</p>
+<p>I put the three special file in my '/var/www/html/includes' directory (where 'html' may be one of your virtual hosts and not named 'html').</p>
+<p>Here is an example of my 'headFile':</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// head.i.php for bartonphillips.com</span>
 
@@ -305,8 +320,8 @@ $</code></pre>
 <span class="kw">{$arg[&#39;css&#39;]}</span>
 <span class="st">&lt;/head&gt;</span>
 <span class="st">EOF;</span></code></pre>
-<p>The $pageHeadText variable gets all of the &lt;head&gt; section code. The $arg array is created<br />form the argument passed to the getPageTopBottom method. The getPageTopBottom method also has access to<br />the SiteClass $this property.</p>
-<p>You will see as you delve into the SiteClass code that many things can be passed to the<br />getPageTopBottom method and the various sub-methods but the standard things are:</p>
+<p>The $pageHeadText variable gets all of the &lt;head&gt; section code. The $arg array is created form the argument passed to the getPageTopBottom method. The getPageTopBottom method also has access to the SiteClass $this property.</p>
+<p>You will see if you delve into the SiteClass code that many things can be passed to the<br />getPageTopBottom method, and the various sub-methods, but the standard things are:</p>
 <ul>
 <li>title<br /></li>
 <li>desc<br /></li>
@@ -315,7 +330,7 @@ $</code></pre>
 <li>script<br /></li>
 <li>css</li>
 </ul>
-<p>As you saw in example 5 above (test5.php in the 'examples' directory)<br />I passed a $h object to the SiteClass. For example:</p>
+<p>As you saw in example 5 above (test5.php in the 'examples' directory)<br />I passed a $h object to the SiteClass. For example it might look like this:</p>
 <pre class="sourceCode php"><code class="sourceCode php">$h-&gt;title = &#39;my title&#39;;
 $h-&gt;desc = &#39;This is the description&#39;;
 $h-&gt;link = &#39;&lt;link rel=&quot;stylesheet&quot; href=&quot;test.css&quot;&gt;&#39;;
@@ -323,14 +338,14 @@ $h-&gt;extra = &#39;&lt;!-- this can be anything from a meta, link, script etc -
 $h-&gt;script = &#39;&lt;script&gt; var a=&quot;test&quot;; &lt;/script&gt;&#39;;
 $h-&gt;css = &#39;&lt;style&gt; /* some css */ #test { width: 10px; } &lt;/style&gt;&#39;;
 $S = new SiteClass($h);</code></pre>
-<p>As you can see in the 'headFile' example the $this can also be used as in $this-&gt;copyright.</p>
+<p>As you can see in the 'headFile' example the $this can also be used as in $this-&gt;copyright. Any of the pulic, protected or private $this properties can be used in any of the special files as they are all included within SiteClass.class.php.</p>
 <p>The other special files have similarities and have their own file variable:</p>
 <ul>
 <li>'bannerFile' : $pageBannerText<br /></li>
 <li>'footerFile' : $pageFooterText</li>
 </ul>
-<p>As these special files are PHP files you can do anything else that you need to including database<br />queries.</p>
-<p>I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything<br />you like. In the .sitemap.php $siteinfo array just add the full path to the file. For example:</p>
+<p>As these special files are PHP files you can do anything else that you need to, including database queries. Just remember that you need to use $this. For example, to do a query do <code>$this-&gt;query($sql);</code> not <code>$S-&gt;query($sql);</code>. You can't use the variable from your project file that you created via the <code>$S = new SiteClass($h);</code> because it is NOT within scope.</p>
+<p>I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything you like. In the .sitemap.php $siteinfo array just add the full path to the file. For example:</p>
 <pre class="sourceCode php"><code class="sourceCode php">$siteinfo = array(&#39;siteDomain&#39; =&gt; &quot;bartonphillips.com&quot;,
                   &#39;siteName&#39; =&gt; &quot;My Home Page&quot;,
                   &#39;copyright&#39; =&gt; &quot;2015 Barton L. Phillips&quot;,
@@ -345,12 +360,13 @@ $S = new SiteClass($h);</code></pre>
                   &#39;myUri&#39; =&gt; &quot;bartonphillips.dyndns.org&quot;
                  );</code></pre>
 <p>In the abovd example I have used the SITE_INCLUDES define from the .sitemap.php's first section.</p>
-<p>There is a default for the &lt;head&gt;, banner and footer section if you do not have special files.<br />The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the<br />getPageTopBottom method ($h-&gt;doctype='xxx').</p>
-<p>Creating the special files make the tedious boiler plate simple and yet configureable via the $arg<br />array.</p>
+<p>There is a default for the &lt;head&gt;, banner and footer section if you do not have special files.<br />The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the getPageTopBottom method ($h-&gt;doctype='xxx').</p>
+<p>Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.</p>
 <hr>
 
+
 <h1 id="class-methods">Class Methods</h1>
-<p>While there are a number of methods for each of the major classes there are really only a small<br />handful you will use on a regular bases. The ones must used have some documentation with them.</p>
+<p>While there are a number of methods for each of the major classes there are really only a small handful you will use on a regular bases. The ones most used have some documentation with them.</p>
 <h2 id="siteclass-methods">SiteClass methods:</h2>
 <ul>
 <li>constructor<br /></li>
@@ -363,7 +379,7 @@ $S = new SiteClass($h);</code></pre>
 <li>public function getEmail() // if a memberTable<br /></li>
 <li>public function setEmail($email) // if a memberTable<br /></li>
 <li>public function getWhosBeenHereToday() // if a memberTable<br /></li>
-<li>public function getPageTopBottom($h, $b=null)<br />This is the most used method. It takes one or two arguments which can be string|array|object.<br />$h can have 'title', 'desc', 'banner' and a couple of other less used options.<br />$b is for the footer or bottom. I usually just pass a &lt;hr&gt; but you can also pass a 'msg', 'msg1',<br />'msg2' etc. I usually put things into the 'footerFile' but on occasions a page needs something extra.<br />This method calls getPageHead(), getBanner(), getFooter().<br /></li>
+<li>public function getPageTopBottom($h, $b=null)<br />This is the most used method. It takes one or two arguments which can be string|array|object.<br />$h can have 'title', 'desc', 'banner' and a couple of other less used options.<br />$b is for the footer or bottom. I sometimes pass a &lt;hr&gt; but you can also pass a 'msg', 'msg1', 'msg2' (see the code). I usually put things into the 'footerFile' but on occasions a page needs something extra.<br />This method calls getPageHead(), getBanner(), getFooter().<br /></li>
 <li>public function getPageTop($header, $banner=null, $bodytag=null)<br /></li>
 <li>public function getDoctype()<br /></li>
 <li>public function getPageHead(/<em>$title, $desc=null, $extra=null, $doctype, $lang</em>/)<br /></li>
@@ -376,27 +392,29 @@ $S = new SiteClass($h);</code></pre>
 <ul>
 <li>constructor<br /></li>
 <li>public function getDb()<br /></li>
-<li>public function query($query)<br />This is the workhourse of the database. It is used for 'select', 'update', 'insert' and basically<br />anything you need to do like 'drop', 'alter' etc. $query is just sql.<br /></li>
-<li><p>public function fetchrow($result=null, $type=&quot;both&quot;)<br />Probably the second most used method. If it follows the 'query' the $result is not needed. The only<br />time $result is needed is is there are other queries in a while loop. In that case you need to get<br />the result of the query by calling the getResult() method before running the while loop.<br />The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only an associative array, while 'num'<br />return a numeric array. I usually use a numeric array with</p>
-<pre class="sourceCode php"><code class="sourceCode php">while(list($name, $email) = $S-&gt;fetchrow(&#39;num&#39;)) { ... }</code></pre></li>
+<li>public function query($query)<br />This is the workhourse of the database. It is used for 'select', 'update', 'insert' and basically anything you need to do like 'drop', 'alter' etc. $query is the sql statement.<br /></li>
+<li>public function fetchrow($result=null, $type=&quot;both&quot;)<br />Probably the second most used method. If it follows the 'query' the $result is not needed. The only time $result is needed is if there are other queries in a while loop. In that case you need to get the result of the query by calling the getResult() method before running the while loop.<br />The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only an associative array, while 'num' return a numeric array. I usually use a numeric array with</li>
+</ul>
+<pre class="sourceCode php"><code class="sourceCode php">while(list($name, $email) = $S-&gt;fetchrow(&#39;num&#39;)) { ... }</code></pre>
+<ul>
 <li>public function queryfetch($query, $retarray=false)<br /></li>
 <li>public function getLastInsertId()<br />After an 'insert' this method returns the new row primary key id.<br /></li>
 <li>public function getResult()<br />Returns the result object from the last 'query'. Usually not needed.<br /></li>
 <li>public function escape($string)<br /></li>
 <li>public function escapeDeep($value)<br /></li>
 <li>public function getNumRows($result=null)<br /></li>
-<li>public function prepare($query)<br />Hardly ever use prepare(), bindParam(), bindResults() or execute() so they are not as well tested as<br />the other methods.<br /></li>
+<li>public function prepare($query)<br />I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are not as well tested as the other methods.<br /></li>
 <li>public function bindParam($format)<br /></li>
 <li>public function bindResults($format)<br /></li>
 <li>public function execute()<br /></li>
-<li><p>public function getErrorInfo()</p></li>
+<li>public function getErrorInfo()</li>
 </ul>
-<p>The database methods are implemented for all supported engines.</p>
+<p>The database methods are implemented for all supported engines. There are some minor behavioral differences, for example in the syntax the engine queries uses or the return values. For example sqlite3 does not support a number of rows returned functionality and there are also several (many) syntactial differenced between sqlite and mysql when it comes to supported functions etc. (caviat emptor).</p>
 <h2 id="dbtables-methods">dbTables methods:</h2>
 <ul>
 <li>constructor<br /></li>
 <li>public function makeresultrows($query, $rowdesc, array $extra=array())<br /></li>
-<li>public function maketable($query, array $extra=null)<br />$extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer']<br />and $extra['attr'].<br />$extra['attr'] is an assoc array that can have attributes for the <table> tag, like 'id',<br /> 'title', 'class', 'style' etc.<br />$extra['callback'] function that can modify the header after it is filled in.<br />$extra['footer'] a footer string<br />@return array [{string table}, {result}, {num}, {hdr}, table=&gt;{string}, result=&gt;{result},<br /> num=&gt;{num rows}, header=&gt;{hdr}]<br />or === false</li>
+<li>public function maketable($query, array $extra=null)<br />$extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] and $extra['attr'].<br />$extra['attr'] is an assoc array that can have attributes for the <table> tag, like 'id', 'title', 'class', 'style' etc.<br />$extra['callback'] function that can modify the header after it is filled in.<br />$extra['footer'] a footer string<br />@return array [{string table}, {result}, {num}, {hdr}, table=&gt;{string}, result=&gt;{result},<br /> num=&gt;{num rows}, header=&gt;{hdr}]<br /> or === false</li>
 </ul>
 <h2 id="contact-me">Contact Me</h2>
 <p>Barton Phillips : <script type="text/javascript">
