@@ -16,15 +16,13 @@ The following database engines are provided as the following classes:
 2. dbMysqli        (most rigorously tested)
 3. dbSqlite        sqlite3 (used for the examples)
 4. dbPod           PHP POD, works with 'pdo_sqlite' and 'pdo_pgsql'
-5  dbPostgreSql    (new and lest tested but works with 'test.php'
+5. dbPostgreSql    (new and lest tested but works with 'test.php'
 
 ## Disclamer
 
-To start, this framework is meant for Linux not Windows. I don't use Windows, 
-like it or have it, so nothing has been tried on Windows. 
+To start, this framework is meant for Linux not Windows. I don't use Windows, like it or have it, so nothing has been tried on Windows. 
 
-I use Linux Mint which is an Ubuntu derivative which is a Debian
-derivative. I have not tried this package on any distributions that do not evolve from Debian.
+I use Linux Mint which is an Ubuntu derivative which is a Debian derivative. I have not tried this package on any distributions that do not evolve from Debian.
 
 ## Install
 
@@ -32,33 +30,20 @@ There are several ways to install this project.
 
 ### Download The ZIP File
 
-Download the ZIP file from GitHub. Expand it and move the 'includes' directory somewhere.
-On a system with Apache2 I usually put the 'includes' directory in the /var/www directory
-that Apache creates. Apache also usually creates /var/www/html and makes this the default DocumentRoot.
-I put the 'includes' directory just outside of the DocumentRoot. In my servers I have /var/www and then
-have my virtual hosts off that directory. That way the 'includes' directory is easily available to all
-of my virtual hosts.
+Download the ZIP file from GitHub. Expand it and move the 'includes' directory somewhere. On a system with Apache2 I usually put the 'includes' directory in the /var/www directory that Apache creates. Apache also usually creates /var/www/html and makes this the default DocumentRoot. I put the 'includes' directory just outside of the DocumentRoot. In my servers I have /var/www and then have my virtual hosts off that directory. That way the 'includes' directory is easily available to all of my virtual hosts.
 
-If you are testing with the PHP server I put a 'www' directory off my $HOME and put the 
-'includes' directory there. 
-I then make my test DocumentRoot off '&#126;/www' like '&#126;/www/test'. 
-I ```cd``` to the test directory and do
-``` php -S localhost:8080 ```. I can then use my browser and goto ``` localhost:8080``` and see my 
-'index.php' file.
+If you are testing with the PHP server I put a 'www' directory off my $HOME and put the 'includes' directory there. I then make my test DocumentRoot off '&#126;/www' like '&#126;/www/test'. I ```cd``` to the test directory and do ``` php -S localhost:8080 ```. I can then use my browser and goto ``` localhost:8080``` and see my 'index.php' file.
 
 ### Use Composer
 
-If you have Apache or Nginx installed then you should made your project root somewhere
-withing your DocumentRoot ('/var/www/html' for Apache2 on Ubuntu).
+If you have Apache or Nginx installed then you should made your project root somewhere withing your DocumentRoot ('/var/www/html' for Apache2 on Ubuntu).
 
 
-Create a directory ```mkdir myproject; cd myproject```, this is your project root directory.
-Add the following to 'composer.json', just cut and past:
+Create a directory ```mkdir myproject; cd myproject```, this is your project root directory. Add the following to 'composer.json', just cut and past:
 
 ```
 {
   "require": {
-      "php": ">=5.4",
       "bartonlp/site-class": "dev-master"
   }
 }
@@ -66,27 +51,19 @@ Add the following to 'composer.json', just cut and past:
 
 Then run ```composer install```.
 
-**OR** you can just run ```composer require bartonlp/site-class:dev-master``` which will create
-the 'composer.json' for you and load the package like 'install'.
+**OR** you can just run ```composer require bartonlp/site-class:dev-master``` which will create the 'composer.json' for you and load the package like 'install'.
 
-In your PHP file add ```require_once($PATH . 'vendor/autoload.php');``` where '$PATH' 
-is the path to the 'vendor' directory like './' or '../' etc.
+In your PHP file add ```require_once($PATH . 'vendor/autoload.php');``` where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.
 
-There are some example files in the 'examples' directory at
-'/vendor/bartonlp/site-class/examples' or 'examples' in your project root if you copied
-it there.
+There are some example files in the 'examples' directory at '/vendor/bartonlp/site-class/examples' or 'examples' in your project root if you copied it there.
 
 ## Examples
 
-The code shown below can be found in the 'examples' directory at 
-http://github.com/bartonlp/site-class or from your project root 
-at 'vendor/bartonlp/site-class/examples' along with
-more <a href="examples/EXAMPLES.html">documentation</a>. 
+The code shown below can be found in the 'examples' directory at http://github.com/bartonlp/site-class or from your project root at 'vendor/bartonlp/site-class/examples' along with more <a href="examples/EXAMPLES.html">documentation</a>. 
 
-<p style="color: pink">The code in the 'examples' directory has actually been tested and runs. The code in this README was originally copied in from the examples code but may have changed for some reason. Therefore you should use the examples code rather than doing a copy and past from this README.</p>
+<p style="color: green">The code in the 'examples' directory has actually been tested and runs. The code in this README was originally copied in from the examples code but may have changed for some reason. Therefore you should use the examples code rather than doing a copy and past from this README.</p>
 
-You may want to copy (or move) 
-the examples and the 'README.html' (both at 'vendor/bartonlp/site-class') to your project root directory before starting. 
+You may want to copy (or move) the examples and the 'README.html' (both at 'vendor/bartonlp/site-class') to your project root directory before starting. 
 
 From your project root do:
 
@@ -97,8 +74,7 @@ cp vendor/bartonlp/site-class/README.html .
 
 If you have Apache or Nginx installed then you should have made your project root somewhere within your DocumentRoot, for example '/var/www/html/myproject'.
 
-If you don't have Apache or Nginx installed on your computer you can use the PHP server. 
-Do the following from your project root:
+If you don't have Apache or Nginx installed on your computer you can use the PHP server. Do the following from your project root:
 
 ```
 php -S localhost:8080
@@ -106,13 +82,11 @@ php -S localhost:8080
 
 Then use your browser by entering ```http://localhost:8080/README.html``` in the browsers location bar.
 
-The code in the 'examples' directory uses the **sqlite3** engine.
-There should be a 'test.sdb' database file in the 'examples' directory already.
+The code in the 'examples' directory uses the **sqlite3** engine. There should be a 'test.sdb' database file in the 'examples' directory already.
 
-I have included a 'sqlite.sql' file that can be run from the command line if you want to
-recreate the 'members' table.
-You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.
-From the command line in the directory where the SiteClass was downloaded:
+I have included a 'sqlite.sql' file that can be run from the command line if you want to recreate the 'members' table.
+
+You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc. From the command line in the directory where the SiteClass was downloaded:
 
 ```
 $ cd examples
@@ -134,9 +108,7 @@ This should create a new 'members' table in the 'test.sdb' database.
 
 <hr>
 
-These examples assume that the 'includes' directory is at /var/www as I suggested.
-The files in the 'examples' directory use either '../vendor/bartonlp/site-class/includes' or
-'../vendor/autoload.php' for the 'composer-*' variants. The examples assume that you have copied the 'examples' directory from the 'vendor/bartonlp/site-class' directory to your project root.
+These examples assume that the 'includes' directory is at /var/www as I suggested. The files in the 'examples' directory use either '../vendor/bartonlp/site-class/includes' or '../vendor/autoload.php' for the 'composer-' variants. The examples assume that you have copied the 'examples' directory from the 'vendor/bartonlp/site-class' directory to your project root.
 
 There are a number of ways to use the framework:
 
@@ -165,9 +137,7 @@ $footer
 EOF;
 ```
 
-That is the simplest usage. You get a generic &lt;head&gt; a blank &lt;header&gt; and a generic 
-&lt;footer&gt;. 
-No database or other stuff.
+That is the simplest usage. You get a generic &lt;head&gt; a blank &lt;header&gt; and a generic &lt;footer&gt;. No database or other stuff.
 
 <hr>
 
@@ -266,9 +236,7 @@ EOF;
 
 <hr>
 
-You can also use the siteautoload.class.php and .sitemap.php to further automate working with the framework. 
-There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your
-project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php file in the 'examples' directory to see it you need to do ``` ls -a```.
+You can also use the siteautoload.class.php and .sitemap.php to further automate working with the framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php file in the 'examples' directory to see it you need to do ``` ls -a```.
 
 ``` php
 <?php
@@ -428,8 +396,7 @@ EOF;
 
 The $pageHeadText variable gets all of the &lt;head&gt; section code. The $arg array is created form the argument passed to the getPageTopBottom method. The getPageTopBottom method also has access to the SiteClass $this property.
 
-You will see if you delve into the SiteClass code that many things can be passed to the 
-getPageTopBottom method, and the various sub-methods, but the standard things are:
+You will see if you delve into the SiteClass code that many things can be passed to the getPageTopBottom method, and the various sub-methods, but the standard things are:
 
 * title
 * desc
@@ -438,8 +405,7 @@ getPageTopBottom method, and the various sub-methods, but the standard things ar
 * script
 * css
 
-As you saw in example 5 above (test5.php in the 'examples' directory) 
-I passed a $h object to the SiteClass. For example it might look like this:
+As you saw in example 5 above (test5.php in the 'examples' directory) I passed a $h object to the SiteClass. For example it might look like this:
 
 ``` php
 $h->title = 'my title';
@@ -454,6 +420,7 @@ $S = new SiteClass($h);
 As you can see in the 'headFile' example the $this can also be used as in $this->copyright. Any of the pulic, protected or private $this properties can be used in any of the special files as they are all included within SiteClass.class.php.
 
 The other special files have similarities and have their own file variable:
+
 * 'bannerFile' : $pageBannerText
 * 'footerFile' : $pageFooterText
 
@@ -479,8 +446,7 @@ $siteinfo = array('siteDomain' => "bartonphillips.com",
 
 In the abovd example I have used the SITE_INCLUDES define from the .sitemap.php's first section.
 
-There is a default for the &lt;head&gt;, banner and footer section if you do not have special files. 
-The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the getPageTopBottom method ($h->doctype='xxx').
+There is a default for the &lt;head&gt;, banner and footer section if you do not have special files. The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the getPageTopBottom method ($h->doctype='xxx').
 
 Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.
 
@@ -528,6 +494,7 @@ The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only an assoc
 ``` php
 while(list($name, $email) = $S->fetchrow('num')) { ... }
 ```
+
 * public function queryfetch($query, $retarray=false)
 * public function getLastInsertId()  
 After an 'insert' this method returns the new row primary key id.
@@ -560,5 +527,5 @@ $extra['footer'] a footer string
 
 ## Contact Me
 
-Barton Phillips : bartonphillips@gmail.com
+Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a>
 Copyright &copy; 2015 Barton Phillips

@@ -1,3 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+pre {
+background-color: #DBDBDB;
+overflow: auto;
+}
+</style>
+</head>
+<body>
 <h1 id="siteclass">SiteClass</h1>
 <p><strong>SiteClass</strong> is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.</p>
 <p>This project has several parts that can function standalone or combined.</p>
@@ -8,49 +19,50 @@
 <li>Error and Exception classes<br /></li>
 <li>SiteClass.class.php : tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.</li>
 </ul>
-<p>The following database engines are provided:</p>
+<p>The following database engines are provided as the following classes:</p>
 <ol>
-<li>Mysql (depreciated)<br /></li>
-<li>Mysqli (most rigorously tested)<br /></li>
-<li>sqlite3 (used for the examples)<br /></li>
-<li>POD (least tested)</li>
+<li>dbMysql (depreciated)<br /></li>
+<li>dbMysqli (most rigorously tested)<br /></li>
+<li>dbSqlite sqlite3 (used for the examples)<br /></li>
+<li>dbPod PHP POD, works with 'pdo_sqlite' and 'pdo_pgsql'<br /></li>
+<li>dbPostgreSql (new and lest tested but works with 'test.php'</li>
 </ol>
 <h2 id="disclamer">Disclamer</h2>
-<p>To start, this framework is meant for Linux not Windows. I don't use Windows,<br />like it or have it, so nothing has been tried on Windows.</p>
-<p>I use Linux Mint which is an Ubuntu derivative which is a Debian<br />derivative. I have not tried this package on any distributions that do not evolve from Debian.</p>
+<p>To start, this framework is meant for Linux not Windows. I don't use Windows, like it or have it, so nothing has been tried on Windows.</p>
+<p>I use Linux Mint which is an Ubuntu derivative which is a Debian derivative. I have not tried this package on any distributions that do not evolve from Debian.</p>
 <h2 id="install">Install</h2>
 <p>There are several ways to install this project.</p>
 <h3 id="download-the-zip-file">Download The ZIP File</h3>
-<p>Download the ZIP file from GitHub. Expand it and move the 'includes' directory somewhere.<br />On a system with Apache2 I usually put the 'includes' directory in the /var/www directory<br />that Apache creates. Apache also usually creates /var/www/html and makes this the default DocumentRoot.<br />I put the 'includes' directory just outside of the DocumentRoot. In my servers I have /var/www and then<br />have my virtual hosts off that directory. That way the 'includes' directory is easily available to all<br />of my virtual hosts.</p>
-<p>If you are testing with the PHP server I put a 'www' directory off my $HOME and put the<br />'includes' directory there.<br />I then make my test DocumentRoot off '~/www' like '~/www/test'.<br />I <code>cd</code> to the test directory and do<br /><code>php -S localhost:8080</code>. I can then use my browser and goto <code>localhost:8080</code> and see my<br />'index.php' file.</p>
+<p>Download the ZIP file from GitHub. Expand it and move the 'includes' directory somewhere. On a system with Apache2 I usually put the 'includes' directory in the /var/www directory that Apache creates. Apache also usually creates /var/www/html and makes this the default DocumentRoot. I put the 'includes' directory just outside of the DocumentRoot. In my servers I have /var/www and then have my virtual hosts off that directory. That way the 'includes' directory is easily available to all of my virtual hosts.</p>
+<p>If you are testing with the PHP server I put a 'www' directory off my $HOME and put the 'includes' directory there. I then make my test DocumentRoot off '~/www' like '~/www/test'. I <code>cd</code> to the test directory and do <code>php -S localhost:8080</code>. I can then use my browser and goto <code>localhost:8080</code> and see my 'index.php' file.</p>
 <h3 id="use-composer">Use Composer</h3>
-<p>If you have Apache or Nginx installed then you should made your project root somewhere<br />withing your DocumentRoot ('/var/www/html' for Apache2 on Ubuntu).</p>
-<p>Create a directory <code>mkdir myproject; cd myproject</code>, this is your project root directory.<br />Add the following to 'composer.json', just cut and past:</p>
+<p>If you have Apache or Nginx installed then you should made your project root somewhere withing your DocumentRoot ('/var/www/html' for Apache2 on Ubuntu).</p>
+<p>Create a directory <code>mkdir myproject; cd myproject</code>, this is your project root directory. Add the following to 'composer.json', just cut and past:</p>
 <pre><code>{
   &quot;require&quot;: {
-      &quot;php&quot;: &quot;&gt;=5.4&quot;,
       &quot;bartonlp/site-class&quot;: &quot;dev-master&quot;
   }
 }</code></pre>
 <p>Then run <code>composer install</code>.</p>
-<p><strong>OR</strong> you can just run <code>composer require bartonlp/site-class:dev-master</code> which will create<br />the 'composer.json' for you and load the package like 'install'.</p>
-<p>In your PHP file add <code>require_once($PATH . 'vendor/autoload.php');</code> where '$PATH'<br />is the path to the 'vendor' directory like './' or '../' etc.</p>
-<p>There are some example files in the 'examples' directory at<br />'/vendor/bartonlp/site-class/examples' or 'examples' in your project root if you copied<br />it there.</p>
+<p><strong>OR</strong> you can just run <code>composer require bartonlp/site-class:dev-master</code> which will create the 'composer.json' for you and load the package like 'install'.</p>
+<p>In your PHP file add <code>require_once($PATH . 'vendor/autoload.php');</code> where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.</p>
+<p>There are some example files in the 'examples' directory at '/vendor/bartonlp/site-class/examples' or 'examples' in your project root if you copied it there.</p>
 <h2 id="examples">Examples</h2>
-<p>The code shown below can be found in the 'examples' directory at<br /><a href="http://github.com/bartonlp/site-class">http://github.com/bartonlp/site-class</a> or from your project root<br />at 'vendor/bartonlp/site-class/examples' along with<br />more <a href="examples/EXAMPLES.html">documentation</a>.</p>
-<p style="color: pink">The code in the 'examples' directory has actually been tested and runs. The code in this README was originally copied in from the examples code but may have changed for some reason. Therefore you should use the examples code rather than doing a copy and past from this README.</p>
+<p>The code shown below can be found in the 'examples' directory at <a href="http://github.com/bartonlp/site-class">http://github.com/bartonlp/site-class</a> or from your project root at 'vendor/bartonlp/site-class/examples' along with more <a href="examples/EXAMPLES.html">documentation</a>.</p>
+<p style="color: green">The code in the 'examples' directory has actually been tested and runs. The code in this README was originally copied in from the examples code but may have changed for some reason. Therefore you should use the examples code rather than doing a copy and past from this README.</p>
 
 
-<p>You may want to copy (or move)<br />the examples and the 'README.html' (both at 'vendor/bartonlp/site-class') to your project root directory before starting.</p>
+<p>You may want to copy (or move) the examples and the 'README.html' (both at 'vendor/bartonlp/site-class') to your project root directory before starting.</p>
 <p>From your project root do:</p>
 <pre><code>cp -r vendor/bartonlp/site-class/examples .
 cp vendor/bartonlp/site-class/README.html .</code></pre>
 <p>If you have Apache or Nginx installed then you should have made your project root somewhere within your DocumentRoot, for example '/var/www/html/myproject'.</p>
-<p>If you don't have Apache or Nginx installed on your computer you can use the PHP server.<br />Do the following from your project root:</p>
+<p>If you don't have Apache or Nginx installed on your computer you can use the PHP server. Do the following from your project root:</p>
 <pre><code>php -S localhost:8080</code></pre>
 <p>Then use your browser by entering <code>http://localhost:8080/README.html</code> in the browsers location bar.</p>
-<p>The code in the 'examples' directory uses the <strong>sqlite3</strong> engine.<br />There should be a 'test.sdb' database file in the 'examples' directory already.</p>
-<p>I have included a 'sqlite.sql' file that can be run from the command line if you want to<br />recreate the 'members' table.<br />You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.<br />From the command line in the directory where the SiteClass was downloaded:</p>
+<p>The code in the 'examples' directory uses the <strong>sqlite3</strong> engine. There should be a 'test.sdb' database file in the 'examples' directory already.</p>
+<p>I have included a 'sqlite.sql' file that can be run from the command line if you want to recreate the 'members' table.</p>
+<p>You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc. From the command line in the directory where the SiteClass was downloaded:</p>
 <pre><code>$ cd examples
 $ sqlite3 test.sdb
 sqlite&gt; drop table members;
@@ -68,7 +80,7 @@ $</code></pre>
 <hr>
 
 
-<p>These examples assume that the 'includes' directory is at /var/www as I suggested.<br />The files in the 'examples' directory use either '../vendor/bartonlp/site-class/includes' or<br />'../vendor/autoload.php' for the 'composer-*' variants. The examples assume that you have copied the 'examples' directory from the 'vendor/bartonlp/site-class' directory to your project root.</p>
+<p>These examples assume that the 'includes' directory is at /var/www as I suggested. The files in the 'examples' directory use either '../vendor/bartonlp/site-class/includes' or '../vendor/autoload.php' for the 'composer-' variants. The examples assume that you have copied the 'examples' directory from the 'vendor/bartonlp/site-class' directory to your project root.</p>
 <p>There are a number of ways to use the framework:</p>
 <p><strong>First</strong> you can just use the SiteClass all by itself.</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
@@ -91,7 +103,7 @@ $</code></pre>
 <span class="st">&lt;p&gt;Stuff&lt;/p&gt;</span>
 <span class="kw">$footer</span>
 <span class="kw">EOF;</span></code></pre>
-<p>That is the simplest usage. You get a generic &lt;head&gt; a blank &lt;header&gt; and a generic<br />&lt;footer&gt;.<br />No database or other stuff.</p>
+<p>That is the simplest usage. You get a generic &lt;head&gt; a blank &lt;header&gt; and a generic &lt;footer&gt;. No database or other stuff.</p>
 <hr>
 
 
@@ -183,7 +195,7 @@ $</code></pre>
 <hr>
 
 
-<p>You can also use the siteautoload.class.php and .sitemap.php to further automate working with the framework.<br />There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your<br />project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php file in the 'examples' directory to see it you need to do <code>ls -a</code>.</p>
+<p>You can also use the siteautoload.class.php and .sitemap.php to further automate working with the framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php file in the 'examples' directory to see it you need to do <code>ls -a</code>.</p>
 <pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// test4.php</span>
 
@@ -321,7 +333,7 @@ $</code></pre>
 <span class="st">&lt;/head&gt;</span>
 <span class="st">EOF;</span></code></pre>
 <p>The $pageHeadText variable gets all of the &lt;head&gt; section code. The $arg array is created form the argument passed to the getPageTopBottom method. The getPageTopBottom method also has access to the SiteClass $this property.</p>
-<p>You will see if you delve into the SiteClass code that many things can be passed to the<br />getPageTopBottom method, and the various sub-methods, but the standard things are:</p>
+<p>You will see if you delve into the SiteClass code that many things can be passed to the getPageTopBottom method, and the various sub-methods, but the standard things are:</p>
 <ul>
 <li>title<br /></li>
 <li>desc<br /></li>
@@ -330,7 +342,7 @@ $</code></pre>
 <li>script<br /></li>
 <li>css</li>
 </ul>
-<p>As you saw in example 5 above (test5.php in the 'examples' directory)<br />I passed a $h object to the SiteClass. For example it might look like this:</p>
+<p>As you saw in example 5 above (test5.php in the 'examples' directory) I passed a $h object to the SiteClass. For example it might look like this:</p>
 <pre class="sourceCode php"><code class="sourceCode php">$h-&gt;title = &#39;my title&#39;;
 $h-&gt;desc = &#39;This is the description&#39;;
 $h-&gt;link = &#39;&lt;link rel=&quot;stylesheet&quot; href=&quot;test.css&quot;&gt;&#39;;
@@ -360,7 +372,7 @@ $S = new SiteClass($h);</code></pre>
                   &#39;myUri&#39; =&gt; &quot;bartonphillips.dyndns.org&quot;
                  );</code></pre>
 <p>In the abovd example I have used the SITE_INCLUDES define from the .sitemap.php's first section.</p>
-<p>There is a default for the &lt;head&gt;, banner and footer section if you do not have special files.<br />The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the getPageTopBottom method ($h-&gt;doctype='xxx').</p>
+<p>There is a default for the &lt;head&gt;, banner and footer section if you do not have special files. The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the getPageTopBottom method ($h-&gt;doctype='xxx').</p>
 <p>Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.</p>
 <hr>
 
@@ -417,9 +429,7 @@ $S = new SiteClass($h);</code></pre>
 <li>public function maketable($query, array $extra=null)<br />$extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] and $extra['attr'].<br />$extra['attr'] is an assoc array that can have attributes for the <table> tag, like 'id', 'title', 'class', 'style' etc.<br />$extra['callback'] function that can modify the header after it is filled in.<br />$extra['footer'] a footer string<br />@return array [{string table}, {result}, {num}, {hdr}, table=&gt;{string}, result=&gt;{result},<br /> num=&gt;{num rows}, header=&gt;{hdr}]<br /> or === false</li>
 </ul>
 <h2 id="contact-me">Contact Me</h2>
-<p>Barton Phillips : <script type="text/javascript">
-<!--
-h='&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;';e=n+a+h;
-document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
-// -->
-</script><noscript>&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#32;&#x61;&#116;&#32;&#x67;&#x6d;&#x61;&#x69;&#108;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;</noscript><br />Copyright © 2015 Barton Phillips</p>
+<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a><br />Copyright © 2015 Barton Phillips</p>
+
+</body>
+</html>
