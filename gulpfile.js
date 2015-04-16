@@ -8,8 +8,9 @@ header = require('gulp-header'),
 footer = require('gulp-footer'),
 rename = require('gulp-rename');
 
-var readmeHeader = "<!DOCTYPE html>\n<html>\n<head>\n<style>\ncode {\n"+
-                   "background-color: #DBDBDB;}\n</style>\n</head>\n<body>\n";
+var readmeHeader = "<!DOCTYPE html>\n<html>\n<head>\n<style>\npre {\n"+
+                   "background-color: #DBDBDB;\n"+
+                   "overflow: auto;\n}\n</style>\n</head>\n<body>\n";
 
 gulp.task('default', function() {
   return gulp.src("README.md")
@@ -17,7 +18,7 @@ gulp.task('default', function() {
                  {pipeStdout: true}))
       .pipe(header(readmeHeader))
       .pipe(footer("\n</body>\n</html>\n"))
-      .pipe(rename('readme.html'))
+      .pipe(rename('README.html'))
       .pipe(gulp.dest('./'))
 });
 
