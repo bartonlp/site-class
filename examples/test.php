@@ -19,7 +19,21 @@ if(file_exists("../includes")) {
 Error::setNoEmailErrs(true);
 Error::setDevelopment(true);
 
+$siteinfo['memberTable'] = 'members';
+$siteinfo['dbinfo']['host'] = 'localhost';
+$siteinfo['dbinfo']['user'] = 'barton';
+$siteinfo['dbinfo']['password'] = '7098653';
+$siteinfo['dbinfo']['database'] = 'barton';
+$siteinfo['dbinfo']['engine'] = 'pgsql';
+
+$siteinfo['databaseClass'] = new Database($siteinfo['dbinfo']);
+//vardump('test.php Database', $siteinfo['databaseClass']);
+
+//$siteinfo['dbinfo'] = null;
+
 $S = new SiteClass($siteinfo);
+//vardump('test.php getDb', $S->getDb());
+//vardump('test.php', $S);
 
 $engine = $siteinfo['dbinfo']['engine'];
 
@@ -51,13 +65,12 @@ EOF;
     break;
 }
 
-list($top, $footer) = $S->getPageTopBottom();
 $date = date("Y-M-D H:m:s");
 $n = $S->query("insert into members (fname, lname) values('$date', 'TESTTWO')");
 
 $lastid = $S->getLastInsertId(); // may not work for postgresql
 if(!$lastid) {
-  echo "using lastval()<br>";
+  //echo "using lastval()<br>";
   $S->query("select lastval()"); //"select max(rowid) from members");
   list($lastid) = $S->fetchrow('num');
 }
@@ -79,6 +92,8 @@ $names = '';
 while(list($name) = $S->fetchrow('num')) {
   $names .= "$name<br>";
 }
+
+list($top, $footer) = $S->getPageTopBottom();
 
 echo <<<EOF
 $top

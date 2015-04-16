@@ -3,7 +3,7 @@
 
 /**
  * Helper Functions
- * These my well be defined by a chile class.
+ * These may well be defined by a chile class.
  */
 
 if(!function_exists('vardump')) {  
@@ -78,10 +78,10 @@ if(!function_exists('escapeltgt')) {
   }
 }
 
-// vardump makes value readable
+// varprint makes value readable via print_r
 
-if(!function_exists('vardump')) {
-  function vardump($value, $msg=null) {
+if(!function_exists('varprint')) {
+  function varprint($value, $msg=null) {
     if($msg) $msg = "<b>$msg</b>\n";
     echo "<pre>$msg" . (escapeltgt(print_r($value, true))) . "</pre>\n\n";
   }
@@ -108,6 +108,3 @@ if(!function_exists('arrayToObjectDeep')) {
     }
   }
 }
-// WARNING THERE MUST BE NOTHING AFTER THE CLOSING PHP TAG.
-// Really nothing not even a space!!!!
-?>

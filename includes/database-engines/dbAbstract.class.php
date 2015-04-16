@@ -8,21 +8,27 @@
 
 abstract class dbAbstract {
   protected $db;
-
+  protected $host, $user, $password, $database;
+  protected $result;
+  static public $lastQuery = null; // for debugging
+  static public $lastNonSelectResult = null; // for insert, update etc.
+  
   // Each child class needs to have a __toString() method
   
   abstract public function __toString();
 
   // The following methods either execute or if the method is not defined throw an Exception
 
+  // These two may be null if no database.
+  
   public function getDb() {
-    if(method_exists($this->db, 'getDb')) {
-      return $this->db;
-    } else {
-      throw new Exception(__METHOD__ . " not implemented");
-    }
+    return $this->db;
   }
 
+  public function getResult() {
+    return $this->result;
+  }
+  
   public function query($query) {
     if(method_exists($this->db, 'query')) {
       return $this->db->query($query);
@@ -55,14 +61,6 @@ abstract class dbAbstract {
     }
   }
 
-  public function getResult() {
-    if(method_exists($this->db, 'getResult')) {
-      return $this->db->getResult();
-    } else {
-      throw new Exception(__METHOD__ . " not implemented");
-    }
-  }
-    
   public function escape($string) {
     if(method_exists($this->db, 'escape')) {
       return $this->db->escape($string);

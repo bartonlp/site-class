@@ -17,19 +17,6 @@
 
 class dbSqlite extends dbAbstract {
   /**
-   * dbSqlite Database Link Identifier
-   * @var resource $db
-   */
-  
-  public $db = 0;
-
-  protected $host, $user, $password, $database;
-  protected $result;
-  
-  static public $lastQuery = null; // for debugging
-  static public $lastNonSelectResult = null; // for insert, update etc.
-
-  /**
    * Constructor
    * @param string $filename .
    * @param string $user user name for database
@@ -194,31 +181,6 @@ class dbSqlite extends dbAbstract {
     return $db->lastInsertRowid();
   }
   
-  /**
-   * getNumRows()
-   */
-
-/* Sqlite can't do this
-
-  public function getNumRows($result=null) {
-    if(!$result) $result = $this->result;
-    return $result->num_rows;;
-  }
-*/
-
-  public function getResult() {
-    return $this->result;
-  }
-  
-  /**
-   * Get the Database Resource Link Identifier
-   * @return resource link identifier
-   */
-  
-  public function getDb() {
-    return $this->db;
-  }
-
   public function getErrorInfo() {
     $db = $this->opendb();
 

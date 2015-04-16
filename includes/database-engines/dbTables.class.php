@@ -5,7 +5,9 @@ class dbTables {
   private $db;
 
   /**
-   * @param object|class $db. Can be either SiteClass or Database class.
+   * Constructor
+   * @param object|class $db. Can be either SiteClass or Database class or even
+   *   one of the dbXXX engine classes.
    */
   
   public function __construct($db) {

@@ -19,16 +19,6 @@
 
 class dbPdo extends dbAbstract {
   /**
-   * PDO Database Link Identifier
-   * @var resource $db
-   */
-  
-  public $db = 0;
-
-  protected $host, $user, $password, $database, $dbtype;
-  private $result;
-  
-  /**
    * Constructor
    * @param string $host host name like 'mysql:dbname=testdb;host=127.0.0.1' etc.
    * @param string $user user name for database
@@ -242,21 +232,6 @@ class dbPdo extends dbAbstract {
     return $result->rowCount();
   }
 
-  // BLP 2015-04-10 -- added
-  
-  public function getResult() {
-    return $this->result;
-  }
-  
-  /**
-   * Get the Database Resource Link Identifier
-   * @return resource link identifier
-   */
-  
-  public function getDb() {
-    return $this->db;
-  }
-
   public function getErrorInfo() {
     $err = $this->db->errorInfo(); // BLP 2015-04-10 -- this is a function not a prop
     $error = $err[2];
@@ -298,7 +273,3 @@ class dbPdo extends dbAbstract {
     return __CLASS__;
   }
 }
-
-// ********************************************************************************
-// END OF Database Class
-// ********************************************************************************

@@ -8,7 +8,8 @@
  *
  */
 
-class Database extends dbAbstract {
+class Database { // extends dbAbstract {
+  public $db; 
   /**
    * constructor
    * @param mixed

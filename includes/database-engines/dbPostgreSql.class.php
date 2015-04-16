@@ -2,9 +2,6 @@
 // BLP 2015-04-10 -- Tested with 'test.php' and seems to work OK
 
 class dbPostgreSql extends dbAbstract{
-  protected $host, $user, $password, $database;
-  private $result; // for select etc. a result set.
-
   public function __construct($dbHost,$dbUser,$dbPass,$dbName=false){
     $this->host=$dbHost;
     $this->user=$dbUser;
@@ -234,19 +231,6 @@ class dbPostgreSql extends dbAbstract{
     }
 
     return $numrows;    
-  }
-  
-  /**
-   * Get the Database Resource Link Identifier
-   * @return resource link identifier
-   */
-  
-  public function getDb() {
-    return $this->db;
-  }
-
-  public function getResult() {
-    return $this->result;
   }
 
   public function getErrorInfo() {
