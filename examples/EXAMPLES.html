@@ -1,15 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+pre {
+background-color: #DBDBDB;
+overflow: auto;
+}
+</style>
+</head>
+<body>
 <h1 id="examples">EXAMPLES</h1>
-<p>This directory has a number of examples of how to use the framework. I put the<br />'vendor/bartonlp/site-class/includes' directory in the /var/www that Apache2 creates when it<br />is installed on a Ubuntu system. By default the Apache2 install makes /var/www/html its<br />DocumentRoot (look at /etc/apache2/sites-enabled/000-default.conf the default site<br />configuration file).</p>
+<p>This directory has a number of examples of how to use the framework. I put the 'vendor/bartonlp/site-class/includes' directory in the /var/www that Apache2 creates when it is installed on a Ubuntu system. By default the Apache2 install makes '/var/www/html' its DocumentRoot (look at /'etc/apache2/sites-enabled/000-default.conf' the default site configuration file).</p>
 <p>The following examples are provided.</p>
-<p>The first examples either 'require_once' the SiteClass.class.php<br />or the siteautoload.class.php via '../vendor/bartonlp/site-class/includes/'.</p>
+<p>The first examples either 'require_once' the 'SiteClass.class.php' or the 'siteautoload.class.php' via '../vendor/bartonlp/site-class/includes/'.</p>
 <ol>
-<li><a href="test1.php">test1.php</a><br /></li>
-<li><a href="test2.php">test2.php</a><br /></li>
-<li><a href="test3.php">test3.php</a><br /></li>
-<li><a href="test4.php">test4.php</a><br /></li>
-<li><a href="test5.php">test5.php</a></li>
+<li><a href="test1.php">test1.php</a> Simplest. No database.<br /></li>
+<li><a href="test2.php">test2.php</a> Uses sqlite database.<br /></li>
+<li><a href="test3.php">test3.php</a> Uses Database class directly.<br /></li>
+<li><a href="test4.php">test4.php</a> Uses siteautoload.class.php<br /></li>
+<li><a href="test5.php">test5.php</a> Uses siteautoload.class.php and dbTables class.</li>
 </ol>
-<p>The next five examples use the composer autoloader:</p>
+<p>The next five examples are the same as above but use the composer autoloader:</p>
 <ol>
 <li><a href="composer-test1.php">composer-test1.php</a><br /></li>
 <li><a href="composer-test2.php">composer-test2.php</a><br /></li>
@@ -22,19 +33,30 @@
 <li><a href="insert-update.php">insert-update.php</a><br /></li>
 <li><a href="composer-insert-update.php">composer-insert-update.php</a></li>
 </ol>
-<p>You can use other frameworks or templeting engines. Here we will use Twig a popular<br />templet engine. Twig is a super powerful templet engine with looping and conditional<br />statements and much more. Here we do just about the minimum just as an example.</p>
-<p>To use this example you need to install Twig in the 'examples' directory as it is NOT<br />part of this package by default.</p>
+<h2 id="using-other-libraries">Using Other Libraries</h2>
+<h3 id="twig">Twig</h3>
+<p>You can use other frameworks or templeting engines. Here we will use Twig a popular templet engine. Twig is a super powerful templet engine with looping and conditional statements and much more. Here we do just about the minimum just as an example.</p>
+<p>To use this example you need to install Twig in the 'examples' directory as it is NOT part of this package by default.</p>
 <pre><code>composer require twig/twig:~1.0</code></pre>
 <p><a href="composer-with-twig.php">composer-with-twig.php</a></p>
-<p>If you need ReST routing (or pretty routing or SEO friendly routing as it is sometime called)<br />you could use one of the popular routing engines like <strong>Meteor</strong> or <strong>Laravel</strong><br />but then again by that point you might as well just bite the bullet and spend the hours or<br />days trying to figure those frameworks out.</p>
-<p>There is a pretty simple router called Altorouter which can be used without too much work. To<br />install Altorouter do <code>composer require altorouter/altorouter:1.1.0</code> in the 'examples'<br />directory.</p>
-<p>The file 'composer-route.php' would normally be your 'index.php' in a production environment.<br />When using a server with Apache2 you would need a '.htaccess' file in the directory where<br />the 'index.php' lives. The '.htaccess' file would look like this:</p>
+<h3 id="rest-routing-with-altorouter">ReST Routing with Altorouter</h3>
+<p>If you need ReST routing (or pretty routing or SEO friendly routing as it is sometime called) you could use one of the popular routing engines available with <strong>Meteor</strong> or <strong>Laravel</strong> but then again by that point you might as well just bite the bullet and spend the hours or days trying to figure those frameworks out.</p>
+<p>There is a pretty simple router called Altorouter which can be used without too much work. To install Altorouter do <code>composer require altorouter/altorouter:1.1.0</code> in the 'examples' directory.</p>
+<p>The file 'composer-route.php' would normally be your 'index.php' in a production environment. When using a server with Apache2 you would need a '.htaccess' file in the directory where the 'index.php' lives. The '.htaccess' file would look like this:</p>
 <pre><code>RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule . index.php [L]</code></pre>
 <p>This says that if the requested filename does not exist go to the 'index.php' file instead.</p>
-<p>Now to test this without renaming the 'composer-route.php' you can use the PHP server like this:</p>
+<p>To test this without renaming the 'composer-route.php' you can use the PHP server like this:</p>
 <pre><code>php -S localhost:8080 composer-route.php</code></pre>
-<p>The PHP server uses the composer-route.php file and you don't need a '.htaccess' file.</p>
-<p>Now you can run the program. It will display a table and a form you can use to insert new<br />records. Also a button lets you reset the database table to its original state. If you click<br />on a number in the 'ID' column you get an edit page where you can change the names.</p>
-<p>You can also get to the edit page by entering the URI '/edit/3' for example. That will take<br />you to the edit page for 'ID' three. From that page you and enter the URI '/home' which will<br />take you back to the home page.</p>
+<p>The PHP server uses the 'composer-route.php' file and you don't need a '.htaccess' file.</p>
+<p>Now you can run the program. It will display a table and a form you can use to insert new records. Also a button lets you reset the database table to its original state. If you click on a number in the 'ID' column of the table you get an edit page where you can change the names.</p>
+<p>You can also get to the edit page by entering the URI '/edit/3' for example. That will take you to the edit page for 'ID' three. From that page you and enter the URI '/home' which will take you back to the home page.</p>
+<p>The advantage of ReST is you do not actually need a '/edit/3' or a '/home' directory on your system. These are just syntactical links to control logic and as a result are easily modified. Also some people think that '/edit/3' somehow looks cooler then '?edit=3', I am not sure I agree. ReST is syntactical sugar that takes more code and obfuscates what is really going on. But that is just my opinion.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Have fun with my mini framework. Get in there and look at the code, there really isn't that much of it. Try it out and if you have any comments or suggestions please let me know.</p>
+<p>You can email me at <a href="mailto://barton@bartonphillips.com">barton@bartonphillips.com</a>.<br />My homepage is <a href="http://www.bartonphillips.com">http://www.bartonphillips.com</a>.</p>
+<p>Cheers.</p>
+
+</body>
+</html>
