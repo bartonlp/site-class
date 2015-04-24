@@ -4,10 +4,9 @@
 // To run this file you need to install Twig. You can do that in this ('examples') directory
 // with the command 'composer require twig/twig:~1.0'
 // I have NOT included Twig in this repository!
-
 require_once("vendor/autoload.php"); // for the installed vendor for Twig!
 
-require_once("../vendor/autoload.php"); // for the vendor installed for SiteClass
+require_once("../../../autoload.php");
 require_once(".sitemap.php"); // configuration for site and database
 
 // For error messages

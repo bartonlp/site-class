@@ -40,8 +40,8 @@ overflow: auto;
 <pre><code>composer require twig/twig:~1.0</code></pre>
 <p><a href="composer-with-twig.php">composer-with-twig.php</a></p>
 <h3 id="rest-routing-with-altorouter">ReST Routing with Altorouter</h3>
-<p>If you need ReST routing (or pretty routing or SEO friendly routing as it is sometime called) you could use one of the popular routing engines available with <strong>Meteor</strong> or <strong>Laravel</strong> but then again by that point you might as well just bite the bullet and spend the hours or days trying to figure those frameworks out.</p>
-<p>There is a pretty simple router called Altorouter which can be used without too much work. To install Altorouter do <code>composer require altorouter/altorouter:1.1.0</code> in the 'examples' directory.</p>
+<p>If you need ReST routing (or pretty routing or SEO friendly routing as it is sometime called) you could use one of the popular routing engines available with <strong>Meteor</strong>, <strong>Laravel</strong>, <strong>Synfony2</strong> or <strong>Silex</strong> but then again by that point you might as well just bite the bullet and spend the hours or days trying to figure out those frameworks.</p>
+<p>There is a pretty simple router called <strong>Altorouter</strong> which can be used without too much work. To install <strong>Altorouter</strong> do <code>composer require altorouter/altorouter:1.1.0</code> in the 'examples' directory.</p>
 <p>The file 'composer-route.php' would normally be your 'index.php' in a production environment. When using a server with Apache2 you would need a '.htaccess' file in the directory where the 'index.php' lives. The '.htaccess' file would look like this:</p>
 <pre><code>RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f

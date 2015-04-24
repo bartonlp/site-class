@@ -25,8 +25,36 @@ abstract class dbAbstract {
     return $this->db;
   }
 
+  /**
+   * getEngineDb()
+   * Get the engine's database resource.
+   * This lets us use engine functions that are not part of our framework.
+   */
+  
+  public function getEngineDb() {
+    return $this->db->db;
+  }
+
+  /**
+   * getResult()
+   * get the last result object
+   */
+   
   public function getResult() {
     return $this->result;
+  }
+
+  /**
+   * finalize()
+   * release the result set
+   */
+  
+  public function finalize() {
+    if(method_exists($this->db, 'finalize')) {
+      return $this->db->finalize();
+    } else {
+      throw new Exception(__METHOD__ . " not implemented");
+    }
   }
   
   public function query($query) {

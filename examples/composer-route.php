@@ -1,8 +1,10 @@
 <?php
 // composer-route.php
 
+// You should have installed AltoRouter in this (examples) directory
 require_once('vendor/autoload.php');
-require_once('../vendor/autoload.php');
+
+require_once("../../../autoload.php");
 require_once('.sitemap.php');
 
 // For error messages

@@ -1,7 +1,7 @@
 <?php
 // insert-update.php
 
-require_once("../vendor/autoload.php");
+require_once("../../../autoload.php");
 require_once(".sitemap.php");
 
 Error::setNoEmailErrs(true);

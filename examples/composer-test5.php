@@ -1,7 +1,7 @@
 <?php
 // composer-test5.php
 
-require_once("../vendor/autoload.php"); // path to siteautoload.class.php
+require_once("../../../autoload.php");
 require_once(".sitemap.php");
 
 Error::setNoEmailErrs(true);

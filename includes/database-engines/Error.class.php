@@ -49,18 +49,10 @@ function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext)
       $btrace .= "function: {$val['function']} in {$val['file']} on line {$val['line']}\n";
       if(isset($val['args'])) {
         foreach($val['args'] as $arg) {        
-/*          if(@get_class($arg) || is_array($arg)) {
-            // A class or array
-            $x = escapeltgt(print_r($arg, true));
-            $btrace .= "          arg: $x\n";
-          } else {
-            // Not a class or array
-*/
           $arg = ($arg === false) ? 'false' : $arg;
           $arg = ($arg === true) ? 'true' : $arg;
           $x = escapeltgt(var_export($arg, true));            
           $btrace .= "          arg: $x\n";
-//          }
         }
       }
     }
@@ -148,7 +140,7 @@ EOF;
   exit();
 }
 
-// Do the final output part of the error/exception
+// Do the final output part of the error/exception.
 // $error is the html minus the div with ERROR
 // $from is Error or Exception
 
@@ -186,8 +178,8 @@ function finalOutput($error, $from) {
     chmod(LOGFILE, 0666);
   }
 
-  date_default_timezone_set('America/New_York');
-  file_put_contents(LOGFILE, date("Y-m-d h:m:s") . "\n$from: {$err}{$userId}{$agent}*****\n",
+  date_default_timezone_set('America/Denver');
+  file_put_contents(LOGFILE, date("Y-m-d H:i:s") . "\n$from: {$err}{$userId}{$agent}*****\n",
                     FILE_APPEND);
 
   if(Error::getDevelopment() !== true) {
@@ -201,8 +193,8 @@ EOF;
            " Please try again in a couple of hours.";
   }
 
-  if(Error::getNohtml() === true) {
-    $error = "<pre><b>$from:</b>$err</pre>";
+  if(Error::getNoHtml() === true) {
+    $error = "$from:\n$err\n";
   } else {
     $error = <<<EOF
 <div style="text-align: center; background-color: white; border: 1px solid black; width: 85%; margin: auto auto; padding: 10px;">
@@ -318,6 +310,3 @@ class Error {
     return __CLASS__;
   }
 }
-// WARNING THERE MUST BE NOTHING AFTER THE CLOSING PHP TAG.
-// Really nothing not even a space!!!!
-?>

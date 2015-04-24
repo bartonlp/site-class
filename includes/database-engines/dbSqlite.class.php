@@ -2,7 +2,7 @@
 /**
  * dbSqlite Class
  *
- * General Sqlite Database Class. 
+ * General SQLite3 Database Class. 
  * @package Database
  * @author Barton Phillips <barton@bartonphillips.com>
  * @version 1.0
@@ -45,11 +45,12 @@ class dbSqlite extends dbAbstract {
     if($this->db) {
       return $this->db;
     }
-    //$db = new SQLiteDatabase($this->database);
+
     $db = new SQLite3($this->database);
 
     if($db === false) {
-      throw new SqlException(__METHOD__ . ": Can't connect to database: {$db->loastError}", $this);
+      throw new SqlException(__METHOD__ .
+                             ": Can't connect to database: {$db->loastError}", $this);
     }
     
     $this->db = $db; // set this right away so if we get an error below $this->db is valid
@@ -57,6 +58,16 @@ class dbSqlite extends dbAbstract {
     return $db;
   }
 
+  /**
+   * finalize()
+   * release the result set
+   */
+  
+  public function finalize() {
+    $result = $this->result;
+    $result->finalize();
+  }
+  
   /**
    * query()
    * Query database table
@@ -191,7 +202,10 @@ class dbSqlite extends dbAbstract {
     return $err;
   }
   
-  // real_escape_string
+  /**
+   * escape()
+   * Escape the string for use by the database
+   */
   
   public function escape($string) {
     $db = $this->opendb();
@@ -199,10 +213,9 @@ class dbSqlite extends dbAbstract {
     if(get_magic_quotes_runtime()) {
       $string = stripslashes($string);
     }
-    return @sqlite_escape_string($string);
+    return $db->escapeString($string);
   }
 
-  //
   
   public function escapeDeep($value) {
     $db = $this->opendb();
@@ -218,13 +231,13 @@ class dbSqlite extends dbAbstract {
   }
 
   public function __toString() {
-    return "Database mysqli Class";
+    return __CLASS__;
   }
 }
 
 /**
  * Helper Functions
- * These my well be defined by a chile class.
+ * These my well be defined by a chile class or by helper_functions.php
  */
 
 /**
