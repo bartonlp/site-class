@@ -38,24 +38,28 @@ class dbPdo extends dbAbstract {
     }
     
     switch($dbtype) {
-      case 'mysql':
-      case 'mysqli':
+//      case 'pdo_mysql':
+      case 'pdo_mysqli':
         $this->host = "mysql:dbname=$database;host=$host";
         break;
-      case 'pdo_sqlite':
+/*      case 'pdo_sqlite':
         $fulldsn = realpath($database);
         $this->host = "sqlite:$fulldsn";
         break;
       case 'pdo_pgsql':
         if(isset($port)) {
-          $post = "port=$port;";
-        } else $port = '';
+          $post = ";port=$port";
+        } else $port = ';port=5432';
         
-        $this->host = "pgsql:host=$host;{$port}dbname=$database";
+        $this->host = "pgsql:host=$host{$port};dbname=$database";
         break;
+*/        
       default:
+        throw(new Exception("Default"));
+/*        
         $fulldsn = realpath($database);
         $this->host = "sqlite:$fulldsn";
+*/        
     }
     $this->user = $user;
     $this->password = $password;
@@ -76,13 +80,14 @@ class dbPdo extends dbAbstract {
     if($this->db) {
       return $this->db;
     }
-    //echo "$this->host, $this->user, $this->password";
+
     try {
       $db = @new PDO($this->host, $this->user, $this->password);
     } catch(PDOException $e) {
       $this->errno = $e->getCode();
       $this->error = $e->getMessage();
-      throw new SqlException(__METHOD__.  " Connection failed: $this->host", $this);
+      throw new SqlException(__METHOD__.  " Connection failed: ".
+                             "$this->host, $this->user, $this->password", $this);
     }
 
     $this->db = $db; // set this right away so if we get an error below $this->db is valid
@@ -90,6 +95,11 @@ class dbPdo extends dbAbstract {
     return $db;
   }
 
+  public function finalize() {
+    $result = $this->result;
+    $result->closeCursor();
+  }
+  
   /**
    * Query database table
    * @param string $query SQL statement.
@@ -102,7 +112,6 @@ class dbPdo extends dbAbstract {
 
     if(!preg_match("/^(?:select)/i", $query)) {
       // These must use exec
-      // echo "not select<br>";
       $numrows = $db->exec($query);
 
       if($numrows === false) {

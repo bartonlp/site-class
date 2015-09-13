@@ -24,7 +24,7 @@ class dbPostgreSql extends dbAbstract{
     if($this->dbname)
       $str.=' dbname='.$this->dbname;
 
-    if ($this->dbpass)
+    if($this->dbpass)
       $str.=' password='.$this->dbpass;
 
     return $str;
@@ -56,6 +56,9 @@ class dbPostgreSql extends dbAbstract{
     return $db;
   }
 
+  public function finalize() {
+  }
+  
   /**
    * query()
    * Query database table
@@ -67,22 +70,29 @@ class dbPostgreSql extends dbAbstract{
   public function query($query) {
     $db = $this->opendb();
 
-    //self::$lastQuery = $query; // for debugging
-    
-    $result = pg_query($db, $query);
+    $r = pg_send_query($db, $query);
 
-    if($result === false) {
+    if($r === false) {
       throw(new SqlException($query, $this));
     }
-    if(!preg_match("/^(?:select)/i", $query)) {
+
+    $result = pg_get_result($db);
+
+    if(($x = pg_result_error_field($result, PGSQL_DIAG_SQLSTATE)) || $result === false) {
+      $this->result = $result;
+      $this->error = pg_last_error($db);
+      $this->errno = $x;
+      throw(new SqlException($query, $this));
+    }
+
+    if(!preg_match("/^select/i", $query)) {
       $numrows = pg_affected_rows($result);
       //self::$lastNonSelectResult = $result;
     } else {
-      // NOTE: we don't change result for inserts etc. only for selects etc.
+      // NOTE: we don't change result for inserts etc. only for selects.
       $this->result = $result;
       $numrows = pg_num_rows($result);
     }
-
     return $numrows;
   }
 
@@ -116,7 +126,8 @@ class dbPostgreSql extends dbAbstract{
    *   if param1, param2=bool then $type='both' and $returnarray=param2
    * @return array, the rows
    */
-  
+
+/*  
   public function queryfetch($query, $type=null, $returnarray=null) {
     if(stripos($query, 'select') === false) {
       throw new SqlException($query, $this);
@@ -135,7 +146,8 @@ class dbPostgreSql extends dbAbstract{
     }
     return ($returnarray) ? array('rows'=>$rows, 'numrows'=>$numrows) : $rows;
   }
-
+*/
+  
   /**
    * fetchrow()
    * @param resource identifier returned from query.
@@ -168,7 +180,9 @@ class dbPostgreSql extends dbAbstract{
         $type = PGSQL_BOTH;
         break;
     }
-    return pg_fetch_array($result, null, $type);
+    $ret = pg_fetch_array($result, null, $type);
+    //var_dump($ret);
+    return $ret;
   }
   
   /**
@@ -234,8 +248,9 @@ class dbPostgreSql extends dbAbstract{
   }
 
   public function getErrorInfo() {
-    $error = $this->db->error;
-    $errno = $this->db->errno;
+    $error = pg_last_error($this->db);
+    $errno = pg_result_error_field($this->result, PGSQL_DIAG_SQLSTATE);
+    
     $err = array('errno'=>$errno, 'error'=>$error);
     return $err;
   }

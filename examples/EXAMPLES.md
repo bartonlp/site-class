@@ -43,7 +43,13 @@ composer require twig/twig:~1.0
 
 If you need ReST routing (or pretty routing or SEO friendly routing as it is sometime called) you could use one of the popular routing engines available with **Meteor**, **Laravel**, **Synfony2** or **Silex** but then again by that point you might as well just bite the bullet and spend the hours or days trying to figure out those frameworks.
 
-There is a pretty simple router called **Altorouter** which can be used without too much work. To install **Altorouter** do ``` composer require altorouter/altorouter:1.1.0 ``` in the 'examples' directory.
+There is a pretty simple router called **Altorouter** which can be used without too much work. To install **Altorouter** do 
+
+``` 
+composer require altorouter/altorouter:1.1.0 
+``` 
+
+in the 'examples' directory.
 
 The file 'composer-route.php' would normally be your 'index.php' in a production environment.  When using a server with Apache2 you would need a '.htaccess' file in the directory where the 'index.php' lives. The '.htaccess' file would look like this:
 

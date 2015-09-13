@@ -50,7 +50,7 @@ class dbSqlite extends dbAbstract {
 
     if($db === false) {
       throw new SqlException(__METHOD__ .
-                             ": Can't connect to database: {$db->loastError}", $this);
+                             ": Can't connect to database: {$db->lastError}", $this);
     }
     
     $this->db = $db; // set this right away so if we get an error below $this->db is valid

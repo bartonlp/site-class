@@ -1,0 +1,3 @@
+<phpunit bootstrap="bootstrap.php">
+   <comment>This file is autoloaded and it brings in bootstrap.php</comment>
+</phpunit>

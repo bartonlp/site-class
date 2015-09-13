@@ -45,6 +45,18 @@ abstract class dbAbstract {
   }
 
   /**
+   * getSqlState()
+   */
+  
+  public function getSqlState() {
+    if(method_exists($this->db, 'getSqlState')) {
+      return $this->db->getSqlState();
+    } else {
+      throw new Exception(__METHOD__ . " not implemented");
+    }
+  }
+      
+  /**
    * finalize()
    * release the result set
    */

@@ -49,9 +49,19 @@ Create a directory ```mkdir myproject; cd myproject```, this is your project roo
 }
 ```
 
-Then run ```composer install```.
+Then run 
 
-**OR** you can just run ```composer require bartonlp/site-class:dev-master``` which will create the 'composer.json' for you and load the package like 'install'.
+```
+composer install
+```
+
+**OR** you can just run 
+
+```
+composer require bartonlp/site-class:dev-master
+``` 
+
+which will create the 'composer.json' for you and load the package like 'install'.
 
 In your PHP file add ```require_once($PATH . 'vendor/autoload.php');``` where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.
 
@@ -62,15 +72,6 @@ There are some example files in the 'examples' directory at '/vendor/bartonlp/si
 The code shown below can be found in the 'examples' directory at http://github.com/bartonlp/site-class or from your project root at 'vendor/bartonlp/site-class/examples' along with more <a href="examples/EXAMPLES.html">documentation</a>. 
 
 <p style="color: green">The code in the 'examples' directory has actually been tested and runs. The code in this README was originally copied in from the examples code but may have changed for some reason. Therefore you should use the examples code rather than doing a copy and past from this README.</p>
-
-You may want to copy (or move) the examples and the 'README.html' (both at 'vendor/bartonlp/site-class') to your project root directory before starting. 
-
-From your project root do:
-
-```
-cp -r vendor/bartonlp/site-class/examples .
-cp vendor/bartonlp/site-class/README.html .
-```
 
 If you have Apache or Nginx installed then you should have made your project root somewhere within your DocumentRoot, for example '/var/www/html/myproject'.
 
@@ -449,6 +450,12 @@ In the abovd example I have used the SITE_INCLUDES define from the .sitemap.php'
 There is a default for the &lt;head&gt;, banner and footer section if you do not have special files. The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the getPageTopBottom method ($h->doctype='xxx').
 
 Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.
+
+<hr>
+
+# Tests
+
+In the 'tests' directory there are a series of mostly database engine tests. If you want to test MySql or PostgresSql you will need to first install the packages (both OS and PHP5) and then configure each with a user and password etc. Setting up the databases is beyond the scope of this README. The tests are set up for an account with user 'siteclass' and password 'siteclass' with database 'siteclass' (no single quotes of course).
 
 <hr>
 

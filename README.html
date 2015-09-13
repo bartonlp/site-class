@@ -43,8 +43,11 @@ overflow: auto;
       &quot;bartonlp/site-class&quot;: &quot;dev-master&quot;
   }
 }</code></pre>
-<p>Then run <code>composer install</code>.</p>
-<p><strong>OR</strong> you can just run <code>composer require bartonlp/site-class:dev-master</code> which will create the 'composer.json' for you and load the package like 'install'.</p>
+<p>Then run</p>
+<pre><code>composer install</code></pre>
+<p><strong>OR</strong> you can just run</p>
+<pre><code>composer require bartonlp/site-class:dev-master</code></pre>
+<p>which will create the 'composer.json' for you and load the package like 'install'.</p>
 <p>In your PHP file add <code>require_once($PATH . 'vendor/autoload.php');</code> where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.</p>
 <p>There are some example files in the 'examples' directory at '/vendor/bartonlp/site-class/examples' or 'examples' in your project root if you copied it there.</p>
 <h2 id="examples">Examples</h2>
@@ -52,10 +55,6 @@ overflow: auto;
 <p style="color: green">The code in the 'examples' directory has actually been tested and runs. The code in this README was originally copied in from the examples code but may have changed for some reason. Therefore you should use the examples code rather than doing a copy and past from this README.</p>
 
 
-<p>You may want to copy (or move) the examples and the 'README.html' (both at 'vendor/bartonlp/site-class') to your project root directory before starting.</p>
-<p>From your project root do:</p>
-<pre><code>cp -r vendor/bartonlp/site-class/examples .
-cp vendor/bartonlp/site-class/README.html .</code></pre>
 <p>If you have Apache or Nginx installed then you should have made your project root somewhere within your DocumentRoot, for example '/var/www/html/myproject'.</p>
 <p>If you don't have Apache or Nginx installed on your computer you can use the PHP server. Do the following from your project root:</p>
 <pre><code>php -S localhost:8080</code></pre>
@@ -374,6 +373,11 @@ $S = new SiteClass($h);</code></pre>
 <p>In the abovd example I have used the SITE_INCLUDES define from the .sitemap.php's first section.</p>
 <p>There is a default for the &lt;head&gt;, banner and footer section if you do not have special files. The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the getPageTopBottom method ($h-&gt;doctype='xxx').</p>
 <p>Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.</p>
+<hr>
+
+
+<h1 id="tests">Tests</h1>
+<p>In the 'tests' directory there are a series of mostly database engine tests. If you want to test MySql or PostgresSql you will need to first install the packages (both OS and PHP5) and then configure each with a user and password etc. Setting up the databases is beyond the scope of this README. The tests are set up for an account with user 'siteclass' and password 'siteclass' with database 'siteclass' (no single quotes of course).</p>
 <hr>
 
 

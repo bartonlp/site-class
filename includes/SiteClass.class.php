@@ -1,4 +1,5 @@
 <?php
+// BLP 2015-04-25 -- change name from getBanner to getPageBanner, getFooter to getPageFooter
 // BLP 2015-04-07 -- For SiteClass project on github.com/bartonlp/site-class
 
 // One class for all my sites
@@ -18,22 +19,24 @@
  */
 
 // If we have a Database then the following applies:
-// The $this->memberTable format should have these fields as a minimum!
-// id: auto_increment
-// fname and lname: member's name
-// email: member's email address
+// The $this->memberTable format MUST have these fields as a minimum!
+// id: auto_increment primary key
+// fname and lname: member's name Some tables may have these as FName and LName so be crefull.
+// email: member's email address. Some tables may have this as EMail so be crefull. 
 // visits: the number of times a member visits or hits the site
-// lasttime: timestamp
 // visittime: datetime last visit. Set explicitly by logic not a timestamp
 //
-// We also require logip, logagent, memberpagecnt, and counter tables if $this->nodb is false,
-// if $this->nodb is true then these table are not used.
+// We also require these tables if we have a database instantiated and 'count' is true and
+// 'nodb' is false:
+// logip, logagent, memberpagecnt and counter.
 // 
 // If you need more extensive tables extend this class and overlay the methods you need
 // to change.
 //
-// The following methods use tables:
-//  checkId(), daycount(), counter(), tracker(), getWhosBeenHereToday()
+// The following methods use tables if a databasse is instantiated and 'count' is true and
+// 'nodb' is false:
+//   checkId(), daycount(), counter(), tracker() and getWhosBeenHereToday() if a members table
+//   is present. 
 //  check these methods for more information about the table requirements.
 
 /**
@@ -60,20 +63,17 @@
 // Setup Autoload for database engines etc.
 
 spl_autoload_register(function($class) {
-  require_once("database-engines/$class.class.php");
-});
+  if(file_exists(__DIR__ . "/$class.class.php")) {
+    require_once(__DIR__ . "/$class.class.php");
+  } else {  
+    require_once(__DIR__ . "/database-engines/$class.class.php");
+  }
+}, true, true); // prepend
 
 class SiteClass extends dbAbstract {
-  // Current Doc Type
-  public $doctype = "<!DOCTYPE html>";
-  
   private $hitCount = null;
   
   protected $databaseClass = null;
-  protected $nodb = null;
-  protected $nomemberpagecnt = false; // BLP 2014-09-16 -- don't do memberpagecnt  
-  protected $count=false;   // if true we do the counters, if false then no counters.
-  protected $countMe=false; // if true we count me (ie. webmaster). Default is false
   protected $siteDomain = null;   // site's domain name, like granbyrotary.org etc
   protected $subDomain = null;    // this is the 4th parameter to setcookie()
   protected $emailDomain= null;  // where we send webmaster email: webmaster@$emailDomain. Defaults to siteDomain
@@ -84,6 +84,12 @@ class SiteClass extends dbAbstract {
   protected $headFile = null;     // file with the <head> stuff
   protected $bannerFile = null;   // file with the banner
   protected $footerFile = null;   // file with the footer
+
+  // Let these be public so we can get/set them.
+  public $nodb = null;
+  public $nomemberpagecnt = false; // BLP 2014-09-16 -- don't do memberpagecnt  
+  public $count=false;   // if true we do the counters, if false then no counters.
+  public $countMe=false; // if true we count me (ie. webmaster). Default is false
 
   // If the site has a memberTable then these are valid
   public $id = 0;          // member ID. Index into memberTable
@@ -99,6 +105,9 @@ class SiteClass extends dbAbstract {
   // not count webmaster activity.
   public $myIp = null;     // gethostbyname(your-local-address). Your home or office URI
 
+  // Current Doc Type
+  public $doctype = "<!DOCTYPE html>";
+  
   /**
    * Constructor
    *
@@ -229,7 +238,7 @@ class SiteClass extends dbAbstract {
     $ref = $this->siteDomain;
     
     if(!setcookie($cookie, "$value", $expire, $path, $ref)) {
-      throw(new Exception("Can't set cookie"));
+      throw(new Exception("Error: setSiteCookie() can't set cookie"));
     }
   }
     
@@ -273,7 +282,9 @@ class SiteClass extends dbAbstract {
       return $this->id;
     }
 
-    if(!$mid) $id = (is_null($cookie)) ? @$_COOKIE['SiteId'] : $_COOKIE[$cookie];
+    if(!$mid) {
+      $id = (is_null($cookie)) ? @$_COOKIE['SiteId'] : $_COOKIE[$cookie];
+    }
 
     if(!$id && !$mid) {
       return 0; // NO ID so don't do any database stuff!
@@ -282,11 +293,38 @@ class SiteClass extends dbAbstract {
     }
 
     if(!$this->nodb && $this->memberTable) {
-      // If the table does not exist this will throw an exception
+      // Get the minimum number of required fields.
+      // Put the query in a try.
 
-      $query = "select fname, lname, email from $this->memberTable where id='$id'";
+      try {
+        $query = "select fname, lname, email, visits, visittime ".
+                 "from $this->memberTable where id='$id'";
 
-      $n = $this->query($query);
+        $n = $this->query($query);
+      } catch(Exception $e) {
+        switch($e->getCode) {
+          // http://dev.mysql.com/doc/refman/5.6/en/error-messages-server.html
+          // http://www.postgresql.org/docs/9.3/static/errcodes-appendix.html#ERRCODES-TABLE
+          // 42S02, table does not exist Mysql
+          // 42S22, unknown column Mysql
+          // 42703, unknown columb Postgresql
+          // 42P01, table does not exist Postgresql
+          case '42S22': // Mysql
+          case '42703': // Postgresql
+            // unknown column
+            throw(new SqlException("Error: checkId() unknow column in table"));
+            break;
+          case '42S02': // Mysql
+          case '42P01': // Postgresql
+            // talbe does not exist
+            throw(new SqlException("Error: checkId() table does not exist"));
+            break;
+          default:
+            throw(new SqlException("Error: checkId() " . $e->getMessage()));
+            
+        }
+      }
+      
       $row = $this->fetchrow();
 
       if(!$n) {
@@ -370,12 +408,15 @@ class SiteClass extends dbAbstract {
 </tr>
 
 EOF;
-    // NOTE the database visittime (as last) field has the San Diego time not our
-    // time. So we use the sql ADDTIME to add one hour to the time to get Mountain
-    // time.
-
+    // NOTE the database visittime (as last) field has the server time not our
+    // time. So we use the sql ADDTIME to correct the time for local time.
+    // If you want time correction set timeZoneDiff in the $siteinfo array.
+    // timeZoneDiff is the difference between current time and server time.
+    // If no timeZoneDiff then use server time.
+    
+    $timeZoneDiff = $this->timeZoneDiff ? '$this->timeZoneDiff' : '0:0';
     list($rows, $n) = $this->queryfetch("select concat(fname, ' ', lname) as name, " .
-    "date_format(addtime(visittime, '1:0'), '%H:%i:%s') as last " .
+    "date_format(addtime(visittime, $timeZoneDiff), '%H:%i:%s') as last " .
     "from $this->memberTable where visits != 0" .
     " and visittime  > current_date() order by visittime desc",
     true);
@@ -416,10 +457,10 @@ EOF;
       $b = (array)$b + (array)$h['footer'];
     }
 
-    // Do getPageTop and getFooter
+    // Do getPageTop and getPageFooter
     
     $top = $this->getPageTop($h);
-    $footer = $this->getFooter($b);
+    $footer = $this->getPageFooter($b);
     // return the array which we usually get via list($top, $footer)
     return array($top, $footer);
   }
@@ -468,7 +509,7 @@ EOF;
       }
       $arg = $header; // this is then title, desc, extra, nonav, doctype, banner, maybe bodytag
     } else {
-      throw(new Exception("Error: Wrong argument type"));
+      throw(new Exception("Error: getPageTop() wrong argument type"));
     }
 
     // If doctype is not supplied then use the constructor version which may be the default
@@ -492,7 +533,7 @@ EOF;
 
     // Get the page's banner section
 
-    $banner = $this->getBanner($banner, $nonav, $bodytag);
+    $banner = $this->getPageBanner($banner, $nonav, $bodytag);
 
     return "$head\n$banner";
   }
@@ -571,8 +612,12 @@ EOF;
     // What if headFile is null?
     
     if(!is_null($this->headFile)) {
-      require($this->headFile); // Brings in $pageHeadText
-      $pageHeadText = "{$html}\n$pageHeadText";
+      // BLP 2015-04-25 -- If the require has a return value use it.
+      if(($p = require($this->headFile)) != 1) {
+        $pageHeadText = "{$html}\n$p";
+      } else {
+        $pageHeadText = "{$html}\n$pageHeadText";
+      }
     } else {
       // Make a default <head>
       $pageHeadText =<<<EOF
@@ -607,7 +652,7 @@ EOF;
   }
 
   /**
-   * getBanner()
+   * getPageBanner()
    * Get Page Banner
    * @param string $mainTitle
    * @param bool $nonav if set to true then the navigation bar is NOT displayed (for homepage).
@@ -615,11 +660,14 @@ EOF;
    * @return string banner
    */
 
-  public function getBanner($mainTitle, $nonav=false, $bodytag=null) {
+  public function getPageBanner($mainTitle, $nonav=false, $bodytag=null) {
     $bodytag = $bodytag ? $bodytag : "<body>";
 
     if(!is_null($this->bannerFile)) {
-      require($this->bannerFile); // brings in $pageBannerText
+      // BLP 2015-04-25 -- if return use it.
+      if(($b = require($this->bannerFile)) != 1) {
+        $pageBannerText = $b;
+      }
     } else {
       // a default banner
       // The default banner does not have the IE warnings etc.
@@ -648,7 +696,7 @@ EOF;
   }
 
   /**
-   * getFooter()
+   * getPageFooter()
    * Get Page Footer
    * @param variable number of args.
    *   arguments can be strings (defaults: $msg='', $msg1='', $msg2='', $ctrmsg=''),
@@ -657,7 +705,7 @@ EOF;
    * @return string
    */
 
-  public function getFooter(/* mixed */) {
+  public function getPageFooter(/* mixed */) {
     // If called from getPageTopBottom($h, $b) then $b
     // will be there even though it may be null. This is not an error.
 
@@ -696,7 +744,10 @@ EOF;
     $counterWigget = $this->getCounterWigget($arg['ctrmsg']); // ctrmsg may be null which is OK
 
     if(!is_null($this->footerFile)) {
-      require($this->footerFile); // bring in $pageFooterText
+      // BLP 2015-04-25 -- if return value use it.
+      if(($p = require($this->footerFile)) != 1) { // bring in $pageFooterText
+        $pageFooterText =$p;
+      }
     } else {
       $pageFooterText = <<<EOF
 <!-- Default Footer -->
@@ -820,7 +871,9 @@ EOF;
     }
 
     if($what == $check) {
-      $q1 = "update daycounts set count=count+1, id='$this->id' where date='$curdate' and ip='$this->ip'";
+      $q1 = "update daycounts set count=count+1, id='$this->id' ".
+            "where date='$curdate' and ip='$this->ip'";
+      
       $q2 = "insert into daycounts (date, count, visits, ip, id) " .
             "values('$curdate', 1, 0, '$this->ip', '$this->id') ";
 
@@ -880,7 +933,8 @@ EOF;
     // If there is a member 'id' then update the memberTable
 
     if($this->id && $this->memberTable) {
-      $q1 = "update $this->memberTable set visits=visits+1, visittime=now() where id='$this->id'";
+      $q1 = "update $this->memberTable set visits=visits+1, visittime=now() ".
+            "where id='$this->id'";
       $q2 = "insert into $this->memberTable (fname, lname, email, visits, visittime) ".
             "values('$this->fname', '$this->lname', '$this->email', '1', now())";
 
@@ -935,7 +989,6 @@ EOF;
     if(!$n) {
       try {
         // Try an insert
-
         $this->query($q2);
       } catch(Exception $e) {
         if($e->getCode() == 1062) {
@@ -958,7 +1011,7 @@ EOF;
           }
         } else {
           // Was an error other than dup key
-          throw($e);
+          throw("Error: tableUpdate() " . print_r($e, true));
         }
       }
     }

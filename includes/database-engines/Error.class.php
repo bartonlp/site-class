@@ -225,7 +225,7 @@ class Error {
   private static $errType = null;
   private static $noOutput = false;
   private static $instance = null;
-  
+
   // args can be array|object. noEmailErrs, development, noHtml, noOutput, errType
   
   public static function init($args=null) {

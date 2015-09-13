@@ -80,6 +80,25 @@ class dbMysqli extends dbAbstract {
   }
 
   /**
+   * getSqlState()
+   */
+  
+  public function getSqlState() {
+    $db = $this->opendb();
+    return $db->sqlstate;
+  }
+
+  /**
+   * finalize()
+   * Finish the result state.
+   */
+  
+  public function finalize() {
+    $result = $this->result;
+    $result->free_result();
+  }
+  
+  /**
    * query()
    * Query database table
    * @param string $query SQL statement.
@@ -91,10 +110,14 @@ class dbMysqli extends dbAbstract {
     $db = $this->opendb();
 
     self::$lastQuery = $query; // for debugging
-    
+
     $result = $db->query($query);
 
     if($result === false) {
+      $this->error = $this->db->error;
+      $this->errno = $this->db->errno;
+      $this->sqlstate = $this->db->sqlstate;
+      
       throw(new SqlException($query, $this));
     }
     
