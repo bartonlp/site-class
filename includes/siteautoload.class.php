@@ -1,4 +1,7 @@
 <?php
+// BLP 2015-10-14 -- Remove static $siteinfo and $dbinfo. Add $this->siteinfo. Add return of
+// $this->siteinfo at end. Add public $this->getSiteInfo();
+// BLP 2015-10-13 -- Add logic to use MySitemap.php as well as .sitemap.php
 // BLP 2014-12-31 -- New version with namespace and class
 
 // Auto load Classes
@@ -30,11 +33,6 @@
 // SITE_ROOT: This is the path to the found '.sitemap.php'.
 // TARGET_ROOT: This is the path to the target file (self).
 //
-// Two arrays are forced into the global namesapce:
-//  $GLOBALS['dbinfo'] is the $dbinfo from the .sitemap.php file
-//  $GLOBALS['siteinfo'] is the $siteinfo from the .sitemap.php file
-// The two arrays are also available as static getter functions. To use the getters do
-// $db = SiteAutoLoad\SiteAutoLoad::getDbInfo();
 
 namespace SiteAutoLoad;
 
@@ -44,11 +42,8 @@ define("EOL", (PHP_SAPI !== 'cli') ? "<br>\n" : "\n");
 
 class SiteAutoLoad {
   private $DEBUG = false;
-  // local static versions of $siteinfo from .sitemap.php
-  static protected $siteInfo = array("NOT YET VALID"); 
-  // local static version of $dbinfo from .sitemap.php
-  static protected $dbInfo = array("NOT YET VALID");
-    
+  private $siteinfo = null;
+  
   public function __construct($debug = '') {
     if($debug) $this->DEBUG = $debug;
     
@@ -97,8 +92,15 @@ class SiteAutoLoad {
     
     // The file we are looking for in the dir tree
     $sitemapFile = ".sitemap.php";
-
-    $x = $this->findSiteMap($sitemapFile, $n);
+    // BLP 2015-10-13 -- add MySitemap.php
+    $sitemapFile2 = "MySitemap.php";
+    
+    // BLP 2015-10-13 -- change logic to use both sitemaps
+    if(!($x = $this->findSiteMap($sitemapFile, $n))) {
+      $n = $b - $a;
+      $x = $this->findSiteMap($sitemapFile2, $n);
+    }
+    // BLP 2015-10-13 -- End of changes
     
     // $x will be something like ../.sitemap.php or as far up as the file .sitemap.php
     // is from the directory where the target file lives.
@@ -117,9 +119,7 @@ class SiteAutoLoad {
       // that has the site configuration information.
       require($x);
 
-      // Force $dbinfo and $siteinfo into the global name space!
-      $GLOBALS['dbinfo'] = self::$dbInfo = $dbinfo;
-      $GLOBALS['siteinfo'] = self::$siteInfo = $siteinfo;
+      $this->siteinfo = $siteinfo;
     } else {
       echo "Failed to Load .sitemap.php".EOL;
       echo "DOC_ROOT: " . DOC_ROOT . EOL;
@@ -142,19 +142,11 @@ class SiteAutoLoad {
   /**
    * getSiteInfo
    */
-
-  static public function getSiteInfo() {
-    return self::$siteInfo;
-  }
-
-  /**
-   * getDbInfo
-   */
-
-  static public function getDbInfo() {
-    return self::$dbInfo;
-  }
   
+  public function getSiteInfo() {
+    return $this->siteinfo;
+  }
+
   /**
    * Find the Site Map file.
    * The cwd is set to $targetDir on entry.
@@ -355,4 +347,6 @@ if(!isset($AutoLoadDEBUG)) {
   echo "AutoLoadDEBUG: " . ($AutoLoadDEBUG ? "TRUE" : "FALSE") . EOL;
 }
 
-new SiteAutoLoad($AutoLoadDEBUG);
+$__p = new SiteAutoLoad($AutoLoadDEBUG);
+
+return $__p->getSiteInfo();
