@@ -1,4 +1,4 @@
-# SiteClass
+# SiteClass Verion 1.1
 
 **SiteClass** is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
 
@@ -44,7 +44,7 @@ Create a directory `mkdir myproject; cd myproject`, this is your project root di
 ```json
 {
   "require": {
-      "bartonlp/site-class": "dev-master"
+      "bartonlp/site-class": "^1.1"
   }
 }
 ```
