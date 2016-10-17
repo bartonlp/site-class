@@ -39,9 +39,9 @@ If you are testing with the PHP server I put a 'www' directory off my $HOME and 
 If you have Apache or Nginx installed then you should made your project root somewhere withing your DocumentRoot ('/var/www/html' for Apache2 on Ubuntu).
 
 
-Create a directory ```mkdir myproject; cd myproject```, this is your project root directory. Add the following to 'composer.json', just cut and past:
+Create a directory `mkdir myproject; cd myproject`, this is your project root directory. Add the following to 'composer.json', just cut and past:
 
-```
+```json
 {
   "require": {
       "bartonlp/site-class": "dev-master"
@@ -51,19 +51,19 @@ Create a directory ```mkdir myproject; cd myproject```, this is your project roo
 
 Then run 
 
-```
+```bash
 composer install
 ```
 
 **OR** you can just run 
 
-```
+```bash
 composer require bartonlp/site-class:dev-master
 ``` 
 
 which will create the 'composer.json' for you and load the package like 'install'.
 
-In your PHP file add ```require_once($PATH . 'vendor/autoload.php');``` where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.
+In your PHP file add require_once($PATH . 'vendor/autoload.php');` where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.
 
 There are some example files in the 'examples' directory at '/vendor/bartonlp/site-class/examples' or 'examples' in your project root if you copied it there.
 
@@ -77,11 +77,11 @@ If you have Apache or Nginx installed then you should have made your project roo
 
 If you don't have Apache or Nginx installed on your computer you can use the PHP server. Do the following from your project root:
 
-```
+```bash
 php -S localhost:8080
 ```
 
-Then use your browser by entering ```http://localhost:8080/README.html``` in the browsers location bar.
+Then use your browser by entering `http://localhost:8080/README.html` in the browsers location bar.
 
 The code in the 'examples' directory uses the **sqlite3** engine. There should be a 'test.sdb' database file in the 'examples' directory already.
 
@@ -89,7 +89,7 @@ I have included a 'sqlite.sql' file that can be run from the command line if you
 
 You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc. From the command line in the directory where the SiteClass was downloaded:
 
-```
+```bash
 $ cd examples
 $ sqlite3 test.sdb
 sqlite> drop table members;
@@ -115,7 +115,7 @@ There are a number of ways to use the framework:
 
 **First** you can just use the SiteClass all by itself.
 
-``` php
+```php
 <?php
 // test1.php
 
@@ -144,7 +144,7 @@ That is the simplest usage. You get a generic &lt;head&gt; a blank &lt;header&gt
 
 You can extend this by adding a database either by instantiating the Database class directly or indirectly. 
 
-``` php
+```php
 <?php
 // test2.php
 
@@ -189,7 +189,7 @@ The above example uses the 'query' and 'fetchrow' methods to do some database op
 
 The database could also be instantiated explicitly as follows:
 
-``` php
+```php
 <?php
 // test3.php
 
@@ -239,7 +239,7 @@ EOF;
 
 You can also use the siteautoload.class.php and .sitemap.php to further automate working with the framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php file in the 'examples' directory to see it you need to do ``` ls -a```.
 
-``` php
+```php
 <?php
 // test4.php
 
@@ -288,7 +288,7 @@ In addition to the SiteClass and Database classes there are several others class
 
 The dbTables class uses the Database class to make creating tables simple. For example:
 
-``` php
+```php
 <?php
 require_once('/var/www/includes/siteautoload.class.php'); // path to siteautoload.class.php
 
@@ -341,7 +341,7 @@ Once a .sitemap.php file is found the information in it is read in via 'require_
 
 My usual directory structure starts under a 'www' subdirectory. On an Apache2 host the structure looks like this:
 
-```
+```plain
 /var/www/includes        // this is where the SiteClass resides
 /var/www/html            // this is where your php files and js, css etc. 
                          // directories live
@@ -362,7 +362,7 @@ I put the three special file in my '/var/www/html/includes' directory (where 'ht
 
 Here is an example of my 'headFile':
 
-``` php
+```php
 <?php
 // head.i.php for bartonphillips.com
 
@@ -408,7 +408,7 @@ You will see if you delve into the SiteClass code that many things can be passed
 
 As you saw in example 5 above (test5.php in the 'examples' directory) I passed a $h object to the SiteClass. For example it might look like this:
 
-``` php
+```php
 $h->title = 'my title';
 $h->desc = 'This is the description';
 $h->link = '<link rel="stylesheet" href="test.css">';
@@ -425,11 +425,11 @@ The other special files have similarities and have their own file variable:
 * 'bannerFile' : $pageBannerText
 * 'footerFile' : $pageFooterText
 
-As these special files are PHP files you can do anything else that you need to, including database queries. Just remember that you need to use $this. For example, to do a query do ```$this->query($sql);``` not ```$S->query($sql);```. You can't use the variable from your project file that you created via the ```$S = new SiteClass($h);``` because it is NOT within scope.
+As these special files are PHP files you can do anything else that you need to, including database queries. Just remember that you need to use $this. For example, to do a query do `$this->query($sql);` not `$S->query($sql);`. You can't use the variable from your project file that you created via the `$S = new SiteClass($h);` because it is NOT within scope.
 
 I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything you like. In the .sitemap.php $siteinfo array just add the full path to the file. For example:
 
-``` php
+```php
 $siteinfo = array('siteDomain' => "bartonphillips.com",
                   'siteName' => "My Home Page",
                   'copyright' => "2015 Barton L. Phillips",
@@ -485,7 +485,7 @@ This method calls getPageHead(), getBanner(), getFooter().
 * public function getPageHead(/*$title, $desc=null, $extra=null, $doctype, $lang*/)
 * public function getBanner($mainTitle, $nonav=false, $bodytag=null)
 * public function getFooter(/* mixed */)
-* public function __toString()
+* public function \__toString()
 * A number of 'protected' methods and properties that can be used in a child class.
 
 ## Database methods:
@@ -498,7 +498,7 @@ This is the workhourse of the database. It is used for 'select', 'update', 'inse
 Probably the second most used method. If it follows the 'query' the $result is not needed. The only time $result is needed is if there are other queries in a while loop. In that case you need to get the result of the query by calling the getResult() method before running the while loop.  
 The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only an associative array, while 'num' return a numeric array. I usually use a numeric array with
 
-``` php
+```php
 while(list($name, $email) = $S->fetchrow('num')) { ... }
 ```
 
