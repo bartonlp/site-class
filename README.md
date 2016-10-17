@@ -32,7 +32,7 @@ There are several ways to install this project.
 
 Download the ZIP file from GitHub. Expand it and move the 'includes' directory somewhere. On a system with Apache2 I usually put the 'includes' directory in the /var/www directory that Apache creates. Apache also usually creates /var/www/html and makes this the default DocumentRoot. I put the 'includes' directory just outside of the DocumentRoot. In my servers I have /var/www and then have my virtual hosts off that directory. That way the 'includes' directory is easily available to all of my virtual hosts.
 
-If you are testing with the PHP server I put a 'www' directory off my $HOME and put the 'includes' directory there. I then make my test DocumentRoot off '&#126;/www' like '&#126;/www/test'. I ```cd``` to the test directory and do ``` php -S localhost:8080 ```. I can then use my browser and goto ``` localhost:8080``` and see my 'index.php' file.
+If you are testing with the PHP server I put a 'www' directory off my $HOME and put the 'includes' directory there. I then make my test DocumentRoot off '&#126;/www' like '&#126;/www/test'. I `cd` to the test directory and do `php -S localhost:8080`. I can then use my browser and goto `localhost:8080` and see my 'index.php' file.
 
 ### Use Composer
 
@@ -237,7 +237,7 @@ EOF;
 
 <hr>
 
-You can also use the siteautoload.class.php and .sitemap.php to further automate working with the framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php file in the 'examples' directory to see it you need to do ``` ls -a```.
+You can also use the siteautoload.class.php and .sitemap.php to further automate working with the framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php file in the 'examples' directory to see it you need to do `ls -a`.
 
 ```php
 <?php
