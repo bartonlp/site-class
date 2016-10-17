@@ -1,4 +1,6 @@
 <?php
+// BLP 2015-10-21 -- try to make this backward compatable. Add back the two statics etc. plus the
+// new stuff.
 // BLP 2015-10-14 -- Remove static $siteinfo and $dbinfo. Add $this->siteinfo. Add return of
 // $this->siteinfo at end. Add public $this->getSiteInfo();
 // BLP 2015-10-13 -- Add logic to use MySitemap.php as well as .sitemap.php
@@ -12,11 +14,11 @@
 // that enharits from SiteClass and instantiates a Database if needed.
 // Once the site layout is know the class autoloader uses that to load Classes.
 
-// DOC_ROOT is set in the siteautoload.php and is usually $_SERVER['DOCUMENT_ROOT'] for WEB
+// DOC_ROOT is set in the siteautoload.class.php and is usually $_SERVER['DOCUMENT_ROOT'] for WEB
 // programs.
 // DOC_ROOT is set to realpath(dirname(TOPFILE) for CLI programs.
 // TOPFILE is defined in the header in the target program and is the location of this file.
-// For a CLI program TOPFILE is the full UNIX path to the this file (siteautoload.php).
+// For a CLI program TOPFILE is the full UNIX path to the this file (siteautoload.class.php).
 // ON THIS SITE (bartonlp.com) $_SERVER['DOCUMENT_ROOT'] is empty for CLI programs.
 // ON THIS SITE $_SERVER['PHP_SELF'] is also empty for CLI programs.
 // On bartonlp.com (the ISP is digitalocean.com) we use "$_SERVER['argv'][0]" for $self.
@@ -33,6 +35,9 @@
 // SITE_ROOT: This is the path to the found '.sitemap.php'.
 // TARGET_ROOT: This is the path to the target file (self).
 //
+// Two arrays are forced into the global namesapce:
+//  $GLOBALS['dbinfo'] is the $dbinfo from the .sitemap.php file
+//  $GLOBALS['siteinfo'] is the $siteinfo from the .sitemap.php file
 
 namespace SiteAutoLoad;
 
@@ -42,7 +47,8 @@ define("EOL", (PHP_SAPI !== 'cli') ? "<br>\n" : "\n");
 
 class SiteAutoLoad {
   private $DEBUG = false;
-  private $siteinfo = null;
+  static protected $siteInfo = array("NOT YET VALID"); 
+  static protected $dbInfo = array("NOT YET VALID"); 
   
   public function __construct($debug = '') {
     if($debug) $this->DEBUG = $debug;
@@ -52,10 +58,10 @@ class SiteAutoLoad {
 
     if('cli' === PHP_SAPI) {
       // This is a CLI program and DOCUMENT_ROOT is blank.
-      // TOPFILE for a CLI file has the full UNIX path for the siteautoload.php file!
+      // TOPFILE for a CLI file has the full UNIX path for the siteautoload.class.php file!
       // Make DOC_ROOT be the real path of the TOPFILE directory.
       // NOTE TOPFILE may be the path via the
-      // login path which would be /home/<account name>/<path to site>/siteautoload.php
+      // login path which would be /home/<account name>/<path to site>/siteautoload.class.php
       // The realpath would be via /var/www/...
 
       define('CLI', true);
@@ -91,13 +97,16 @@ class SiteAutoLoad {
         EOL;
     
     // The file we are looking for in the dir tree
-    $sitemapFile = ".sitemap.php";
+    $sitemapFile2 = ".sitemap.php";
     // BLP 2015-10-13 -- add MySitemap.php
-    $sitemapFile2 = "MySitemap.php";
+    $sitemapFile = "MySitemap.php";
     
     // BLP 2015-10-13 -- change logic to use both sitemaps
+    if($this->DEBUG) echo "sitemapFile: $sitemapFile :: " . realpath($sitemapFile) . "<br>";
+    
     if(!($x = $this->findSiteMap($sitemapFile, $n))) {
       $n = $b - $a;
+      if($this->DEBUG) echo "sitemapFile: $sitemapFile2 :: " . realpath($sitemapFile2) . "<br>";
       $x = $this->findSiteMap($sitemapFile2, $n);
     }
     // BLP 2015-10-13 -- End of changes
@@ -118,8 +127,11 @@ class SiteAutoLoad {
       // Finally what we have come here for, we require the .sitemap.php file
       // that has the site configuration information.
       require($x);
+      // Force $dbinfo and $siteinfo into the global name space!
+      $GLOBALS['dbinfo'] = self::$dbInfo = $dbinfo;
+      $GLOBALS['siteinfo'] = self::$siteInfo = $siteinfo;
 
-      $this->siteinfo = $siteinfo;
+      $this->_siteinfo = $siteinfo;
     } else {
       echo "Failed to Load .sitemap.php".EOL;
       echo "DOC_ROOT: " . DOC_ROOT . EOL;
@@ -142,10 +154,19 @@ class SiteAutoLoad {
   /**
    * getSiteInfo
    */
-  
-  public function getSiteInfo() {
-    return $this->siteinfo;
+
+  static public function getSiteInfo() {
+    return self::$siteInfo;
   }
+
+  /**
+   * getDbInfo
+   */
+
+  static public function getDbInfo() {
+    return self::$dbInfo;
+  }
+  
 
   /**
    * Find the Site Map file.
@@ -347,6 +368,7 @@ if(!isset($AutoLoadDEBUG)) {
   echo "AutoLoadDEBUG: " . ($AutoLoadDEBUG ? "TRUE" : "FALSE") . EOL;
 }
 
-$__p = new SiteAutoLoad($AutoLoadDEBUG);
+new SiteAutoLoad($AutoLoadDEBUG);
 
-return $__p->getSiteInfo();
+return SiteAutoLoad::getSiteInfo();
+

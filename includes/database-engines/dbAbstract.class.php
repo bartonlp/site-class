@@ -8,67 +8,21 @@
 
 abstract class dbAbstract {
   protected $db;
-  protected $host, $user, $password, $database;
-  protected $result;
-  static public $lastQuery = null; // for debugging
-  static public $lastNonSelectResult = null; // for insert, update etc.
-  
+
   // Each child class needs to have a __toString() method
   
   abstract public function __toString();
 
-  // The following methods either execute or if the method is not defined throw an Exception
+  public function getDbName() {
+    return $this->db->database;
+  }
 
-  // These two may be null if no database.
-  
   public function getDb() {
     return $this->db;
   }
 
-  /**
-   * getEngineDb()
-   * Get the engine's database resource.
-   * This lets us use engine functions that are not part of our framework.
-   */
-  
-  public function getEngineDb() {
-    return $this->db->db;
-  }
+  // The following methods either execute or if the method is not defined throw an Exception
 
-  /**
-   * getResult()
-   * get the last result object
-   */
-   
-  public function getResult() {
-    return $this->result;
-  }
-
-  /**
-   * getSqlState()
-   */
-  
-  public function getSqlState() {
-    if(method_exists($this->db, 'getSqlState')) {
-      return $this->db->getSqlState();
-    } else {
-      throw new Exception(__METHOD__ . " not implemented");
-    }
-  }
-      
-  /**
-   * finalize()
-   * release the result set
-   */
-  
-  public function finalize() {
-    if(method_exists($this->db, 'finalize')) {
-      return $this->db->finalize();
-    } else {
-      throw new Exception(__METHOD__ . " not implemented");
-    }
-  }
-  
   public function query($query) {
     if(method_exists($this->db, 'query')) {
       return $this->db->query($query);
@@ -101,6 +55,14 @@ abstract class dbAbstract {
     }
   }
 
+  public function getResult() {
+    if(method_exists($this->db, 'getResult')) {
+      return $this->db->getResult();
+    } else {
+      throw new Exception(__METHOD__ . " not implemented");
+    }
+  }
+    
   public function escape($string) {
     if(method_exists($this->db, 'escape')) {
       return $this->db->escape($string);

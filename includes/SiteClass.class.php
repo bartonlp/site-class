@@ -1,4 +1,6 @@
 <?php
+// BLP 2016-08-31 -- MySitemap.php 'analysis' is no longer used.
+// BLP 2015-10-24 -- add getFooter and getBanner as depreciated items
 // BLP 2015-04-25 -- change name from getBanner to getPageBanner, getFooter to getPageFooter
 // BLP 2015-04-07 -- For SiteClass project on github.com/bartonlp/site-class
 
@@ -62,49 +64,15 @@
 
 // Setup Autoload for database engines etc.
 
-spl_autoload_register(function($class) {
-  if(file_exists(__DIR__ . "/$class.class.php")) {
-    require_once(__DIR__ . "/$class.class.php");
-  } else {  
-    require_once(__DIR__ . "/database-engines/$class.class.php");
-  }
-}, true, true); // prepend
-
 class SiteClass extends dbAbstract {
   private $hitCount = null;
-  
   protected $databaseClass = null;
-  protected $siteDomain = null;   // site's domain name, like granbyrotary.org etc
-  protected $subDomain = null;    // this is the 4th parameter to setcookie()
-  protected $emailDomain= null;  // where we send webmaster email: webmaster@$emailDomain. Defaults to siteDomain
-  protected $memberTable = null;  // the name of the members table
-  protected $daycountwhat = null; // the argument to daycount() 
   
-  // the following files are optional. If they do not exist there will be defaults used
-  protected $headFile = null;     // file with the <head> stuff
-  protected $bannerFile = null;   // file with the banner
-  protected $footerFile = null;   // file with the footer
-
-  // Let these be public so we can get/set them.
-  public $nodb = null;
-  public $nomemberpagecnt = false; // BLP 2014-09-16 -- don't do memberpagecnt  
-  public $count=false;   // if true we do the counters, if false then no counters.
-  public $countMe=false; // if true we count me (ie. webmaster). Default is false
-
-  // If the site has a memberTable then these are valid
-  public $id = 0;          // member ID. Index into memberTable
-  public $fname = "";      // First name of member
-  public $lname = "";      // Last name of member
-  public $email = "";      // Email address of member
+  // Give these default values.
+  public $count = true;
+  public $countMe = false;
+  public $id = 0; // default to not a member
   
-  public $self = null;     // $_SERVER['PHP_SELF']
-  public $ip = null;       // $_SERVER['REMOTE_ADDR']
-  public $agent = null;    // $_SERVER['HTTP_USER_AGENT']
-
-  // If constructor is called with $s->myUri then we do a lookup of the ip. This lets you
-  // not count webmaster activity.
-  public $myIp = null;     // gethostbyname(your-local-address). Your home or office URI
-
   // Current Doc Type
   public $doctype = "<!DOCTYPE html>";
   
@@ -122,8 +90,14 @@ class SiteClass extends dbAbstract {
    */
   
   public function __construct($s=null) {
-    Error::init(); // BLP 2014-12-31 -- Make sure this is done
+    // This is ugly!
+    // Wordpress has a class named Error. So for conejo we have to use a different name.
+    // I may try to fix this at some point.
 
+    ErrorClass::init(); // BLP 2014-12-31 -- Make sure this is done
+
+    date_default_timezone_set("America/Los_Angeles");
+    
     $arg = array(); // temp array for $s during parsing
 
     if(!is_null($s)) {
@@ -138,7 +112,8 @@ class SiteClass extends dbAbstract {
       }
     }
 
-    // Now make $this objects of the items what were in $s
+    // Now make $this objects of the items that were in $s
+    // That means you can put ANYTHING in $s and it will be public in $this!
     
     foreach($arg as $k=>$v) {
       $this->$k = $v; 
@@ -151,22 +126,26 @@ class SiteClass extends dbAbstract {
       $this->emailDomain = $this->siteDomain;
     }
 
-    // BLP 2015-04-01 -- if $siteinfo['dbinfo'] was set in .sitemap.php and we don't already
-    // have a databaseClass and nodb is NOT true, then instantiate the Database with dbinfo.
+    // BLP 2016-03-16 -- if nodb is true anywhere set it true and count and countMe false.
+    // The database could have been instantiated before the call to this constructor and the object
+    // placed in databaseClass.
     
-    if(is_null($this->databaseClass) && $this->nodb !== true && !is_null($this->dbinfo)) {
-      // instantiate the Database with dbinfo
-      $this->databaseClass = new Database($this->dbinfo);
-    }
-    // BLP 2015-04-01 -- end
-    
-    if(is_null($this->databaseClass) ||
-       $this->databaseClass->nodb === true || $this->nodb === true) {
+    if($this->databaseClass->nodb === true || $this->nodb === true || is_null($this->dbinfo)) {
        // nodb === true so don't do any database stuff
        // could be either no $databaseClass or $databaseClass->nodb===true so be sure and
        // set $this->nodb true also.
       $this->nodb = true;
       $this->count = $this->countMe = false;
+    }
+
+    if(is_null($this->databaseClass) && $this->nodb !== true && !is_null($this->dbinfo)) {
+      // instantiate the Database with dbinfo
+      $this->databaseClass = new Database($this->dbinfo);
+    }
+
+    if(isset($this->db2info)) {
+      $this->databaseClass2 = new Database($this->db2info);
+      $this->db2 = $this->databaseClass2->db;
     }
 
     // Populate the dbAbstract class's protected $db. This allows the dbAbstract class's
@@ -175,34 +154,60 @@ class SiteClass extends dbAbstract {
     if(isset($this->databaseClass)) {
       $this->db = $this->databaseClass->db; // use property not method getDb()!
     }
-    
-    // HTML5 default document type
 
+    // If myUri is set get the ip address into myIp
+    
     if(isset($this->myUri)) {
       $this->myIp = gethostbyname($this->myUri); // get my home ip address
-      //echo "myUri: $this->myUri, myIp: $this->myIp<br>";
     }
+
     $this->ip = $_SERVER['REMOTE_ADDR'];
     $this->agent = $_SERVER['HTTP_USER_AGENT'];
     $this->self = $_SERVER['PHP_SELF'];
+    if($this->siteName == "Conejoskiclub") {
+      $this->requestUri =  $_SERVER['REQUEST_URI'];
+    } else {
+      $this->requestUri = $this->self;
+    }
 
     $this->checkId(); // check database and cookie and set publics
 
+    // These all use database 'barton'
+    // and are always done regardless of 'count' and 'countMe'!
+    // These all check $this->nodb first and return at once if it is true.
+
+    $this->trackbots(); // Should be the FIRST in the group. This sets $this->isBot
+    $this->tracker();
+    //$this->doanalysis();
+    // BLP 2016-08-25 -- moved this from the if($this->count).. to here as this does the analysis
+    // also. The analysis.php looks at the 'blpip' table and does not count any of the ips in that
+    // table.
+    $this->logagent(); // in 'masterdb' database. logip and logagent
+    $this->setblpip();
+
     // If 'count' is false we don't do these counters
-
+    
     if($this->count) {
+      // Get the count for hitCount. This is done even if countMe is false. The hitCount is always
+      // updated (unless the counter file does not exist).
+      // That is why it is here rather than after the countMe test below!
+
+      $this->counter(); // in 'masterdb' database
+
       // If this is me and $countMe is false (default is false) then don't count.
+      // not (true && true) ==   false, it is me and countMe=false
+      // not (true && false) ==  true,  it is me and countMe=true 
+      // not (false && true) ==  true,  it isn't me and countMe=false
+      // not (false && false) == true,  it isn't me and countMe=false
 
-      if(!(($this->isMe()) && ($this->countMe == false))) {
-        $this->counter(); 
-        $this->daycount($this->daycountwhat); 
-        $this->tracker(); // track visits
+      if(!(($this->isMe()) && ($this->countMe === false))) {
+        // These are all checked for existance in the database in the functions and also the nodb
+        // is checked and if true we return at once.
+        $this->counter2(); // in 'masterdb' database
+        // arg can be ALL or a file or an array of files OR nothing! 
+        $this->daycount($this->daycountwhat); // in 'masterdb' database
+        $this->trackmember(); // This is in the site's database and tracks members if there is a 'memberTable'.
       }
-
-      // Now retreive the hit count value after it may have been incremented
-
-      $rows = $this->queryfetch("select count from counter where filename='$this->self'");
-      $this->hitCount = ($rows[0]['count']) ? $rows[0]['count'] : 0;
     }
   }
 
@@ -222,7 +227,6 @@ class SiteClass extends dbAbstract {
    */
 
   public function isMe() {
-    //echo "myIp: $this->myIp, this ip: $this->ip<br>";
     return ($this->myIp == $this->ip);
   }
 
@@ -236,7 +240,8 @@ class SiteClass extends dbAbstract {
     // [, bool $httponly = false ]]]]]] )
 
     $ref = $this->siteDomain;
-    
+
+    // setcookie($name, $value, $expire=0, $path="", $domain="", $secure=false, $httponly=false) 
     if(!setcookie($cookie, "$value", $expire, $path, $ref)) {
       throw(new Exception("Error: setSiteCookie() can't set cookie"));
     }
@@ -245,11 +250,18 @@ class SiteClass extends dbAbstract {
   /**
    * setIdCookie()
    * Sets the browser Cookie to user ID
-   * This is used by login logic of some sites
+   * This is used by login logic of some sites.
+   * NOTE: if the site does not have a login function this is NEVER called.
+   * NOTE: the 'login' page inserts the member information into the 'memberTable,
+   * if the site does not have a 'login' page that calls setIdCookie() and inserts
+   * information into the table there will be NO member table created and no 'SiteId'
+   * cookie created.
+   * If there is no SiteId cookie there is no $this->id and therefore we will never look at
+   * the $memberTable table (which doesn't exist more than likely).
    */
 
   public function setIdCookie($id, $cookie=null) {
-    $this->id = $id;
+    $this->id = $id; // This is the table ID from the $membertable.
     if(!$id) return; // If no ID then don't set any cookies
 
     $expire = time() + 31536000;  // one year from now
@@ -307,7 +319,7 @@ class SiteClass extends dbAbstract {
           // http://www.postgresql.org/docs/9.3/static/errcodes-appendix.html#ERRCODES-TABLE
           // 42S02, table does not exist Mysql
           // 42S22, unknown column Mysql
-          // 42703, unknown columb Postgresql
+          // 42703, unknown column Postgresql
           // 42P01, table does not exist Postgresql
           case '42S22': // Mysql
           case '42703': // Postgresql
@@ -321,21 +333,20 @@ class SiteClass extends dbAbstract {
             break;
           default:
             throw(new SqlException("Error: checkId() " . $e->getMessage()));
-            
         }
       }
-      
-      $row = $this->fetchrow();
 
       if(!$n) {
       // OPS DIDN'T FIND THE ID IN THE DATABASE?
         $this->id =  0;
         return 0;
       }
+      
+      list($fname, $lname, $email) = $this->fetchrow('num');
 
-      $this->fname = $row['fname'];
-      $this->lname = $row['lname'];
-      $this->email = $row['email'];
+      $this->fname = $fname;
+      $this->lname = $lname;
+      $this->email = $email;
     }
 
     $this->id = $id;
@@ -415,6 +426,7 @@ EOF;
     // If no timeZoneDiff then use server time.
     
     $timeZoneDiff = $this->timeZoneDiff ? '$this->timeZoneDiff' : '0:0';
+    
     list($rows, $n) = $this->queryfetch("select concat(fname, ' ', lname) as name, " .
     "date_format(addtime(visittime, $timeZoneDiff), '%H:%i:%s') as last " .
     "from $this->memberTable where visits != 0" .
@@ -576,12 +588,13 @@ EOF;
         $arg['title'] = $a;
       } elseif(is_object($a)) {
         foreach($a as $k=>$v) {
-        //echo "$k=$v<br>\n";
+          //echo "$k=$v<br>\n";
           $arg[$k] = $v;
         }
       } elseif(is_array($a)) {
         $arg = $a;
       } else {
+        error_log("Error: getPageHead() argument no valid: ". var_export($a, true));
         throw(new Exception("Error: getPageHead() argument no valid: ". var_export($a, true)));
       }
     } elseif($n > 1) {
@@ -610,10 +623,10 @@ EOF;
     $dtype = $arg['doctype'];
 
     // What if headFile is null?
-    
+
     if(!is_null($this->headFile)) {
       // BLP 2015-04-25 -- If the require has a return value use it.
-      if(($p = require($this->headFile)) != 1) {
+      if(($p = require_once($this->headFile)) != 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
         $pageHeadText = "{$html}\n$pageHeadText";
@@ -651,6 +664,12 @@ EOF;
     return $pageHead;
   }
 
+  /** getBanner. Depreciated **/
+
+  public function getBanner($mainTitle, $nonav=false, $bodytag=null) {
+    return $this->getPageBanner($mainTitle, $nonav, $bodytag);
+  }
+  
   /**
    * getPageBanner()
    * Get Page Banner
@@ -695,13 +714,20 @@ $pageBannerText
 EOF;
   }
 
+  /** getFooter. Depreciated **/
+
+  public function getFooter() {
+    return $this->getPageFooter();
+  }
+  
   /**
    * getPageFooter()
    * Get Page Footer
    * @param variable number of args.
-   *   arguments can be strings (defaults: $msg='', $msg1='', $msg2='', $ctrmsg=''),
+   *   arguments can be seperate args (defaults: $msg='', $msg1='', $msg2='', $ctrmsg=''. $nofooter='')
    *   an assoc array, or an object.
-   *   for array and object the elements are 'msg', 'msg1', 'msg2', 'ctrmsg'
+   *   for array and object the elements are 'msg', 'msg1', 'msg2', 'ctrmsg', 'nofooter',
+   *   Seperate args must be in the above order. nofooter can be true, false or null etc.
    * @return string
    */
 
@@ -731,7 +757,7 @@ EOF;
       //   even if it is null.
     } elseif($n > 1) {
     // String items are being passed and must be in this order.
-      $keys = array('msg', 'msg1', 'msg2', 'ctrmsg');
+      $keys = array('msg', 'msg1', 'msg2', 'ctrmsg', 'nofooter');
       $ar = array();
       for($i=0; $i < $n; ++$i) {
         $ar[$keys[$i]] = $args[$i];
@@ -741,56 +767,72 @@ EOF;
 
     // Make the bottom of the page counter
 
+    // Set ctrmsg to 'Counter Reset: 2016-03-27' if not set
+
+    $arg['ctrmsg'] = $arg['ctrmsg'] ? $arg['ctrmsg'] : 'Counter Reset: 2016-03-27';
+
+    // counterWigget is available to the footerFile to used if wanted.
+    
     $counterWigget = $this->getCounterWigget($arg['ctrmsg']); // ctrmsg may be null which is OK
 
     if(!is_null($this->footerFile)) {
       // BLP 2015-04-25 -- if return value use it.
       if(($p = require($this->footerFile)) != 1) { // bring in $pageFooterText
-        $pageFooterText =$p;
+        $pageFooterText = $p;
       }
     } else {
       $pageFooterText = <<<EOF
 <!-- Default Footer -->
 <footer>
 EOF;
-      // BLP 2014-12-31 -- added msg. string them together
+      // If nofooter then only <footer></footer></body></html>
       
-      if($arg['msg'] || $arg['msg1']) {
-        $pageFooterText .= "<div id='footerMsg'>{$arg['msg']}{$arg['msg1']}</div>\n";
-      }
+      if(!$arg['nofooter']) {
+        // BLP 2014-12-31 -- added msg. string them together
 
-      // BLP 2015-04-10 -- only if we are counting
-      
-      if($this->count) {
-        $pageFooterText .= $counterWigget;
-      }
+        if($arg['msg'] || $arg['msg1']) {
+          $pageFooterText .= "<div id='footerMsg'>{$arg['msg']}{$arg['msg1']}</div>\n";
+        }
 
-      $rdate = getlastmod();
-      $date = date("M d, Y H:i:s", $rdate);
+        // BLP 2015-04-10 -- only if we are counting
 
-      $pageFooterText .= <<<EOF
+        if($this->count) {
+          $pageFooterText .= $counterWigget;
+        }
+
+        $rdate = getlastmod();
+        $date = date("M d, Y H:i:s", $rdate);
+
+        if(defined('EMAILFROM')) {
+          $mailtoName = EMAILFROM;
+        } else {
+          $mailtoName = "webmaster@$this->emailDomain";
+        }
+
+        $pageFooterText .= <<<EOF
 <div style="text-align: center;">
 <p id='lastmodified'>Last Modified&nbsp;$date</p>
-<p id='contactUs'><a href='mailto:webmaster@$this->emailDomain'>Contact Us</a></p>
+<p id='contactUs'><a href='mailto:$mailtoName'>Contact Us</a></p>
 </div>
-
 EOF;
-
-      if(!empty($arg['msg2'])) {
-      $pageFooterText .=  $arg['msg2'];
+        if(!empty($arg['msg2'])) {
+          $pageFooterText .=  $arg['msg2'];
+        }
       }
-
       $pageFooterText .= <<<EOF
 </footer>
 </body>
 </html>
-
 EOF;
     }
 
     return $pageFooterText;
   }
 
+  /**
+   * __toString();
+   */
+  
   public function __toString() {
     return __CLASS__;
   }
@@ -831,9 +873,272 @@ EOF;
 
   }
 
+  // ********
+  // Counters
+  // ********
+
+  /**
+   * trackbots()
+   * Track both bots and bots2
+   * This sets $this->isBot unless the 'bots' table is not found.
+   */
+
+  protected function trackbots() {
+    if($this->nodb) {
+      return;
+    }
+
+    if(gethostbyname('bartonlp.com') == $this->ip || gethostbyname('bartonlp.org') == $this->ip) {
+      return;
+    }
+    
+    $this->query("select count(*) from information_schema.tables ".
+                 "where (table_schema = '$this->masterdb') and (table_name = 'bots')");
+
+    list($ok) = $this->fetchrow('num');
+
+    if($ok == 1) {
+      $agent = $this->escape($this->agent);
+
+      $this->isBot = preg_match("~\+*http://|Googlebot-Image|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
+                                "GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
+                                "http client|PECL::HTTP~i", $this->agent)
+                     || ($this->query("select ip from $this->masterdb.bots where ip='$this->ip'")) ? true : false;
+          
+      if($this->isBot) {
+        try {
+          $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, who, creation_time, lasttime) ".
+                       "values('$this->ip', '$agent', 1, 4, '$this->siteName', now(), now())");
+        } catch(Exception $e) {
+          if($e->getCode() == 1062) { // duplicate key
+            $this->query("select who from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
+
+            list($who) = $this->fetchrow('num');
+
+            if(!$who) {
+              $who = $this->siteName;
+            }
+
+            if(strpos($who, $this->siteName) === false) {
+              $who .= ", $this->siteName";
+            }
+
+            $this->query("update $this->masterdb.bots set robots=robots | 8, who='$who', count=count+1, lasttime=now() ".
+                         "where ip='$this->ip' and agent='$agent'");
+          } else {
+            throw($e);
+          }
+        }
+      }
+      // Now do bots2
+
+      $this->query("select count(*) from information_schema.tables ".
+                   "where (table_schema = '$this->masterdb') and (table_name = 'bots2')");
+
+      list($ok) = $this->fetchrow('num');
+
+      if($ok == 1) {
+        if($this->isBot) {
+          $this->query("insert into $this->masterdb.bots2 (ip, agent, date, site, which, count, lasttime) ".
+                       "values('$this->ip', '$agent', current_date(), '$this->siteName', 2, 1, now()) ".
+                       "on duplicate key update count=count+1, lasttime=now()");
+        }
+      } else {
+        error_log("$this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database");
+      } 
+    } else {
+      error_log("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database");
+    }
+  }
+
+
+  
+  /**
+   * tracker()
+   * track if java script or not.
+   */
+
+  protected function tracker() {
+    if($this->nodb) {
+      return;
+    }
+    
+    $this->query("select count(*) from information_schema.tables ".
+                 "where (table_schema = '$this->masterdb') and (table_name = 'tracker')");
+
+    list($ok) = $this->fetchrow('num');
+
+    if($ok == 1) {
+      $agent = $this->escape($this->agent);
+
+      $java = 0;
+      
+      if($this->isBot) {
+        $java = 0x2000; // This is the robots tag
+      }
+      
+      //error_log("SiteClass: tracker, $this->siteName, $this->ip, $agent, $this->self");
+      
+      $this->query("insert into $this->masterdb.tracker (site, page, ip, agent, starttime, isJavaScript, lasttime) ".
+                   "values('$this->siteName', '$this->requestUri', '$this->ip','$agent', now(), $java, now())");
+
+      $this->LAST_ID = $this->getLastInsertId();
+    } else {
+      error_log("$this->siteName: $this->self: table tracker does not exist in the $this->masterdb database");
+    }
+  }
+
+  /**
+   * doanalysis()
+   */
+
+  protected function doanalysis() {
+    if($this->nodb) {
+      return;
+    }
+
+    if($this->analysis) {
+      $this->query("select count(*) from information_schema.tables ".
+                   "where (table_schema = '$this->masterdb') and ".
+                   "((table_name = 'analysis' or table_name = 'analysis2'))");
+
+      list($ok) = $this->fetchrow('num');
+
+      if($ok == 2) {
+        // Don't count ME
+        if(!$this->isMe()) {
+          $agent = $this->escape($this->agent);
+          $this->query("insert into $this->masterdb.analysis (agent, count, created, lasttime) ".
+                       "values('$agent', 1, current_date(), now()) ".
+                       "on duplicate key update count=count+1, lasttime=now()");
+
+          // analysis2 only keeps 60 days of data. Every night a cron job removes old data.
+          
+          $this->query("insert into $this->masterdb.analysis2 (agent, count, created, lasttime) ".
+                       "values('$agent', 1, current_date(), now()) ".
+                       "on duplicate key update count=count+1, lasttime=now()");
+        }
+      } else {
+        error_log("$this->siteName: $this->self: table analysis and/or analysis2 do not exist in the $this->masterdb database");
+      }
+    }
+  }
+
+  /**
+   * setblpip()
+   * insert ignore to table blpip
+   */
+
+  protected function setblpip() {
+    if($this->nodb || !$this->myIp) {
+      return;
+    }
+
+    $this->query("select count(*) from information_schema.tables ".
+                 "where (table_schema = '$this->masterdb') and (table_name = 'blpip')");
+
+    list($ok) = $this->fetchrow('num');
+
+    if($ok == 0) {
+      error_log("$this->siteName: $this->self: table blpip does not exist in the $this->masterdb database");
+      return;
+    }
+
+    $this->query("insert ignore into $this->masterdb.blpip values('$this->myIp', now())");
+  }
+
+  /**
+   * counter()
+   * This is the page counter feature in the footer
+   * WARNING this could be  overriden in your sites class if you need more features.
+   * By default this uses a table 'counter' with 'filename', 'count', and 'lasttime'.
+   *  'filename' is the primary key.
+   */
+
+  protected function counter() {
+    if($this->nodb) {
+      return;
+    }
+
+    $this->query("select count(*) from information_schema.tables ".
+                 "where (table_schema = '$this->masterdb') and (table_name = 'counter')");
+
+    list($ok) = $this->fetchrow('num');
+      
+    if($ok == 1) {
+      $filename = $this->requestUri; // get the name of the file
+
+      if(!(($this->isMe()) && ($this->countMe === false))) {
+        // realcnt is ONLY NON BOTS
+        
+        $realcnt = $this->isBot ? 0 : 1;
+
+        // count is total of ALL hits!
+
+        $sql = "insert into $this->masterdb.counter (site, filename, count, realcnt, lasttime) ".
+               "values('$this->siteName', '$filename', '1', '$realcnt', now()) ".
+               "on duplicate key update count=count+1, realcnt=realcnt+$realcnt, lasttime=now()";
+
+        $this->query($sql);
+      }
+
+      // Now retreive the hit count value after it may have been incremented
+
+      list($cnt) = $this->queryfetch("select realcnt ".
+                                     "from $this->masterdb.counter ".
+                                     "where site='$this->siteName' and filename='$filename'");
+      
+      $this->hitCount = ($cnt[0]) ? $cnt[0] : 0;
+    } else {
+      error_log("$this->siteName: $this->self: table counter does not exist in the $this->masterdb database");
+    }      
+  }
+
+  /**
+   * counter2
+   * count files accessed per day
+   * WARNING this may be overriden is a child class
+   */
+  
+  protected function counter2() {
+    if($this->nodb) {
+      return;
+    }
+
+    $this->query("select count(*) from information_schema.tables " .
+                 "where (table_schema = '$this->masterdb') ".
+                 "and (table_name = 'counter2')");
+
+    list($ok) = $this->fetchrow('num');
+
+    if($ok) {
+      if($this->isBot) {
+        $sql = "insert into $this->masterdb.counter2 (site, date, filename, count, bots, lasttime) ".
+               "values('$this->siteName', now(), '$this->requestUri', 0, 1, now()) ".
+               "on duplicate key update bots=bots+1, lasttime=now()";
+      } else {
+        $member = 0;
+        $memberUpdate = '';
+
+        if($this->id) {
+          $member = 1;
+          $memberUpdate = ", members=members+1";
+        }
+
+        $sql = "insert into $this->masterdb.counter2 (site, date, filename, count, members, lasttime) ".
+               "values('$this->siteName', now(), '$this->requestUri', 1, $member, now()) ".
+               "on duplicate key update count=count+1$memberUpdate, lasttime=now()";
+      }
+      $this->query($sql);
+    } else {
+      error_log("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database");
+    }
+  }
+  
   /**
    * daycount()
    * Day Counts
+   * WARNING this could be overriden in a child class.
    * @param string|array $inc. String is the name of the file to count. Array is multiple files to count.
    *   An array should look like array('/index', '/antherpage', 'etc'). We will in_array($this->self, $inc) === true
    *   then we count it.
@@ -846,8 +1151,15 @@ EOF;
       return;
     }
 
-    //date_default_timezone_set('America/New_York');
-    $curdate = date("Y-m-d");
+    $this->query("select count(*) from information_schema.tables ".
+                 "where (table_schema = '$this->masterdb') and (table_name = 'daycounts')");
+
+    list($ok) = $this->fetchrow('num');
+
+    if($ok == 0) {
+      error_log("$this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database");
+      return;
+    }
 
     $what = basename($this->self);
 
@@ -858,72 +1170,124 @@ EOF;
         if(in_array($what, $inc)) {
           $check = $what;
         } else {
-          $check = null;
+          $check = null; // not in array so make sure it does not match $what!
         }
       } elseif(strtolower($inc) == "all") {
-      // Not an array and ALL
+        // Not an array and ALL
         $what = $check = "all";
       } else {
         $check = $inc;
       }
     } else {
-      $check = "index.php";
+      $what = $check = "all"; // BLP 2016-02-09 -- chance from "index.php" to "all" if not specified;
+    }
+
+    $member = $real = $bots = 0;
+    $memberUpdate = $realUpdate = $botsUpdate = '';
+    
+    if($this->id) {
+      $member = 1;
+      $memberUpdate = " members=members+1,";
+    }
+
+    if($this->isBot) {
+      $bots = 1;
+      $botsUpdate = " bots=bots+1,";
+    } else {
+      $real = 1;
+      $realUpdate = " `real`=`real`+1,";
     }
 
     if($what == $check) {
-      $q1 = "update daycounts set count=count+1, id='$this->id' ".
-            "where date='$curdate' and ip='$this->ip'";
+      $curdate = date("Y-m-d");
       
-      $q2 = "insert into daycounts (date, count, visits, ip, id) " .
-            "values('$curdate', 1, 0, '$this->ip', '$this->id') ";
+      try {
+        $sql = "insert into $this->masterdb.daycounts (site, `date`, `real`, bots, members, visits, lasttime) " .
+               "values('$this->siteName', '$curdate', $real, $bots, $member, 1, now())";
 
-      $this->tableUpdate($q1, $q2);
+        $this->query($sql);
 
-      // This is the 10 minute time delay for visitors vs hits
-
-      if(!$_COOKIE['mytime']) {
-        // set cookie to expire in 10 minutes
         $cookietime = time() + (60*10);
-
         $this->setSiteCookie("mytime", time(), $cookietime);
+      } catch(Exception $e) {
+        if($e->getCode() != 1062) { // 1062 is dup key error
+          throw(new Exception(__CLASS__ ."::daycount() error=$e"));
+        }
 
-        $sql = "update daycounts set visits=visits+1, id='$this->id' ".
-                 "where ip='$this->ip' and date='$curdate'";
+        // This is the 10 minute time delay for visitors vs hits
 
+        if($_COOKIE['mytime']) {        
+          $sql = "update $this->masterdb.daycounts set$realUpdate$botsUpdate$memberUpdate lasttime=now() ".
+                 "where site='$this->siteName' and date='$curdate'";
+        } else {
+          // set cookie to expire in 10 minutes
+          $cookietime = time() + (60*10);
+          $this->setSiteCookie("mytime", time(), $cookietime);
+
+          $sql = "update $this->masterdb.daycounts set$realUpdate$botsUpdate$memberUpdate visits=visits+1, ".
+                 "lasttime=now() ".
+                 "where site='$this->siteName' and date='$curdate'";
+        }
         $this->query($sql);
       }
     }
   }
-
+  
   /**
-   * counter()
-   * This is the page counter feature at in the footer
-   * NOTE: override this in your sites class if you need more features.
-   * By default this uses/creates a table 'counter' with 'filename', 'count', and 'lasttime'.
-   *  'filename' is the primary key.
+   * logagent()
+   * Log logagent
+   * logagent and logagent2 are now used for 'analysis'
    */
-
-  protected function counter() {
+  
+  protected function logagent() {
     if($this->nodb) {
       return;
     }
 
-    $filename = $this->self; // get the name of the file
+    $agent = $this->escape($this->agent);
 
-    $q1 = "update counter set count=count+1 where filename='$filename'";
-    $q2 = "insert into counter (filename, count) values('$filename', '1')";
+    $this->query("select count(*) from information_schema.tables ".
+                 "where (table_schema = '$this->masterdb') and (table_name = 'logagent')");
 
-    $this->tableUpdate($q1, $q2);
+    list($ok) = $this->fetchrow('num');
+      
+    if($ok == 1) {
+      $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, id, created, lasttime) " .
+             "values('$this->siteName', '$this->ip', '$agent', '1', '$this->id', now(), now()) ".
+             "on duplicate key update count=count+1, lasttime=now()";
+        
+      $this->query($sql);
+    } else {
+      error_log("$this->siteName: $this->self: table logagent does not exist in the {$this->dbinfo['database']} database");
+    }
+
+    // Do insert into logagent2 which has only the last n days
+    
+    $this->query("select count(*) from information_schema.tables ".
+                 "where (table_schema = '$this->masterdb') and (table_name = 'logagent2')");
+
+    list($ok) = $this->fetchrow('num');
+      
+    if($ok == 1) {
+      $sql = "insert into $this->masterdb.logagent2 (site, ip, agent, count, id, created, lasttime) ".
+             "values('$this->siteName', '$this->ip', '$agent', '1', '$this->id', now(), now()) ".
+             "on duplicate key update count=count+1, id='$this->id', lasttime=now()";
+
+      $this->query($sql);
+    } else {
+      error_log("$this->siteName: $this->self: table logagent2 does not exist in the {$this->dbinfo['database']} database");
+    }
   }
 
   /**
-   * tracker()
+   * trackmember()
    * Track activity on site
+   * This table is in the siteName's database.
    * NOTE: override this in your sites class if you need more features.
-   * By default this uses/creates the 'logip', 'logagent' and 'memberpagecnt' tables.
+   * By default this uses the 'logagent' and 'memberpagecnt' tables.
    */
 
-  protected function tracker() {
+  protected function trackmember() {
     if($this->nodb) {
       return;
     }
@@ -933,90 +1297,44 @@ EOF;
     // If there is a member 'id' then update the memberTable
 
     if($this->id && $this->memberTable) {
-      $q1 = "update $this->memberTable set visits=visits+1, visittime=now() ".
-            "where id='$this->id'";
-      $q2 = "insert into $this->memberTable (fname, lname, email, visits, visittime) ".
-            "values('$this->fname', '$this->lname', '$this->email', '1', now())";
+      $this->query("select count(*) from information_schema.tables ".
+                   "where (table_schema = '{$this->dbinfo['database']}') and (table_name = '$this->memberTable')");
 
-      $this->tableUpdate($q1, $q2);
+      list($ok) = $this->fetchrow('num');
 
-      // BLP 2014-09-16 -- add nomemberpagecnt
-      if(!$this->nomemberpagecnt) {
-        $q1 = "update memberpagecnt set count=count+1, ip='$this->ip', agent='$agent' ".
-              "where page='$this->self' and id='$this->id'";
-        $q2 = "insert into memberpagecnt (page, id, ip, agent, count) " .
-              "values('$this->self', '$this->id', '$this->ip', '$agent', '1')";
-
-        $this->tableUpdate($q1, $q2);
-      }
-    }
-
-    // insert|update the logip table, or create it if it does not exist.
-
-    $q1 = "update logip set count=count+1, id='$this->id' where ip='$this->ip'";
-    $q2 = "insert into logip (ip, count, id) values('$this->ip', '1', '$this->id')";
-    $this->tableUpdate($q1, $q2);
-
-    $q1 = "update logagent set count=count+1 where ip='$this->ip' and agent='$agent'";
-    $q2 = "insert into logagent (ip, agent, count, id) " .
-                 "values('$this->ip', '$agent', '1', '$this->id')";
+      if($ok) {
+        // BLP 2016-05-04 -- 
+        // The fname-lname are a unique index 'name' so we will not get duplicates of our users.
         
-    $this->tableUpdate($q1, $q2);
-  }
+        $sql = "insert into $this->memberTable (fname, lname, email, visits, visittime) ".
+               "values('$this->fname', '$this->lname', '$this->email', '1', now()) ".
+               "on duplicate key update visits=visits+1, visittime=now()";
 
-  /**
-   * Private Method
-   * tableUpdate()
-   * update/insert values in a table. If update fails try insert, if insert gets a dup key error
-   * try the update again. I think this must be a race condition where two clients (probably
-   * robots) are accessing our site at almost the same time. I use to do an insert..on duplicate updat
-   * but changed it so other database engines would work. The insert..on dup was probably an atomic
-   * action while the seperate update/insert are not and therefore we get race conditions. 
-   * @param string update query
-   * @param string insert query
-   */
+        $this->query($sql);
+      } else {
+        error_log("$this->siteName: $this->self: table $this->memberTable does not exist in the {$this->dbinfo['database']} database");
+      }
+      
+      // BLP 2014-09-16 -- add nomemberpagecnt
 
-  private function tableUpdate($q1, $q2) {
-    try {
-      // Try the update
-      $n = $this->query($q1);
-    } catch(Exception $e) {
-      $err = $e->getCode();
-    }
+      if(!$this->nomemberpagecnt) {
+        $this->query("select count(*) from information_schema.tables ".
+                     "where (table_schema = '{$this->dbinfo['database']}') and (table_name = 'memberpagecnt')");
 
-    // If update returned 0 or NULL then we need to do an insert.
+        list($ok) = $this->fetchrow('num');
 
-    if(!$n) {
-      try {
-        // Try an insert
-        $this->query($q2);
-      } catch(Exception $e) {
-        if($e->getCode() == 1062) {
-          // Duplicate key error. Try update again
-          $n = $this->query($q1);
-          if(defined(EMAILADDRESS)) { // Only if we have somewhere to send this.
-            if($n) {
-            // Success, send me an email
-              mail(EMAILADDRESS, "tableUpdate $this->self", "First update failed, insert got dup key error:\n" .
-                   "second update OK. q1=$q1, q2=$q2\n" .
-                   "No error displayed\n".
-                   "ip=$this->ip, agent=$this->agent\n", EMAILFROM, "-f ".EMAILRETURN);
-            } else {
-            // Failed again
-              mail(EMAILADDRESS, "tableUpdate $this->self", "First update failed, insert got dup key error:\n" .
-                   "Second update FAILED. q1=$q1, q2=$q2\n" .
-                   "No error displayed\n".
-                   "ip=$this->ip, agent=$this->agent\n", EMAILFROM, "-f ".EMAILRETURN);
-            }
-          }
+        if($ok) {
+          $sql = "insert into memberpagecnt (page, id, ip, agent, count, lasttime) " .
+                 "values('$this->requestUri', '$this->id', '$this->ip', '$agent', '1', now()) ".
+                 "on duplicate key update count=count+1, ip='$this->ip', agent='$agent', lasttime=now()";
+
+          $this->query($sql);
         } else {
-          // Was an error other than dup key
-          throw("Error: tableUpdate() " . print_r($e, true));
+          error_log("$this->siteName: $this->self: table memberpagecnt does not exist in the {$this->dbinfo['database']} database");
         }
       }
     }
   }
-  
 } // End of Class
 
 //-----------------
@@ -1032,6 +1350,8 @@ if(!function_exists('ErrorGetId')) {
     $id = $_COOKIE['SiteId'];
     if(empty($id)) {
       $id = "IP={$_SERVER['REMOTE_ADDR']}, AGENT={$_SERVER['HTTP_USER_AGENT']}";
+    } else {
+      $id = "ID=$id, IP={$_SERVER['REMOTE_ADDR']}, AGENT={$_SERVER['HTTP_USER_AGENT']}";
     }
     return $id;
   }

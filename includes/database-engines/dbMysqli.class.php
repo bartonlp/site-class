@@ -12,14 +12,12 @@
  */
 
 /**
- * See http://www.php.net/manual/en/mysqli.overview.php for more information
- * on the Improved API.
+ * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.
  * The mysqli extension allows you to access the functionality provided by MySQL 4.1 and above.
  * More information about the MySQL Database server can be found at » http://www.mysql.com/
  * An overview of software available for using MySQL from PHP can be found at Overview
  * Documentation for MySQL can be found at » http://dev.mysql.com/doc/.
- * Parts of this documentation included from MySQL manual with permissions of
- * Oracle Corporation.
+ * Parts of this documentation included from MySQL manual with permissions of Oracle Corporation.
  */
 
 /**
@@ -27,6 +25,17 @@
  */
 
 class dbMysqli extends dbAbstract {
+  /**
+   * MySqli Database Link Identifier
+   * @var resource $db
+   */
+  
+  protected $host, $user, $password, $database;
+  private $result; // for select etc. a result set.
+  
+  static public $lastQuery = null; // for debugging
+  static public $lastNonSelectResult = null; // for insert, update etc.
+  
   /**
    * Constructor
    * @param string $host host name like "localhost:3306" etc.
@@ -46,6 +55,7 @@ class dbMysqli extends dbAbstract {
     $this->password = $password;
     $this->database = $database;
     $this->opendb();
+
     // make warning show up as exceptions
     $driver = new mysqli_driver;
     $driver->report_mode = MYSQLI_REPORT_STRICT;
@@ -76,28 +86,12 @@ class dbMysqli extends dbAbstract {
     if(!@$db->select_db($this->database)) {
       throw new SqlException(__METHOD__ . " Can't select database", $this);
     }
+    // BLP 2016-03-16 -- make sure we are la time. 
+    $db->query("SET time_zone = 'America/Los_Angeles'");
+    
     return $db;
   }
 
-  /**
-   * getSqlState()
-   */
-  
-  public function getSqlState() {
-    $db = $this->opendb();
-    return $db->sqlstate;
-  }
-
-  /**
-   * finalize()
-   * Finish the result state.
-   */
-  
-  public function finalize() {
-    $result = $this->result;
-    $result->free_result();
-  }
-  
   /**
    * query()
    * Query database table
@@ -110,14 +104,10 @@ class dbMysqli extends dbAbstract {
     $db = $this->opendb();
 
     self::$lastQuery = $query; // for debugging
-
+    
     $result = $db->query($query);
 
     if($result === false) {
-      $this->error = $this->db->error;
-      $this->errno = $this->db->errno;
-      $this->sqlstate = $this->db->sqlstate;
-      
       throw(new SqlException($query, $this));
     }
     
@@ -155,21 +145,33 @@ class dbMysqli extends dbAbstract {
   /**
    * queryfetch()
    * Dose a query and then fetches the associated rows
-   * Does a fetch_assoc() and places each row array into an array.
    * @param string, the query
    * @param string|null, if null then $type='both'
    * @param bool|null, if null then false.
    *   if param1, param2=bool then $type='both' and $returnarray=param2
-   * @return array, the rows
+   * @return:
+   *   1) if $returnarray is false returns the rows array.
+   *   2) if $returnarray is true returns an array('rows'=>$rows, 'numrows'=>$numrows).
    */
   
   public function queryfetch($query, $type=null, $returnarray=null) {
     if(stripos($query, 'select') === false) {
       throw new SqlException($query, $this);
     }
+
+    // queryfetch() can be
+    // 1) queryfetch(param1) only 1 param in which case $type is set to
+    // 'both'.
+    // 2) queryfetch(param1, param2) where param2 is a string like 'assoc', 'num' or
+    // 'both'
+    // 3) queryfetch(param1, param2) where param2 is a boolian in which case $type is set to
+    // 'both' and $returnarray is set to the boolian value of param2.
+    // 4) queryfetch(param1, param2, param3) where the param values set the corisponding
+    // values.
     
-    if(is_null($type)) $type = 'both';
-    elseif(is_bool($type) && is_null($returnarray)) {
+    if(is_null($type)) {
+      $type = 'both';
+    } elseif(is_bool($type) && is_null($returnarray)) {
       $returnarray = $type;
       $type = 'both';
     }  
@@ -269,6 +271,19 @@ class dbMysqli extends dbAbstract {
     } else {
       return $result->num_rows;
     }
+  }
+  
+  /**
+   * Get the Database Resource Link Identifier
+   * @return resource link identifier
+   */
+  
+  public function getDb() {
+    return $this->db;
+  }
+
+  public function getResult() {
+    return $this->result;
   }
 
   public function getErrorInfo() {

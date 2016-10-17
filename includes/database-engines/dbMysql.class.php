@@ -21,6 +21,16 @@ define(MYSQL_ER_NO_SUCH_TABLE, 1146); // table does not exist: meg=Table '%s.%s'
 
 class dbMysql extends dbAbstract {
   /**
+   * MySql Database Link Identifier
+   * @var resource $db
+   */
+  
+  public $db = 0;
+
+  protected $host, $user, $password, $database;
+  private $result;
+  
+  /**
    * Constructor
    * @param string $host host name like "localhost:3306" etc.
    * @param string $user user name for database
@@ -169,6 +179,15 @@ class dbMysql extends dbAbstract {
   public function getNumRows($result=null) {
     if(!$result) $result = $this->result;
     return mysql_num_rows($result);
+  }
+  
+  /**
+   * Get the Database Resource Link Identifier
+   * @return resource link identifier
+   */
+  
+  public function getDb() {
+    return $this->db;
   }
 
   /**

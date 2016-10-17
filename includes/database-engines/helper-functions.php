@@ -3,8 +3,17 @@
 
 /**
  * Helper Functions
- * These may well be defined by a chile class.
+ * These my well be defined by a chile class.
  */
+// vardump makes value readable
+/*
+if(!function_exists('vardump')) {
+  function vardump($value, $msg=null) {
+    if($msg) $msg = "<b>$msg</b>\n";
+    echo "<pre>$msg" . (escapeltgt(print_r($value, true))) . "</pre>\n\n";
+  }
+}
+*/
 
 if(!function_exists('vardump')) {  
   function vardump($msg=null) {
@@ -16,7 +25,7 @@ if(!function_exists('vardump')) {
   
     echo "<pre>$msg";var_dump($args);echo "</pre>";
   }
-}
+} 
 
 if(!function_exists('put')) {
   function put($text) {
@@ -75,15 +84,6 @@ if(!function_exists('escapeltgt')) {
   function escapeltgt($value) {
     $value = preg_replace(array("/</", "/>/"), array("&lt;", "&gt;"), $value);  
     return $value;
-  }
-}
-
-// varprint makes value readable via print_r
-
-if(!function_exists('varprint')) {
-  function varprint($value, $msg=null) {
-    if($msg) $msg = "<b>$msg</b>\n";
-    echo "<pre>$msg" . (escapeltgt(print_r($value, true))) . "</pre>\n\n";
   }
 }
 

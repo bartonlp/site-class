@@ -2,7 +2,7 @@
 /**
  * dbSqlite Class
  *
- * General SQLite3 Database Class. 
+ * General MySqli Database Class. 
  * @package Database
  * @author Barton Phillips <barton@bartonphillips.com>
  * @version 1.0
@@ -12,10 +12,29 @@
  */
 
 /**
+ * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.
+ * The mysqli extension allows you to access the functionality provided by MySQL 4.1 and above.
+ * More information about the MySQL Database server can be found at » http://www.mysql.com/
+ * An overview of software available for using MySQL from PHP can be found at Overview
+ * Documentation for MySQL can be found at » http://dev.mysql.com/doc/.
+ * Parts of this documentation included from MySQL manual with permissions of Oracle Corporation.
+ */
+
+/**
  * @package Database
  */
 
 class dbSqlite extends dbAbstract {
+  /**
+   * dbSqlite Database Link Identifier
+   * @var resource $db
+   */
+  
+  public $db = 0;
+
+  protected $host, $user, $password, $database;
+  private $result;
+  
   /**
    * Constructor
    * @param string $filename .
@@ -45,12 +64,11 @@ class dbSqlite extends dbAbstract {
     if($this->db) {
       return $this->db;
     }
-
-    $db = new SQLite3($this->database);
+    $db = new SQLiteDatabase($this->database);
+    //$db = @sqlite_open($this->database);
 
     if($db === false) {
-      throw new SqlException(__METHOD__ .
-                             ": Can't connect to database: {$db->lastError}", $this);
+      throw new SqlException(__METHOD__ . ": Can't connect to database: {$db->loastError}", $this);
     }
     
     $this->db = $db; // set this right away so if we get an error below $this->db is valid
@@ -58,16 +76,6 @@ class dbSqlite extends dbAbstract {
     return $db;
   }
 
-  /**
-   * finalize()
-   * release the result set
-   */
-  
-  public function finalize() {
-    $result = $this->result;
-    $result->finalize();
-  }
-  
   /**
    * query()
    * Query database table
@@ -80,26 +88,23 @@ class dbSqlite extends dbAbstract {
   public function query($query) {
     $db = $this->opendb();
 
-    self::$lastQuery = $query; // for debugging
+    $err=0;
 
-    if(!preg_match("/^(?:select)/i", $query)) {
-      $result = $db->exec($query);
-    } else {
-      $result = $db->query($query);
-    }
-    
-    if($result === false) {
-      throw(new SqlException($query, $this));
-    }
-
-    if($result === true) { // did not return a result object 
-      $numrows = $db->changes();
-      self::$lastNonSelectResult = $result;
-    } else {
-      // NOTE: we don't change result for inserts etc. only for selects etc.
+    if(preg_match("/^select/i", $query)) {
+      $result = @$db->query($query, $err);
+      if($result === false) {
+        throw new SqlException($query, $this);
+      }
+      $numrows = $result->numRows();
       $this->result = $result;
-      $numrows = true;
+    } else {
+      $result = @$db->queryExec($query, $err);
+      if($result === false) {
+        throw new SqlException($query, $this);
+      }
     }
+
+    if($err) cout($err);
 
     return $numrows;
   }
@@ -113,7 +118,7 @@ class dbSqlite extends dbAbstract {
    * 3) $stm->bind_param("s", $username);
    * 4) $stm->execute();
    * 5) $stm->bind_result($one, $two);
-   * 6) $stm->fetchArray();
+   * 6) $stm->fetch();
    * 7) echo "one=$one, two=$two<br>";
    */
   
@@ -132,18 +137,15 @@ class dbSqlite extends dbAbstract {
    */
   
   public function queryfetch($query, $returnarray=false) {
-    $this->query($query);
-
-    if(!$this->result) {
+    $numrows = $this->query($query);
+    
+    if(!$result) {
       throw new SqlException($query, $this);
     }
 
-    while($row = $this->result->fetchArray()) {
+    while($row = $result->fetch()) {
       $rows[] = $row;
     }
-
-    $numrows = count($rows);
-    
     return ($returnarray) ? array($rows, $numrows, result=>$rows, numrows=>$numrows) : $rows;
   }
 
@@ -169,19 +171,19 @@ class dbSqlite extends dbAbstract {
     
     switch($type) {
       case "assoc": // associative array
-        $row = $result->fetchArray(SQLITE3_ASSOC);
+        $row = $result->fetch(SQLITE_ASSOC);
         break;
       case "num":  // numerical array
-        $row = $result->fetchArray(SQLITE3_NUM);
+        $row = $result->fetch(SQLITE_NUM);
         break;
       case "both":
       default:
-        $row = $result->fetchArray(SQLITE3_BOTH);
+        $row = $result->fetch(SQLITE_BOTH);
         break;
     }
     return $row;
   }
-    
+  
   /**
    * getLastInsertId()
    *
@@ -192,20 +194,35 @@ class dbSqlite extends dbAbstract {
     return $db->lastInsertRowid();
   }
   
+  /**
+   * getNumRows()
+   */
+
+  public function getNumRows($result=null) {
+    if(!$result) $result = $this->result;
+    return $result->numRows();
+  }
+  
+  /**
+   * Get the Database Resource Link Identifier
+   * @return resource link identifier
+   */
+  
+  public function getDb() {
+    return $this->db;
+  }
+
   public function getErrorInfo() {
     $db = $this->opendb();
 
-    $errno = $db->lastErrorCode();
-    $error = $db->lastErrorMsg();
+    $errno = $db->lastError();
+    $error = sqlite_error_string($errno);
 
     $err = array('errno'=>$errno, 'error'=>$error);
     return $err;
   }
   
-  /**
-   * escape()
-   * Escape the string for use by the database
-   */
+  // real_escape_string
   
   public function escape($string) {
     $db = $this->opendb();
@@ -213,9 +230,10 @@ class dbSqlite extends dbAbstract {
     if(get_magic_quotes_runtime()) {
       $string = stripslashes($string);
     }
-    return $db->escapeString($string);
+    return @sqlite_escape_string($string);
   }
 
+  //
   
   public function escapeDeep($value) {
     $db = $this->opendb();
@@ -231,13 +249,13 @@ class dbSqlite extends dbAbstract {
   }
 
   public function __toString() {
-    return __CLASS__;
+    return "Database mysqli Class";
   }
 }
 
 /**
  * Helper Functions
- * These my well be defined by a chile class or by helper_functions.php
+ * These my well be defined by a chile class.
  */
 
 /**

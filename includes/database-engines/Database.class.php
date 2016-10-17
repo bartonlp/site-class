@@ -1,15 +1,11 @@
 <?php
 // Select the database engine we want to use
-// BLP 2015-04-10 -- change names from sqlite to pdo_sqlite and pgsql to pdo_pgsql. Add
-// pgsql for dbPostgres.class.php
-
 /**
  * Database wrapper class
  *
  */
 
 class Database extends dbAbstract {
-  public $db; 
   /**
    * constructor
    * @param mixed
@@ -25,9 +21,8 @@ class Database extends dbAbstract {
 
     if($n == 1) {
       // An array or object
-      
       $a = $args[0];
-      
+
       if(is_object($a)) {
         foreach($a as $k=>$v) {
           $arg[$k] = $v;
@@ -54,7 +49,6 @@ class Database extends dbAbstract {
       $err = $arg['errorctrl'];
     }
     */
-    
     $arg = (object)$arg;
 
     //$this->errorClass = new Error($err);
@@ -66,7 +60,7 @@ class Database extends dbAbstract {
     }
 
     switch($arg->engine) {
-//      case "mysql":
+      case "mysql":
       case "mysqli":
         $class = "db" . ucfirst(strtolower($arg->engine));
         if(class_exists($class)) {
@@ -75,48 +69,27 @@ class Database extends dbAbstract {
           throw(new SqlException(__METHOD__ .": Class Not Found : $class<br>"));
         }
         break;
-//      case "pdo_mysql":
-      case "pdo_mysqli":
+      case "sqlite":
         $class = 'dbPdo';
         if(class_exists($class)) {
-          $db = @new $class($arg->host, $arg->user, $arg->password, $arg->database,
-                            'pdo_mysqli');
-        } else {
-          throw(new SqlException(__METHOD__ .": Class Not Found : $class, engine=$arg->engine<br>"));
-        }      
-        break;
-/*      case "pdo_sqlite":
-        $class = 'dbPdo';
-        if(class_exists($class)) {
-          $db = @new $class($arg->host, $arg->user, $arg->password, $arg->database,
-                            'pdo_sqlite');
-        } else {
-          throw(new SqlException(__METHOD__ .": Class Not Found : $class, engine=$arg->engine<br>"));
-        }      
-        break;
-      case "pdo_pgsql":
-        $class = 'dbPdo';
-        if(class_exists($class)) {
-          $db = @new $class($arg->host, $arg->user, $arg->password, $arg->database,
-                            'pdo_pgsql');
-        } else {
-          throw(new SqlException(__METHOD__ .": Class Not Found : $class, engine=$arg->engine<br>"));
-        }      
-        break;
-*/        
-      case "sqlite3":
-        // This is native sqlite not via pdo.
-        $class = "dbSqlite";
-        if(class_exists($class)) {
-          $db = @new $class($arg->host, $arg->user, $arg->password, $arg->database);
+          $db = @new $class($arg->host, $arg->user, $arg->password, $arg->database, 'sqlite');
         } else {
           throw(new SqlException(__METHOD__ .": Class Not Found : $class<br>"));
         }      
         break;
       case "pgsql":
-        $class = 'dbPostgreSql';
+        $class = 'dbPdo';
         if(class_exists($class)) {
-          $db = @new $class($arg->host, $arg->user, $arg->password, $arg->database);
+          $db = @new $class($arg->host, $arg->user, $arg->password, $arg->database, 'pgsql');
+        } else {
+          throw(new SqlException(__METHOD__ .": Class Not Found : $class<br>"));
+        }      
+        break;
+      case "sqlite2":
+        // This is native sqlite not via pdo.
+        $class = "dbSqlite";
+        if(class_exists($class)) {
+          $db = @new $class($arg->host, $arg->user, $arg->password, $arg->database, 'pgsql');
         } else {
           throw(new SqlException(__METHOD__ .": Class Not Found : $class<br>"));
         }      

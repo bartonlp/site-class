@@ -15,8 +15,10 @@ class SqlException extends Exception {
   
   public function __construct($message, $self=null) {
     // If the caller was a database class then $this->db should be the database resorce.
-    list($error, $errno) = $this->SqlError($message, $self); // private helper method
-    parent::__construct($error, $errno);
+    
+    list($html, $errno) = $this->SqlError($message, $self); // private helper method
+
+    parent::__construct($html, $errno);
   }
 
   /**
@@ -42,7 +44,8 @@ class SqlException extends Exception {
   private function SqlError($msg="NO MESSAGE PROVIDED", $self) {
     $Error = "NO ERROR MESSAGE FOUND";
     $Errno = -1;
-    if(is_null($self) || is_null($self->getDb()) || $self->getDb() === 0) {
+
+    if(is_null($self) || is_null($errDb = $self->getDb()) || $self->getDb() === 0) {
       if(isset($self->errno) && isset($self->error)) {
         $Errno = $self->errno;
         $Error = $self->error;
@@ -53,14 +56,8 @@ class SqlException extends Exception {
     } else {
       if(method_exists($self, 'getErrorInfo')) {
         $err = $self->getErrorInfo(); // from the database engine, like mysqli etc.
-        // BLP 2015-04-28 -- 
-        if($err['errno'] == 0 && $err['errno'] == 0) {
-          $Error = $self->error;
-          $Errno = $self->errno;
-        } else {
-          $Error = $err['error'];
-          $Errno = $err['errno'];
-        }
+        $Error = $err['error'];
+        $Errno = $err['errno'];
       } else {
         throw(new Exception("method getErrorInfo missing"));
       }
@@ -155,12 +152,6 @@ EOF;
 
     if(isset($firstcaller)) {
       $error .= "Back Trace:<br>$firstcaller";
-    }
-
-    if(Error::getNoHtml()) {
-      $error = preg_replace("/<br>/", "\n", $error);
-      $error = htmlspecialchars_decode(preg_replace("/<.*?>/", '', $error));
-      $error = preg_replace("/^\s*?\n/m", '', $error);
     }
 
     return array($error, $Errno);

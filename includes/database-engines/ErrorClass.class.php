@@ -36,6 +36,8 @@ function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext)
                       E_RECOVERABLE_ERROR  => 'Catchable Fatal Error'
                      );
 
+  //error_log("errortype: ". $errortype[$errno]);
+  
   $errmsg = "File=$errfile, Line=$errline, Message=$errstr ";
 
   $backtrace = debug_backtrace();
@@ -49,10 +51,18 @@ function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext)
       $btrace .= "function: {$val['function']} in {$val['file']} on line {$val['line']}\n";
       if(isset($val['args'])) {
         foreach($val['args'] as $arg) {        
+/*          if(@get_class($arg) || is_array($arg)) {
+            // A class or array
+            $x = escapeltgt(print_r($arg, true));
+            $btrace .= "          arg: $x\n";
+          } else {
+            // Not a class or array
+*/
           $arg = ($arg === false) ? 'false' : $arg;
           $arg = ($arg === true) ? 'true' : $arg;
           $x = escapeltgt(var_export($arg, true));            
           $btrace .= "          arg: $x\n";
+//          }
         }
       }
     }
@@ -74,9 +84,9 @@ function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext)
 //******************************  
 // Set up an exception handler if one not already defined
 // Relies on the statics from Error Class to format the output etc.
-// Error::$development
-// Error::$nohtml
-// Error::$noEmailErrs
+// ErrorClass::$development
+// ErrorClass::$nohtml
+// ErrorClass::$noEmailErrs
 
 function my_exceptionhandler(Exception $e) {
   $cl =  get_class($e);
@@ -140,7 +150,7 @@ EOF;
   exit();
 }
 
-// Do the final output part of the error/exception.
+// Do the final output part of the error/exception
 // $error is the html minus the div with ERROR
 // $from is Error or Exception
 
@@ -167,22 +177,18 @@ function finalOutput($error, $from) {
   // Email error information to webmaster
   // During debug set the Error class's $noEmailErrs to ture
   
-  if(Error::getNoEmailErrs() !== true) {
+  if(ErrorClass::getNoEmailErrs() !== true) {
     mail(EMAILADDRESS, $from, "{$err}{$userId}",
          "From: ". EMAILFROM, "-f ". EMAILRETURN);
   }
 
-  if(!file_exists(LOGFILE)) {
-    // create it and change the permisions
-    touch(LOGFILE);
-    chmod(LOGFILE, 0666);
-  }
+  // Log the raw error info.
 
-  date_default_timezone_set('America/Denver');
-  file_put_contents(LOGFILE, date("Y-m-d H:i:s") . "\n$from: {$err}{$userId}{$agent}*****\n",
-                    FILE_APPEND);
+  date_default_timezone_set('America/Los_Angeles');
 
-  if(Error::getDevelopment() !== true) {
+  error_log("ErrorClass, finalOutput: $from, $err\n$userId\n$agent");
+
+  if(ErrorClass::getDevelopment() !== true) {
     // Minimal error message
     $error = <<<EOF
 <p>The webmaster has been notified of this error and it should be fixed shortly. Please try again in
@@ -193,8 +199,8 @@ EOF;
            " Please try again in a couple of hours.";
   }
 
-  if(Error::getNoHtml() === true) {
-    $error = "$from:\n$err\n";
+  if(ErrorClass::getNohtml() === true) {
+    $error = "$from: $err";
   } else {
     $error = <<<EOF
 <div style="text-align: center; background-color: white; border: 1px solid black; width: 85%; margin: auto auto; padding: 10px;">
@@ -204,7 +210,7 @@ $error
 EOF;
   }
 
-  if(Error::getNoOutput() !== true) {
+  if(ErrorClass::getNoOutput() !== true) {
     echo $error;
   }
 }
@@ -218,19 +224,19 @@ set_exception_handler('my_exceptionhandler');
  * Error Class
  */
 
-class Error {
+class ErrorClass {
   private static $noEmailErrs = false;
   private static $development = false;
   private static $noHtml = false;
   private static $errType = null;
   private static $noOutput = false;
   private static $instance = null;
-
+  
   // args can be array|object. noEmailErrs, development, noHtml, noOutput, errType
   
   public static function init($args=null) {
     if(is_null(self::$instance)) {
-      self::$instance = new Error($args);
+      self::$instance = new ErrorClass($args);
     }
     return self::$instance;
   }
@@ -243,24 +249,25 @@ class Error {
     if(is_array($args)) {
       $args = (object)$args;
     }
-    
+
     if(isset($args->noEmailErrs)) self::$noEmailErrs = $args->noEmailErrs; //$args['noEmailErrs'];
     if(isset($args->development))self::$development = $args->development;
     if(isset($args->nohtml)) self::$noHtml = $args->noHtml;
     if(isset($args->noOutput)) self::$noOutput = $args->noOutput;
-    // ignore E_NOTICE errors by default
 
+    // ignore E_NOTICE and E_WARNING errors by default
+    
     if(!isset($args->errType)) {
       if(is_null(self::$errType)) {
-        error_reporting(E_ALL ^ (E_NOTICE | E_WARNING));
-        set_error_handler('my_errorhandler', E_ALL & ~(E_NOTICE | E_WARNING));
+        error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
+        set_error_handler('my_errorhandler', E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
       } // if self::$errType is set then the handler has already been set
     } else {
       // $args->errType is set
       self::$errType = $args->errType;
       error_reporting($args->errType);
       set_error_handler('my_errorhandler', $args->errType);
-    }      
+    }
   }
 
   static public function setNoEmailErrs($b) {

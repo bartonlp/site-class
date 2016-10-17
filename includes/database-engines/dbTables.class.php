@@ -5,13 +5,89 @@ class dbTables {
   private $db;
 
   /**
-   * Constructor
-   * @param object|class $db. Can be either SiteClass or Database class or even
-   *   one of the dbXXX engine classes.
+   * @param object|class $db. Can be either SiteClass or Database class.
    */
   
   public function __construct($db) {
     $this->db = $db;
+  }
+
+  /**
+   ********************************************
+   * DEPRECIATED use makeresultrow() instead!!!
+   ********************************************
+   * Make Tbody Row
+   *
+   * Make a table row given the query and a template of the row
+   * Call back function looks like: callback(&$row, &$rowdesc) it can modify $row and $rowdesc and
+   * returns true if we should skip (continue) or false to process.
+   * @param string $query the mysql query 
+   * @param string $rowdesc the tbody row description
+   * @param function $callback an optional callback function like callback(&$row, &$rowdesc)
+   * @param resouce &$retresult an optional return of resource id if $retresult === true
+   * @param string|array $delimiter
+   * @return string tbody or false if mysqli_num_rows() == 0. Should check return === false for no rows.
+   */
+
+  public function maketbodyrows($query, $rowdesc, $callback=null, &$retresult=false, $delim=false) {
+    // $rowdesc is the <tr>...</tr> for this row
+    // <tr><td>fieldname</td>...</tr>
+
+    // Depreciated Send webmaster an email
+    mail(EMAILADDRESS, "maketbodyrows Depreciated", "file: " . __FILE__ . " line: " . __LINE__ .
+         "\n$query",
+         EMAILFROM, "-f " . EMAILRETURN);
+    
+    $num = $this->db->query($query);
+    if(!$num) {
+      return false;
+    }
+
+    // A call back could do a select so we need to keep this local!!
+    
+    $result = $this->db->getResult();
+
+    if($retresult !== false) $retresult = $result;
+
+    // Set up delimiters
+
+    $rdelimlft = $rdelimrit = "";
+    
+    if(!$delim) {
+      $sdelimlft = $rdelimlft = ">";
+      $sdelimrit = $rdelimrit = "<";
+    } else {
+      if(is_array($delim)) {
+        $sdelimlft = $delim[0];
+        $sdelimrit = $delim[1];
+      } else {
+        $sdelimlft = $sdelimrit = $delim;
+      }
+    }
+
+    $table = ""; // return tbody
+    
+    while($row = $this->db->fetchrow($result, 'assoc')) {
+      // If $callback then do the callback function. If the callback function returns true (continue) skip row.
+
+      $desc = $rowdesc;
+      
+      if($callback) {
+        // Callback function can modify $row and/or $desc if the callback function has them passed by reference
+        // NOTE that $desc does not have the keys replaced with the values yet!!
+        if($callback($row, $desc)) {
+          continue;
+        }
+      }
+
+      // Replace the key in the $desc with the value.
+      
+      foreach($row as $k=>$v) {
+        $desc = preg_replace("/{$sdelimlft}{$k}{$sdelimrit}/", "{$rdelimlft}{$v}{$rdelimrit}", $desc);
+      }
+      $table .= "$desc\n";
+    }
+    return $table; // on success return the tbody rows
   }
 
   /**
@@ -44,6 +120,7 @@ class dbTables {
     }
 
     // A call back could do a select so we need to keep this local!!
+    
     $result = $this->db->getResult(); 
 
     $delim = $extra['delim'];
@@ -104,7 +181,7 @@ class dbTables {
             $header = preg_replace("/%(.*?\*.*?)%/", "$1", $header);
             //echo "<br>AFTER: " .escapeltgt("header=$header || lft=$hdelimlft, rit=$hdelimrit") . "<br>\n";
           }
-          
+
           $hdr = preg_replace("/%(.*?)~/", "{$hdelimlft}$1{$hdelimrit}", $tmp);
 
           //echo "<br>Tmp: " . escapeltgt($tmp) . "<br>\n";
@@ -129,14 +206,14 @@ class dbTables {
         */
 
         // Only if we have the wild card
-        
+
         if(preg_match("/{$sdelimlft}\*{$sdelimrit}/", $rowdesc)) {
           $rowdesc = preg_replace("/{$sdelimlft}\*{$sdelimrit}/", $tmp, $rowdesc);
 
           //echo "<br>2 rowdesc: " . escapeltgt($rowdesc) . "<br>\n";
         
           $rowdesc = preg_replace("/%(.*?)~/", "{$rwilddelimlft}$1{$rwilddelimrit}", $rowdesc);
-        
+
           //echo "<br>3 rowdesc: " . escapeltgt($rowdesc) . "<br>\n";
 
           $rdelimlft = $rwilddelimlft;
@@ -162,16 +239,23 @@ class dbTables {
       // Replace the key in the $desc with the value.
       
       foreach($row as $k=>$v) {
+        if(preg_match("~\\\\0~i", $v, $m)) {
+          $v = preg_replace("~\\\\0~i", '~~0', $v);
+          //echo "V: $v\n\n";
+        }
         $desc = preg_replace("/{$sdelimlft}{$k}{$sdelimrit}/", "{$rdelimlft}{$v}{$rdelimrit}", $desc);
       }
-
+      if(preg_match("|~~0|", $desc)) {
+        $desc = preg_replace("|~~0|", "\\\\0", $desc);
+        //echo "DESC: $desc\n\n";
+      }
       // callback2 can modify the $desc after the fields have been replaced
       
       if($extra['callback2']) {
         $extra['callback2']($desc);
       }
 
-      $rows .= "$desc\n";
+      $rows .= "$desc";
     }
     if($extra['return'] === true) {
       $ret = array($rows, $this->result, $num, $hdr, 'rows'=>$rows,
@@ -179,6 +263,7 @@ class dbTables {
     } else {
       $ret = $rows;
     }
+
     return $ret; // on success return the tbody rows
   }
 
@@ -190,6 +275,7 @@ class dbTables {
    *   $extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] and $extra['attr'].
    *   $extra['attr'] is an assoc array that can have attributes for the <table> tag, like 'id', 'title', 'class', 'style' etc.
    *   $extra['callback'] function that can modify the header after it is filled in.
+   *   $extra[callback2] callback after $desc has the fields replaced with $row values.
    *   $extra['footer'] a footer string 
    * @return array [{string table}, {result}, {num}, {hdr}, table=>{string}, result=>{result}, num=>{num rows}, header=>{hdr}]
    * or === false
@@ -216,7 +302,7 @@ class dbTables {
     if($tbl === false) {
       return false;
     }
-    
+
     extract($tbl);
 
     $ftr = $extra['footer'] ? "<tfoot>\n{$extra['footer']}\n</tfoot>\n" : null;
