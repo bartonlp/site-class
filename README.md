@@ -44,7 +44,7 @@ Create a directory `mkdir myproject; cd myproject`, this is your project root di
 ```json
 {
   "require": {
-      "bartonlp/site-class": "^1.2"
+      "bartonlp/site-class": "dev-master"
   }
 }
 ```
