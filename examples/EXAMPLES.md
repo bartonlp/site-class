@@ -33,7 +33,7 @@ You can use other frameworks or templeting engines. Here we will use Twig a popu
 
 To use this example you need to install Twig in the 'examples' directory as it is NOT part of this package by default.
 
-```
+```plain
 composer require twig/twig:~1.0
 ```
 
@@ -45,7 +45,7 @@ If you need ReST routing (or pretty routing or SEO friendly routing as it is som
 
 There is a pretty simple router called **Altorouter** which can be used without too much work. To install **Altorouter** do 
 
-``` 
+```plain
 composer require altorouter/altorouter:1.1.0 
 ``` 
 
@@ -53,7 +53,7 @@ in the 'examples' directory.
 
 The file 'composer-route.php' would normally be your 'index.php' in a production environment.  When using a server with Apache2 you would need a '.htaccess' file in the directory where the 'index.php' lives. The '.htaccess' file would look like this:
 
-```
+```plain
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule . index.php [L]
@@ -63,7 +63,7 @@ This says that if the requested filename does not exist go to the 'index.php' fi
 
 To test this without renaming the 'composer-route.php' you can use the PHP server like this:
 
-```
+```plain
 php -S localhost:8080 composer-route.php
 ```
 

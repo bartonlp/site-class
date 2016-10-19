@@ -1,6 +1,6 @@
 // Gulpfile
 // Take the README.md and make a README.html
-//
+// This requires 'pandoc' be installed. sudo apt-get install pandoc
 
 var gulp = require('gulp'),
 exec = require('gulp-exec'),

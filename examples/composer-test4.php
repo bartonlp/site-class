@@ -4,8 +4,8 @@
 require_once("../../../autoload.php");
 require_once(".sitemap.php");
 
-Error::setNoEmailErrs(true);
-Error::setDevelopment(true);
+ErrorClass::setNoEmailErrs(true);
+ErrorClass::setDevelopment(true);
 
 $S = new SiteClass($siteinfo);
 

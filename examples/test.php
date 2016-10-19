@@ -10,8 +10,8 @@ require_once("../includes/siteautoload.class.php");
 // information needed to instanntiate the Database class. The $siteinfo array is available for the
 // SiteClass etc.
 
-Error::setNoEmailErrs(true);
-Error::setDevelopment(true);
+ErrorClass::setNoEmailErrs(true);
+ErrorClass::setDevelopment(true);
 
 $siteinfo['memberTable'] = 'members';
 $siteinfo['dbinfo']['host'] = 'localhost';

@@ -11,8 +11,8 @@ require_once(".sitemap.php"); // configuration for site and database
 
 // For error messages
 
-Error::setNoEmailErrs(true);
-Error::setDevelopment(true);
+ErrorClass::setNoEmailErrs(true);
+ErrorClass::setDevelopment(true);
 
 $S = new SiteClass($siteinfo);
 

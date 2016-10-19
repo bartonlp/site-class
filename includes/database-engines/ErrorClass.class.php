@@ -178,8 +178,8 @@ function finalOutput($error, $from) {
   // During debug set the Error class's $noEmailErrs to ture
   
   if(ErrorClass::getNoEmailErrs() !== true) {
-    mail(EMAILADDRESS, $from, "{$err}{$userId}",
-         "From: ". EMAILFROM, "-f ". EMAILRETURN);
+    mail($this->EMAILADDRESS, $from, "{$err}{$userId}",
+         "From: ". $this->EMAILFROM, "-f ". $this->EMAILRETURN);
   }
 
   // Log the raw error info.

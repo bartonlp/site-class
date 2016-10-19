@@ -14,7 +14,7 @@ $pageHeadText = <<<EOF
   <meta name="description"
     content="{$arg['desc']}"/>
   <meta name="keywords"
-    content="Barton Phillips, Granby, Applitec Inc., Rotary, Programming, Tips and tricks, blog"/>
+    content="Barton Phillips, Applitec Inc., Programming, Tips and tricks, blog"/>
 {$arg['link']}
 {$arg['extra']}
 {$arg['script']}

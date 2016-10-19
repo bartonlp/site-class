@@ -3,8 +3,8 @@
 
 require_once("../includes/siteautoload.class.php");
 
-Error::setNoEmailErrs(true);
-Error::setDevelopment(true);
+ErrorClass::setNoEmailErrs(true);
+ErrorClass::setDevelopment(true);
 
 $S = new SiteClass($siteinfo);
 $T = new dbTables($S);

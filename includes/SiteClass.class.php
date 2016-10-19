@@ -805,6 +805,8 @@ EOF;
 
         if(defined('EMAILFROM')) {
           $mailtoName = EMAILFROM;
+        } elseif(isset($this->EMAILFROM)) {
+          $mailtoName = $this->EMAILFROM;
         } else {
           $mailtoName = "webmaster@$this->emailDomain";
         }

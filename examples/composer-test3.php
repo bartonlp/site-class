@@ -16,8 +16,8 @@ $dbinfo = array(
   'engine' => 'sqlite3'
 );
 
-Error::setNoEmailErrs(true);
-Error::setDevelopment(true);
+ErrorClass::setNoEmailErrs(true);
+ErrorClass::setDevelopment(true);
 
 $siteinfo['databaseClass'] = new Database($dbinfo);
 

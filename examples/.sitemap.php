@@ -101,16 +101,28 @@ switch(ENGINE_TYPE) {
 // You can either extend the array here or before you pass it to the SiteClass class.
 
 $siteinfo = array('siteDomain' => "localhost",
-                  'siteName' => "Vbox Localhost",
-                  'copyright' => "2015 Barton L. Phillips",
-                  //'className' => "", // If you have a child class of SiteClass
-                  'memberTable' => "members", 
-                  'headFile' => SITE_INCLUDES."/head.i.php",
+                  'siteName' => 'Vbox Localhost',
+                  'mainTitle' => "Test Site",
+                  //'emailDomain' => null,
+                  'path' => "/var/www/html",
+                  'className' => "SiteClass",
+                  'copyright' => "2016 Barton L. Phillips",
+                  'author' => "Barton L. Phillips, mailto:bartonphillips@gmail.com",
+                  //'memberTable' => null,
+                  'masterdb' => 'barton', // This is where bots, tracker, counter and logagent are.
+                  //'headFile' => SITE_INCLUDES."/head.i.php",
                   //'bannerFile' => SITE_INCLUDES."/banner.i.php",
                   //footerFile => SITE_INCLUDES."/footer.i.php"
                   'dbinfo' => $dbinfo,
-                  'count' => false, // false is the default, NOTHING is counted.
-                  //'countMe' => true, // Count myUrl. If false myUrl is not counted
-                  'myUri' => "bartonphillips.dyndns.org"
+                  'count' => true, // NOTE this defaults to false
+                  'countMe' => true, // Count BLP. Also defaults to false
+                  //'daycountwhat' => 'all', // what should we daycount? Can be a filename, all, or an array of filenames.
+                  //'analysis' => true, // update the barton.analysis table
+                  //'trackerImg1' => "/images/blp-image.png", // script
+                  //'trackerImg2' => "/images/146624.png", // normal
+                  'myUri' => "bartonphillips.dyndns.org",
+                  'EMAILADDRESS' => EMAILADDRESS,
+                  'EMAILRETURN' => EMAILRETURN,
+                  'EMAILFROM' => EMAILFROM,
                  );
 

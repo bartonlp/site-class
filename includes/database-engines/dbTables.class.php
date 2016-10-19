@@ -34,9 +34,9 @@ class dbTables {
     // <tr><td>fieldname</td>...</tr>
 
     // Depreciated Send webmaster an email
-    mail(EMAILADDRESS, "maketbodyrows Depreciated", "file: " . __FILE__ . " line: " . __LINE__ .
+    mail($this->EMAILADDRESS, "maketbodyrows Depreciated", "file: " . __FILE__ . " line: " . __LINE__ .
          "\n$query",
-         EMAILFROM, "-f " . EMAILRETURN);
+         $this->EMAILFROM, "-f " . $this->EMAILRETURN);
     
     $num = $this->db->query($query);
     if(!$num) {
