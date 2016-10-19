@@ -36,8 +36,6 @@ function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext)
                       E_RECOVERABLE_ERROR  => 'Catchable Fatal Error'
                      );
 
-  //error_log("errortype: ". $errortype[$errno]);
-  
   $errmsg = "File=$errfile, Line=$errline, Message=$errstr ";
 
   $backtrace = debug_backtrace();
@@ -178,8 +176,12 @@ function finalOutput($error, $from) {
   // During debug set the Error class's $noEmailErrs to ture
   
   if(ErrorClass::getNoEmailErrs() !== true) {
-    mail($this->EMAILADDRESS, $from, "{$err}{$userId}",
-         "From: ". $this->EMAILFROM, "-f ". $this->EMAILRETURN);
+    $S = $GLOBALS["S"];
+    if(!$S || empty($S->EMAILADDRESS)) {
+      $S->EMAILADDRESS = $S->EMAILRETURN = $S->EMAILFROM = "bartonphillips@gmail.com";
+    }
+    mail($S->EMAILADDRESS, $from, "{$err}{$userId}",
+         "From: ". $S->EMAILFROM, "-f ". $S->EMAILRETURN);
   }
 
   // Log the raw error info.

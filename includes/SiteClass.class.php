@@ -399,56 +399,13 @@ class SiteClass extends dbAbstract {
   }
 
   /**
-   * getWhosBeenHereToday()
-   * Get Whos Been Here Today message
-   * redefine in an extended class if needed!!!
-   * NOTE: not called from SiteClass.class.php!
+   * getHitCount()
    */
 
-  public function getWhosBeenHereToday() {
-    if($this->nodb || !$this->memberTable) {
-      return null;
-    }
-
-    $ret = <<<EOF
-<table id="todayGuests" style="width: 100%;">
-<tbody>
-<tr>
-<th style="width: 60%">Who's visited our Home Page today?</th>
-<th>Last Time</th>
-</tr>
-
-EOF;
-    // NOTE the database visittime (as last) field has the server time not our
-    // time. So we use the sql ADDTIME to correct the time for local time.
-    // If you want time correction set timeZoneDiff in the $siteinfo array.
-    // timeZoneDiff is the difference between current time and server time.
-    // If no timeZoneDiff then use server time.
-    
-    $timeZoneDiff = $this->timeZoneDiff ? '$this->timeZoneDiff' : '0:0';
-    
-    list($rows, $n) = $this->queryfetch("select concat(fname, ' ', lname) as name, " .
-    "date_format(addtime(visittime, $timeZoneDiff), '%H:%i:%s') as last " .
-    "from $this->memberTable where visits != 0" .
-    " and visittime  > current_date() order by visittime desc",
-    true);
-
-    if(!$n) {
-      return null;
-    }
-
-    foreach($rows as $row) {
-      $ret .= "<tr><td>" . stripslashes($row['name']) . "</td><td>{$row['last']}</td></tr>\n";
-    }
-
-    $ret .= <<<EOF
-</tbody>
-</table>
-
-EOF;
-    return $ret;
+  public function getHitCount() {
+    return $this->hitCount;
   }
-
+  
   /**
    * getPageTopBottom()
    * Get Page Top and Footer
@@ -855,16 +812,16 @@ EOF;
     // Counter at bottom of page
     $hits = number_format($this->hitCount);
 
+    // Let the redered appearance be up to the pages css!
     // #F5DEB3==rgb(245,222,179) is 'wheat' for the background
     // rgb(123, 16, 66) is a burgundy for the number
     // We place the counter in the center of the page in a div, in a table
     return <<<EOF
-<div id="hitCounter" style="margin-left: auto; margin-right: auto; width: 50%; text-align: center;">
+<div id="hitCounter">
 $msg
-<table id="hitCountertbl" style="width: 0; border: 8px ridge yellow; margin-left: auto;
-margin-right: auto; background-color: #F5DEB3">
+<table id="hitCountertbl">
 <tr id='hitCountertr'>
-<th id='hitCounterth' style="color: rgb(123, 16, 66);">
+<th id='hitCounterth'>
 $hits
 </th>
 </tr>
@@ -1294,11 +1251,11 @@ EOF;
       return;
     }
 
-    $agent = $this->escape($this->agent);
-
     // If there is a member 'id' then update the memberTable
 
     if($this->id && $this->memberTable) {
+      $agent = $this->escape($this->agent);
+
       $this->query("select count(*) from information_schema.tables ".
                    "where (table_schema = '{$this->dbinfo['database']}') and (table_name = '$this->memberTable')");
 
