@@ -87,8 +87,7 @@ class dbMysqli extends dbAbstract {
       throw new SqlException(__METHOD__ . " Can't select database", $this);
     }
     // BLP 2016-03-16 -- make sure we are la time. 
-    $db->query("SET time_zone = 'America/Los_Angeles'");
-    
+    $db->query("set time_zone = 'PST8PDT'");
     return $db;
   }
 
