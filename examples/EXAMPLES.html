@@ -1,14 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<style>
-pre {
-background-color: #DBDBDB;
-overflow: auto;
-}
-</style>
-</head>
-<body>
 <h1 id="examples">EXAMPLES</h1>
 <p>This directory has a number of examples of how to use the framework. I put the 'vendor/bartonlp/site-class/includes' directory in the /var/www that Apache2 creates when it is installed on a Ubuntu system. By default the Apache2 install makes '/var/www/html' its DocumentRoot (look at /'etc/apache2/sites-enabled/000-default.conf' the default site configuration file).</p>
 <p>The following examples are provided.</p>
@@ -37,20 +26,20 @@ overflow: auto;
 <h3 id="twig">Twig</h3>
 <p>You can use other frameworks or templeting engines. Here we will use Twig a popular templet engine. Twig is a super powerful templet engine with looping and conditional statements and much more. Here we do just about the minimum just as an example.</p>
 <p>To use this example you need to install Twig in the 'examples' directory as it is NOT part of this package by default.</p>
-<pre><code>composer require twig/twig:~1.0</code></pre>
+<pre class="plain"><code>composer require twig/twig:~1.0</code></pre>
 <p><a href="composer-with-twig.php">composer-with-twig.php</a></p>
 <h3 id="rest-routing-with-altorouter">ReST Routing with Altorouter</h3>
 <p>If you need ReST routing (or pretty routing or SEO friendly routing as it is sometime called) you could use one of the popular routing engines available with <strong>Meteor</strong>, <strong>Laravel</strong>, <strong>Synfony2</strong> or <strong>Silex</strong> but then again by that point you might as well just bite the bullet and spend the hours or days trying to figure out those frameworks.</p>
 <p>There is a pretty simple router called <strong>Altorouter</strong> which can be used without too much work. To install <strong>Altorouter</strong> do</p>
-<pre><code>composer require altorouter/altorouter:1.1.0 </code></pre>
+<pre class="plain"><code>composer require altorouter/altorouter:1.1.0 </code></pre>
 <p>in the 'examples' directory.</p>
 <p>The file 'composer-route.php' would normally be your 'index.php' in a production environment. When using a server with Apache2 you would need a '.htaccess' file in the directory where the 'index.php' lives. The '.htaccess' file would look like this:</p>
-<pre><code>RewriteEngine On
+<pre class="plain"><code>RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule . index.php [L]</code></pre>
 <p>This says that if the requested filename does not exist go to the 'index.php' file instead.</p>
 <p>To test this without renaming the 'composer-route.php' you can use the PHP server like this:</p>
-<pre><code>php -S localhost:8080 composer-route.php</code></pre>
+<pre class="plain"><code>php -S localhost:8080 composer-route.php</code></pre>
 <p>The PHP server uses the 'composer-route.php' file and you don't need a '.htaccess' file.</p>
 <p>Now you can run the program. It will display a table and a form you can use to insert new records. Also a button lets you reset the database table to its original state. If you click on a number in the 'ID' column of the table you get an edit page where you can change the names.</p>
 <p>You can also get to the edit page by entering the URI '/edit/3' for example. That will take you to the edit page for 'ID' three. From that page you and enter the URI '/home' which will take you back to the home page.</p>
@@ -59,6 +48,3 @@ RewriteRule . index.php [L]</code></pre>
 <p>Have fun with my mini framework. Get in there and look at the code, there really isn't that much of it. Try it out and if you have any comments or suggestions please let me know.</p>
 <p>You can email me at <a href="mailto://barton@bartonphillips.com">barton@bartonphillips.com</a>.<br />My homepage is <a href="http://www.bartonphillips.com">http://www.bartonphillips.com</a>.</p>
 <p>Cheers.</p>
-
-</body>
-</html>

@@ -1,15 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-<style>
-pre {
-background-color: #DBDBDB;
-overflow: auto;
-}
-</style>
-</head>
-<body>
-<h1 id="siteclass">SiteClass</h1>
+<h1 id="siteclass-verion-1.2">SiteClass Verion 1.2</h1>
 <p><strong>SiteClass</strong> is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.</p>
 <p>This project has several parts that can function standalone or combined.</p>
 <ul>
@@ -38,17 +27,17 @@ overflow: auto;
 <h3 id="use-composer">Use Composer</h3>
 <p>If you have Apache or Nginx installed then you should made your project root somewhere withing your DocumentRoot ('/var/www/html' for Apache2 on Ubuntu).</p>
 <p>Create a directory <code>mkdir myproject; cd myproject</code>, this is your project root directory. Add the following to 'composer.json', just cut and past:</p>
-<pre><code>{
-  &quot;require&quot;: {
-      &quot;bartonlp/site-class&quot;: &quot;dev-master&quot;
+<pre class="sourceCode json"><code class="sourceCode json">{
+  <span class="dt">&quot;require&quot;</span>: {
+      <span class="dt">&quot;bartonlp/site-class&quot;</span>: <span class="st">&quot;dev-master&quot;</span>
   }
 }</code></pre>
 <p>Then run</p>
-<pre><code>composer install</code></pre>
+<pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">composer</span> install</code></pre>
 <p><strong>OR</strong> you can just run</p>
-<pre><code>composer require bartonlp/site-class:dev-master</code></pre>
+<pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">composer</span> require bartonlp/site-class:dev-master</code></pre>
 <p>which will create the 'composer.json' for you and load the package like 'install'.</p>
-<p>In your PHP file add <code>require_once($PATH . 'vendor/autoload.php');</code> where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.</p>
+<p>In your PHP file add require_once($PATH . 'vendor/autoload.php');` where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.</p>
 <p>There are some example files in the 'examples' directory at '/vendor/bartonlp/site-class/examples' or 'examples' in your project root if you copied it there.</p>
 <h2 id="examples">Examples</h2>
 <p>The code shown below can be found in the 'examples' directory at <a href="http://github.com/bartonlp/site-class">http://github.com/bartonlp/site-class</a> or from your project root at 'vendor/bartonlp/site-class/examples' along with more <a href="examples/EXAMPLES.html">documentation</a>.</p>
@@ -57,23 +46,23 @@ overflow: auto;
 
 <p>If you have Apache or Nginx installed then you should have made your project root somewhere within your DocumentRoot, for example '/var/www/html/myproject'.</p>
 <p>If you don't have Apache or Nginx installed on your computer you can use the PHP server. Do the following from your project root:</p>
-<pre><code>php -S localhost:8080</code></pre>
+<pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">php</span> -S localhost:8080</code></pre>
 <p>Then use your browser by entering <code>http://localhost:8080/README.html</code> in the browsers location bar.</p>
 <p>The code in the 'examples' directory uses the <strong>sqlite3</strong> engine. There should be a 'test.sdb' database file in the 'examples' directory already.</p>
 <p>I have included a 'sqlite.sql' file that can be run from the command line if you want to recreate the 'members' table.</p>
 <p>You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc. From the command line in the directory where the SiteClass was downloaded:</p>
-<pre><code>$ cd examples
-$ sqlite3 test.sdb
-sqlite&gt; drop table members;
-sqlite&gt; .read sqlite.sql
-sqlite&gt; .table
-members
-sqlite&gt; select rowid,* from members;
-1|Big|Joe
-2|Little|Joe
-3|Barton|Phillips
-4|Someone|Else
-sqlite&gt; .quit
+<pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">cd</span> examples
+$ <span class="kw">sqlite3</span> test.sdb
+<span class="kw">sqlite&gt;</span> drop table members<span class="kw">;</span>
+<span class="kw">sqlite&gt;</span> .read sqlite.sql
+<span class="kw">sqlite&gt;</span> .table
+<span class="kw">members</span>
+<span class="kw">sqlite&gt;</span> select rowid,* from members<span class="kw">;</span>
+<span class="kw">1|Big|Joe</span>
+<span class="kw">2|Little|Joe</span>
+<span class="kw">3|Barton|Phillips</span>
+<span class="kw">4|Someone|Else</span>
+<span class="kw">sqlite&gt;</span> .quit
 $</code></pre>
 <p>This should create a new 'members' table in the 'test.sdb' database.</p>
 <hr>
@@ -288,7 +277,7 @@ $</code></pre>
 <p>The .sitemap.php file is the site configuration file. siteautoload.clas.php looks for the .sitemap.php file in the current directory. If it does not find it there it moves up to the parent directory. This continues until the DocumentRoot of the domain is reached. If a .sitemap.php file is not found an exception is thrown.</p>
 <p>Once a .sitemap.php file is found the information in it is read in via 'require_once'. There are several section to the .sitemap.php file. The first section defines the layout of the directorys. The second section defines some email information used to send error messages (if these are not present then no emails are sent). The third section sets up the $siteinfo array. This array describes your site or page.</p>
 <p>My usual directory structure starts under a 'www' subdirectory. On an Apache2 host the structure looks like this:</p>
-<pre><code>/var/www/includes        // this is where the SiteClass resides
+<pre class="plain"><code>/var/www/includes        // this is where the SiteClass resides
 /var/www/html            // this is where your php files and js, css etc. 
                          // directories live
 /var/www/html/includes   // this is where &#39;headFile&#39;, &#39;bannerFile&#39;, 
@@ -434,6 +423,3 @@ $S = new SiteClass($h);</code></pre>
 </ul>
 <h2 id="contact-me">Contact Me</h2>
 <p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a><br />Copyright © 2015 Barton Phillips</p>
-
-</body>
-</html>
