@@ -6,24 +6,19 @@
  * These my well be defined by a chile class.
  */
 // vardump makes value readable
-/*
-if(!function_exists('vardump')) {
-  function vardump($value, $msg=null) {
-    if($msg) $msg = "<b>$msg</b>\n";
-    echo "<pre>$msg" . (escapeltgt(print_r($value, true))) . "</pre>\n\n";
-  }
-}
-*/
 
-if(!function_exists('vardump')) {  
-  function vardump($msg=null) {
+if(!function_exists('vardump')) {
+  function vardump() {
     $args = func_get_args();
-    if(is_string($msg)) {
-      array_shift($args); // remove msg from the args array
-      $msg= "<b>$msg</b>\n";
-    } else unset($msg);
-  
-    echo "<pre>$msg";var_dump($args);echo "</pre>";
+
+    if(count($args) > 1 && is_string($args[0])) {
+      $msg = array_shift($args);
+      $msg = "<b>$msg:</b>\n";
+    }
+    for($i=0; $i < count($args); ++$i) {
+      $v .= escapeltgt(print_r($args[$i], true));
+    }
+    echo "<pre class='vardump' style='font-size: .7rem; font-family: \"Monospace\"'>$msg$v</pre>";
   }
 } 
 
@@ -40,12 +35,14 @@ if(!function_exists('put_e')) {
   }
 }
 
+/*
 if(!function_exists('vardump_e')) {
   function vardump_e($value, $msg=null) {
     if($msg) $msg = "<b>$msg</b>\n";
     echo "<pre>$msg" . (escapeltgt(print_r($value, true))) . "</pre>\n\n";
   }
 }
+*/
 
 /**
  * stripSlashesDeep
@@ -62,7 +59,6 @@ if(!function_exists('stripSlashesDeep')) {
   }
 }
 
-
 // like above but for mysql_real_escape_string()
 
 if(!function_exists('mysqlEscapeDeep')) {
@@ -78,33 +74,51 @@ if(!function_exists('mysqlEscapeDeep')) {
   }
 }
 
+// This does a deep conversion from an object to an array
+
+if(!function_exists('objectToArrayDeep')) {
+  function objectToArrayDeep($obj) {
+    if(is_object($obj)) {
+      $obj = (array) $obj;
+    }
+    if(is_array($obj)) {
+      $new = array();
+      foreach($obj as $key => $val) {
+        $new[$key] = objectToArrayDeep($val);
+      }
+    } else {
+      $new = $obj;
+    }
+    return $new;       
+  }
+}
+
+// This does a deep conversion from an array to an object
+
+if(!function_exists('arrayToObjectDeep')) {
+  function arrayToObjectDeep($array) {
+    if(is_array($array)) {
+      $array = (object) $array;
+    }
+
+    if(is_object($array)) {
+      $new = new StdClass;
+      foreach($array as $key=>$val) {
+        $new->$key = arrayToObjectDeep($val);
+      }
+    } else {
+      $new = $array;
+    }
+    return $new;
+  }
+}
+
 // Change < and > into "&lt;" and "&gt;" entities
 
 if(!function_exists('escapeltgt')) {
   function escapeltgt($value) {
-    $value = preg_replace(array("/</", "/>/"), array("&lt;", "&gt;"), $value);  
+    $value = preg_replace(array("/</", "/>/"), array("&lt;", "&gt;"), $value);
     return $value;
   }
 }
 
-if(!function_exists('arrayToObjectDeep')) {
-  function arrayToObjectDeep($array) {
-    if(!is_array($array)) {
-      return $array;
-    }
-
-    $object = new stdClass();
-
-    if(is_array($array) && count($array) > 0) {
-      foreach($array as $name=>$value) {
-        $name = strtolower(trim($name));
-        if(!empty($name)) {
-          $object->$name = arrayToObject($value);
-        }
-      }
-      return $object;
-    } else {
-      return FALSE;
-    }
-  }
-}

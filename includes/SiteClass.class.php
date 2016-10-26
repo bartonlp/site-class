@@ -1,68 +1,24 @@
 <?php
-// BLP 2016-08-31 -- MySitemap.php 'analysis' is no longer used.
-// BLP 2015-10-24 -- add getFooter and getBanner as depreciated items
-// BLP 2015-04-25 -- change name from getBanner to getPageBanner, getFooter to getPageFooter
-// BLP 2015-04-07 -- For SiteClass project on github.com/bartonlp/site-class
+// SITE_CLASS_VERSION must change when the GitHub Release version changes.  
+define("SITE_CLASS_VERSION", "1.2");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
 /**
  * SiteClass
  *
- * This class HAS Database class.
- * This is like site.class.php except instead of inhereting from Database this class HAS
- * Database (or not)
  * @package SiteClass
  * @author Barton Phillips <barton@bartonphillips.com>
- * @version 1.0
+ * @version v1.2.0
  * @link http://www.bartonphillips.com
  * @copyright Copyright (c) 2010, Barton Phillips
- * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
+ * @license  MIT
  */
-
-// If we have a Database then the following applies:
-// The $this->memberTable format MUST have these fields as a minimum!
-// id: auto_increment primary key
-// fname and lname: member's name Some tables may have these as FName and LName so be crefull.
-// email: member's email address. Some tables may have this as EMail so be crefull. 
-// visits: the number of times a member visits or hits the site
-// visittime: datetime last visit. Set explicitly by logic not a timestamp
-//
-// We also require these tables if we have a database instantiated and 'count' is true and
-// 'nodb' is false:
-// logip, logagent, memberpagecnt and counter.
-// 
-// If you need more extensive tables extend this class and overlay the methods you need
-// to change.
-//
-// The following methods use tables if a databasse is instantiated and 'count' is true and
-// 'nodb' is false:
-//   checkId(), daycount(), counter(), tracker() and getWhosBeenHereToday() if a members table
-//   is present. 
-//  check these methods for more information about the table requirements.
 
 /**
  * @package SiteClass
  * This class can be extended to handle special issues and add methods.
- * One of the special cases is the $memberTable. Member tables are not all the same,
- * some tables have a lot of stuff while others have next to nothing (or nothing).
- * NOTE: the 'login' page inserts the member information into the 'memberTable,
- * if the site does not have a 'login' page that calls setIdCookie() and inserts
- * information into the table there will be NO member table created and no SiteId
- * cookie created.
- * If there is no SiteId cookie there is no $this->id and therefore we will never look at
- * the $memberTable table (which doesn't exist more than likely).
- * Extend this class to handle these issues.
  */
-
-// dbAbstract has redirects for all the implemented methods like query, fetchrow etc.
-// dbAbstract has $db which is the resource for the various possible db engines like
-// mysqli or sqlite etc. By extending the SiteClass via dbAbstract we can say:
-//  $S = new SiteClass($s);
-//  $S->query(...);
-// etc. and not have to do a '$db = $S->getDb(); $db->query(...); etc.
-
-// Setup Autoload for database engines etc.
 
 class SiteClass extends dbAbstract {
   private $hitCount = null;
@@ -75,12 +31,12 @@ class SiteClass extends dbAbstract {
   
   // Current Doc Type
   public $doctype = "<!DOCTYPE html>";
-  
+
   /**
    * Constructor
    *
    * @param array|object $s
-   *  fields: databaseClass, siteDomain, subDomain, memberTable, headFile,
+   *  fields: databaseClass, siteDomain, subDomain, headFile,
    *  bannerFile, footerFile, count, daycountwhat, emailDomain, nodb:
    *  these fields are all protected. Note: nodb can also be a member of databaseClass->nodb.
    *  If there are more elements in $s they become public properties. You can add myUri to populate
@@ -170,8 +126,6 @@ class SiteClass extends dbAbstract {
       $this->requestUri = $this->self;
     }
 
-    $this->checkId(); // check database and cookie and set publics
-
     // These all use database 'barton'
     // and are always done regardless of 'count' and 'countMe'!
     // These all check $this->nodb first and return at once if it is true.
@@ -206,7 +160,6 @@ class SiteClass extends dbAbstract {
         $this->counter2(); // in 'masterdb' database
         // arg can be ALL or a file or an array of files OR nothing! 
         $this->daycount($this->daycountwhat); // in 'masterdb' database
-        $this->trackmember(); // This is in the site's database and tracks members if there is a 'memberTable'.
       }
     }
   }
@@ -246,129 +199,6 @@ class SiteClass extends dbAbstract {
       throw(new Exception("Error: setSiteCookie() can't set cookie"));
     }
   }
-    
-  /**
-   * setIdCookie()
-   * Sets the browser Cookie to user ID
-   * This is used by login logic of some sites.
-   * NOTE: if the site does not have a login function this is NEVER called.
-   * NOTE: the 'login' page inserts the member information into the 'memberTable,
-   * if the site does not have a 'login' page that calls setIdCookie() and inserts
-   * information into the table there will be NO member table created and no 'SiteId'
-   * cookie created.
-   * If there is no SiteId cookie there is no $this->id and therefore we will never look at
-   * the $memberTable table (which doesn't exist more than likely).
-   */
-
-  public function setIdCookie($id, $cookie=null) {
-    $this->id = $id; // This is the table ID from the $membertable.
-    if(!$id) return; // If no ID then don't set any cookies
-
-    $expire = time() + 31536000;  // one year from now
-
-    // subDomain is the 'path' in the setcookie function.
-    // We raerly use subDomain.
-    
-    if($this->subDomain) {
-      $path = $this->subDomain;
-    } else {
-      $path = "/";
-    }
-
-    $siteid = (is_null($cookie)) ? "SiteId" : $cookie;
-
-    $this->setSiteCookie($siteid, "$id", $expire, $path);
-  }
-
-  /**
-   * checkId()
-   * Called by the constructor
-   * @param $mid defaults to null
-   * @param $cookie if pressent then the name of the cookie instead of SiteId.
-   * @return the user ID or 0
-   * Redifine in an extended class if needed.
-   */
-
-  public function checkId($mid=null, $cookie=null) {
-    if(!isset($mid) && $this->id) {
-      return $this->id;
-    }
-
-    if(!$mid) {
-      $id = (is_null($cookie)) ? @$_COOKIE['SiteId'] : $_COOKIE[$cookie];
-    }
-
-    if(!$id && !$mid) {
-      return 0; // NO ID so don't do any database stuff!
-    } elseif(isset($mid)) {
-      $id = $mid;
-    }
-
-    if(!$this->nodb && $this->memberTable) {
-      // Get the minimum number of required fields.
-      // Put the query in a try.
-
-      try {
-        $query = "select fname, lname, email, visits, visittime ".
-                 "from $this->memberTable where id='$id'";
-
-        $n = $this->query($query);
-      } catch(Exception $e) {
-        switch($e->getCode) {
-          // http://dev.mysql.com/doc/refman/5.6/en/error-messages-server.html
-          // http://www.postgresql.org/docs/9.3/static/errcodes-appendix.html#ERRCODES-TABLE
-          // 42S02, table does not exist Mysql
-          // 42S22, unknown column Mysql
-          // 42703, unknown column Postgresql
-          // 42P01, table does not exist Postgresql
-          case '42S22': // Mysql
-          case '42703': // Postgresql
-            // unknown column
-            throw(new SqlException("Error: checkId() unknow column in table"));
-            break;
-          case '42S02': // Mysql
-          case '42P01': // Postgresql
-            // talbe does not exist
-            throw(new SqlException("Error: checkId() table does not exist"));
-            break;
-          default:
-            throw(new SqlException("Error: checkId() " . $e->getMessage()));
-        }
-      }
-
-      if(!$n) {
-      // OPS DIDN'T FIND THE ID IN THE DATABASE?
-        $this->id =  0;
-        return 0;
-      }
-      
-      list($fname, $lname, $email) = $this->fetchrow('num');
-
-      $this->fname = $fname;
-      $this->lname = $lname;
-      $this->email = $email;
-    }
-
-    $this->id = $id;
-    return $id;
-  }
-
-  /**
-   * getId()
-   * Get user id
-   */
-
-  public function getId() {
-    return $this->id;
-  }
-
-  /**
-   * setId()
-   */
-
-  public function setId($id) {
-    $this->id = $id;
-  }
 
   /**
    * getIp()
@@ -378,24 +208,6 @@ class SiteClass extends dbAbstract {
 
   public function getIp() {
     return $this->ip;
-  }
-
-  /**
-   * getEmail()
-   * Get the user's email address
-   */
-
-  public function getEmail() {
-    return $this->email;
-  }
-
-  /**
-   * setEmail()
-   * Set the user's email address
-   */
-
-  public function setEmail($email) {
-    $this->email = $email;
   }
 
   /**
@@ -1238,62 +1050,6 @@ EOF;
     }
   }
 
-  /**
-   * trackmember()
-   * Track activity on site
-   * This table is in the siteName's database.
-   * NOTE: override this in your sites class if you need more features.
-   * By default this uses the 'logagent' and 'memberpagecnt' tables.
-   */
-
-  protected function trackmember() {
-    if($this->nodb) {
-      return;
-    }
-
-    // If there is a member 'id' then update the memberTable
-
-    if($this->id && $this->memberTable) {
-      $agent = $this->escape($this->agent);
-
-      $this->query("select count(*) from information_schema.tables ".
-                   "where (table_schema = '{$this->dbinfo['database']}') and (table_name = '$this->memberTable')");
-
-      list($ok) = $this->fetchrow('num');
-
-      if($ok) {
-        // BLP 2016-05-04 -- 
-        // The fname-lname are a unique index 'name' so we will not get duplicates of our users.
-        
-        $sql = "insert into $this->memberTable (fname, lname, email, visits, visittime) ".
-               "values('$this->fname', '$this->lname', '$this->email', '1', now()) ".
-               "on duplicate key update visits=visits+1, visittime=now()";
-
-        $this->query($sql);
-      } else {
-        error_log("$this->siteName: $this->self: table $this->memberTable does not exist in the {$this->dbinfo['database']} database");
-      }
-      
-      // BLP 2014-09-16 -- add nomemberpagecnt
-
-      if(!$this->nomemberpagecnt) {
-        $this->query("select count(*) from information_schema.tables ".
-                     "where (table_schema = '{$this->dbinfo['database']}') and (table_name = 'memberpagecnt')");
-
-        list($ok) = $this->fetchrow('num');
-
-        if($ok) {
-          $sql = "insert into memberpagecnt (page, id, ip, agent, count, lasttime) " .
-                 "values('$this->requestUri', '$this->id', '$this->ip', '$agent', '1', now()) ".
-                 "on duplicate key update count=count+1, ip='$this->ip', agent='$agent', lasttime=now()";
-
-          $this->query($sql);
-        } else {
-          error_log("$this->siteName: $this->self: table memberpagecnt does not exist in the {$this->dbinfo['database']} database");
-        }
-      }
-    }
-  }
 } // End of Class
 
 //-----------------
