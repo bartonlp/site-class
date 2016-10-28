@@ -1,0 +1,18 @@
+{
+    "siteDomain": "localhost",
+    "siteName": "YourSiteName",
+    "mainTitle": "Title",
+    "className": "SiteClass",
+    "copyright": "2016 Barton L. Phillips",
+    "masterdb": "your_database_name",
+    "dbinfo": {
+        "host": "localhost",
+        "user": "username",
+        "password": "password",
+        "database": "yourdatabase",
+        "engine": "mysqli"
+    },
+    "count": true,
+    "countMe": true,
+    "myUri": "bartonphillips.dyndns.org",
+}

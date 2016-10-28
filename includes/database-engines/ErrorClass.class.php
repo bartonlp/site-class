@@ -86,7 +86,7 @@ function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext)
 // ErrorClass::$nohtml
 // ErrorClass::$noEmailErrs
 
-function my_exceptionhandler(Exception $e) {
+function my_exceptionhandler($e) {
   $cl =  get_class($e);
 
   $error = $e; //->getMessage; // get the full error message

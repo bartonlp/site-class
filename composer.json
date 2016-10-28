@@ -29,7 +29,8 @@
             "includes/database-engines"
         ],
         "files": [
-            "includes/database-engines/helper-functions.php"
+            "includes/database-engines/helper-functions.php",
+            "includes/siteload.php"
         ]
     }    
 }
