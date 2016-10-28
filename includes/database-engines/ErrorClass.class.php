@@ -36,8 +36,10 @@ function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext)
                       E_RECOVERABLE_ERROR  => 'Catchable Fatal Error'
                      );
 
-  $errmsg = "File=$errfile, Line=$errline, Message=$errstr ";
+  $errmsg = "File=$errfile\nLine=$errline\nMessage=$errstr ";
 
+  //error_log($errmsg);
+  
   $backtrace = debug_backtrace();
 
   array_shift($backtrace); // get rid of first trace which is this function.
@@ -49,18 +51,19 @@ function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext)
       $btrace .= "function: {$val['function']} in {$val['file']} on line {$val['line']}\n";
       if(isset($val['args'])) {
         foreach($val['args'] as $arg) {        
-/*          if(@get_class($arg) || is_array($arg)) {
+          if(@get_class($arg) || is_array($arg)) {
+            //error_log("CLASS or ARRAY");
             // A class or array
             $x = escapeltgt(print_r($arg, true));
             $btrace .= "          arg: $x\n";
           } else {
             // Not a class or array
-*/
-          $arg = ($arg === false) ? 'false' : $arg;
-          $arg = ($arg === true) ? 'true' : $arg;
-          $x = escapeltgt(var_export($arg, true));            
-          $btrace .= "          arg: $x\n";
-//          }
+
+            $arg = ($arg === false) ? 'false' : $arg;
+            $arg = ($arg === true) ? 'true' : $arg;
+            $x = escapeltgt(print_r($arg, true));            
+            $btrace .= "          arg: $x\n";
+          }
         }
       }
     }
@@ -188,7 +191,7 @@ function finalOutput($error, $from) {
 
   date_default_timezone_set('America/Los_Angeles');
 
-  error_log("ErrorClass, finalOutput: $from, $err\n$userId\n$agent");
+  error_log("ErrorClass, finalOutput: $from\n$err\n$userId\n$agent");
 
   if(ErrorClass::getDevelopment() !== true) {
     // Minimal error message
