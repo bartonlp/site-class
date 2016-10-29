@@ -115,7 +115,7 @@ class dbTables {
   public function makeresultrows($query, $rowdesc, array $extra=array()) {
     $num = $this->db->query($query); // $num is mysql_num_rows() result
 
-    if(!$num) {
+    if($this->db->dbinfo->engine == 'mysqli' && !$num) {
       return false; // Query found NO rows.
     }
 

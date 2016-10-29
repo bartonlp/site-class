@@ -1,7 +1,7 @@
 <?php
 // head.i.php for bartonphillips.com
 
-$pageHeadText = <<<EOF
+return <<<EOF
 <head>
   <!-- Example head.i.php file -->
   <title>{$arg['title']}</title>
@@ -13,8 +13,6 @@ $pageHeadText = <<<EOF
     content="Barton L. Phillips, mailto:bartonphillips@gmail.com"/>
   <meta name="description"
     content="{$arg['desc']}"/>
-  <meta name="keywords"
-    content="Barton Phillips, Applitec Inc., Programming, Tips and tricks, blog"/>
 {$arg['link']}
 {$arg['extra']}
 {$arg['script']}

@@ -7,5 +7,9 @@
 
 require_once(getenv("HOME") . "/vendor/autoload.php");
 $docroot = $_SERVER['DOCUMENT_ROOT'];
-$dir = dirname($_SERVER['PHP_SELF']);
+$self = $_SERVER['PHP_SELF'];
+// Check that there really is a file and this isn't a "friendly" url
+if(file_exists($docroot . $self)) {
+  $dir = dirname($self);
+}
 return json_decode(file_get_contents($docroot . $dir ."/mysitemap.json"));

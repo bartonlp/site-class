@@ -1,18 +1,14 @@
 {
     "siteDomain": "localhost",
     "siteName": "YourSiteName",
-    "mainTitle": "Title",
     "className": "SiteClass",
     "copyright": "2016 Barton L. Phillips",
-    "masterdb": "your_database_name",
+    "memberTable": "members",
+    "noTrack": true,
     "dbinfo": {
-        "host": "localhost",
-        "user": "username",
-        "password": "password",
-        "database": "yourdatabase",
-        "engine": "mysqli"
+        "database": "test.sdb",
+        "engine": "sqlite3"
     },
-    "count": true,
-    "countMe": true,
-    "myUri": "bartonphillips.dyndns.org",
+    "headFile": "includes/head.i.php",
+    "count": false
 }

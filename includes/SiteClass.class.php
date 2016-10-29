@@ -130,15 +130,13 @@ class SiteClass extends dbAbstract {
     // and are always done regardless of 'count' and 'countMe'!
     // These all check $this->nodb first and return at once if it is true.
 
-    $this->trackbots(); // Should be the FIRST in the group. This sets $this->isBot
-    $this->tracker();
-    //$this->doanalysis();
-    // BLP 2016-08-25 -- moved this from the if($this->count).. to here as this does the analysis
-    // also. The analysis.php looks at the 'blpip' table and does not count any of the ips in that
-    // table.
-    $this->logagent(); // in 'masterdb' database. logip and logagent
-    $this->setblpip();
-
+    if($this->noTrack != true) {
+      $this->trackbots(); // Should be the FIRST in the group. This sets $this->isBot
+      $this->tracker();
+      $this->logagent(); // in 'masterdb' database. logip and logagent
+      $this->setmyip();
+    }
+    
     // If 'count' is false we don't do these counters
     
     if($this->count) {
@@ -796,11 +794,11 @@ EOF;
   }
 
   /**
-   * setblpip()
+   * setmyip()
    * insert ignore to table blpip
    */
 
-  protected function setblpip() {
+  protected function setmyip() {
     if($this->nodb || !$this->myIp) {
       return;
     }

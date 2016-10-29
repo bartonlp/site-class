@@ -1,18 +1,17 @@
 <?php
-// composer-test5.php
+// example5.php
 
-require_once("../../../autoload.php");
-require_once(".sitemap.php");
+$_site = require_once(getenv("SITELOAD")."/siteload.php");
 
 ErrorClass::setNoEmailErrs(true);
 ErrorClass::setDevelopment(true);
 
-$S = new SiteClass($siteinfo);
+$S = new $_site->className($_site);
 $T = new dbTables($S);
 
 // Pass some info to getPageTopBottom method
-$h->title = "Table Test 5"; // Goes in the <title></title>
-$h->banner = "<h1>Test 5</h1>"; // becomes the <header> section
+$h->title = "Example 5"; // Goes in the <title></title>
+$h->banner = "<h1>Example 5</h1>"; // becomes the <header> section
 // Add some local css to but a border and padding on the table 
 $h->css = <<<EOF
   <style>
@@ -26,8 +25,9 @@ EOF;
 list($top, $footer) = $S->getPageTopBottom($h);
 
 // create a table from the memberTable
-$sql = "select * from {$siteinfo['memberTable']}";
+$sql = "select * from $S->memberTable";
 list($tbl) = $T->maketable($sql);
+
 echo <<<EOF
 $top
 <main>

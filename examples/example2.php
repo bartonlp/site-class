@@ -1,13 +1,14 @@
 <?php  
-// composer-test2.php
+// example2.php
 
 require_once("../../../autoload.php");
 
-$siteinfo = array(
+$_site = array(
   'siteDomain' => "localhost",
-  'siteName' => "Vbox Localhost",
-  'copyright' => "2015 Barton L. Phillips",
-  'memberTable' => 'members',
+  'siteName' => "Example2",
+  'copyright' => "2016 Barton L. Phillips",
+  'memberTable' => "members",
+  'noTrack' => true, // do tracking logic in SiteClass
   'dbinfo' => array(
     'database' => 'test.sdb',
     'engine' => 'sqlite3'
@@ -18,22 +19,22 @@ $siteinfo = array(
 ErrorClass::setNoEmailErrs(true);
 ErrorClass::setDevelopment(true);
 
-$S = new SiteClass($siteinfo);
+$S = new SiteClass($_site);
 
 list($top, $footer) = $S->getPageTopBottom();
 
 // Do some database operations
-$S->query("select fname||' '||lname from {$siteinfo['memberTable']}");
+$S->query("select fname, lname from $S->memberTable");
 
 $names = '';
 
-while(list($name) = $S->fetchrow('num')) {
-  $names .= "$name<br>";
+while(list($fname, $lname) = $S->fetchrow('num')) {
+  $names .= "$fname $lname<br>";
 }
 
 echo <<<EOF
 $top
-<h1>Test 2</h1>
+<h1>Example 2</h1>
 <p>$names</p>
 <hr>
 $footer

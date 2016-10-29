@@ -1,18 +1,16 @@
 <?php
-// composer-route.php
+// example-route.php
 
 // You should have installed AltoRouter in this (examples) directory
-require_once('vendor/autoload.php');
-
-require_once("../../../autoload.php");
-require_once('.sitemap.php');
+require_once('./vendor/autoload.php');
+$_site = require_once("../includes/siteload.php");
 
 // For error messages
 
-Error::setNoEmailErrs(true);
-Error::setDevelopment(true);
+ErrorClass::setNoEmailErrs(true);
+ErrorClass::setDevelopment(true);
 
-$S = new SiteClass($siteinfo);
+$S = new $_site->className($_site);
 
 // Instantiate twig with the filesystem loader. The templates are in this ('examples')
 // directory.
@@ -28,7 +26,7 @@ $router = new AltoRouter();
 
 $router->map('GET','/', 'home'); // 4th arg 'name' not used.
 $router->map('GET','/home', 'home'); // another name for /
-$router->map('GET','/edit/[i:id]', 'edit');
+$router->map('GET','/edit/[i:idd]', 'editit');
 $router->map('POST','/update/[i:id]', 'update_post');
 $router->map('POST','/post', 'update_post');
 $router->map('POST','/reset', 'resetdb');
@@ -42,7 +40,7 @@ $match = $router->match();
 // 'params' is a numeric array of arguments, in our case $match['params']['id'] is what we
 // want. The function will get the id as $params['id'].
 
-if($match && is_callable( $match['target'])) {
+if($match && is_callable($match['target'])) {
 	call_user_func_array($match['target'], $match['params']); 
 } else {
 	// no route was matched
@@ -108,7 +106,7 @@ EOF;
   // We use the 'as' to give our column headers nice names otherwise they would be
   // 'fname' and 'lname'.
 
-  $sql = "select rowid as ID, fname as 'First Name', lname as 'Last Name' from members";
+  $sql = "select rowid as ID, fname as 'First Name', lname as 'Last Name' from $S->memberTable";
 
   // The second argument to the maketable method is an array with the following properties:
   // 'callback', 'callback2', 'footer'] 'attr'.
@@ -136,12 +134,12 @@ EOF;
 
 // Edit Page
 
-function edit($params) {
+function editit($params) {
   global $S, $twig;
 
-  $id = $params['id'];
-  
-  $S->query("select fname, lname from members where rowid=$id");
+  $id = $params['idd'];
+
+  $S->query("select fname, lname from $S->memberTable where rowid=$id");
   list($fname, $lname) = $S->fetchrow('num');
 
   $h->title = "update";

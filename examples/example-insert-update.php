@@ -1,25 +1,12 @@
 <?php
-// with-twig.php
+// example-insert-update.php
 
-// To run this file you need to install Twig. You can do that in this ('examples') directory
-// with the command 'composer require twig/twig:~1.0'
-// I have NOT included Twig in this repository!
-require_once("vendor/autoload.php"); // for the installed vendor for Twig!
-
-require_once("../../../autoload.php");
-require_once(".sitemap.php"); // configuration for site and database
-
-// For error messages
+$_site = require_once(getenv("SITELOAD") . "/siteload.php");
 
 ErrorClass::setNoEmailErrs(true);
 ErrorClass::setDevelopment(true);
 
-$S = new SiteClass($siteinfo);
-
-// Instantiate twig with the filesystem loader. The templates are in this ('examples')
-// directory.
-
-$twig = new Twig_Environment(new Twig_Loader_Filesystem('.'));
+$S = new $_site->className($_site);
 
 // FORM POST 'insert' into database
 
@@ -29,25 +16,11 @@ if($_POST['page'] == "post") {
   $lname = $_POST['lname'];
 
   if(!isset($id)) {
-    $sql = "insert into members (rowid, fname, lname) values(null,'$fname', '$lname')";
+    $sql = "insert into $S->memberTable (rowid, fname, lname) values(null,'$fname', '$lname')";
   } else {
-    $sql = "update members set fname='$fname', lname='$lname' where rowid=$id";
+    $sql = "update $S->memberTable set fname='$fname', lname='$lname' where rowid=$id";
   }
   $S->query($sql);
-  goto START;
-}
-
-if($_POST['page'] == "reset") {
-  // Here we have a complex single liner with three seperate sql statements.
-  // we drop the table. Create the table again fresh, and then insert the inital rows.
-  
-  $sql = "drop table members;".
-         "create table members (fname text, lname text);".
-         "insert into members (fname, lname) values('Big', 'Joe'),('Little', 'Joe'),".
-         "('Barton','Phillips'),('Someone','Else');";
-
-  $S->query($sql);
-
   goto START;
 }
 
@@ -55,21 +28,24 @@ if($_POST['page'] == "reset") {
 
 if($_GET['page'] == "update") {
   $id = $_GET['id'];
-  $S->query("select fname, lname from members where rowid=$id");
+  $S->query("select fname, lname from $S->memberTable where rowid=$id");
   list($fname, $lname) = $S->fetchrow('num');
 
   $h->title = "update";
   $h->banner = "<h1>Update Record</h1>";
   list($top, $footer) = $S->getPageTopBottom($h);
 
-  // Use twit to render the second template
-  
-  echo $twig->render('with-twig-2.template',
-                     array('top'=>$top, 'footer'=>$footer,
-                           'fname'=>$fname, 'lname'=>$lname, 'id'=>$id
-                          )
-                    );
-
+  echo <<<EOF
+$top
+<form method="post">
+First Name: <input type="text" name="fname" value="$fname"><br>
+Last Name : <input type="text" name="lname" value="$lname"><br>
+<input type="submit" value="Submit">
+<input type="hidden" name="page" value="post">
+<input type="hidden" name="id" value="$id">
+</form>
+$footer
+EOF;
   exit();
 }
 
@@ -119,13 +95,13 @@ function callback(&$row, &$desc) {
     $row['First Name'] = "<span class='odd'>".$row['First Name']."</span>";
     $desc = preg_replace('~<tr>~', "<tr class='oddtr'>", $desc);
   }
-  $row['ID'] = "<a href='composer-with-twig.php?page=update&id=".$row['ID']."'>".$row['ID']."</a>";
+  $row['ID'] = "<a href='example-insert-update.php?page=update&id=".$row['ID']."'>".$row['ID']."</a>";
 }
 
 // We use the 'as' to give our column headers nice names otherwise they would be
 // 'fname' and 'lname'.
 
-$sql = "select rowid as ID, fname as 'First Name', lname as 'Last Name' from {$siteinfo['memberTable']}";
+$sql = "select rowid as ID, fname as 'First Name', lname as 'Last Name' from $S->memberTable";
 
 // The second argument to the maketable method is an array with the following properties:
 // 'callback', 'callback2', 'footer'] 'attr'.
@@ -136,7 +112,6 @@ $sql = "select rowid as ID, fname as 'First Name', lname as 'Last Name' from {$s
 // 'footer' is a footer string 
 
 $f = "<tfoot><tr><th colspan='2'>Footer goes here</th></tr><tfoot>";
-
 list($tbl) = $T->maketable($sql, array(
                                        'footer'=>$f,
                                        'callback'=>callback,
@@ -144,9 +119,15 @@ list($tbl) = $T->maketable($sql, array(
                                       )
                           );
 
-// Use twig to render the first template
-                          
-echo $twig->render('with-twig-1.template',
-                   array('top'=>$top, 'footer'=>$footer, 'tbl'=>$tbl
-                        )
-                  );
+echo <<<EOF
+$top
+$tbl
+<h2>Enter a first and last name to insert</h2>
+<form method="post">
+<input type="text" name="fname" placeholder="first name" autofocus>
+<input type="text" name='lname' placeholder="last name"><br>
+<input type="submit" value="Submit">
+<input type="hidden" name="page" value="post">
+</form>
+$footer
+EOF;

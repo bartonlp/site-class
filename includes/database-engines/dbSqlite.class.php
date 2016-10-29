@@ -64,7 +64,8 @@ class dbSqlite extends dbAbstract {
     if($this->db) {
       return $this->db;
     }
-    $db = new SQLiteDatabase($this->database);
+    //$db = new SQLiteDatabase($this->database);
+    $db = new SQlite3($this->database);
     //$db = @sqlite_open($this->database);
 
     if($db === false) {
@@ -77,6 +78,14 @@ class dbSqlite extends dbAbstract {
   }
 
   /**
+   * getResult()
+   */
+
+  public function getResult() {
+    return $this->result;
+  }
+  
+  /**
    * query()
    * Query database table
    * @param string $query SQL statement.
@@ -88,25 +97,19 @@ class dbSqlite extends dbAbstract {
   public function query($query) {
     $db = $this->opendb();
 
-    $err=0;
-
     if(preg_match("/^select/i", $query)) {
-      $result = @$db->query($query, $err);
+      $result = @$db->query($query);
       if($result === false) {
         throw new SqlException($query, $this);
       }
-      $numrows = $result->numRows();
       $this->result = $result;
     } else {
-      $result = @$db->queryExec($query, $err);
+      $result = @$db->exec($query);
       if($result === false) {
         throw new SqlException($query, $this);
       }
     }
-
-    if($err) cout($err);
-
-    return $numrows;
+    return;
   }
 
   /**
@@ -137,15 +140,17 @@ class dbSqlite extends dbAbstract {
    */
   
   public function queryfetch($query, $returnarray=false) {
-    $numrows = $this->query($query);
+    $this->query($query);
     
     if(!$result) {
       throw new SqlException($query, $this);
     }
 
-    while($row = $result->fetch()) {
+    while($row = $result->fetchArray(SQLITE3_ASSOC)) {
       $rows[] = $row;
     }
+    $numrows = count($rows);
+    
     return ($returnarray) ? array($rows, $numrows, result=>$rows, numrows=>$numrows) : $rows;
   }
 
@@ -171,14 +176,14 @@ class dbSqlite extends dbAbstract {
     
     switch($type) {
       case "assoc": // associative array
-        $row = $result->fetch(SQLITE_ASSOC);
+        $row = $result->fetchArray(SQLITE3_ASSOC);
         break;
       case "num":  // numerical array
-        $row = $result->fetch(SQLITE_NUM);
+        $row = $result->fetchArray(SQLITE3_NUM);
         break;
       case "both":
       default:
-        $row = $result->fetch(SQLITE_BOTH);
+        $row = $result->fetchArray(SQLITE3_BOTH);
         break;
     }
     return $row;
@@ -215,8 +220,8 @@ class dbSqlite extends dbAbstract {
   public function getErrorInfo() {
     $db = $this->opendb();
 
-    $errno = $db->lastError();
-    $error = sqlite_error_string($errno);
+    $errno = $db->lastErrorCode();
+    $error = $db->lastErrorMsg();
 
     $err = array('errno'=>$errno, 'error'=>$error);
     return $err;

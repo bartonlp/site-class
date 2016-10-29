@@ -21,6 +21,10 @@ abstract class dbAbstract {
     return $this->db;
   }
 
+  public function setDb($db) {
+    $this->db = $this->databaseClass = $db;
+  }
+  
   // The following methods either execute or if the method is not defined throw an Exception
 
   public function query($query) {
