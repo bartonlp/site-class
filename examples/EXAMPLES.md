@@ -1,6 +1,9 @@
 # EXAMPLES
 
-This directory has a number of examples of how to use the framework. I put the 'vendor/bartonlp/site-class/includes' directory in the /var/www that Apache2 creates when it is installed on a Ubuntu system. By default the Apache2 install makes '/var/www/html' its DocumentRoot (look at /'etc/apache2/sites-enabled/000-default.conf' the default site configuration file).
+This directory has a number of examples of how to use the framework. 
+I put the 'vendor/bartonlp/site-class/includes' directory in the '/var/www' that Apache2 creates when it is 
+installed on a Ubuntu system. By default the Apache2 install makes '/var/www/html' its DocumentRoot 
+(look at '/etc/apache2/sites-enabled/000-default.conf' the default site configuration file).
 
 The following examples are provided.
 
@@ -12,9 +15,9 @@ The examples require '../vendor/bartonlp/site-class/includes/'.
 4. <a href="example4.php">example4.php</a> Uses siteautoload.class.php
 5. <a href="example5.php">example5.php</a> Uses siteautoload.class.php and dbTables class.
 
-The next two examples show insertion and updating of the database and dbTables useage.
+The next example show insertion and updating of the database and 'dbTables' useage.
 
-<a href="exanokes-insert-update.php">examples-insert-update.php</a>
+<a href="example-insert-update.php">example-insert-update.php</a>
 
 ## Using Other Libraries
 

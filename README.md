@@ -1,28 +1,28 @@
-# SiteClass Verion 1.2
+# SiteClass Verion 2.0
 
 **SiteClass** is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
 
 This project has several parts that can function standalone or combined.
 
-* siteautoload.class.php : Autoload classes and reads a .sitemap.php file to initialize the system. 
 * Database.class.php : provides a wrapper for several different database engines.
 * dbTables.class.php : uses the functionality of Database.class.php to make creating tables easy.
-* Error and Exception classes
+* ErrorClass.class.php : Error and Exception classes
 * SiteClass.class.php : tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.
 
 The following database engines are provided as the following classes:
 
-1. dbMysql         (depreciated)
-2. dbMysqli        (most rigorously tested)
-3. dbSqlite        sqlite3 (used for the examples)
-4. dbPod           PHP POD, works with 'pdo_sqlite' and 'pdo_pgsql'
-5. dbPostgreSql    (new and lest tested but works with 'test.php'
+1. dbMysqli.class.php : (rigorously tested) This is the latest PHP version of the MySql database engine.
+2. dbSqlite.class.php : sqlite3 (used for the examples)
+
+There are a couple of additional databases but they have not be rigouously tested.
 
 ## Disclamer
 
-To start, this framework is meant for Linux not Windows. I don't use Windows, like it or have it, so nothing has been tried on Windows. 
+To start, this framework is meant for Linux not Windows. I don't use Windows, like it or have it, 
+so nothing has been tried on Windows. 
 
-I use Linux Mint which is an Ubuntu derivative which is a Debian derivative. I have not tried this package on any distributions that do not evolve from Debian.
+I use Linux Mint which is an Ubuntu derivative which is a Debian derivative. 
+I have not tried this package on any distributions that do not evolve from Debian.
 
 ## Install
 
@@ -30,16 +30,25 @@ There are several ways to install this project.
 
 ### Download The ZIP File
 
-Download the ZIP file from GitHub. Expand it and move the 'includes' directory somewhere. On a system with Apache2 I usually put the 'includes' directory in the /var/www directory that Apache creates. Apache also usually creates /var/www/html and makes this the default DocumentRoot. I put the 'includes' directory just outside of the DocumentRoot. In my servers I have /var/www and then have my virtual hosts off that directory. That way the 'includes' directory is easily available to all of my virtual hosts.
+Download the ZIP file from GitHub. Expand it and move the 'includes' directory somewhere. On a system with Apache2,
+I usually put the 'includes' directory in the /var/www directory that Apache creates. 
+Apache also usually creates /var/www/html and makes this the default DocumentRoot. 
+I put the 'includes' directory just outside of the DocumentRoot. 
+In my servers I have /var/www and then have my virtual hosts off that directory. 
+That way the 'includes' directory is easily available to all of my virtual hosts.
 
-If you are testing with the PHP server I put a 'www' directory off my $HOME and put the 'includes' directory there. I then make my test DocumentRoot off '&#126;/www' like '&#126;/www/test'. I `cd` to the test directory and do `php -S localhost:8080`. I can then use my browser and goto `localhost:8080` and see my 'index.php' file.
+If you are testing with the PHP server I put a 'www' directory off my $HOME and put the 'includes' directory there. 
+I then make my test DocumentRoot off '&#126;/www' like '&#126;/www/test'. I `cd` to the test directory and 
+do `php -S localhost:8080`. I can then use my browser and goto `localhost:8080` and see my 'index.php' file.
 
 ### Use Composer
 
-If you have Apache or Nginx installed then you should made your project root somewhere withing your DocumentRoot ('/var/www/html' for Apache2 on Ubuntu).
+If you have Apache or Nginx installed then you should made your project root somewhere within your 
+DocumentRoot ('/var/www/html' for Apache2 on Ubuntu). Or if you want to make a seperate Apache virtual host with a 
+registered domain name you can make your new project in '/var/www'.
 
-
-Create a directory `mkdir myproject; cd myproject`, this is your project root directory. Add the following to 'composer.json', just cut and past:
+Create a directory `mkdir myproject; cd myproject`, this is your project root directory. 
+Add the following to 'composer.json', just cut and past:
 
 ```json
 {
@@ -61,33 +70,43 @@ composer install
 composer require bartonlp/site-class:dev-master
 ``` 
 
-which will create the 'composer.json' for you and load the package like 'install'.
+which will create the 'composer.json' for you and load the package like 'composer install' above.
 
-In your PHP file add require_once($PATH . 'vendor/autoload.php');` where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.
+In your PHP file add `require_once($PATH_TO_VENDOR . '/vendor/autoload.php');` 
+where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.
 
-There are some example files in the 'examples' directory at '/vendor/bartonlp/site-class/examples' or 'examples' in your project root if you copied it there.
+There are some example files in the 'examples' directory at '$PATH_TO_VENDOR/vendor/bartonlp/site-class/examples'.
 
 ## Examples
 
-The code shown below can be found in the 'examples' directory at http://github.com/bartonlp/site-class or from your project root at 'vendor/bartonlp/site-class/examples' along with more <a href="examples/EXAMPLES.html">documentation</a>. 
+The code shown below can be found in the 'examples' directory at http://github.com/bartonlp/site-class or 
+from your project root at 'vendor/bartonlp/site-class/examples'. There is an 'EXAMPLES.md' and 'EXAMPLES.html' 
+in the 'examples' directory.
 
-<p style="color: green">The code in the 'examples' directory has actually been tested and runs. The code in this README was originally copied in from the examples code but may have changed for some reason. Therefore you should use the examples code rather than doing a copy and past from this README.</p>
+<p style="color: green">The code in the 'examples' directory has actually been tested and runs. 
+The code in this README was originally copied in from the examples code but may have changed for some reason. 
+Therefore you should use the examples code rather than doing a copy and past from this README.</p>
 
-If you have Apache or Nginx installed then you should have made your project root somewhere within your DocumentRoot, for example '/var/www/html/myproject'.
+If you have Apache or Nginx installed then you should have made your project root somewhere within your DocumentRoot, 
+for example '/var/www/html/myproject'.
 
-If you don't have Apache or Nginx installed on your computer you can use the PHP server. Do the following from your project root:
+If you don't have Apache or Nginx installed on your computer you can use the PHP server. 
+Do the following from your project root:
 
 ```bash
 php -S localhost:8080
 ```
 
-Then use your browser by entering `http://localhost:8080/README.html` in the browsers location bar.
+Then use your browser by entering `http://localhost:8080/vendor/bartonlp/site-class/README.html` 
+in the browsers location bar.
 
-The code in the 'examples' directory uses the **sqlite3** engine. There should be a 'test.sdb' database file in the 'examples' directory already.
+The code in the 'examples' directory uses the **sqlite3** database engine. 
+There should be a 'test.sdb' database file in the 'examples' directory already.
 
 I have included a 'sqlite.sql' file that can be run from the command line if you want to recreate the 'members' table.
 
-You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc. From the command line in the directory where the SiteClass was downloaded:
+You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc. 
+From the command line in the directory where the SiteClass was downloaded:
 
 ```bash
 $ cd examples
@@ -109,22 +128,20 @@ This should create a new 'members' table in the 'test.sdb' database.
 
 <hr>
 
-These examples assume that the 'includes' directory is at /var/www as I suggested. The files in the 'examples' directory use either '../vendor/bartonlp/site-class/includes' or '../vendor/autoload.php' for the 'composer-' variants. The examples assume that you have copied the 'examples' directory from the 'vendor/bartonlp/site-class' directory to your project root.
-
 There are a number of ways to use the framework:
 
 **First** you can just use the SiteClass all by itself.
 
 ```php
 <?php
-// test1.php
+// example1.php
 
-require-once('/var/www/includes/SiteClass.class.php'); // path to your SiteClass.class.php file.
+require_once("../../../autoload.php");
 
 $siteinfo = array(
   'siteDomain' => "localhost",
-  'siteName' => "Vbox Localhost",
-  'copyright' => "2015 Barton L. Phillips",
+  'siteName' => "Example1",
+  'copyright' => "2016 Barton L. Phillips",
 );
 
 $S = new SiteClass($siteinfo);
@@ -132,53 +149,59 @@ $S = new SiteClass($siteinfo);
 list($top, $footer) = $S->getPageTopBottom();
 echo <<<EOF
 $top
-<h1>Test 1</h1>
-<p>Stuff</p>
+<h1>Example 1</h1>
+<p>Hello World</p>
+<hr>
 $footer
 EOF;
 ```
 
-That is the simplest usage. You get a generic &lt;head&gt; a blank &lt;header&gt; and a generic &lt;footer&gt;. No database or other stuff.
+That is the simplest usage. You get a generic head and a genericfooter. No database or other stuff.
 
 <hr>
 
-You can extend this by adding a database either by instantiating the Database class directly or indirectly. 
+You can extend this by adding a database either by instantiating the 'Database' class directly or indirectly. 
 
 ```php
-<?php
-// test2.php
+<?php  
+// example2.php
 
-require-once('/var/www/includes/SiteClass.class.php'); // path to your SiteClass.class.php file.
+require_once("../../../autoload.php");
 
-$siteinfo = array(
+$_site = array(
   'siteDomain' => "localhost",
-  'siteName' => "Vbox Localhost",
-  'copyright' => "2015 Barton L. Phillips",
-  'memberTable' => 'members',
-  // Add dbinfo to the $siteinfo and SiteClass will instantiate the Database
+  'siteName' => "Example2",
+  'copyright' => "2016 Barton L. Phillips",
+  'memberTable' => "members",
+  'noTrack' => true, // do tracking logic in SiteClass
   'dbinfo' => array(
     'database' => 'test.sdb',
     'engine' => 'sqlite3'
   ),
+  'count' => false
 );
 
-$S = new SiteClass($siteinfo);
+ErrorClass::setNoEmailErrs(true);
+ErrorClass::setDevelopment(true);
+
+$S = new SiteClass($_site);
 
 list($top, $footer) = $S->getPageTopBottom();
 
 // Do some database operations
+$S->query("select fname, lname from $S->memberTable");
 
-$S->query("select fname||' '||lname) from {$siteinfo['memberTable']}";
 $names = '';
 
-while(list($name) = $S->fetchrow('num')) {
-  $names .= "$name<br>";
+while(list($fname, $lname) = $S->fetchrow('num')) {
+  $names .= "$fname $lname<br>";
 }
 
 echo <<<EOF
 $top
-<h1>Test 2</h1>
+<h1>Example 2</h1>
 <p>$names</p>
+<hr>
 $footer
 EOF;
 ```
@@ -191,44 +214,48 @@ The database could also be instantiated explicitly as follows:
 
 ```php
 <?php
-// test3.php
+// example3.php
 
-require-once('/var/www/includes/SiteClass.class.php'); // path to your SiteClass.class.php file.
+require_once("../../../autoload.php");
 
-$siteinfo = array(
+$_site = array(
   'siteDomain' => "localhost",
-  'siteName' => "Vbox Localhost",
-  'copyright' => "2015 Barton L. Phillips",
-  'memberTable' => 'members',
+  'siteName' => "Example3",
+  'copyright' => "2016 Barton L. Phillips",
+  'memberTable' => "members",
+  'noTrack' => true, // do tracking logic in SiteClass
+  'count' => false
 );
 
 $dbinfo = array(
   'database' => 'test.sdb',
-  'engine' => 'mysqli'
+  'engine' => 'sqlite3'
 );
 
-$siteifno['databaseClass'] = new Database($dbinfo);
+ErrorClass::setNoEmailErrs(true);
+ErrorClass::setDevelopment(true);
 
-// by adding to the $siteinfo arrays 'databaseClass' element we let SiteClass
-// know that the database is active.
+$db = new Database($dbinfo);
 
-$S = new SiteClass($siteinfo);
+$S = new SiteClass($_site);
+$S->setDb($db);
+
+// The rest is like the above example. 
 
 list($top, $footer) = $S->getPageTopBottom();
 
 // Do some database operations
-
-$S->query("select fname||' '||lname from {$siteinfo['memberTable']}");
+$S->query("select fname, lname from $S->memberTable");
 
 $names = '';
 
-while(list($name) = $S->fetchrow('num')) {
-  $names .= "$name<br>";
+while(list($fname, $lname) = $S->fetchrow('num')) {
+  $names .= "$fname $lname<br>";
 }
 
 echo <<<EOF
 $top
-<h1>Test 3</h1>
+<h1>Example 3</h1>
 <p>$names</p>
 <hr>
 $footer
@@ -237,52 +264,68 @@ EOF;
 
 <hr>
 
-You can also use the siteautoload.class.php and .sitemap.php to further automate working with the framework. There is a 'dot-sitemap.php.example' file that is well commented. Copy the file to your project directory as '.sitemap.php' and edit it to match your needs. There is already a .sitemap.php file in the 'examples' directory to see it you need to do `ls -a`.
+You can also use the 'siteload.php' file to load the json file 'mysitemap.json' to further automate working 
+with the framework. This file is in the 'includes' directory. There is a 'mysitemap.json.php' file that is well commented. 
+You can uncomment sections of this file or add items as needed.
+
+You can run this file as a CLI program and it will output to 'stdout'. Create your 'mysitemap.json' file as follows:
+
+```bash
+./mysitemap.json.php >mysitemap.json
+```
+
+Copy the created file to your project directory. 
+There is already a 'mysitemap.json' file in the 'examples' directory.
+
+I set the Apache2 environment variable 'SITELOAD' to point to my 'siteload.php' file in 
+'vendor/bartonlp/site-class/includes'. You can add it to your '/etc/apache2/apache2.conf', to an apache2 virtual host
+or to your '.htaccess' file. I will assume you have done this in the following examples.
+
+```bash
+SetEnv SITELOAD /var/www/vendor/bartonlp/site-class/includes/siteload.php
+```
+
+This example uses 'SITELOAD', 'query' and 'fetchrow':
 
 ```php
 <?php
-// test4.php
+// Example4.php
 
-require_once('/var/www/includes/siteautoload.class.php'); // path to siteautoload.class.php
-// the siteautoload.class.php first looks for the .sitemap.php file and then sets up class autoloader.
-// Now the class autoloader finds the classes that are required. The .sitemap.php has all the 
-// information needed to instanntiate the Database class. The $siteinfo array is available for the
-// SiteClass etc.
+require_once("../../../autoload.php");
+$_site = json_decode(file_get_contents("mysitemap.json"));
 
-$S = new SiteClass($siteinfo);
+ErrorClass::setNoEmailErrs(true);
+ErrorClass::setDevelopment(true);
+
+$S = new SiteClass($_site);
 
 list($top, $footer) = $S->getPageTopBottom();
 
 // Do some database operations
-
-$S->query("select concat(fname, ' ', lname) from {$siteinfo['memberTable']}";
+$S->query("select fname, lname from $S->memberTable");
 
 $names = '';
-
-while(list($name) = $S->fetchrow('num')) {
-  $names .= "$name<br>";
+while(list($fname, $lname) = $S->fetchrow('num')) {
+  $names .= "$fname $lname<br>";
 }
 
 echo <<<EOF
 $top
-<h1>Test 4</h1>
+<h1>Example 4</h1>
 <p>$names</p>
+<hr>
 $footer
 EOF;
 ```
 
 <hr>
 
-In addition to the SiteClass and Database classes there are several others classes:
+In addition to the SiteClass and Database classes there are several others classes in the 'database-engins' directory:
 
-* Error
+* ErrorClass
 * SqlException
-* dbMysql
-* dbMysqli
-* dbSqlite
-* dbPod
 * dbTables
-* and a file with helper functions.
+* and a file with helper functions ('helper-functions.php').
 
 <hr>
 
@@ -290,18 +333,20 @@ The dbTables class uses the Database class to make creating tables simple. For e
 
 ```php
 <?php
-require_once('/var/www/includes/siteautoload.class.php'); // path to siteautoload.class.php
+// example5.php
 
-$S = new SiteClass($siteinfo);
+$_site = require_once(getenv("SITELOAD")."/siteload.php");
+
+ErrorClass::setNoEmailErrs(true);
+ErrorClass::setDevelopment(true);
+
+$S = new $_site->className($_site);
 $T = new dbTables($S);
 
 // Pass some info to getPageTopBottom method
-
-$h->title = "Table Test 5"; // Goes in the <title></title>
-$h->banner = "<h1>Test 5</h1>"; // becomes the <header> section
-
+$h->title = "Example 5"; // Goes in the <title></title>
+$h->banner = "<h1>Example 5</h1>"; // becomes the <header> section
 // Add some local css to but a border and padding on the table 
-
 $h->css = <<<EOF
   <style>
 main table * {
@@ -314,9 +359,9 @@ EOF;
 list($top, $footer) = $S->getPageTopBottom($h);
 
 // create a table from the memberTable
-
-$sql = "select * from {$siteinfo['memberTable']}";
+$sql = "select * from $S->memberTable";
 list($tbl) = $T->maketable($sql);
+
 echo <<<EOF
 $top
 <main>
@@ -329,36 +374,42 @@ $footer
 EOF;
 ```
 
-The maketable method takes several optional arguments (options) to help setup the table. Using the options you can give your table an id or class or set any other attributes. You can also pass a 'callback' function which can modify the rows as they are selected (see the 'insert-update.php' file in the 'examples' directory for more information).
+The 'maketable' method takes several optional arguments to help setup the table. 
+Using the options you can give your table an id or class or set any other attributes. 
+You can also pass a 'callback' function which can modify the rows as they are selected 
+(see the 'example-insert-update.php' file in the 'examples' directory for more information).
 
 <hr>
 
-## The dot sitemap File
+## The 'mysitemap.json' File
 
-The .sitemap.php file is the site configuration file. siteautoload.clas.php looks for the .sitemap.php file in the current directory. If it does not find it there it moves up to the parent directory. This continues until the DocumentRoot of the domain is reached. If a .sitemap.php file is not found an exception is thrown.
+The 'mysitemap.json' file is the site configuration file. 'siteload.php' loads the 'mysitemap.json' file 
+that is in the current directory. If a 'mysitemap.json' file is not found an exception is thrown.
 
-Once a .sitemap.php file is found the information in it is read in via 'require_once'. There are several section to the .sitemap.php file. The first section defines the layout of the directorys. The second section defines some email information used to send error messages (if these are not present then no emails are sent). The third section sets up the $siteinfo array. This array describes your site or page.
+Once a 'mysitemap.json' file is found the information in it is read in via 'require_once'. 
+The information from the 'mysitemap.json' file is returned as a PHP object.
+
+You can generate a 'mysitemap.json' file by running 'mysitemap.json.php' and redirecting the output to 'mysitemap.json'.
 
 My usual directory structure starts under a 'www' subdirectory. On an Apache2 host the structure looks like this:
 
 ```plain
-/var/www/includes        // this is where the SiteClass resides
+/var/www/vendor          // this is the 'composer' directory where the 'bartonlp/site-class' resides
 /var/www/html            // this is where your php files and js, css etc. 
                          // directories live
 /var/www/html/includes   // this is where 'headFile', 'bannerFile', 
                          // 'footerFile' and child classes live
-/var/www/html/otherstuff // other directories. 
-                         // These directories can have their own 
-                         // .sitemap.php files
 ```
 
 If I have multiple virtual hosts they are all off the '/var/www' directory instead of a single 'html' directory.
 
 ### How the xxxFile files look
 
-In the .sitemap.php's $siteinfo array there can be three elements that describe the location of special files. These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.
+In the 'mysitemap.json' file there can be three elements that describe the location of special files. 
+These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.
 
-I put the three special file in my '/var/www/html/includes' directory (where 'html' may be one of your virtual hosts and not named 'html'). 
+I put the three special file in my '/var/www/html/includes' directory (where 'html' may be one of your virtual hosts 
+and not named 'html'). 
 
 Here is an example of my 'headFile':
 
@@ -366,8 +417,9 @@ Here is an example of my 'headFile':
 <?php
 // head.i.php for bartonphillips.com
 
-$pageHeadText = <<<EOF
+return <<<EOF
 <head>
+  <!-- Example head.i.php file -->
   <title>{$arg['title']}</title>
   <!-- METAs -->
   <meta name=viewport content="width=device-width, initial-scale=1">
@@ -377,17 +429,7 @@ $pageHeadText = <<<EOF
     content="Barton L. Phillips, mailto:bartonphillips@gmail.com"/>
   <meta name="description"
     content="{$arg['desc']}"/>
-  <meta name="keywords"
-    content="Barton Phillips, Granby, Applitec Inc., Rotary, Programming, Tips and tricks, blog"/>
-  <!-- ICONS, RSS -->
-  <link rel="shortcut icon" href="http://www.bartonphillips.org/favicon.ico" />
-  <link rel="alternate" type="application/rss+xml" title="RSS" href="/rssfeed.xml" />
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/blp.css" title="blp default" />
 {$arg['link']}
-  <!-- jQuery -->
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
-  <script async src="js/tracker.js"></script>
 {$arg['extra']}
 {$arg['script']}
 {$arg['css']}
@@ -395,9 +437,12 @@ $pageHeadText = <<<EOF
 EOF;
 ```
 
-The $pageHeadText variable gets all of the &lt;head&gt; section code. The $arg array is created form the argument passed to the getPageTopBottom method. The getPageTopBottom method also has access to the SiteClass $this property.
+These 'xxxFile' files return their contents.
+The $arg array is created form the argument passed to the 'getPageTopBottom' method. 
+The 'getPageTopBottom' method also has access to the SiteClass '$this' property.
 
-You will see if you delve into the SiteClass code that many things can be passed to the getPageTopBottom method, and the various sub-methods, but the standard things are:
+You will see if you delve into the SiteClass code that many things can be passed to the getPageTopBottom method, 
+and the various sub-methods, but the standard things are:
 
 * title
 * desc
@@ -406,7 +451,8 @@ You will see if you delve into the SiteClass code that many things can be passed
 * script
 * css
 
-As you saw in example 5 above (test5.php in the 'examples' directory) I passed a $h object to the SiteClass. For example it might look like this:
+As you saw in example 5 above (test5.php in the 'examples' directory) I passed a '$h' object to 'SiteClass'. 
+For example it might look like this:
 
 ```php
 $h->title = 'my title';
@@ -418,44 +464,196 @@ $h->css = '<style> /* some css */ #test { width: 10px; } </style>';
 $S = new SiteClass($h);
 ```
 
-As you can see in the 'headFile' example the $this can also be used as in $this->copyright. Any of the pulic, protected or private $this properties can be used in any of the special files as they are all included within SiteClass.class.php.
+As you can see in the 'headFile' example the '$this' can also be used as in '$this->copyright'. 
+Any of the public, protected or private '$this' properties can be used in any of the special files as they 
+are all included within 'SiteClass.class.php'.
 
-The other special files have similarities and have their own file variable:
+As these special files are PHP files you can do anything else that you need to, 
+including database queries. Just remember that you need to use '$this'. 
+For example, to do a query do `$this->query($sql);` not `$S->query($sql);`. 
+You can't use the variable from your project file that you created via the `$S = new SiteClass($h);` 
+because it is NOT within scope.
 
-* 'bannerFile' : $pageBannerText
-* 'footerFile' : $pageFooterText
+I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything you like. 
+In the 'mysitemap.json' just add the full path to the file. For example:
 
-As these special files are PHP files you can do anything else that you need to, including database queries. Just remember that you need to use $this. For example, to do a query do `$this->query($sql);` not `$S->query($sql);`. You can't use the variable from your project file that you created via the `$S = new SiteClass($h);` because it is NOT within scope.
-
-I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything you like. In the .sitemap.php $siteinfo array just add the full path to the file. For example:
-
-```php
-$siteinfo = array('siteDomain' => "bartonphillips.com",
-                  'siteName' => "My Home Page",
-                  'copyright' => "2015 Barton L. Phillips",
-                  //'className' => "", // if you have sub-classed SiteClass
-                  'memberTable' => "members", 
-                  'headFile' => SITE_INCLUDES."/head.i.php",
-                  'bannerFile' => SITE_INCLUDES."/banner.i.php",
-                  footerFile => SITE_INCLUDES."/footer.i.php",
-                  'dbinfo' => array('database' => 'test.sdb', 'engine' => 'sqlite3'),
-                  'count' => false,
-                  'countMe' => true, // Count BLP
-                  'myUri' => "bartonphillips.dyndns.org"
-                 );
+```json
+{
+    "siteDomain": "localhost",
+    "siteName": "YourSiteName",
+    "className": "SiteClass",
+    "copyright": "2016 Barton L. Phillips",
+    "memberTable": "members",
+    "noTrack": true,
+    "dbinfo": {
+        "database": "test.sdb",
+        "engine": "sqlite3"
+    },
+    "headFile": "includes/head.i.php",
+    "count": false
+}
 ```
 
-In the abovd example I have used the SITE_INCLUDES define from the .sitemap.php's first section.
-
-There is a default for the &lt;head&gt;, banner and footer section if you do not have special files. The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the getPageTopBottom method ($h->doctype='xxx').
+There is a default for the head, banner and footer section if you do not have special files. 
+The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the 'getPageTopBottom' 
+method (`$h->doctype='xxx';`).
 
 Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.
 
 <hr>
 
+# Doing Page Counting and Analysis
+
+If you want to do page counting and analysis there are several MySql tables that you can use. The MySql schema for these 
+tables is in the *mysql.schema* file in the repository.
+
+The tables are:
+
+* bots : the SiteClass has logic to try to determin which user agents might be robots. 
+* bots2 : similar to bots but has a 'site' and 'date' field.
+* logagent : logs the IpAddress, and User Agent.
+* logagent2 : a short term version of lagagent.
+* daycounts : counts the number of hits per day
+* counter : counts the number of hits per site per file.
+* counter2 : counts the number of hits per site per file per day.
+* tracker : trackes accesses by site, page etc.
+
+Here are the schemas of the tables:
+
+```sql
+CREATE TABLE `bots` (
+  `ip` varchar(40) NOT NULL DEFAULT '',
+  `agent` varchar(255) NOT NULL DEFAULT '',
+  `count` int(11) DEFAULT NULL,
+  `robots` int(5) DEFAULT '0',
+  `who` varchar(255) DEFAULT NULL,
+  `creation_time` datetime DEFAULT NULL,
+  `lasttime` datetime DEFAULT NULL,
+  PRIMARY KEY (`ip`,`agent`),
+  KEY `ip` (`ip`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `bots2` (
+  `ip` varchar(40) NOT NULL DEFAULT '',
+  `agent` varchar(255) NOT NULL DEFAULT '',
+  `date` date NOT NULL DEFAULT '0000-00-00',
+  `site` varchar(50) NOT NULL DEFAULT '',
+  `which` int(5) NOT NULL DEFAULT '0',
+  `count` int(11) DEFAULT NULL,
+  `lasttime` datetime DEFAULT NULL,
+  PRIMARY KEY (`ip`,`agent`,`date`,`site`,`which`),
+  KEY `ip` (`ip`),
+  KEY `agent` (`agent`),
+  KEY `site` (`site`),
+  KEY `ip_2` (`ip`),
+  KEY `date` (`date`),
+  KEY `site_2` (`site`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `logagent` (
+  `site` varchar(25) NOT NULL DEFAULT '',
+  `ip` varchar(40) NOT NULL DEFAULT '',
+  `agent` varchar(255) NOT NULL,
+  `count` int(11) DEFAULT NULL,
+  `id` int(11) DEFAULT NULL,
+  `created` datetime DEFAULT '0000-00-00 00:00:00',
+  `lasttime` datetime DEFAULT NULL,
+  PRIMARY KEY (`site`,`ip`,`agent`),
+  KEY `ip` (`ip`),
+  KEY `site` (`site`),
+  KEY `agent` (`agent`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `logagent2` (
+  `site` varchar(25) NOT NULL DEFAULT '',
+  `ip` varchar(40) NOT NULL DEFAULT '',
+  `agent` varchar(255) NOT NULL,
+  `count` int(11) DEFAULT NULL,
+  `id` int(11) DEFAULT NULL,
+  `created` datetime DEFAULT '0000-00-00 00:00:00',
+  `lasttime` datetime DEFAULT NULL,
+  PRIMARY KEY (`site`,`ip`,`agent`),
+  KEY `agent` (`agent`),
+  KEY `site` (`site`),
+  KEY `ip` (`ip`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `daycounts` (
+  `site` varchar(50) NOT NULL DEFAULT '',
+  `date` date NOT NULL,
+  `real` int(11) DEFAULT '0',
+  `bots` int(11) DEFAULT '0',
+  `members` int(11) DEFAULT '0',
+  `visits` int(11) DEFAULT NULL,
+  `lasttime` datetime DEFAULT NULL,
+  PRIMARY KEY (`site`,`date`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `counter` (
+  `filename` varchar(255) NOT NULL,
+  `site` varchar(50) NOT NULL DEFAULT '',
+  `ip` varchar(20) DEFAULT NULL,
+  `agent` varchar(255) DEFAULT NULL,
+  `count` int(11) DEFAULT NULL,
+  `realcnt` int(11) DEFAULT '0',
+  `lasttime` datetime DEFAULT NULL,
+  PRIMARY KEY (`filename`,`site`),
+  KEY `site` (`site`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `counter2` (
+  `site` varchar(50) NOT NULL DEFAULT '',
+  `date` date NOT NULL DEFAULT '0000-00-00',
+  `filename` varchar(255) NOT NULL DEFAULT '',
+  `count` int(11) DEFAULT '0',
+  `members` int(11) DEFAULT '0',
+  `bots` int(11) DEFAULT '0',
+  `lasttime` datetime DEFAULT NULL,
+  PRIMARY KEY (`site`,`date`,`filename`),
+  KEY `site` (`site`),
+  KEY `date` (`date`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+CREATE TABLE `tracker` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `site` varchar(25) DEFAULT NULL,
+  `page` varchar(255) NOT NULL DEFAULT '',
+  `ip` varchar(40) DEFAULT NULL,
+  `agent` varchar(255) DEFAULT NULL,
+  `starttime` datetime DEFAULT NULL,
+  `endtime` datetime DEFAULT NULL,
+  `difftime` time DEFAULT NULL,
+  `refid` int(11) DEFAULT '0',
+  `isJavaScript` int(5) DEFAULT '0',
+  `lasttime` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `site` (`site`),
+  KEY `ip` (`ip`),
+  KEY `agent` (`agent`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+```
+
+If you look at *SiteClass* you will see several methods in the constructor:
+
+*$this->trackbots();
+*$this->tracker();
+*$this->doanalysis();
+*$this->logagent();
+*$this->counter();
+
+If you look at these methods you will see that they are protected by a check of the database to see if the tables
+exists in the database. If the table does not exist an 'error_log' message is output.
+You can prevent the error message by setting "noErrorLog": "true" in the 'mysitemap.json' file.
+
+<hr>
+
 # Tests
 
-In the 'tests' directory there are a series of mostly database engine tests. If you want to test MySql or PostgresSql you will need to first install the packages (both OS and PHP5) and then configure each with a user and password etc. Setting up the databases is beyond the scope of this README. The tests are set up for an account with user 'siteclass' and password 'siteclass' with database 'siteclass' (no single quotes of course).
+In the 'tests' directory there are a series of mostly database engine tests. If you want to test MySql 
+you will need to first install the packages (both OS and PHP5) and then configure each with a user and password etc. 
+Setting up the databases is beyond the scope of this README. 
+The tests are set up for an account with user 'siteclass' and password 'siteclass' with database 'siteclass' 
+(no single quotes of course).
 
 <hr>
 
@@ -467,14 +665,9 @@ While there are a number of methods for each of the major classes there are real
 
 * constructor
 * public function setSiteCookie($cookie, $value, $expire, $path="/")
-* public function setIdCookie($id, $cookie=null)
-* public function checkId($mid=null, $cookie=null) // if a memberTable
 * public function getId() // if a memberTable
 * public function setId($id) // if a memberTable
 * public function getIp()
-* public function getEmail() // if a memberTable
-* public function setEmail($email) // if a memberTable
-* public function getWhosBeenHereToday() // if a memberTable
 * public function getPageTopBottom($h, $b=null)  
 This is the most used method. It takes one or two arguments which can be string|array|object.  
 $h can have 'title', 'desc', 'banner' and a couple of other less used options.  
@@ -483,8 +676,8 @@ This method calls getPageHead(), getBanner(), getFooter().
 * public function getPageTop($header, $banner=null, $bodytag=null)
 * public function getDoctype()
 * public function getPageHead(/*$title, $desc=null, $extra=null, $doctype, $lang*/)
-* public function getBanner($mainTitle, $nonav=false, $bodytag=null)
-* public function getFooter(/* mixed */)
+* public function getPageBanner($mainTitle, $nonav=false, $bodytag=null)
+* public function getPageFooter(/* mixed */)
 * public function \__toString()
 * A number of 'protected' methods and properties that can be used in a child class.
 
