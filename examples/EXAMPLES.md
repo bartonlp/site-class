@@ -9,53 +9,47 @@ The following examples are provided.
 
 The examples require '../vendor/bartonlp/site-class/includes/'.
 
-1. <a href="example1.php">example1.php</a> Simplest. No database.
-2. <a href="example2.php">example2.php</a> Uses sqlite database.
-3. <a href="example3.php">example3.php</a> Uses Database class directly.
-4. <a href="example4.php">example4.php</a> Uses siteautoload.class.php
-5. <a href="example5.php">example5.php</a> Uses siteautoload.class.php and dbTables class.
+1. [example1.php](example1.php) Simplest. No database.
+2. [example2.php](example2.php) Uses sqlite database.
+3. [example3.php](example3.php) Uses Database class directly.
+4. [example4.php](example4.php) Uses siteautoload.class.php
+5. [example5.php](example5.php) Uses siteautoload.class.php and dbTables class.
 
 The next example show insertion and updating of the database and 'dbTables' useage.
 
-<a href="example-insert-update.php">example-insert-update.php</a>
+[example-insert-update.php](example-insert-update.php)
 
 ## Using Other Libraries
 
 ### Twig
 
-You can use other frameworks or templeting engines. Here we will use Twig a popular templet engine. 
-Twig is a super powerful templet engine with looping and conditional statements and much more. 
+You can use other frameworks or templeting engines. Here we will use *Twig* a popular templet engine. 
+*Twig* is a super powerful templet engine with looping and conditional statements and much more. 
 Here we do just about the minimum just as an example.
 
-To use this example you need to install Twig in the 'examples' directory as it is NOT part of this package by default.
-
-```plain
-composer require twig/twig:~1.0
+There is a 'vendor' directory in the examples directory which has *Twig* and *Altorouter* already installed. 
+You may want to do:
+```bash
+composer update
 ```
+to insure you have current versions.
 
-<a href="example-with-twig.php">example-with-twig.php</a>
+[example-with-twig.php](example-with-twig.php)
 
 ### ReST Routing with Altorouter
 
 If you need ReST routing (or pretty routing or SEO friendly routing as it is sometime called) 
-you could use one of the popular routing engines available with **Meteor**, **Laravel**, **Synfony2** or **Silex** 
+you could use one of the popular routing engines available with *Meteor*, *Laravel*, *Synfony2* or *Silex* 
 but then again by that point you might as well just bite the bullet and spend the hours or 
 days trying to figure out those frameworks.
 
-There is a pretty simple router called **Altorouter** which can be used without too much work. 
-To install **Altorouter** do 
-
-```plain
-composer require altorouter/altorouter:1.1.0 
-``` 
-
-in the 'examples' directory.
+There is a pretty simple router called *Altorouter* which can be used without too much work. 
 
 The file 'example-route.php' would normally be your 'index.php' in a production environment. 
 When using a server with Apache2 you would need a '.htaccess' file in the directory where the 'index.php' lives. 
 The '.htaccess' file would look like this:
 
-```plain
+```bash
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule . index.php [L]
@@ -65,11 +59,14 @@ This says that if the requested filename does not exist go to the 'index.php' fi
 
 To test this without renaming the 'example-route.php' you can use the PHP server like this:
 
-```plain
-php -S localhost:8080 example-route.php
+```bash
+HOME=/var/www php -S localhost:8080 example-route.php
 ```
 
 The PHP server uses the 'example-route.php' file and you don't need a '.htaccess' file.
+
+Prefixing the command with 'HOME=...' sets the 'HOME' environment variable. Have it point to your 'vendor/autoload.php'
+file. 
 
 Now you can run the program. It will display a table and a form you can use to insert new records. 
 Also a button lets you reset the database table to its original state. 

@@ -2,10 +2,11 @@
 // Test the site-class with Mysqli
 // Run tests with: phpunit --stderr withMysql.php
 
-require_once("../includes/SiteClass.class.php");
-require_once("/home/barton/vendor/autoload.php"); // PHPUnit
+require_once(getenv("HOME") ."/vendor/autoload.php");
 
-class WithMySql extends PHPUnit_Framework_TestCase {
+use PHPUnit\Framework\TestCase;
+
+class WithMysql extends TestCase { //PHPUnit_Extensions_Database_TestCase {
   private $s = array(
                      'siteDomain' => "localhost",
                      'siteName' => "Test",
@@ -21,25 +22,32 @@ class WithMySql extends PHPUnit_Framework_TestCase {
                                        "engine"=>"mysqli"
                                       )
                     );
+                    
   protected $S;
-  
+
   protected function setUp() {
-    Error::setNoHtml(true);
+    ErrorClass::setNoHtml(true);
     $this->S = new SiteClass($this->s);
   }
-  
+
   public function testSetUp() {
     $S = $this->S;
+    $S = new SiteClass($this->s);
+
     $this->assertTrue(!is_null($S));
     $this->assertTrue(!is_null($S->getDb()));
     $this->assertEquals($S->getDb()->__toString(), "dbMysqli");
-    $this->assertTrue(!is_null($S->getEngineDb()));
     $this->assertEquals($S->copyright, $this->s['copyright']);
     $this->assertEquals($S->doctype, '<!DOCTYPE html>');
     $this->assertEquals($S->siteName, 'Test');
     $this->assertEquals($S->dbinfo['password'], 'siteclass');
+    $S->query("drop database if exists siteclass");
+    $S->query("create database siteclass");
+    $S->query("show databases like 'siteclass'");
+    list($db) = $S->fetchrow('num');
+    $this->assertEquals($db, 'siteclass', 'Database Not Found');
   }
-  
+
   public function testDropCreate() {
     $S = $this->S;
     $n = $S->query("drop table if exists members");
@@ -100,46 +108,11 @@ This is the header via a return.
 
 EOF;
 
-    $t = <<<EOF
-<!DOCTYPE html>
-<html lang="en" >
-This is the header via a return.
-
-<body>
-<!-- Default Header/Banner -->
-<header>
-<div id='pagetitle'>
-
-</div>
-<noscript style="color: red; border: 1px solid black; padding: 10px; font-size: large;">
-<strong>Your browser either does not support JavaScripts
-or you have JavaScripts disabled.</strong>
-</noscript>
-</header>
-
-
-EOF;
-
-    $f = <<<EOF
-<!-- Default Footer -->
-<footer><div style="text-align: center;">
-<p id='lastmodified'>Last Modified&nbsp;Apr 10, 2015 22:24:35</p>
-<p id='contactUs'><a href='mailto:webmaster@localhost'>Contact Us</a></p>
-</div>
-</footer>
-</body>
-</html>
-
-EOF;
     $head = $S->getPageHead();
 
     $this->assertEquals($head, $h);
-
-    list($top, $footer) = $S->getPageTopBottom();
-
-    $this->assertEquals($top, $t, "top failed");
-    $this->assertEquals($footer, $f, "footer failed");
   }
+
 /*
   public function testErrors() {
     echo "\ntestErrors\n";

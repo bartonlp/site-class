@@ -43,6 +43,19 @@ abstract class dbAbstract {
     }
   }
 
+  /**
+   * finalize()
+   * ONLY for Sqlite3 database.
+   */
+  
+  public function finalize($result) {
+    if(method_exists($this->db, 'finalize')) {
+      return $this->db->finalize($result);
+    } else {
+      throw new Exception(__METHOD__ . " not implemented");
+    }
+  }
+  
   public function queryfetch($query, $retarray=false) {
     if(method_exists($this->db, 'queryfetch')) {
       return $this->db->queryfetch($query, $retarray);

@@ -361,7 +361,7 @@ class SiteClass extends dbAbstract {
       } elseif(is_array($a)) {
         $arg = $a;
       } else {
-        debug("Error: getPageHead() argument no valid: ". var_export($a, true));
+        $this->debug("Error: getPageHead() argument no valid: ". var_export($a, true));
         throw(new Exception("Error: getPageHead() argument no valid: ". var_export($a, true)));
       }
     } elseif($n > 1) {
@@ -713,10 +713,10 @@ EOF;
                        "on duplicate key update count=count+1, lasttime=now()");
         }
       } else {
-        debug("$this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database");
+        $this->debug("$this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database");
       } 
     } else {
-      debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database");
+      $this->debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database");
     }
   }
 
@@ -746,14 +746,14 @@ EOF;
         $java = 0x2000; // This is the robots tag
       }
       
-      //debug("SiteClass: tracker, $this->siteName, $this->ip, $agent, $this->self");
+      //$this->debug("SiteClass: tracker, $this->siteName, $this->ip, $agent, $this->self");
       
       $this->query("insert into $this->masterdb.tracker (site, page, ip, agent, starttime, isJavaScript, lasttime) ".
                    "values('$this->siteName', '$this->requestUri', '$this->ip','$agent', now(), $java, now())");
 
       $this->LAST_ID = $this->getLastInsertId();
     } else {
-      debug("$this->siteName: $this->self: table tracker does not exist in the $this->masterdb database");
+      $this->debug("$this->siteName: $this->self: table tracker does not exist in the $this->masterdb database");
     }
   }
 
@@ -788,7 +788,7 @@ EOF;
                        "on duplicate key update count=count+1, lasttime=now()");
         }
       } else {
-        debug("$this->siteName: $this->self: table analysis and/or analysis2 do not exist in the $this->masterdb database");
+        $this->debug("$this->siteName: $this->self: table analysis and/or analysis2 do not exist in the $this->masterdb database");
       }
     }
   }
@@ -809,7 +809,7 @@ EOF;
     list($ok) = $this->fetchrow('num');
 
     if($ok == 0) {
-      debug("$this->siteName: $this->self: table blpip does not exist in the $this->masterdb database");
+      $this->debug("$this->siteName: $this->self: table blpip does not exist in the $this->masterdb database");
       return;
     }
 
@@ -859,7 +859,7 @@ EOF;
       
       $this->hitCount = ($cnt[0]) ? $cnt[0] : 0;
     } else {
-      debug("$this->siteName: $this->self: table counter does not exist in the $this->masterdb database");
+      $this->debug("$this->siteName: $this->self: table counter does not exist in the $this->masterdb database");
     }      
   }
 
@@ -900,7 +900,7 @@ EOF;
       }
       $this->query($sql);
     } else {
-      debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database");
+      $this->debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database");
     }
   }
   
@@ -926,7 +926,7 @@ EOF;
     list($ok) = $this->fetchrow('num');
 
     if($ok == 0) {
-      debug("$this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database");
+      $this->debug("$this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database");
       return;
     }
 
@@ -1027,7 +1027,7 @@ EOF;
         
       $this->query($sql);
     } else {
-      debug("$this->siteName: $this->self: table logagent does not exist in the {$this->dbinfo['database']} database");
+      $this->debug("$this->siteName: $this->self: table logagent does not exist in the {$this->dbinfo['database']} database");
     }
 
     // Do insert into logagent2 which has only the last n days
@@ -1044,7 +1044,7 @@ EOF;
 
       $this->query($sql);
     } else {
-      debug("$this->siteName: $this->self: table logagent2 does not exist in the {$this->dbinfo['database']} database");
+      $this->debug("$this->siteName: $this->self: table logagent2 does not exist in the {$this->dbinfo['database']} database");
     }
   }
 
@@ -1081,7 +1081,7 @@ EOF;
 
         $this->query($sql);
       } else {
-        debug("$this->siteName: $this->self: table $this->memberTable does not exist in the {$this->dbinfo['database']} database");
+        $this->debug("$this->siteName: $this->self: table $this->memberTable does not exist in the {$this->dbinfo['database']} database");
       }
       
       // BLP 2014-09-16 -- add nomemberpagecnt
@@ -1099,7 +1099,7 @@ EOF;
 
           $this->query($sql);
         } else {
-          debug("$this->siteName: $this->self: table memberpagecnt does not exist in the {$this->dbinfo['database']} database");
+          $this->debug("$this->siteName: $this->self: table memberpagecnt does not exist in the {$this->dbinfo['database']} database");
         }
       }
     }

@@ -44,7 +44,15 @@ if($match && is_callable($match['target'])) {
 	call_user_func_array($match['target'], $match['params']); 
 } else {
 	// no route was matched
-  echo "<h1>404 Not Found</h1><p>FILE <b>{$_SERVER['REQUEST_URI']}</b> NOT FOUND</p>";
+  echo <<<EOF
+<h1>404 Not Found</h1>
+<p>FILE <b>{$_SERVER['REQUEST_URI']}</b> NOT FOUND</p>
+<p>Remember you need to run 'example-route.php' from the PHP server.</p>
+<pre>
+HOME=/var/www php -S bartonlp.org:8000 example-route.php
+</pre>
+<p>Hope this helps.</p>
+EOF;
 	header($_SERVER["SERVER_PROTOCOL"] . ' 404 Not Found');
 }
 
@@ -188,7 +196,6 @@ function resetdb() {
          "('Barton','Phillips'),('Someone','Else');";
 
   $S->query($sql);
-  
   home();
 }
 

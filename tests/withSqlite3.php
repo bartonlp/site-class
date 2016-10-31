@@ -2,10 +2,11 @@
 // Test the site-class with SQLite3
 // Run tests with: phpunit --stderr withSqlite3.php
 
-require_once("../includes/SiteClass.class.php");
-require_once("/home/barton/vendor/autoload.php"); // PHPUnit
+require_once(getenv("HOME"). "/vendor/autoload.php"); // PHPUnit
 
-class WithSqlite extends PHPUnit_Framework_TestCase {
+use PHPUnit\Framework\TestCase;
+
+class WithSqlite extends TestCase {
   private $s = array(
                      'siteDomain' => "localhost",
                      'siteName' => "Test",
@@ -18,12 +19,14 @@ class WithSqlite extends PHPUnit_Framework_TestCase {
                                          "password"=>"siteclass",
                                          "database"=>"siteclass",
                                          "engine"=>"sqlite3"
-                                        )
+                                        ),
+                     'count' => false,
+                     'noTrack' => true
                     );
   protected $S;
   
   protected function setUp() {
-    Error::setNoHtml(true);
+    ErrorClass::setNoHtml(true);
     $this->S = new SiteClass($this->s);
   }
 
@@ -32,7 +35,6 @@ class WithSqlite extends PHPUnit_Framework_TestCase {
     $this->assertTrue(!is_null($S));
     $this->assertTrue(!is_null($S->getDb()));
     $this->assertEquals($S->getDb()->__toString(), "dbSqlite");
-    $this->assertTrue(!is_null($S->getEngineDb()));
     $this->assertEquals($S->copyright, $this->s['copyright']);
     $this->assertEquals($S->doctype, '<!DOCTYPE html>');
     $this->assertEquals($S->siteName, 'Test');
@@ -50,43 +52,36 @@ class WithSqlite extends PHPUnit_Framework_TestCase {
 
   public function testInsert() {
     $S = $this->S;
-    $n = $S->query("insert into members (fname, lname) values".
+    $S->query("insert into members (fname, lname) values".
                    "('Barton','Phillips'),".
                    "('Ingrid','Phillips'),".
                    "('Mike','Phillips')");
 
-    $this->assertTrue($n == 3, "testInsert n=$n");
-    
-    $n = $S->query("select count(*) from members");
-    $this->assertTrue($n == 1, "testInsert select n=$n");
+    $S->query("select count(*) from members");
     list($cnt) = $S->fetchrow('num');
     $this->assertTrue($cnt == 3, "testInsert select cnt=$cnt");
-
-    $S->finalize();
   }
 
   public function testSelect() {
     $S = $this->S;
-    $n = $S->query("select fname, lname from members where rowid=1");
-    $this->assertTrue($n == 1, "testSelect n=$n");
+    $S->query("select fname, lname from members where rowid=1");
 
     list($fname, $lname) = $S->fetchrow('num');
     $this->assertEquals($fname, 'Barton', "testSelect fname=$fname");
     $this->assertEquals($lname, 'Phillips', "testSelect lname=$lname");
-
-    $S->finalize();
   }
 
   public function testUpdate() {
     $S = $this->S;
-    $n = $S->query("update members set fname='NEW' where rowid=1");
-    $this->assertTrue($n == 1);
+    $S->query("update members set fname='NEW' where rowid=1");
+    $S->query("select fname from members where rowid=1");
+    list($fname) = $S->fetchrow('num');
+    $this->assertEquals($fname, 'NEW', "testUpdate fname=$fname");
   }
 
   public function testUpdated() {
     $S = $this->S;
-    $n = $S->query("select fname from members");
-    $this->assertTrue($n == 3);
+    $S->query("select fname from members");
     $l = array('NEW', 'Ingrid', 'Mike');
     for($i=0; $row = $S->fetchrow(); ++$i) {
       $this->assertEquals($row[0], $l[$i]);
@@ -96,6 +91,7 @@ class WithSqlite extends PHPUnit_Framework_TestCase {
   public function testHeadFile() {
     $S = $this->S;
     $head = $S->getPageHead();
+
     $h = <<<EOF
 <!DOCTYPE html>
 <html lang="en" >
@@ -103,43 +99,7 @@ This is the header via a return.
 
 EOF;
 
-    $t = <<<EOF
-<!DOCTYPE html>
-<html lang="en" >
-This is the header via a return.
-
-<body>
-<!-- Default Header/Banner -->
-<header>
-<div id='pagetitle'>
-
-</div>
-<noscript style="color: red; border: 1px solid black; padding: 10px; font-size: large;">
-<strong>Your browser either does not support JavaScripts
-or you have JavaScripts disabled.</strong>
-</noscript>
-</header>
-
-
-EOF;
-
-    $f = <<<EOF
-<!-- Default Footer -->
-<footer><div style="text-align: center;">
-<p id='lastmodified'>Last Modified&nbsp;Apr 10, 2015 22:24:35</p>
-<p id='contactUs'><a href='mailto:webmaster@localhost'>Contact Us</a></p>
-</div>
-</footer>
-</body>
-</html>
-
-EOF;
-    $this->assertEquals($head, $h);
-
-    list($top, $footer) = $S->getPageTopBottom();
- 
-    $this->assertEquals($top, $t, "top failed");
-    $this->assertEquals($footer, $f, "footer failed");
+    $this->assertEquals($head, $h, "head failed");
   }
 
 /*

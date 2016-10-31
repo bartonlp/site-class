@@ -25,7 +25,9 @@ EOF;
 list($top, $footer) = $S->getPageTopBottom($h);
 
 // create a table from the memberTable
+
 $sql = "select * from $S->memberTable";
+
 list($tbl) = $T->maketable($sql);
 
 echo <<<EOF

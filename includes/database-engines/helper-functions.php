@@ -22,6 +22,21 @@ if(!function_exists('vardump')) {
   }
 } 
 
+if(!function_exists('vardumpNoEscape')) {
+  function vardumpNoEscape() {
+    $args = func_get_args();
+
+    if(count($args) > 1 && is_string($args[0])) {
+      $msg = array_shift($args);
+      $msg = "$msg:\n";
+    }
+    for($i=0; $i < count($args); ++$i) {
+      $v .= print_r($args[$i], true);
+    }
+    echo "$msg$v\n";
+  }
+}
+
 if(!function_exists('put')) {
   function put($text) {
     echo "<pre>$text</pre>\n";
@@ -34,15 +49,6 @@ if(!function_exists('put_e')) {
     echo "<pre>$msg</pre>";
   }
 }
-
-/*
-if(!function_exists('vardump_e')) {
-  function vardump_e($value, $msg=null) {
-    if($msg) $msg = "<b>$msg</b>\n";
-    echo "<pre>$msg" . (escapeltgt(print_r($value, true))) . "</pre>\n\n";
-  }
-}
-*/
 
 /**
  * stripSlashesDeep

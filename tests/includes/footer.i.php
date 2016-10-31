@@ -1,3 +1,2 @@
 <?php
-
-$pageFooterText = "This is the footer via the pageFooterText variable";
+return "This is the footer via a return!";

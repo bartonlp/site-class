@@ -97,7 +97,7 @@ class dbSqlite extends dbAbstract {
   public function query($query) {
     $db = $this->opendb();
 
-    if(preg_match("/^select/i", $query)) {
+    if(preg_match("/^select|show/i", $query)) {
       $result = @$db->query($query);
       if($result === false) {
         throw new SqlException($query, $this);
@@ -186,9 +186,17 @@ class dbSqlite extends dbAbstract {
         $row = $result->fetchArray(SQLITE3_BOTH);
         break;
     }
+
     return $row;
   }
-  
+
+  public function finalize($result) {
+    if(!$result) {
+      $result = $this->result;
+    }
+    $result->finalize();
+  }
+      
   /**
    * getLastInsertId()
    *
@@ -254,44 +262,7 @@ class dbSqlite extends dbAbstract {
   }
 
   public function __toString() {
-    return "Database mysqli Class";
+    return __CLASS__;
   }
 }
 
-/**
- * Helper Functions
- * These my well be defined by a chile class.
- */
-
-/**
- * stripSlashesDeep
- * recursively do stripslahes() on an array or string.
- * Only define if not already defined.
- * @param array|string $value either a string or an array of strings/arrays ...
- * @return original $value stripped clean of slashes.
- */
-
-if(!function_exists('stripSlashesDeep')) {
-  function stripSlashesDeep($value) {
-    $value = is_array($value) ? array_map('stripSlashesDeep', $value) : stripslashes($value); 
-    return $value;
-  }
-}
-
-// Change < and > into "&lt;" and "&gt;" entities
-
-if(!function_exists('escapeltgt')) {
-  function escapeltgt($value) {
-    $value = preg_replace(array("/</", "/>/"), array("&lt;", "&gt;"), $value);  
-    return $value;
-  }
-}
-
-// vardump makes value readable
-
-if(!function_exists('vardump')) {
-  function vardump($value, $msg=null) {
-    if($msg) $msg = "<b>$msg</b>\n";
-    echo "<pre>$msg" . (escapeltgt(print_r($value, true))) . "</pre>\n\n";
-  }
-}
