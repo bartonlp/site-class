@@ -1,4 +1,6 @@
 <?php
+/* MAINTAINED and WELL TESTED */
+
 // Contains the my_errorhandler, my_exceptionhandler, Error class.
 // set_exception_handler to my_exceptionhandler
 // The Error class constructor does set_error_handler to my_errorhandler.
@@ -83,8 +85,8 @@ function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext)
 }
 
 //******************************  
-// Set up an exception handler if one not already defined
-// Relies on the statics from Error Class to format the output etc.
+// Set up an exception handler if one is not already defined
+// Relies on the statics from 'ErrorClass' to format the output etc.
 // ErrorClass::$development
 // ErrorClass::$nohtml
 // ErrorClass::$noEmailErrs

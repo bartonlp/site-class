@@ -1,6 +1,6 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.  
-define("SITE_CLASS_VERSION", "1.2");
+define("SITE_CLASS_VERSION", "2.0.0");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -9,7 +9,7 @@ define("SITE_CLASS_VERSION", "1.2");
  *
  * @package SiteClass
  * @author Barton Phillips <barton@bartonphillips.com>
- * @version v1.2.0
+ * @version v2.0.0
  * @link http://www.bartonphillips.com
  * @copyright Copyright (c) 2010, Barton Phillips
  * @license  MIT
@@ -160,6 +160,15 @@ class SiteClass extends dbAbstract {
         $this->daycount($this->daycountwhat); // in 'masterdb' database
       }
     }
+  }
+
+  /**
+   * getVersion()
+   * @return string version number
+   */
+
+  public function getVersion() {
+    return SITE_CLASS_VERSION;
   }
 
   /**
@@ -795,7 +804,7 @@ EOF;
 
   /**
    * setmyip()
-   * insert ignore to table blpip
+   * insert ignore to table myip
    */
 
   protected function setmyip() {
@@ -804,16 +813,16 @@ EOF;
     }
 
     $this->query("select count(*) from information_schema.tables ".
-                 "where (table_schema = '$this->masterdb') and (table_name = 'blpip')");
+                 "where (table_schema = '$this->masterdb') and (table_name = 'myip')");
 
     list($ok) = $this->fetchrow('num');
 
     if($ok == 0) {
-      $this->debug("$this->siteName: $this->self: table blpip does not exist in the $this->masterdb database");
+      $this->debug("$this->siteName: $this->self: table myip does not exist in the $this->masterdb database");
       return;
     }
 
-    $this->query("insert ignore into $this->masterdb.blpip values('$this->myIp', now())");
+    $this->query("insert ignore into $this->masterdb.myip values('$this->myIp', now())");
   }
 
   /**

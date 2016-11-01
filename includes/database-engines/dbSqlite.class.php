@@ -1,4 +1,6 @@
 <?php
+/* USED IN 'examples/' and 'tests/'. This has been somewhat tested and appears to be stable */
+
 /**
  * dbSqlite Class
  *

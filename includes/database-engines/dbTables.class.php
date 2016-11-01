@@ -1,4 +1,6 @@
 <?php
+/* WELL TESTED and MAINTAINED */
+
 // Make database tables given either a SiteClass or Database class object.
 
 class dbTables {

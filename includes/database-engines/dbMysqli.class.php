@@ -1,4 +1,6 @@
 <?php
+/* MAINTAINED and WELL TESTED. This is the default Database and has received extensive testing */
+
 /**
  * Database Class
  *

@@ -1,10 +1,10 @@
 <?php
-// This is included so it has the .sitemap.php information from the file that included it.
+/* HELPER FUNCTIONS. Well tested and maintained */
 
 /**
  * Helper Functions
- * These my well be defined by a chile class.
  */
+
 // vardump makes value readable
 
 if(!function_exists('vardump')) {
@@ -22,6 +22,8 @@ if(!function_exists('vardump')) {
   }
 } 
 
+// As above but does not escape the lt/gt or do any HTML.
+
 if(!function_exists('vardumpNoEscape')) {
   function vardumpNoEscape() {
     $args = func_get_args();
@@ -37,15 +39,19 @@ if(!function_exists('vardumpNoEscape')) {
   }
 }
 
+// Put a line with escaping
+
 if(!function_exists('put')) {
-  function put($text) {
-    echo "<pre>$text</pre>\n";
+  function put($msg) {
+    $msg = escapeltgt($msg);
+    echo "<pre>$msg</pre>\n";
   }
 }
 
-if(!function_exists('put_e')) {
-  function put_e($msg) {
-    $msg = escapeltgt($msg);
+// Put a line with no escaping
+
+if(!function_exists('putNoEscape')) {
+  function putNoEscape($msg) {
     echo "<pre>$msg</pre>";
   }
 }
@@ -53,7 +59,6 @@ if(!function_exists('put_e')) {
 /**
  * stripSlashesDeep
  * recursively do stripslahes() on an array or string.
- * Only define if not already defined.
  * @param array|string $value either a string or an array of strings/arrays ...
  * @return original $value stripped clean of slashes.
  */
@@ -65,8 +70,9 @@ if(!function_exists('stripSlashesDeep')) {
   }
 }
 
-// like above but for mysql_real_escape_string()
-
+// There are methods for this in dbMysqli.class.php and dbSqlite.class.php
+// Those methods should be used instead of this function!!!
+/*
 if(!function_exists('mysqlEscapeDeep')) {
   function mysqlEscapeDeep($db, $value) {
     if(is_array($value)) {
@@ -79,6 +85,7 @@ if(!function_exists('mysqlEscapeDeep')) {
     }
   }
 }
+*/
 
 // This does a deep conversion from an object to an array
 
@@ -127,4 +134,3 @@ if(!function_exists('escapeltgt')) {
     return $value;
   }
 }
-

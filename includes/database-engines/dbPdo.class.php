@@ -1,4 +1,6 @@
 <?php
+/* UNTESTED and NOT MAINTAINED */
+
 /**
  * Database Class
  *

@@ -1,4 +1,6 @@
 <?php
+/* DEPRECIATED. Use dbMysqli.class.php instead. DEPRECIATED */
+
 /**
  * Database Class
  *

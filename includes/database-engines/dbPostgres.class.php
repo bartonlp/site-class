@@ -1,5 +1,6 @@
 <?php
-   // Work in progress not tested yet
+/* UNTESTED and NOT MAINTAINED */
+// Work in progress not tested yet
 
 class dbPostgreSql extends dbAbstract{
 

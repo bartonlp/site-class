@@ -1,8 +1,8 @@
 <?php
-// Select the database engine we want to use
+/* Well tested and maintained */
+
 /**
  * Database wrapper class
- *
  */
 
 class Database extends dbAbstract {

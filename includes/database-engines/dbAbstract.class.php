@@ -1,10 +1,10 @@
 <?php
+/* MAINTAINED and WELL TESTED */
+
 // Abstract database class
 // Most of this class is implemented here. This keeps us from having to duplicate this over and
-// over again in each higher level class like SiteClass (site.class.hasdb.php)
-// or Database (database.class.php). The db engines (dbMysqli.class.php, etc.) have most of
-// these methods implemented and override these methods.
-// 
+// over again in each higher level class like SiteClass or Database.
+// The db engines (dbMysqli.class.php, etc.) have most of these methods implemented.
 
 abstract class dbAbstract {
   protected $db;
