@@ -8,7 +8,8 @@
 // We are in 'vendor/bartonlp/site-class/includes' so we want to go back three directories to load
 // autoload.php
 
-require_once("../../../autoload.php");
+$dir = __DIR__;
+require_once("$dir/../../../autoload.php");
 $docroot = $_SERVER['DOCUMENT_ROOT'];
 $self = $_SERVER['PHP_SELF'];
 
