@@ -5,9 +5,13 @@
 // we combine DOCUMENT_ROOT and the dirname(PHP_SELF) and '/mysitemap.json'
 // and return the mysitemap.json file for the site.
 
-require_once(getenv("HOME") . "/vendor/autoload.php");
+// We are in 'vendor/bartonlp/site-class/includes' so we want to go back three directories to load
+// autoload.php
+
+require_once("../../../autoload.php");
 $docroot = $_SERVER['DOCUMENT_ROOT'];
 $self = $_SERVER['PHP_SELF'];
+
 // Check that there really is a file and this isn't a "friendly" url
 
 if(file_exists($docroot . $self)) {
