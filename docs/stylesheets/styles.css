@@ -545,7 +545,7 @@ h3 {
 a {
   color: #3399cc;
   font-weight: 400;
-  text-decoration: none;
+/*  text-decoration: none; */
 }
 
 a small {
@@ -844,10 +844,10 @@ nav ul li.tag-h2 + .tag-h1 {
   margin-top: 10px;
 }
 nav ul a {
-  color: #666;
+  color: blue; /*#666;*/
 }
 nav ul a:hover {
-  color: #999;
+  color: green; /*#999;*/
 }
 
 footer {
