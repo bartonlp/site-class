@@ -126,8 +126,27 @@ There is a second **dbTables** method which is not used directly as much. It cre
   public function makeresultrows($query, $rowdesc, array $extra=array()) {...}
 ```
 
+The database methods are implemented for all supported engines. There are some minor behavioral differences, for example in the syntax the engine queries uses or the return values. For example sqlite3 does not support a number of rows returned functionality and there are also several (many) syntactial differenced between sqlite and mysql when it comes to supported functions etc. (caviat emptor).
+
+## dbTables Methods
+
+* constructor
+* public function makeresultrows($query, $rowdesc, array $extra=array())
+* public function maketable($query, array $extra=null)  
+$extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] and $extra['attr'].  
+$extra['attr'] is an assoc array that can have attributes for the <table> tag, like 'id', 'title', 'class', 'style' etc.  
+$extra['callback'] function that can modify the header after it is filled in.  
+$extra['footer'] a footer string   
+@return array [{string table}, {result}, {num}, {hdr}, table=>{string}, result=>{result},
+ num=>{num rows}, header=>{hdr}]  
+ or === false
+
 ---
 [Examples](examples.html)
+[dbTables](dbTables.html)
+[SiteClass Methods](siteclass.html)
+[Additional Files](files.html)
+[Analysis and Tracking](analysis.html)
 [Index](index.html)
 
 ## Contact Me

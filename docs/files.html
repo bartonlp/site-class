@@ -1,6 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>Additional Files</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  
+  <style>
+  div.sourceCode {
+    background-color: #EEF3E2;
+    border-left: 10px solid gray;
+    padding-left: 5px;
+  }
+  code {
+    background-color: #EEF3E2;
+  }
+  </style>
+</head>
+<body>
+<h1 id="siteclass-verion-2.0">SiteClass Verion 2.0</h1>
+<p><strong>SiteClass</strong> is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.</p>
+<hr />
 <h2 id="the-mysitemap.json-file">The 'mysitemap.json' File</h2>
-<p>The 'mysitemap.json' file is the site configuration file. 'siteload.php' loads the 'mysitemap.json' file that is in the current directory. If a 'mysitemap.json' file is not found an exception is thrown.</p>
-<p>Once a 'mysitemap.json' file is found the information in it is read in via 'require_once'. The information from the 'mysitemap.json' file is returned as a PHP object.</p>
+<p>The 'mysitemap.json' file is the site configuration file. 'siteload.php' loads the 'mysitemap.json' file<br />
+that is in the current directory. If a 'mysitemap.json' file is not found an exception is thrown.</p>
+<p>Once a 'mysitemap.json' file is found the information in it is read in via 'require_once'.<br />
+The information from the 'mysitemap.json' file is returned as a PHP object.</p>
 <p>You can generate a 'mysitemap.json' file by running 'mysitemap.json.php' and redirecting the output to 'mysitemap.json'.</p>
 <p>My usual directory structure starts under a 'www' subdirectory. On an Apache2 host the structure looks like this:</p>
 <pre class="plain"><code>/var/www/vendor          // this is the &#39;composer&#39; directory where the &#39;bartonlp/site-class&#39; resides
@@ -9,10 +72,11 @@
 /var/www/html/includes   // this is where &#39;headFile&#39;, &#39;bannerFile&#39;, 
                          // &#39;footerFile&#39; and child classes live</code></pre>
 <p>If I have multiple virtual hosts they are all off the '/var/www' directory instead of a single 'html' directory.</p>
-
-<h2 id="how-the-xxxfile-files-look">How the xxxFile files look</h2>
-<p>In the 'mysitemap.json' file there can be three elements that describe the location of special files. These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.</p>
-<p>I put the three special file in my '/var/www/html/includes' directory (where 'html' may be one of your virtual hosts and not named 'html').</p>
+<h3 id="how-the-xxxfile-files-look">How the xxxFile files look</h3>
+<p>In the 'mysitemap.json' file there can be three elements that describe the location of special files.<br />
+These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.</p>
+<p>I put the three special file in my '/var/www/html/includes' directory (where 'html' may be one of your virtual hosts<br />
+and not named 'html').</p>
 <p>Here is an example of my 'headFile':</p>
 <div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// head.i.php for bartonphillips.com</span>
@@ -35,8 +99,11 @@
 <span class="kw">{$arg[&#39;css&#39;]}</span>
 <span class="st">&lt;/head&gt;</span>
 <span class="st">EOF;</span></code></pre></div>
-<p>These 'xxxFile' files return their contents. The <span class="math inline"><em>a</em><em>r</em><em>g</em><em>a</em><em>r</em><em>r</em><em>a</em><em>y</em><em>i</em><em>s</em><em>c</em><em>r</em><em>e</em><em>a</em><em>t</em><em>e</em><em>d</em><em>f</em><em>o</em><em>r</em><em>m</em><em>t</em><em>h</em><em>e</em><em>a</em><em>r</em><em>g</em><em>u</em><em>m</em><em>e</em><em>n</em><em>t</em><em>p</em><em>a</em><em>s</em><em>s</em><em>e</em><em>d</em><em>t</em><em>o</em><em>t</em><em>h</em><em>e</em>′<em>g</em><em>e</em><em>t</em><em>P</em><em>a</em><em>g</em><em>e</em><em>T</em><em>o</em><em>p</em><em>B</em><em>o</em><em>t</em><em>t</em><em>o</em><em>m</em>′<em>m</em><em>e</em><em>t</em><em>h</em><em>o</em><em>d</em>.<em>T</em><em>h</em><em>e</em>′<em>g</em><em>e</em><em>t</em><em>P</em><em>a</em><em>g</em><em>e</em><em>T</em><em>o</em><em>p</em><em>B</em><em>o</em><em>t</em><em>t</em><em>o</em><em>m</em>′<em>m</em><em>e</em><em>t</em><em>h</em><em>o</em><em>d</em><em>a</em><em>l</em><em>s</em><em>o</em><em>h</em><em>a</em><em>s</em><em>a</em><em>c</em><em>c</em><em>e</em><em>s</em><em>s</em><em>t</em><em>o</em><em>t</em><em>h</em><em>e</em><em>S</em><em>i</em><em>t</em><em>e</em><em>C</em><em>l</em><em>a</em><em>s</em><em>s</em>′</span>this' property.</p>
-<p>You will see if you delve into the SiteClass code that many things can be passed to the getPageTopBottom method, and the various sub-methods, but the standard things are:</p>
+<p>These 'xxxFile' files return their contents.<br />
+The $arg array is created form the argument passed to the 'getPageTopBottom' method.<br />
+The 'getPageTopBottom' method also has access to the SiteClass '$this' property.</p>
+<p>You will see if you delve into the SiteClass code that many things can be passed to the getPageTopBottom method,<br />
+and the various sub-methods, but the standard things are:</p>
 <ul>
 <li>title</li>
 <li>desc</li>
@@ -45,7 +112,8 @@
 <li>script</li>
 <li>css</li>
 </ul>
-<p>As you saw in example 5 above (test5.php in the 'examples' directory) I passed a '$h' object to 'SiteClass'. For example it might look like this:</p>
+<p>As you saw in example 5 above (test5.php in the 'examples' directory) I passed a '$h' object to 'SiteClass'.<br />
+For example it might look like this:</p>
 <div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">$h</span>-&gt;title = <span class="st">&#39;my title&#39;</span><span class="ot">;</span>
 <span class="kw">$h</span>-&gt;desc = <span class="st">&#39;This is the description&#39;</span><span class="ot">;</span>
 <span class="kw">$h</span>-&gt;<span class="fu">link</span> = <span class="st">&#39;&lt;link rel=&quot;stylesheet&quot; href=&quot;test.css&quot;&gt;&#39;</span><span class="ot">;</span>
@@ -53,9 +121,16 @@
 <span class="kw">$h</span>-&gt;script = <span class="st">&#39;&lt;script&gt; var a=&quot;test&quot;; &lt;/script&gt;&#39;</span><span class="ot">;</span>
 <span class="kw">$h</span>-&gt;css = <span class="st">&#39;&lt;style&gt; /* some css */ #test { width: 10px; } &lt;/style&gt;&#39;</span><span class="ot">;</span>
 <span class="kw">$S</span> = <span class="kw">new</span> SiteClass<span class="ot">(</span><span class="kw">$h</span><span class="ot">);</span></code></pre></div>
-<p>As you can see in the 'headFile' example the '<span class="math inline"><em>t</em><em>h</em><em>i</em><em>s</em>′<em>c</em><em>a</em><em>n</em><em>a</em><em>l</em><em>s</em><em>o</em><em>b</em><em>e</em><em>u</em><em>s</em><em>e</em><em>d</em><em>a</em><em>s</em><em>i</em><em>n</em>′</span>this-&gt;copyright'. Any of the public, protected or private '$this' properties can be used in any of the special files as they are all included within 'SiteClass.class.php'.</p>
-<p>As these special files are PHP files you can do anything else that you need to, including database queries. Just remember that you need to use '<span class="math inline">$this'. For example, to do a query do `$</span>this-&gt;query(<span class="math inline">$sql);` not `$</span>S-&gt;query(<span class="math inline">$sql);`. You can't use the variable from your project file that you created via the `$</span>S = new SiteClass($h);` because it is NOT within scope.</p>
-<p>I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything you like. In the 'mysitemap.json' just add the full path to the file. For example:</p>
+<p>As you can see in the 'headFile' example the '$this' can also be used as in '$this-&gt;copyright'.<br />
+Any of the public, protected or private '$this' properties can be used in any of the special files as they<br />
+are all included within 'SiteClass.class.php'.</p>
+<p>As these special files are PHP files you can do anything else that you need to,<br />
+including database queries. Just remember that you need to use '$this'.<br />
+For example, to do a query do <code>$this-&gt;query($sql);</code> not <code>$S-&gt;query($sql);</code>.<br />
+You can't use the variable from your project file that you created via the <code>$S = new SiteClass($h);</code><br />
+because it is NOT within scope.</p>
+<p>I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything you like.<br />
+In the 'mysitemap.json' just add the full path to the file. For example:</p>
 <div class="sourceCode"><pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
     <span class="dt">&quot;siteDomain&quot;</span><span class="fu">:</span> <span class="st">&quot;localhost&quot;</span><span class="fu">,</span>
     <span class="dt">&quot;siteName&quot;</span><span class="fu">:</span> <span class="st">&quot;YourSiteName&quot;</span><span class="fu">,</span>
@@ -70,205 +145,25 @@
     <span class="dt">&quot;headFile&quot;</span><span class="fu">:</span> <span class="st">&quot;includes/head.i.php&quot;</span><span class="fu">,</span>
     <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="kw">false</span>
 <span class="fu">}</span></code></pre></div>
-There is a default for the head, banner and footer section if you do not have special files. The DOCTYPE is by default
-<code><!DOCTYPE html></code>
-<p>but that can be altered via an argument to the 'getPageTopBottom' method (<code>$h-&gt;doctype='xxx';</code>).</p>
+<p>There is a default for the head, banner and footer section if you do not have special files.<br />
+The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the 'getPageTopBottom'<br />
+method (<code>$h-&gt;doctype='xxx';</code>).</p>
 <p>Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.</p>
-<hr>
-<h1 id="doing-page-counting-and-analysis">Doing Page Counting and Analysis</h1>
-<p>If you want to do page counting and analysis there are several MySql tables that you can use. The MySql schema for these tables is in the <em>mysql.schema</em> file in the repository.</p>
-<p>The tables are:</p>
-<ul>
-<li>bots : the SiteClass has logic to try to determin which user agents might be robots.</li>
-<li>bots2 : similar to bots but has a 'site' and 'date' field.</li>
-<li>logagent : logs the IpAddress, and User Agent.</li>
-<li>logagent2 : a short term version of lagagent.</li>
-<li>daycounts : counts the number of hits per day</li>
-<li>counter : counts the number of hits per site per file.</li>
-<li>counter2 : counts the number of hits per site per file per day.</li>
-<li>tracker : trackes accesses by site, page etc.</li>
-</ul>
-<p>Here are the schemas of the tables:</p>
-<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">CREATE</span> <span class="kw">TABLE</span> `bots` (
-  `ip` <span class="dt">varchar</span>(<span class="dv">40</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `agent` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `count` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `robots` <span class="dt">int</span>(<span class="dv">5</span>) <span class="kw">DEFAULT</span> <span class="st">&#39;0&#39;</span>,
-  `who` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `creation_time` datetime <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `lasttime` datetime <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (`ip`,`agent`),
-  <span class="kw">KEY</span> `ip` (`ip`)
-) ENGINE=MyISAM <span class="kw">DEFAULT</span> CHARSET=utf8;
-
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> `bots2` (
-  `ip` <span class="dt">varchar</span>(<span class="dv">40</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `agent` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `date` <span class="dt">date</span> <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;0000-00-00&#39;</span>,
-  `site` <span class="dt">varchar</span>(<span class="dv">50</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `which` <span class="dt">int</span>(<span class="dv">5</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;0&#39;</span>,
-  `count` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `lasttime` datetime <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (`ip`,`agent`,`date`,`site`,`which`),
-  <span class="kw">KEY</span> `ip` (`ip`),
-  <span class="kw">KEY</span> `agent` (`agent`),
-  <span class="kw">KEY</span> `site` (`site`),
-  <span class="kw">KEY</span> `ip_2` (`ip`),
-  <span class="kw">KEY</span> `date` (`date`),
-  <span class="kw">KEY</span> `site_2` (`site`)
-) ENGINE=InnoDB <span class="kw">DEFAULT</span> CHARSET=utf8;
-
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> `logagent` (
-  `site` <span class="dt">varchar</span>(<span class="dv">25</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `ip` <span class="dt">varchar</span>(<span class="dv">40</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `agent` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,
-  `count` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `id` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `created` datetime <span class="kw">DEFAULT</span> <span class="st">&#39;0000-00-00 00:00:00&#39;</span>,
-  `lasttime` datetime <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (`site`,`ip`,`agent`),
-  <span class="kw">KEY</span> `ip` (`ip`),
-  <span class="kw">KEY</span> `site` (`site`),
-  <span class="kw">KEY</span> `agent` (`agent`)
-) ENGINE=MyISAM <span class="kw">DEFAULT</span> CHARSET=utf8;
-
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> `logagent2` (
-  `site` <span class="dt">varchar</span>(<span class="dv">25</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `ip` <span class="dt">varchar</span>(<span class="dv">40</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `agent` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,
-  `count` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `id` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `created` datetime <span class="kw">DEFAULT</span> <span class="st">&#39;0000-00-00 00:00:00&#39;</span>,
-  `lasttime` datetime <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (`site`,`ip`,`agent`),
-  <span class="kw">KEY</span> `agent` (`agent`),
-  <span class="kw">KEY</span> `site` (`site`),
-  <span class="kw">KEY</span> `ip` (`ip`)
-) ENGINE=MyISAM <span class="kw">DEFAULT</span> CHARSET=utf8;
-
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> `daycounts` (
-  `site` <span class="dt">varchar</span>(<span class="dv">50</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `date` <span class="dt">date</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,
-  `real` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="st">&#39;0&#39;</span>,
-  `bots` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="st">&#39;0&#39;</span>,
-  `members` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="st">&#39;0&#39;</span>,
-  `visits` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `lasttime` datetime <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (`site`,`date`)
-) ENGINE=MyISAM <span class="kw">DEFAULT</span> CHARSET=utf8;
-
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> `counter` (
-  `filename` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,
-  `site` <span class="dt">varchar</span>(<span class="dv">50</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `ip` <span class="dt">varchar</span>(<span class="dv">20</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `agent` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `count` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `realcnt` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="st">&#39;0&#39;</span>,
-  `lasttime` datetime <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (`filename`,`site`),
-  <span class="kw">KEY</span> `site` (`site`)
-) ENGINE=MyISAM <span class="kw">DEFAULT</span> CHARSET=utf8;
-
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> `counter2` (
-  `site` <span class="dt">varchar</span>(<span class="dv">50</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `date` <span class="dt">date</span> <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;0000-00-00&#39;</span>,
-  `filename` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `count` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="st">&#39;0&#39;</span>,
-  `members` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="st">&#39;0&#39;</span>,
-  `bots` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="st">&#39;0&#39;</span>,
-  `lasttime` datetime <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (`site`,`date`,`filename`),
-  <span class="kw">KEY</span> `site` (`site`),
-  <span class="kw">KEY</span> `date` (`date`)
-) ENGINE=MyISAM <span class="kw">DEFAULT</span> CHARSET=utf8;
-
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> `tracker` (
-  `id` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> AUTO_INCREMENT,
-  `site` <span class="dt">varchar</span>(<span class="dv">25</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `page` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">NOT</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="st">&#39;&#39;</span>,
-  `ip` <span class="dt">varchar</span>(<span class="dv">40</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `agent` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `starttime` datetime <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `endtime` datetime <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `difftime` <span class="dt">time</span> <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  `refid` <span class="dt">int</span>(<span class="dv">11</span>) <span class="kw">DEFAULT</span> <span class="st">&#39;0&#39;</span>,
-  `isJavaScript` <span class="dt">int</span>(<span class="dv">5</span>) <span class="kw">DEFAULT</span> <span class="st">&#39;0&#39;</span>,
-  `lasttime` datetime <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,
-  <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (`id`),
-  <span class="kw">KEY</span> `site` (`site`),
-  <span class="kw">KEY</span> `ip` (`ip`),
-  <span class="kw">KEY</span> `agent` (`agent`)
-) ENGINE=MyISAM <span class="kw">DEFAULT</span> CHARSET=utf8;</code></pre></div>
-<p>If you look at <em>SiteClass</em> you will see several methods in the constructor:</p>
-<p><em><span class="math inline"><em>t</em><em>h</em><em>i</em><em>s</em> − &gt;<em>t</em><em>r</em><em>a</em><em>c</em><em>k</em><em>b</em><em>o</em><em>t</em><em>s</em>(); *</span>this-&gt;tracker(); </em><span class="math inline"><em>t</em><em>h</em><em>i</em><em>s</em> − &gt;<em>d</em><em>o</em><em>a</em><em>n</em><em>a</em><em>l</em><em>y</em><em>s</em><em>i</em><em>s</em>(); *</span>this-&gt;logagent(); *$this-&gt;counter();</p>
-<p>If you look at these methods you will see that they are protected by a check of the database to see if the tables exists in the database. If the table does not exist an 'error_log' message is output. You can prevent the error message by setting &quot;noErrorLog&quot;: &quot;true&quot; in the 'mysitemap.json' file.</p>
-<hr>
-<h1 id="tests">Tests</h1>
-<p>In the 'tests' directory there are a series of mostly database engine tests. If you want to test MySql you will need to first install the packages (both OS and PHP5) and then configure each with a user and password etc. Setting up the databases is beyond the scope of this README. The tests are set up for an account with user 'siteclass' and password 'siteclass' with database 'siteclass' (no single quotes of course).</p>
-<hr>
-<h1 id="class-methods">Class Methods</h1>
-<p>While there are a number of methods for each of the major classes there are really only a small handful you will use on a regular bases. The ones most used have some documentation with them.</p>
-<h2 id="siteclass-methods">SiteClass methods:</h2>
-<ul>
-<li>constructor</li>
-<li>public function setSiteCookie($cookie, $value, $expire, $path=&quot;/&quot;)</li>
-<li>public function getId() // if a memberTable</li>
-<li>public function setId($id) // if a memberTable</li>
-<li>public function getIp()</li>
-<li>public function getPageTopBottom($h, $b=null)<br />
-This is the most used method. It takes one or two arguments which can be string|array|object.<br />
-$h can have 'title', 'desc', 'banner' and a couple of other less used options.<br />
-$b is for the footer or bottom. I sometimes pass a &lt;hr&gt; but you can also pass a 'msg', 'msg1', 'msg2' (see the code). I usually put things into the 'footerFile' but on occasions a page needs something extra.<br />
-This method calls getPageHead(), getBanner(), getFooter().</li>
-<li>public function getPageTop($header, $banner=null, $bodytag=null)</li>
-<li>public function getDoctype()</li>
-<li>public function getPageHead(/<em>$title, $desc=null, $extra=null, $doctype, $lang</em>/)</li>
-<li>public function getPageBanner($mainTitle, $nonav=false, $bodytag=null)</li>
-<li>public function getPageFooter(/* mixed */)</li>
-<li>public function __toString()</li>
-<li>A number of 'protected' methods and properties that can be used in a child class.</li>
-</ul>
-<h2 id="database-methods">Database methods:</h2>
-<ul>
-<li>constructor</li>
-<li>public function getDb()</li>
-<li>public function query($query)<br />
-This is the workhourse of the database. It is used for 'select', 'update', 'insert' and basically anything you need to do like 'drop', 'alter' etc. $query is the sql statement.</li>
-<li>public function fetchrow($result=null, $type=&quot;both&quot;)<br />
-Probably the second most used method. If it follows the 'query' the $result is not needed. The only time $result is needed is if there are other queries in a while loop. In that case you need to get the result of the query by calling the getResult() method before running the while loop.<br />
-The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only an associative array, while 'num' return a numeric array. I usually use a numeric array with</li>
-</ul>
-<div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">while</span><span class="ot">(</span><span class="fu">list</span><span class="ot">(</span><span class="kw">$name</span><span class="ot">,</span> <span class="kw">$email</span><span class="ot">)</span> = <span class="kw">$S</span>-&gt;fetchrow<span class="ot">(</span><span class="st">&#39;num&#39;</span><span class="ot">))</span> { <span class="st">...</span> }</code></pre></div>
-<ul>
-<li>public function queryfetch($query, $retarray=false)</li>
-<li>public function getLastInsertId()<br />
-After an 'insert' this method returns the new row primary key id.</li>
-<li>public function getResult()<br />
-Returns the result object from the last 'query'. Usually not needed.</li>
-<li>public function escape($string)</li>
-<li>public function escapeDeep($value)</li>
-<li>public function getNumRows($result=null)</li>
-<li>public function prepare($query)<br />
-I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are not as well tested as the other methods.</li>
-<li>public function bindParam($format)</li>
-<li>public function bindResults($format)</li>
-<li>public function execute()</li>
-<li>public function getErrorInfo()</li>
-</ul>
-<p>The database methods are implemented for all supported engines. There are some minor behavioral differences, for example in the syntax the engine queries uses or the return values. For example sqlite3 does not support a number of rows returned functionality and there are also several (many) syntactial differenced between sqlite and mysql when it comes to supported functions etc. (caviat emptor).</p>
-<h2 id="dbtables-methods">dbTables methods:</h2>
-<ul>
-<li>constructor</li>
-<li>public function makeresultrows($query, $rowdesc, array $extra=array())</li>
-<li>public function maketable($query, array $extra=null)<br />
-$extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] and $extra['attr'].<br />
-$extra['attr'] is an assoc array that can have attributes for the
-<table>
-tag, like 'id', 'title', 'class', 'style' etc.<br />
-$extra['callback'] function that can modify the header after it is filled in.<br />
-$extra['footer'] a footer string<br />
-<span class="citation">@return</span> array [{string table}, {result}, {num}, {hdr}, table=&gt;{string}, result=&gt;{result}, num=&gt;{num rows}, header=&gt;{hdr}]<br />
-or === false</li>
-</ul>
+<hr />
+<p><a href="examples.html">Examples</a><br />
+<a href="dbTables.html">dbTables</a><br />
+<a href="siteclass.html">SiteClass Methods</a><br />
+<a href="files.html">Additional Files</a><br />
+<a href="analysis.html">Analysis and Tracking</a><br />
+<a href="index.html">Index</a></p>
 <h2 id="contact-me">Contact Me</h2>
-<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a> Copyright © 2015 Barton Phillips</p>
+<p>Barton Phillips : <script type="text/javascript">
+<!--
+h='&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#x2f;&#x2f;&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;'+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;&#32;&#40;&#x2f;&#x2f;&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#32;&#x61;&#116;&#32;&#x67;&#x6d;&#x61;&#x69;&#108;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;&#x29;</noscript><br />
+Copyright © 2015 Barton Phillips<br />
+Project maintained by <a href="https://github.com/bartonlp">bartonlp</a></p>
+</body>
+</html>

@@ -19,4 +19,11 @@ pagetitle="dbTables";
 /usr/bin/pandoc -f markdown_github -Vpagetitle="$pagetitle" -Vmath="$css" -s dbTables.md -o dbTables.html
 pagetitle="Examples";
 /usr/bin/pandoc -f markdown_github -Vpagetitle="$pagetitle" -Vmath="$css" -s examples.md -o examples.html
+pagetitle="SiteClass Methods";
+/usr/bin/pandoc -f markdown_github -Vpagetitle="$pagetitle" -Vmath="$css" -s siteclass.md -o siteclass.html
+pagetitle="Additional Files";
+/usr/bin/pandoc -f markdown_github -Vpagetitle="$pagetitle" -Vmath="$css" -s files.md -o files.html
+pagetitle="Analysis";
+/usr/bin/pandoc -f markdown_github -Vpagetitle="$pagetitle" -Vmath="$css" -s analysis.md -o analysis.html
+
 

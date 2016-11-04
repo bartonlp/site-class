@@ -166,8 +166,26 @@ field. This argument is the final row description with all of the HTML in place.
    <span class="kw">*/</span>
   
   <span class="kw">public</span> function makeresultrows(<span class="ot">$query</span>, <span class="ot">$rowdesc</span>, array <span class="ot">$extra</span>=array()) <span class="dt">{...}</span></code></pre></div>
+<p>The database methods are implemented for all supported engines. There are some minor behavioral differences, for example in the syntax the engine queries uses or the return values. For example sqlite3 does not support a number of rows returned functionality and there are also several (many) syntactial differenced between sqlite and mysql when it comes to supported functions etc. (caviat emptor).</p>
+<h2 id="dbtables-methods">dbTables Methods</h2>
+<ul>
+<li>constructor</li>
+<li>public function makeresultrows($query, $rowdesc, array $extra=array())</li>
+<li>public function maketable($query, array $extra=null)<br />
+$extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] and $extra['attr'].<br />
+$extra['attr'] is an assoc array that can have attributes for the <table> tag, like 'id', 'title', 'class', 'style' etc.<br />
+$extra['callback'] function that can modify the header after it is filled in.<br />
+$extra['footer'] a footer string<br />
+@return array [{string table}, {result}, {num}, {hdr}, table=&gt;{string}, result=&gt;{result},<br />
+num=&gt;{num rows}, header=&gt;{hdr}]<br />
+or === false</li>
+</ul>
 <hr />
 <p><a href="examples.html">Examples</a><br />
+<a href="dbTables.html">dbTables</a><br />
+<a href="siteclass.html">SiteClass Methods</a><br />
+<a href="files.html">Additional Files</a><br />
+<a href="analysis.html">Analysis and Tracking</a><br />
 <a href="index.html">Index</a></p>
 <h2 id="contact-me">Contact Me</h2>
 <p>Barton Phillips : <script type="text/javascript">

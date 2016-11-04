@@ -78,7 +78,11 @@ where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.
 There are some example files in the 'examples' directory at '$PATH_TO_VENDOR/vendor/bartonlp/site-class/examples'.
 
 ---
+[Examples](examples.html)
 [dbTables](dbTables.html)
+[SiteClass Methods](siteclass.html)
+[Additional Files](files.html)
+[Analysis and Tracking](analysis)
 [Index](index.html)
 
 ## Contact Me
