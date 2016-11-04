@@ -305,7 +305,7 @@ class dbTables {
       return false;
     }
 
-    extract($tbl);
+    extract($tbl); // $rows, $result, $num, $header
 
     $ftr = $extra['footer'] ? "<tfoot>\n{$extra['footer']}\n</tfoot>\n" : null;
 

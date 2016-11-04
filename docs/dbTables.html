@@ -1,55 +1,182 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Site-class by bartonlp</title>
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/github-dark.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="javascripts/main.js"></script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>dbTables</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  
+  <style>
+  div.sourceCode {
+    background-color: #EEF3E2;
+    border-left: 10px solid gray;
+    padding-left: 5px;
+  }
+  code {
+    background-color: #EEF3E2;
+  }
+  </style>
+</head>
+<body>
+<h1 id="site-class-2.0">Site-class 2.0</h1>
+<p>SiteClass class mini framework for simple, small websites.</p>
+<h2 id="dbtables">dbTables</h2>
+<p>This is the documentation for dbTables.</p>
+<p>In addition to the SiteClass and Database classes there are several others classes in the 'database-engins' directory.</p>
+<p>The dbTables class uses the Database class to make creating tables simple. For example:</p>
+<div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
+<span class="co">// example5.php</span>
 
-  </head>
-  <body>
+<span class="kw">$_site</span> = <span class="kw">require_once</span><span class="ot">(</span><span class="fu">getenv</span><span class="ot">(</span><span class="st">&quot;SITELOAD&quot;</span><span class="ot">)</span>.<span class="st">&quot;/siteload.php&quot;</span><span class="ot">);</span>
 
-      <header>
-        <h1>Site-class</h1>
-        <p>SiteClass class mini framework for simple, small websites.</p>
-      </header>
+ErrorClass::setNoEmailErrs<span class="ot">(</span><span class="kw">true</span><span class="ot">);</span>
+ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><span class="ot">);</span>
 
-      <div id="banner">
-        <span id="logo"></span>
+<span class="kw">$S</span> = <span class="kw">new</span> <span class="kw">$_site</span>-&gt;className<span class="ot">(</span><span class="kw">$_site</span><span class="ot">);</span>
+<span class="kw">$T</span> = <span class="kw">new</span> dbTables<span class="ot">(</span><span class="kw">$S</span><span class="ot">);</span>
 
-        <a href="https://github.com/bartonlp/site-class" class="button fork"><strong>View On GitHub</strong></a>
-        <div class="downloads">
-          <span>Downloads:</span>
-          <ul>
-            <li><a href="https://github.com/bartonlp/site-class/zipball/master" class="button">ZIP</a></li>
-            <li><a href="https://github.com/bartonlp/site-class/tarball/master" class="button">TAR</a></li>
-          </ul>
-        </div>
-      </div><!-- end banner -->
+<span class="co">// Pass some info to getPageTopBottom method</span>
+<span class="kw">$h</span>-&gt;title = <span class="st">&quot;Example 5&quot;</span><span class="ot">;</span> <span class="co">// Goes in the &lt;title&gt;&lt;/title&gt;</span>
+<span class="kw">$h</span>-&gt;banner = <span class="st">&quot;&lt;h1&gt;Example 5&lt;/h1&gt;&quot;</span><span class="ot">;</span> <span class="co">// becomes the &lt;header&gt; section</span>
+<span class="co">// Add some local css to but a border and padding on the table </span>
+<span class="kw">$h</span>-&gt;css = <span class="kw">&lt;&lt;&lt;EOF</span>
+<span class="st">  &lt;style&gt;</span>
+<span class="st">main table * {</span>
+<span class="st">  padding: .5em;</span>
+<span class="st">  border: 1px solid black;</span>
+<span class="st">}</span>
+<span class="st">  &lt;/style&gt;</span>
+<span class="kw">EOF;</span>
 
-    <div class="wrapper">
-      <nav>
-        <ul></ul>
-      </nav>
-      <section>
-        <p>This is the documentation of dbTables.</p>
+<span class="fu">list</span><span class="ot">(</span><span class="kw">$top</span><span class="ot">,</span> <span class="kw">$footer</span><span class="ot">)</span> = <span class="kw">$S</span>-&gt;getPageTopBottom<span class="ot">(</span><span class="kw">$h</span><span class="ot">);</span>
 
-<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com"></a><a href="mailto:bartonphillips@gmail.com">bartonphillips@gmail.com</a>
-Copyright © 2015 Barton Phillips</p>
-      </section>
-      <footer>
-        <p>Project maintained by <a href="https://github.com/bartonlp">bartonlp</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
-      </footer>
-    </div>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-    
-  </body>
+<span class="co">// create a table from the memberTable</span>
+<span class="kw">$sql</span> = <span class="st">&quot;select * from </span><span class="kw">$S</span><span class="st">-&gt;memberTable&quot;</span><span class="ot">;</span>
+<span class="fu">list</span><span class="ot">(</span><span class="kw">$tbl</span><span class="ot">)</span> = <span class="kw">$T</span>-&gt;maketable<span class="ot">(</span><span class="kw">$sql</span><span class="ot">);</span>
+
+<span class="fu">echo</span> <span class="kw">&lt;&lt;&lt;EOF</span>
+<span class="kw">$top</span>
+<span class="st">&lt;main&gt;</span>
+<span class="st">&lt;h3&gt;Create a table from the members database table&lt;/h3&gt;</span>
+<span class="st">&lt;p&gt;The members table follows:&lt;/p&gt;</span>
+<span class="kw">$tbl</span>
+<span class="st">&lt;/main&gt;</span>
+<span class="st">&lt;hr&gt;</span>
+<span class="kw">$footer</span>
+<span class="kw">EOF;</span></code></pre></div>
+<p>The 'maketable' method takes several optional arguments to help setup the table. Using the options you can give your table an id or class or set any other attributes. You can also pass a 'callback' function which can modify the rows as they are selected (see the 'example-insert-update.php' file in the 'examples' directory for more information).</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">  <span class="kw">/**</span>
+   <span class="kw">*</span> maketable()
+   <span class="kw">*</span> Make a full table
+   <span class="kw">*</span>
+   <span class="kw">*</span> @param string <span class="ot">$query</span> : the table query
+   <span class="kw">*</span> @param array <span class="ot">$extra</span> : optional. 
+   <span class="kw">*</span>   <span class="ot">$extra</span> is an optional assoc array: <span class="ot">$extra[</span><span class="st">&#39;callback&#39;</span><span class="ot">]</span>, <span class="ot">$extra[</span><span class="st">&#39;callback2&#39;</span><span class="ot">]</span>, <span class="ot">$extra[</span><span class="st">&#39;footer&#39;</span><span class="ot">]</span> and <span class="ot">$extra[</span><span class="st">&#39;attr&#39;</span><span class="ot">]</span>.
+   <span class="kw">*</span>   <span class="ot">$extra[</span><span class="st">&#39;attr&#39;</span><span class="ot">]</span> is an assoc array that can have attributes for the <span class="kw">&lt;</span>table<span class="kw">&gt;</span> tag, like <span class="st">&#39;id&#39;</span>, <span class="st">&#39;title&#39;</span>, <span class="st">&#39;class&#39;</span>, <span class="st">&#39;style&#39;</span> etc.
+   <span class="kw">*</span>   <span class="ot">$extra[</span><span class="st">&#39;callback&#39;</span><span class="ot">]</span> function that can modify the header after it is filled in.
+   <span class="kw">*</span>   <span class="ot">$extra[callback2]</span> callback after <span class="ot">$desc</span> has the fields replaced with <span class="ot">$row</span> values.
+   <span class="kw">*</span>   <span class="ot">$extra[</span><span class="st">&#39;footer&#39;</span><span class="ot">]</span> a footer string 
+   <span class="kw">*</span> @return array [{string table}, <span class="dt">{result}</span>, <span class="dt">{num}</span>, <span class="dt">{hdr}</span>, <span class="ot">table=</span><span class="kw">&gt;</span><span class="dt">{string}</span>, <span class="ot">result=</span><span class="kw">&gt;</span><span class="dt">{result}</span>, <span class="ot">num=</span><span class="kw">&gt;</span>{<span class="kw">num</span> rows}, <span class="ot">header=</span><span class="kw">&gt;</span><span class="dt">{hdr}</span>]
+   <span class="kw">*</span> or === false
+   <span class="kw">*/</span>
+
+  <span class="kw">public</span> function maketable(<span class="ot">$query</span>, array <span class="ot">$extra</span>=null) <span class="dt">{...}</span></code></pre></div>
+<p>The '$extra' argument is an associative array with the following items:</p>
+<ul>
+<li>'callback': this contains a function to call. The function receives two reference arguments:<br />
+&amp;$row and &amp;$desc.<br />
+<code>function callbackfunction(&amp;$row, &amp;$desc) {...}</code><br />
+The '$row' has the row from the table. The '$desc' looks like<br />
+<code>&lt;tr&gt;&lt;td&gt;*&lt;/td&gt;&lt;/tr&gt;</code><br />
+For example if you sql query looked like this:<br />
+<code>$sql = &quot;select test as Test from sometable&quot;;</code><br />
+Then $row['Test'] would have the item 'test' from the table. This value can be modified in the<br />
+callback function. For example:<br />
+<code>$row['Test'] = &quot;&lt;span class='odd'&gt;{$row['Test']}&lt;/span&gt;&quot;;</code><br />
+This code would change the referenced value.<br />
+'$desc' can be changed also:<br />
+<code>$desc = preg_replace('~&lt;tr&gt;~', &quot;&lt;tr class='oddtr'&gt;&quot;, $desc);</code></li>
+<li>'callback2': this is done after 'callback'. The callback2 function takes a single '&amp;$desc'<br />
+field. This argument is the final row description with all of the HTML in place.</li>
+<li>'footer': has the information to be placed at the bottom of the table.</li>
+<li>'attr': are the attributes for the table. For example if you wanted to add a 'border', an<br />
+'id' or a 'class'.</li>
+</ul>
+<p>Here is an example with all of the items:</p>
+<div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">$info</span> = <span class="kw">$T</span>-&gt;maketable<span class="ot">(</span><span class="kw">$sql</span><span class="ot">,</span> <span class="fu">array</span><span class="ot">(</span><span class="st">&#39;callback&#39;</span>=&gt;callback1<span class="ot">,</span> <span class="st">&#39;callback2&#39;</span>=&gt;callback2<span class="ot">,</span> 
+        <span class="st">&#39;footer&#39;</span>=&gt;<span class="kw">$footer</span><span class="ot">,</span> <span class="st">&#39;attr&#39;</span>=&gt;<span class="fu">array</span><span class="ot">(</span><span class="st">&#39;border&#39;</span>=&gt;<span class="st">&#39;1&#39;</span><span class="ot">,</span> <span class="st">&#39;class&#39;</span>=&gt;<span class="st">&#39;something&#39;</span><span class="ot">)));</span></code></pre></div>
+<p>There is a second <strong>dbTables</strong> method which is not used directly as much. It creates only the result rows.</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">  <span class="kw">/**</span>
+   <span class="kw">*</span> makeresultrows
+   <span class="kw">*</span> The <span class="ot">$rowdesc</span> can have a wild card like this: <span class="st">&#39;&lt;tr&gt;&lt;td&gt;*&lt;/td&gt;&lt;/tr&gt;&#39;</span>. Then make the <span class="ot">$extra[delim]</span> be
+   <span class="kw">*</span>   array(<span class="st">&quot;&lt;td&gt;&quot;</span>, <span class="st">&quot;&lt;/td&gt;&quot;</span>);
+   <span class="kw">*</span> Can also have a header like <span class="st">&#39;&lt;table&gt;&lt;thead&gt;%&lt;th&gt;*&lt;/th&gt;%&lt;/thead&gt;&#39;</span>. The header delimiter is always %.
+   <span class="kw">*</span> In both cases the fields from the query will replace the <span class="st">&#39;*&#39;</span>.
+   <span class="kw">*</span> Make the query fields what you want in the header using the <span class="st">&#39;as&#39;</span> keywork.
+   <span class="kw">*</span> @param string <span class="ot">$query</span>
+   <span class="kw">*</span> @param string <span class="ot">$rowdesc</span>
+   <span class="kw">*</span> @param array <span class="ot">$extra</span> : <span class="ot">$extra[delim]</span> is an array<span class="kw">|string</span> with the delimiter,
+   <span class="kw">*</span>                       <span class="ot">$extra[return]</span> if true the return value is an ARRAY else just a string with the rows
+   <span class="kw">*</span>                       <span class="ot">$extra[callback]</span> is a callback function: calback(<span class="kw">&amp;</span><span class="ot">$row</span>, <span class="kw">&amp;</span><span class="ot">$desc</span>);
+   <span class="kw">*</span>                       <span class="ot">$extra[callback2]</span> callback after <span class="ot">$desc</span> has the fields replaced with <span class="ot">$row</span> values.
+   <span class="kw">*</span>                       <span class="ot">$extra[header]</span> a header template. Delimiter is % around for example <span class="st">&#39;%&lt;th&gt;*&lt;/th&gt;%&#39;</span>
+   <span class="kw">*</span> @return string<span class="kw">|array</span>
+   <span class="kw">*</span>         if <span class="ot">$extra[return]</span> === true then returned is an
+   <span class="kw">*</span>            array({the row string}, <span class="dt">{result}</span>, <span class="dt">{num}</span>, <span class="dt">{header}</span>,
+   <span class="kw">*</span>                   rows=<span class="kw">&gt;</span>{row string}, <span class="ot">result=</span><span class="kw">&gt;</span><span class="dt">{result}</span>, <span class="ot">num=</span><span class="kw">&gt;</span>{<span class="kw">number</span> of rows}, <span class="ot">header=</span><span class="kw">&gt;</span><span class="dt">{header}</span>)
+   <span class="kw">*</span>         else a string with the rows
+   <span class="kw">*/</span>
+  
+  <span class="kw">public</span> function makeresultrows(<span class="ot">$query</span>, <span class="ot">$rowdesc</span>, array <span class="ot">$extra</span>=array()) <span class="dt">{...}</span></code></pre></div>
+<hr />
+<p><a href="examples.html">Examples</a><br />
+<a href="index.html">Index</a></p>
+<h2 id="contact-me">Contact Me</h2>
+<p>Barton Phillips : <script type="text/javascript">
+<!--
+h='&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#x2f;&#x2f;&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;'+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;&#32;&#40;&#x2f;&#x2f;&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#32;&#x61;&#116;&#32;&#x67;&#x6d;&#x61;&#x69;&#108;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;&#x29;</noscript><br />
+Copyright Â© 2015 Barton Phillips<br />
+Project maintained by <a href="https://github.com/bartonlp">bartonlp</a></p>
+</body>
 </html>
