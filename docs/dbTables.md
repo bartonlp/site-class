@@ -73,29 +73,33 @@ The 'maketable' method takes several optional arguments to help setup the table.
 ```
 
 The '$extra' argument is an associative array with the following items:
+
 * 'callback': this contains a function to call. The function receives two reference arguments:
-&$row and &$desc.
-`function callbackfunction(&$row, &$desc) {...}`  
-The '$row' has the row from the table. The '$desc' looks like  
-`<tr><td>*</td></tr>`
-For example if you sql query looked like this:  
-`$sql = "select test as Test from sometable";`  
+&$row and &$desc.  
+`function callbackfunction(&$row, &$desc) {}`    
+The $row has the row from the table. The '$desc' looks like  
+`<tr><td>*</td></tr>`  
+For example if your sql query looked like this:  
+`$sql = "select test as Test from sometable";`    
 Then $row['Test'] would have the item 'test' from the table. This value can be modified in the
 callback function. For example:  
 `$row['Test'] = "<span class='odd'>{$row['Test']}</span>";`  
 This code would change the referenced value.  
 '$desc' can be changed also:   
 `$desc = preg_replace('~<tr>~', "<tr class='oddtr'>", $desc);`
-* 'callback2': this is done after 'callback'. The callback2 function takes a single '&$desc'
-  field. This argument is the final row description with all of the HTML in place.
+
+* 'callback2': this is done after 'callback'. The callback2 function takes a single '&$desc' 
+field. This argument is the final row description with all of the HTML in place.
+
 * 'footer': has the information to be placed at the bottom of the table.
-* 'attr': are the attributes for the table. For example if you wanted to add a 'border', an
-  'id' or a 'class'.
+
+* 'attr': are the attributes for the table. For example if you wanted to add a 'border', an 
+'id' or a 'class'.
 
 Here is an example with all of the items:
 
 ```php
-$info = $T->maketable($sql, array('callback'=>callback1, 'callback2'=>callback2, 
+$info = $T->maketable($sql, array('callback'=>callback1, 'callback2'=>callback2,  
         'footer'=>$footer, 'attr'=>array('border'=>'1', 'class'=>'something')));
 ```
 
@@ -142,11 +146,11 @@ $extra['footer'] a footer string
  or === false
 
 ---
-[Examples](examples.html)
-[dbTables](dbTables.html)
-[SiteClass Methods](siteclass.html)
-[Additional Files](files.html)
-[Analysis and Tracking](analysis.html)
+[Examples](examples.html)  
+[dbTables](dbTables.html)  
+[SiteClass Methods](siteclass.html)  
+[Additional Files](files.html)  
+[Analysis and Tracking](analysis.html)  
 [Index](index.html)
 
 ## Contact Me

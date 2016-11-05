@@ -143,19 +143,20 @@ If you look at *SiteClass* you will see several methods in the constructor:
 * $this->logagent();
 * $this->counter();
 
-If you look at these methods you will see that they are protected by a check of the database to see if the tables
-exists in the database. If the table does not exist an 'error_log' message is output.
+If you look at these methods you will see that they are protected by a check of the database to see if the tables 
+exists in the database. If the table does not exist an 'error_log' message is output. 
 You can prevent the error message by setting "noErrorLog": "true" in the 'mysitemap.json' file.
 
-I have x additional PHP files to check *robots.txt* (robots.php), *Sitemap.xml* (sitemap.php). I also have a 'tracker.php', 'beacon.php' and 'tracker.js' to
-do end of session logging. These file are here in the '/docs/ directory.
+I have five additional PHP files to check *robots.txt* (robots.php), *Sitemap.xml* (sitemap.php). 
+I also have a 'tracker.php', 'beacon.php' and 'tracker.js' to do end of session logging. 
+These file are here in the '/docs/ directory.
 
 ---
-[Examples](examples.html)
-[dbTables](dbTables.html)
-[SiteClass Methods](siteclass.html)
-[Additional Files](files.html)
-[Analysis and Tracking](analysis.html)
+[Examples](examples.html)  
+[dbTables](dbTables.html)  
+[SiteClass Methods](siteclass.html)  
+[Additional Files](files.html)  
+[Analysis and Tracking](analysis.html)  
 [Index](index.html)
 
 ## Contact Me

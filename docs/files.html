@@ -66,11 +66,11 @@ that is in the current directory. If a 'mysitemap.json' file is not found an exc
 The information from the 'mysitemap.json' file is returned as a PHP object.</p>
 <p>You can generate a 'mysitemap.json' file by running 'mysitemap.json.php' and redirecting the output to 'mysitemap.json'.</p>
 <p>My usual directory structure starts under a 'www' subdirectory. On an Apache2 host the structure looks like this:</p>
-<pre class="plain"><code>/var/www/vendor          // this is the &#39;composer&#39; directory where the &#39;bartonlp/site-class&#39; resides
-/var/www/html            // this is where your php files and js, css etc. 
-                         // directories live
-/var/www/html/includes   // this is where &#39;headFile&#39;, &#39;bannerFile&#39;, 
-                         // &#39;footerFile&#39; and child classes live</code></pre>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">/var/www/vendor</span>          // this is the <span class="st">&#39;composer&#39;</span> directory where the <span class="st">&#39;bartonlp/site-class&#39;</span> resides
+<span class="kw">/var/www/html</span>            // this is where your php files and js, css etc. 
+                         <span class="kw">//</span> directories live
+<span class="kw">/var/www/html/includes</span>   // this is where <span class="st">&#39;headFile&#39;</span>, <span class="st">&#39;bannerFile&#39;</span>, 
+                         <span class="kw">//</span> <span class="st">&#39;footerFile&#39;</span> and child classes live</code></pre></div>
 <p>If I have multiple virtual hosts they are all off the '/var/www' directory instead of a single 'html' directory.</p>
 <h3 id="how-the-xxxfile-files-look">How the xxxFile files look</h3>
 <p>In the 'mysitemap.json' file there can be three elements that describe the location of special files.<br />
@@ -146,7 +146,7 @@ In the 'mysitemap.json' just add the full path to the file. For example:</p>
     <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="kw">false</span>
 <span class="fu">}</span></code></pre></div>
 <p>There is a default for the head, banner and footer section if you do not have special files.<br />
-The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the 'getPageTopBottom'<br />
+The DOCTYPE is by default <code>&lt;!DOCTYPE html&gt;</code> but that can be altered via an argument to the 'getPageTopBottom'<br />
 method (<code>$h-&gt;doctype='xxx';</code>).</p>
 <p>Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.</p>
 <hr />

@@ -16,7 +16,7 @@ You can generate a 'mysitemap.json' file by running 'mysitemap.json.php' and red
 
 My usual directory structure starts under a 'www' subdirectory. On an Apache2 host the structure looks like this:
 
-```plain
+```bash
 /var/www/vendor          // this is the 'composer' directory where the 'bartonlp/site-class' resides
 /var/www/html            // this is where your php files and js, css etc. 
                          // directories live
@@ -118,18 +118,18 @@ In the 'mysitemap.json' just add the full path to the file. For example:
 ```
 
 There is a default for the head, banner and footer section if you do not have special files. 
-The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the 'getPageTopBottom' 
+The DOCTYPE is by default `<!DOCTYPE html>` but that can be altered via an argument to the 'getPageTopBottom' 
 method (`$h->doctype='xxx';`).
 
 Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.
 
 ---
 
-[Examples](examples.html)
-[dbTables](dbTables.html)
-[SiteClass Methods](siteclass.html)
-[Additional Files](files.html)
-[Analysis and Tracking](analysis.html)
+[Examples](examples.html)  
+[dbTables](dbTables.html)  
+[SiteClass Methods](siteclass.html)  
+[Additional Files](files.html)  
+[Analysis and Tracking](analysis.html)  
 [Index](index.html)
 
 ## Contact Me

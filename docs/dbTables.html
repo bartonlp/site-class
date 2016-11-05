@@ -121,27 +121,27 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
   <span class="kw">public</span> function maketable(<span class="ot">$query</span>, array <span class="ot">$extra</span>=null) <span class="dt">{...}</span></code></pre></div>
 <p>The '$extra' argument is an associative array with the following items:</p>
 <ul>
-<li>'callback': this contains a function to call. The function receives two reference arguments:<br />
+<li><p>'callback': this contains a function to call. The function receives two reference arguments:<br />
 &amp;$row and &amp;$desc.<br />
-<code>function callbackfunction(&amp;$row, &amp;$desc) {...}</code><br />
-The '$row' has the row from the table. The '$desc' looks like<br />
+<code>function callbackfunction(&amp;$row, &amp;$desc) {}</code><br />
+The $row has the row from the table. The '$desc' looks like<br />
 <code>&lt;tr&gt;&lt;td&gt;*&lt;/td&gt;&lt;/tr&gt;</code><br />
-For example if you sql query looked like this:<br />
+For example if your sql query looked like this:<br />
 <code>$sql = &quot;select test as Test from sometable&quot;;</code><br />
 Then $row['Test'] would have the item 'test' from the table. This value can be modified in the<br />
 callback function. For example:<br />
 <code>$row['Test'] = &quot;&lt;span class='odd'&gt;{$row['Test']}&lt;/span&gt;&quot;;</code><br />
 This code would change the referenced value.<br />
 '$desc' can be changed also:<br />
-<code>$desc = preg_replace('~&lt;tr&gt;~', &quot;&lt;tr class='oddtr'&gt;&quot;, $desc);</code></li>
-<li>'callback2': this is done after 'callback'. The callback2 function takes a single '&amp;$desc'<br />
-field. This argument is the final row description with all of the HTML in place.</li>
-<li>'footer': has the information to be placed at the bottom of the table.</li>
-<li>'attr': are the attributes for the table. For example if you wanted to add a 'border', an<br />
-'id' or a 'class'.</li>
+<code>$desc = preg_replace('~&lt;tr&gt;~', &quot;&lt;tr class='oddtr'&gt;&quot;, $desc);</code></p></li>
+<li><p>'callback2': this is done after 'callback'. The callback2 function takes a single '&amp;$desc'<br />
+field. This argument is the final row description with all of the HTML in place.</p></li>
+<li><p>'footer': has the information to be placed at the bottom of the table.</p></li>
+<li><p>'attr': are the attributes for the table. For example if you wanted to add a 'border', an<br />
+'id' or a 'class'.</p></li>
 </ul>
 <p>Here is an example with all of the items:</p>
-<div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">$info</span> = <span class="kw">$T</span>-&gt;maketable<span class="ot">(</span><span class="kw">$sql</span><span class="ot">,</span> <span class="fu">array</span><span class="ot">(</span><span class="st">&#39;callback&#39;</span>=&gt;callback1<span class="ot">,</span> <span class="st">&#39;callback2&#39;</span>=&gt;callback2<span class="ot">,</span> 
+<div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">$info</span> = <span class="kw">$T</span>-&gt;maketable<span class="ot">(</span><span class="kw">$sql</span><span class="ot">,</span> <span class="fu">array</span><span class="ot">(</span><span class="st">&#39;callback&#39;</span>=&gt;callback1<span class="ot">,</span> <span class="st">&#39;callback2&#39;</span>=&gt;callback2<span class="ot">,</span>  
         <span class="st">&#39;footer&#39;</span>=&gt;<span class="kw">$footer</span><span class="ot">,</span> <span class="st">&#39;attr&#39;</span>=&gt;<span class="fu">array</span><span class="ot">(</span><span class="st">&#39;border&#39;</span>=&gt;<span class="st">&#39;1&#39;</span><span class="ot">,</span> <span class="st">&#39;class&#39;</span>=&gt;<span class="st">&#39;something&#39;</span><span class="ot">)));</span></code></pre></div>
 <p>There is a second <strong>dbTables</strong> method which is not used directly as much. It creates only the result rows.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">  <span class="kw">/**</span>
