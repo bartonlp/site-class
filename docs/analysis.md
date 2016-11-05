@@ -4,10 +4,9 @@
 
 ---
 
-# Doing Page Counting and Analysis
+## Doing Page Counting and Analysis
 
-If you want to do page counting and analysis there are several MySql tables that you can use. The MySql schema for these 
-tables is in the *mysql.schema* file in the repository.
+If you want to do page counting and analysis there are several MySql tables that you can use. The MySql schema for these tables is in the *mysql.schema* file in the repository.
 
 The tables are:
 
@@ -143,13 +142,9 @@ If you look at *SiteClass* you will see several methods in the constructor:
 * $this->logagent();
 * $this->counter();
 
-If you look at these methods you will see that they are protected by a check of the database to see if the tables 
-exists in the database. If the table does not exist an 'error_log' message is output. 
-You can prevent the error message by setting "noErrorLog": "true" in the 'mysitemap.json' file.
+If you look at these methods you will see that they are protected by a check of the database to see if the tables exists in the database. If the table does not exist an 'error_log' message is output. You can prevent the error message by setting "noErrorLog": "true" in the 'mysitemap.json' file.
 
-I have five additional PHP files to check *robots.txt* (robots.php), *Sitemap.xml* (sitemap.php). 
-I also have a 'tracker.php', 'beacon.php' and 'tracker.js' to do end of session logging. 
-These file are here in the '/docs/ directory.
+I have five additional PHP files to check *robots.txt* (robots.php), *Sitemap.xml* (sitemap.php). I also have a 'tracker.php', 'beacon.php' and 'tracker.js' to do end of session logging. These file are here in the '/docs/ directory.
 
 ---
 [Examples](examples.html)  
