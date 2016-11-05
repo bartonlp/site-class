@@ -63,24 +63,29 @@
       <p>If you have Apache or Nginx installed then you should made your project root somewhere within your DocumentRoot ('/var/www/html' for Apache2 on Ubuntu). Or if you want to make a seperate Apache virtual host with a registered domain name you can make your new project in '/var/www'.</p>
       <p>Create a directory <code>mkdir myproject; cd myproject</code>, this is your project root directory. Add the following to 'composer.json', just cut and past:</p>
       <div class="sourceCode">
-        <pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
-        <span class="dt">&quot;require&quot;</span><span class="fu">:</span> <span class="fu">{</span>
-        <span class="dt">&quot;bartonlp/site-class&quot;</span>
-        <span class="fu">:</span> <span class="st">&quot;dev-master&quot;</span>
-        <span class="fu">}</span>
-        <span class="fu">}</span></code>
-      </pre></div>
+      <pre class="sourceCode json">
+      <code class="sourceCode json">
+{
+    &quot;require&quot;: {
+        &quot;bartonlp/site-class&quot;: &quot;dev-master&quot;
+    }
+}
+      </code>
+      </pre>
+      </div>
       <p>Then run</p>
       <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">composer</span> install</code></pre></div>
       <p><strong>OR</strong> you can just run</p>
       <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">composer</span> require bartonlp/site-class:dev-master</code></pre></div>
       <p>which will create the 'composer.json' for you and load the package like 'composer install' above.</p>
-      <p>In your PHP file add <code>require_once($PATH_TO_VENDOR . '/vendor/autoload.php');</code> where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.</p>
+      <p>In your PHP file add <code>require_once($PATH_TO_VENDOR . '/vendor/autoload.php');</code>
+        where '$PATH_TO_VENDOR' is the path to the 'vendor' directory like './' or '../' etc.</p>
       <p>There are some example files in the 'examples' directory at '$PATH_TO_VENDOR/vendor/bartonlp/site-class/examples'.</p>
 
       <h2>Tests</h2>
       <p>In the 'tests' directory there are a series of mostly database engine tests. If you want to test MySql 
-        you will need to first install the packages (both OS and PHP5) and then configure each with a user and password etc. 
+        you will need to first install the packages (both OS and PHP5/PHP7)
+        and then configure each with a user and password etc. 
         Setting up the databases is beyond the scope of this README. 
         The tests are set up for an account with user 'siteclass' and password 'siteclass' with database 'siteclass' 
         (no single quotes of course).</p>
