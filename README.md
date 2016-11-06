@@ -16,6 +16,10 @@ The following database engines are provided as the following classes:
 
 There are a couple of additional databases but they have not be rigouously tested.
 
+## Additional Documentation 
+
+[SiteClass Documentation](https://bartonlp.github.io/site-class)
+
 ## Disclamer
 
 To start, this framework is meant for Linux not Windows. I don't use Windows, like it or have it, 
