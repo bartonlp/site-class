@@ -2,10 +2,7 @@
 // BLP 2014-03-06 -- ajax for tracker.js
 
 $_site = require_once(getenv("SITELOAD")."/siteload.php");
-
-$dbinfo = $_site->dbinfo;
-
-$S = new Database($dbinfo);
+$S = new Database($_site);
 
 $ip = $_SERVER['REMOTE_ADDR'];
 $agent = $_SERVER['HTTP_USER_AGENT'];
@@ -17,7 +14,7 @@ if($_POST['page'] == 'ajaxmsg') {
   // NOTE: $_POST['ipagent'] is a string not a boolian! So === true does NOT work but == true
   // or == 'true' does work.
   $ipagent = ($_POST['ipagent'] == 'true') ? ": $ip, $agent" : '';
-  error_log("tracker: AJAXMSG, $_site->siteName, '$msg'" . $ipagent);
+  error_log("tracker: AJAXMSG, $S->siteName, '$msg'" . $ipagent);
   echo "AJAXMSG OK";
   exit();
 }
@@ -28,12 +25,10 @@ if($_POST['page'] == 'start') {
   $id = $_POST['id'];
   
   if(!$id) {
-    error_log("tracker: $_site->siteName: START NO ID, $ip, $agent");
+    error_log("tracker: $S->siteName: START NO ID, $ip, $agent");
     exit();
   }
 
-  //error_log("tracker: start,    $_site->siteName, $id, $ip, $agent");
-  
   $S->query("update $_site->masterdb.tracker set isJavaScript=isJavaScript|1, lasttime=now() where id='$id'");
   echo "Start OK";
   exit();
@@ -45,13 +40,13 @@ if($_POST['page'] == 'load') {
   $id = $_POST['id'];
   
   if(!$id) {
-    error_log("tracker: $_site->siteName: LOAD NO ID, $ip, $agent");
+    error_log("tracker: $S->siteName: LOAD NO ID, $ip, $agent");
     exit();
   }
 
   //error_log("tracker: load, $_site->siteName, $id, $ip, $agent");
   
-  $S->query("update $_site->masterdb.tracker set isJavaScript=isJavaScript|2, lasttime=now() where id='$id'");
+  $S->query("update $S->masterdb.tracker set isJavaScript=isJavaScript|2, lasttime=now() where id='$id'");
   echo "Load OK";
   exit();
 }
@@ -62,11 +57,11 @@ if($_POST['page'] == 'pagehide') {
   $id = $_POST['id'];
 
   if(!$id) {
-    error_log("tracker: $_site->siteName: PAGEHIDE NO ID, $ip, $agent");
+    error_log("tracker: $S->siteName: PAGEHIDE NO ID, $ip, $agent");
     exit();
   }
 
-  $S->query("select isJavaScript from $_site->masterdb.tracker where id=$id");
+  $S->query("select isJavaScript from $S->masterdb.tracker where id=$id");
   
   list($js) = $S->fetchrow('num');
 
@@ -93,7 +88,7 @@ if($_POST['page'] == 'beforeunload') {
     exit();
   }
 
-  $S->query("select isJavaScript from $_site->masterdb.tracker where id=$id");
+  $S->query("select isJavaScript from $S->masterdb.tracker where id=$id");
   
   list($js) = $S->fetchrow('num');
 
@@ -102,8 +97,8 @@ if($_POST['page'] == 'beforeunload') {
   // or (256|512) tracker:beforeunload/unload. We should update.
   
   if(($js & ~(4127)) == 0) {
-    //error_log("tracker: beforeunload, $_site->siteName, $id, $ip, $agent, $js");
-    $S->query("update $_site->masterdb.tracker set endtime=now(), difftime=timediff(now(),starttime), ".
+    //error_log("tracker: beforeunload, $S->siteName, $id, $ip, $agent, $js");
+    $S->query("update $S->masterdb.tracker set endtime=now(), difftime=timediff(now(),starttime), ".
               "isJavaScript=isJavaScript|256, lasttime=now() where id=$id");
   }
   echo "beforeunload OK";
@@ -116,11 +111,11 @@ if($_POST['page'] == 'unload') {
   $id = $_POST['id'];
 
   if(!$id) {
-    error_log("tracker: $_site->siteName: UNLOAD NO ID, $ip, $agent");
+    error_log("tracker: $S->siteName: UNLOAD NO ID, $ip, $agent");
     exit();
   }
 
-  $S->query("select isJavaScript from $_site->masterdb.tracker where id=$id");
+  $S->query("select isJavaScript from $S->masterdb.tracker where id=$id");
   
   list($js) = $S->fetchrow('num');
 
@@ -129,7 +124,7 @@ if($_POST['page'] == 'unload') {
   // or (256|512) tracker:beforeunload/unload. We should update.
   
   if(($js & ~(4127)) == 0) {
-    $S->query("update $_site->masterdb.tracker set endtime=now(), difftime=timediff(now(),starttime), ".
+    $S->query("update $S->masterdb.tracker set endtime=now(), difftime=timediff(now(),starttime), ".
               "isJavaScript=isJavaScript|512, lasttime=now() where id=$id");
   }
   echo "Unload OK";
@@ -142,34 +137,34 @@ if($_GET['page'] == 'script') {
   $id = $_GET['id'];
 
   if(!$id) {
-    error_log("tracker: $_site->siteName: SCRIPT NO ID, $ip, $agent");
+    error_log("tracker: $S->siteName: SCRIPT NO ID, $ip, $agent");
     exit();
   }
 
-  //error_log("tracker: script, $_site->siteName, $id, $ip, $agent");
+  //error_log("tracker: script, $S->siteName, $id, $ip, $agent");
 
   try {
-    $sql = "select page, agent from $_site->masterdb.tracker where id=$id";
+    $sql = "select page, agent from $S->masterdb.tracker where id=$id";
     $n = $S->query($sql);
 
     list($page, $orgagent) = $S->fetchrow('num');
 
     if($agent != $orgagent) {
-      $sql = "insert into $_site->masterdb.tracker (site, ip, page, agent, starttime, refid, isJavaScript, lasttime) ".
-             "values('$_site->siteName', '$ip', '$page', '$agent', now(), '$id', 0x2004, now())";
+      $sql = "insert into $S->masterdb.tracker (site, ip, page, agent, starttime, refid, isJavaScript, lasttime) ".
+             "values('$S->siteName', '$ip', '$page', '$agent', now(), '$id', 0x2004, now())";
 
       $S->query($sql);
     }
   
-    $sql = "update $_site->masterdb.tracker set isJavaScript=isJavaScript|4, lasttime=now() where id=$id";
+    $sql = "update $S->masterdb.tracker set isJavaScript=isJavaScript|4, lasttime=now() where id=$id";
     $S->query($sql);
   } catch(Exception $e) {
     error_log(print_r($e, true));
   }
   $img1 = "http://bartonphillips.net/images/blank.png";
 
-  if($_site->trackerImg1) {
-    $img1 = "http://bartonphillips.net" . $_site->trackerImg1;
+  if($S->trackerImg1) {
+    $img1 = "http://bartonphillips.net" . $S->trackerImg1;
   }
 
   $imageType = preg_replace("~^.*\.(.*)$~", "$1", $img1);
@@ -183,32 +178,32 @@ if($_GET['page'] == 'normal') {
   $id = $_GET['id'];
   
   if(!$id) {
-    error_log("tracker: $_site->siteName: NORMAL NO ID, $ip, $agent");
+    error_log("tracker: $S->siteName: NORMAL NO ID, $ip, $agent");
     exit();
   }
 
-  //error_log("tracker: normal, $_site->siteName, $id, $ip, $agent");
+  //error_log("tracker: normal, $S->siteName, $id, $ip, $agent");
 
   try {
-    $sql = "select page, agent from $_site->masterdb.tracker where id=$id";
+    $sql = "select page, agent from $S->masterdb.tracker where id=$id";
     $S->query($sql);
     list($page, $orgagent) = $S->fetchrow('num');
     if($agent != $orgagent) {
-      $sql = "insert into $_site->masterdb.tracker (site, ip, page, agent, starttime, refid, isJavaScript, lasttime) ".
-             "values('$_site->siteName', '$ip', '$page', '$agent', now(), '$id', 0x2008, now())";
+      $sql = "insert into $S->masterdb.tracker (site, ip, page, agent, starttime, refid, isJavaScript, lasttime) ".
+             "values('$S->siteName', '$ip', '$page', '$agent', now(), '$id', 0x2008, now())";
 
       $S->query($sql);
     }
 
-    $sql = "update $_site->masterdb.tracker set isJavaScript=isJavaScript|8, lasttime=now() where id=$id";
+    $sql = "update $S->masterdb.tracker set isJavaScript=isJavaScript|8, lasttime=now() where id=$id";
     $S->query($sql);
   } catch(Exception $e) {
     error_log(print_r($e, true));
   }
   $img2 = "http://bartonphillips.net/images/blank.png";
 
-  if($_site->trackerImg2) {
-    $img2 = "http://bartonphillips.net" . $_site->trackerImg2;
+  if($S->trackerImg2) {
+    $img2 = "http://bartonphillips.net" . $S->trackerImg2;
   }
 
   $imageType = preg_replace("~.*\.(.*)$~", "$1", $img2);
@@ -224,24 +219,24 @@ if($_GET['page'] == 'noscript') {
   $id = $_GET['id'];
 
   if(!$id) {
-    error_log("tracker: $_site->siteName: NOSCRIPT NO ID, $ip, $agent");
+    error_log("tracker: $S->siteName: NOSCRIPT NO ID, $ip, $agent");
     exit();
   }
 
-  //error_log("tracker: noscript, $_site->siteName, $id, $ip, $agent");
+  //error_log("tracker: noscript, $S->siteName, $id, $ip, $agent");
 
   try {
-    $sql = "select page, agent from $_site->masterdb.tracker where id=$id";
+    $sql = "select page, agent from $S->masterdb.tracker where id=$id";
     $S->query($sql);
     list($page, $orgagent) = $S->fetchrow('num');
     if($agent != $orgagent) {
-      $sql = "insert into $_site->masterdb.tracker (site, ip, page, agent, starttime, refid, isJavaScript, lasttime) ".
-             "values('$_site->siteName', '$ip', '$page', '$agent', now(), '$id', 0x2010, now())";
+      $sql = "insert into $S->masterdb.tracker (site, ip, page, agent, starttime, refid, isJavaScript, lasttime) ".
+             "values('$S->siteName', '$ip', '$page', '$agent', now(), '$id', 0x2010, now())";
 
       $S->query($sql);
     }
 
-    $sql = "update $_site->masterdb.tracker set isJavaScript=isJavaScript|0x10, lasttime=now() where id=$id";
+    $sql = "update $S->masterdb.tracker set isJavaScript=isJavaScript|0x10, lasttime=now() where id=$id";
     $S->query($sql);
   } catch(Exception $e) {
     error_log(print_r($e, true));
@@ -256,12 +251,12 @@ if($_POST['page'] == 'timer') {
   $id = $_POST['id'];
 
   if(!$id) {
-    error_log("tracker: $_site->siteName: TIMER NO ID, $ip, $agent");
+    error_log("tracker: $S->siteName: TIMER NO ID, $ip, $agent");
     exit();
   }
 
   try {
-    $sql = "update $_site->masterdb.tracker set isJavaScript=isJavaScript|4096, endtime=now(), ".
+    $sql = "update $S->masterdb.tracker set isJavaScript=isJavaScript|4096, endtime=now(), ".
            "difftime=timediff(now(),starttime), lasttime=now() where id=$id";
     
     $S->query($sql);
@@ -279,14 +274,14 @@ if($_POST['page'] == 'fingerprint') {
   $page = $_POST['pagename'];
 
   if(!$finger) {
-    error_log("tracker: $_site->siteName: TIMER NO finger, $ip, $agent");
+    error_log("tracker: $S->siteName: TIMER NO finger, $ip, $agent");
     exit();
   }
 
-  //error_log("tracker: finger $_site->siteName, $finger, $page, $ip, $agent");
+  //error_log("tracker: finger $S->siteName, $finger, $page, $ip, $agent");
   
   try {
-    $sql = "insert into $_site->masterdb.finger (ip, finger, page, agent, count, created, lasttime) ".
+    $sql = "insert into $S->masterdb.finger (ip, finger, page, agent, count, created, lasttime) ".
            "values('$ip', '$finger', '$page', '$agent', 1, now(), now()) ".
            "on duplicate key update count=count+1, lasttime=now()";
     

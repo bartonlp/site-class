@@ -75,7 +75,7 @@ jQuery(document).ready(function($) {
       url: trackerUrl,
       data: {page: 'beforeunload', id: lastId },
       type: 'post',
-      //async: false,
+      async: false,
       success: function(data) {
              console.log(data);
            },
@@ -90,7 +90,7 @@ jQuery(document).ready(function($) {
       url: trackerUrl,
       data: {page: 'unload', id: lastId },
       type: 'post',
-      //async: false,
+      async: false,
       success: function(data) {
              console.log(data);
            },
@@ -105,6 +105,7 @@ jQuery(document).ready(function($) {
       url: trackerUrl,
       data: {page: 'pagehide', id: lastId },
       type: 'post',
+      async: false,
       success: function(data) {
              console.log(data);
            },
