@@ -1,0 +1,169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>Additional Files</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  
+  <style>
+  div.sourceCode {
+    background-color: #EEF3E2;
+    border-left: 10px solid gray;
+    padding-left: 5px;
+  }
+  code {
+    background-color: #EEF3E2;
+  }
+  </style>
+</head>
+<body>
+<h1 id="siteclass-verion-2.0">SiteClass Verion 2.0</h1>
+<p><strong>SiteClass</strong> is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.</p>
+<hr />
+<h2 id="the-mysitemap.json-file">The 'mysitemap.json' File</h2>
+<p>The 'mysitemap.json' file is the site configuration file. 'siteload.php' loads the 'mysitemap.json' file<br />
+that is in the current directory. If a 'mysitemap.json' file is not found an exception is thrown.</p>
+<p>Once a 'mysitemap.json' file is found the information in it is read in via 'require_once'.<br />
+The information from the 'mysitemap.json' file is returned as a PHP object.</p>
+<p>You can generate a 'mysitemap.json' file by running 'mysitemap.json.php' and redirecting the output to 'mysitemap.json'.</p>
+<p>My usual directory structure starts under a 'www' subdirectory. On an Apache2 host the structure looks like this:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">/var/www/vendor</span>          // this is the <span class="st">&#39;composer&#39;</span> directory where the <span class="st">&#39;bartonlp/site-class&#39;</span> resides
+<span class="kw">/var/www/html</span>            // this is where your php files and js, css etc. 
+                         <span class="kw">//</span> directories live
+<span class="kw">/var/www/html/includes</span>   // this is where <span class="st">&#39;headFile&#39;</span>, <span class="st">&#39;bannerFile&#39;</span>, 
+                         <span class="kw">//</span> <span class="st">&#39;footerFile&#39;</span> and child classes live</code></pre></div>
+<p>If I have multiple virtual hosts they are all off the '/var/www' directory instead of a single 'html' directory.</p>
+<h3 id="how-the-xxxfile-files-look">How the xxxFile files look</h3>
+<p>In the 'mysitemap.json' file there can be three elements that describe the location of special files.<br />
+These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.</p>
+<p>I put the three special file in my '/var/www/html/includes' directory (where 'html' may be one of your virtual hosts<br />
+and not named 'html').</p>
+<p>Here is an example of my 'headFile':</p>
+<div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
+<span class="co">// head.i.php for bartonphillips.com</span>
+
+<span class="kw">return</span> <span class="kw">&lt;&lt;&lt;EOF</span>
+<span class="st">&lt;head&gt;</span>
+<span class="st">  &lt;!-- Example head.i.php file --&gt;</span>
+<span class="st">  &lt;title&gt;</span><span class="kw">{$arg[&#39;title&#39;]}</span><span class="st">&lt;/title&gt;</span>
+<span class="st">  &lt;!-- METAs --&gt;</span>
+<span class="st">  &lt;meta name=viewport content=&quot;width=device-width, initial-scale=1&quot;&gt;</span>
+<span class="st">  &lt;meta charset=&#39;utf-8&#39;/&gt;</span>
+<span class="st">  &lt;meta name=&quot;copyright&quot; content=&quot;</span><span class="kw">$this</span><span class="st">-&gt;copyright&quot;&gt;</span>
+<span class="st">  &lt;meta name=&quot;Author&quot;</span>
+<span class="st">    content=&quot;Barton L. Phillips, mailto:bartonphillips@gmail.com&quot;/&gt;</span>
+<span class="st">  &lt;meta name=&quot;description&quot;</span>
+<span class="st">    content=&quot;</span><span class="kw">{$arg[&#39;desc&#39;]}</span><span class="st">&quot;/&gt;</span>
+<span class="kw">{$arg[&#39;link&#39;]}</span>
+<span class="kw">{$arg[&#39;extra&#39;]}</span>
+<span class="kw">{$arg[&#39;script&#39;]}</span>
+<span class="kw">{$arg[&#39;css&#39;]}</span>
+<span class="st">&lt;/head&gt;</span>
+<span class="st">EOF;</span></code></pre></div>
+<p>These 'xxxFile' files return their contents.<br />
+The $arg array is created form the argument passed to the 'getPageTopBottom' method.<br />
+The 'getPageTopBottom' method also has access to the SiteClass '$this' property.</p>
+<p>You will see if you delve into the SiteClass code that many things can be passed to the getPageTopBottom method,<br />
+and the various sub-methods, but the standard things are:</p>
+<ul>
+<li>title</li>
+<li>desc</li>
+<li>link</li>
+<li>extra</li>
+<li>script</li>
+<li>css</li>
+</ul>
+<p>As you saw in example 5 above (test5.php in the 'examples' directory) I passed a '$h' object to 'SiteClass'.<br />
+For example it might look like this:</p>
+<div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">$h</span>-&gt;title = <span class="st">&#39;my title&#39;</span><span class="ot">;</span>
+<span class="kw">$h</span>-&gt;desc = <span class="st">&#39;This is the description&#39;</span><span class="ot">;</span>
+<span class="kw">$h</span>-&gt;<span class="fu">link</span> = <span class="st">&#39;&lt;link rel=&quot;stylesheet&quot; href=&quot;test.css&quot;&gt;&#39;</span><span class="ot">;</span>
+<span class="kw">$h</span>-&gt;extra = <span class="st">&#39;&lt;!-- this can be anything from a meta, link, script etc --&gt;&#39;</span><span class="ot">;</span>
+<span class="kw">$h</span>-&gt;script = <span class="st">&#39;&lt;script&gt; var a=&quot;test&quot;; &lt;/script&gt;&#39;</span><span class="ot">;</span>
+<span class="kw">$h</span>-&gt;css = <span class="st">&#39;&lt;style&gt; /* some css */ #test { width: 10px; } &lt;/style&gt;&#39;</span><span class="ot">;</span>
+<span class="kw">$S</span> = <span class="kw">new</span> SiteClass<span class="ot">(</span><span class="kw">$h</span><span class="ot">);</span></code></pre></div>
+<p>As you can see in the 'headFile' example the '$this' can also be used as in '$this-&gt;copyright'.<br />
+Any of the public, protected or private '$this' properties can be used in any of the special files as they<br />
+are all included within 'SiteClass.class.php'.</p>
+<p>As these special files are PHP files you can do anything else that you need to,<br />
+including database queries. Just remember that you need to use '$this'.<br />
+For example, to do a query do <code>$this-&gt;query($sql);</code> not <code>$S-&gt;query($sql);</code>.<br />
+You can't use the variable from your project file that you created via the <code>$S = new SiteClass($h);</code><br />
+because it is NOT within scope.</p>
+<p>I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything you like.<br />
+In the 'mysitemap.json' just add the full path to the file. For example:</p>
+<div class="sourceCode"><pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
+    <span class="dt">&quot;siteDomain&quot;</span><span class="fu">:</span> <span class="st">&quot;localhost&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;siteName&quot;</span><span class="fu">:</span> <span class="st">&quot;YourSiteName&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;className&quot;</span><span class="fu">:</span> <span class="st">&quot;SiteClass&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;copyright&quot;</span><span class="fu">:</span> <span class="st">&quot;2016 Barton L. Phillips&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;memberTable&quot;</span><span class="fu">:</span> <span class="st">&quot;members&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;noTrack&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span>
+    <span class="dt">&quot;dbinfo&quot;</span><span class="fu">:</span> <span class="fu">{</span>
+        <span class="dt">&quot;database&quot;</span><span class="fu">:</span> <span class="st">&quot;test.sdb&quot;</span><span class="fu">,</span>
+        <span class="dt">&quot;engine&quot;</span><span class="fu">:</span> <span class="st">&quot;sqlite3&quot;</span>
+    <span class="fu">},</span>
+    <span class="dt">&quot;headFile&quot;</span><span class="fu">:</span> <span class="st">&quot;includes/head.i.php&quot;</span><span class="fu">,</span>
+    <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="kw">false</span>
+<span class="fu">}</span></code></pre></div>
+<p>There is a default for the head, banner and footer section if you do not have special files.<br />
+The DOCTYPE is by default <code>&lt;!DOCTYPE html&gt;</code> but that can be altered via an argument to the 'getPageTopBottom'<br />
+method (<code>$h-&gt;doctype='xxx';</code>).</p>
+<p>Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.</p>
+<hr />
+<p><a href="examples.html">Examples</a><br />
+<a href="dbTables.html">dbTables</a><br />
+<a href="siteclass.html">SiteClass Methods</a><br />
+<a href="files.html">Additional Files</a><br />
+<a href="analysis.html">Analysis and Tracking</a><br />
+<a href="index.html">Index</a></p>
+<h2 id="contact-me">Contact Me</h2>
+<p>Barton Phillips : <script type="text/javascript">
+<!--
+h='&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#x2f;&#x2f;&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;'+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;&#32;&#40;&#x2f;&#x2f;&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#32;&#x61;&#116;&#32;&#x67;&#x6d;&#x61;&#x69;&#108;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;&#x29;</noscript><br />
+Copyright © 2015 Barton Phillips<br />
+Project maintained by <a href="https://github.com/bartonlp">bartonlp</a></p>
+</body>
+</html>
