@@ -40,10 +40,10 @@ class WithMysql extends TestCase { //PHPUnit_Extensions_Database_TestCase {
     $this->assertTrue(!is_null($S));
     $this->assertTrue(!is_null($S->getDb()));
     $this->assertEquals($S->getDbName(), "siteclass");
-    $this->assertEquals($S->copyright, $this->s['copyright']);
+    $this->assertEquals($S->copyright, $this->s->copyright);
     $this->assertEquals($S->doctype, '<!DOCTYPE html>');
     $this->assertEquals($S->siteName, 'Test');
-    $this->assertEquals($S->dbinfo['password'], 'siteclass');
+    $this->assertEquals($S->dbinfo->password, 'siteclass');
     $S->query("drop database if exists siteclass");
     $S->query("create database siteclass");
     $S->query("show databases like 'siteclass'");

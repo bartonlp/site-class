@@ -36,10 +36,10 @@ class WithSqlite extends TestCase {
     $this->assertTrue(!is_null($S));
     $this->assertTrue(!is_null($S->getDb()));
     $this->assertEquals($S->getDbName(), "siteclass");
-    $this->assertEquals($S->copyright, $this->s['copyright']);
+    $this->assertEquals($S->copyright, $this->s->copyright);
     $this->assertEquals($S->doctype, '<!DOCTYPE html>');
     $this->assertEquals($S->siteName, 'Test');
-    $this->assertEquals($S->dbinfo['password'], 'siteclass');
+    $this->assertEquals($S->dbinfo->password, 'siteclass');
   }
   
   public function testDropCreate() {
@@ -60,6 +60,7 @@ class WithSqlite extends TestCase {
 
     $S->query("select count(*) from members");
     list($cnt) = $S->fetchrow('num');
+    $S->finalize();
     $this->assertTrue($cnt == 3, "testInsert select cnt=$cnt");
   }
 
@@ -76,6 +77,7 @@ class WithSqlite extends TestCase {
   public function testUpdate() {
     $S = $this->S;
     $S->query("update members set fname='NEW' where rowid=1");
+
     $S->query("select fname from members where rowid=1");
     list($fname) = $S->fetchrow('num');
     $S->finalize();
@@ -99,7 +101,7 @@ class WithSqlite extends TestCase {
     $h = <<<EOF
 <!DOCTYPE html>
 <html lang="en" >
-This is the header via a return.
+This is the header via a return!
 
 EOF;
 
