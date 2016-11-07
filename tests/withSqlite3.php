@@ -27,6 +27,7 @@ class WithSqlite extends TestCase {
   
   protected function setUp() {
     ErrorClass::setNoHtml(true);
+    $this->s = arraytoobjectdeep($this->s);
     $this->S = new SiteClass($this->s);
   }
 
@@ -34,7 +35,7 @@ class WithSqlite extends TestCase {
     $S = $this->S;
     $this->assertTrue(!is_null($S));
     $this->assertTrue(!is_null($S->getDb()));
-    $this->assertEquals($S->getDb()->__toString(), "dbSqlite");
+    $this->assertEquals($S->getDbName(), "siteclass");
     $this->assertEquals($S->copyright, $this->s['copyright']);
     $this->assertEquals($S->doctype, '<!DOCTYPE html>');
     $this->assertEquals($S->siteName, 'Test');
@@ -67,6 +68,7 @@ class WithSqlite extends TestCase {
     $S->query("select fname, lname from members where rowid=1");
 
     list($fname, $lname) = $S->fetchrow('num');
+    $S->finalize();
     $this->assertEquals($fname, 'Barton', "testSelect fname=$fname");
     $this->assertEquals($lname, 'Phillips', "testSelect lname=$lname");
   }
@@ -76,6 +78,7 @@ class WithSqlite extends TestCase {
     $S->query("update members set fname='NEW' where rowid=1");
     $S->query("select fname from members where rowid=1");
     list($fname) = $S->fetchrow('num');
+    $S->finalize();
     $this->assertEquals($fname, 'NEW', "testUpdate fname=$fname");
   }
 
@@ -86,6 +89,7 @@ class WithSqlite extends TestCase {
     for($i=0; $row = $S->fetchrow(); ++$i) {
       $this->assertEquals($row[0], $l[$i]);
     }
+    $S->finalize();
   }
 
   public function testHeadFile() {

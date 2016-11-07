@@ -22,7 +22,6 @@ define("SITE_CLASS_VERSION", "2.0.0");
 
 class SiteClass extends dbAbstract {
   private $hitCount = null;
-  protected $databaseClass = null;
   
   // Give these default values.
   public $count = true;
@@ -36,9 +35,9 @@ class SiteClass extends dbAbstract {
    * Constructor
    *
    * @param array|object $s
-   *  fields: databaseClass, siteDomain, subDomain, headFile,
+   *  fields: siteDomain, subDomain, headFile,
    *  bannerFile, footerFile, count, daycountwhat, emailDomain, nodb:
-   *  these fields are all protected. Note: nodb can also be a member of databaseClass->nodb.
+   *  these fields are all protected. 
    *  If there are more elements in $s they become public properties. You can add myUri to populate
    *  $this->myIp if you don't want to count webmaster activity.
    *  count is default true and countMe is default false. The rest of the values are 'null' if not
@@ -46,12 +45,10 @@ class SiteClass extends dbAbstract {
    */
   
   public function __construct($s=null) {
-    // This is ugly!
-    // Wordpress has a class named Error. So for conejo we have to use a different name.
-    // I may try to fix this at some point.
-
     ErrorClass::init(); // BLP 2014-12-31 -- Make sure this is done
 
+    $this->isSiteClass = true;
+    
     date_default_timezone_set("America/Los_Angeles");
     
     $arg = array(); // temp array for $s during parsing
@@ -82,33 +79,15 @@ class SiteClass extends dbAbstract {
       $this->emailDomain = $this->siteDomain;
     }
 
-    // BLP 2016-03-16 -- if nodb is true anywhere set it true and count and countMe false.
-    // The database could have been instantiated before the call to this constructor and the object
-    // placed in databaseClass.
-    
-    if($this->databaseClass->nodb === true || $this->nodb === true || is_null($this->dbinfo)) {
-       // nodb === true so don't do any database stuff
-       // could be either no $databaseClass or $databaseClass->nodb===true so be sure and
-       // set $this->nodb true also.
+    if($this->nodb === true || is_null($this->dbinfo)) {
+      // nodb === true so don't do any database stuff
       $this->nodb = true;
       $this->count = $this->countMe = false;
     }
 
-    if(is_null($this->databaseClass) && $this->nodb !== true && !is_null($this->dbinfo)) {
-      // instantiate the Database with dbinfo
-      $this->databaseClass = new Database($this->dbinfo);
-    }
-
-    if(isset($this->db2info)) {
-      $this->databaseClass2 = new Database($this->db2info);
-      $this->db2 = $this->databaseClass2->db;
-    }
-
-    // Populate the dbAbstract class's protected $db. This allows the dbAbstract class's
-    // methods to be accessed via SiteClass. Can't use getDb() until $this->db is valid!
-
-    if(isset($this->databaseClass)) {
-      $this->db = $this->databaseClass->db; // use property not method getDb()!
+    if(is_null($this->db) && $this->nodb !== true && !is_null($this->dbinfo)) {
+      // instantiate the Database. Pass Everything on to Database
+      $this->db = new Database($this);
     }
 
     // If myUri is set get the ip address into myIp
@@ -169,15 +148,6 @@ class SiteClass extends dbAbstract {
 
   public function getVersion() {
     return SITE_CLASS_VERSION;
-  }
-
-  /**
-   * getDatabaseClass()
-   * returns the Database class
-   */
-  
-  public function getDatabaseClass() {
-    return $this->databaseClass;
   }
 
   /**
@@ -1036,7 +1006,7 @@ EOF;
         
       $this->query($sql);
     } else {
-      $this->debug("$this->siteName: $this->self: table logagent does not exist in the {$this->dbinfo['database']} database");
+      $this->debug("$this->siteName: $this->self: table logagent does not exist in the $this->dbinfo->database database");
     }
 
     // Do insert into logagent2 which has only the last n days
@@ -1053,7 +1023,7 @@ EOF;
 
       $this->query($sql);
     } else {
-      $this->debug("$this->siteName: $this->self: table logagent2 does not exist in the {$this->dbinfo['database']} database");
+      $this->debug("$this->siteName: $this->self: table logagent2 does not exist in the $this->dbinfo->database database");
     }
   }
 
@@ -1076,7 +1046,7 @@ EOF;
       $agent = $this->escape($this->agent);
 
       $this->query("select count(*) from information_schema.tables ".
-                   "where (table_schema = '{$this->dbinfo['database']}') and (table_name = '$this->memberTable')");
+                   "where (table_schema = '$this->dbinfo->database') and (table_name = '$this->memberTable')");
 
       list($ok) = $this->fetchrow('num');
 
@@ -1090,14 +1060,14 @@ EOF;
 
         $this->query($sql);
       } else {
-        $this->debug("$this->siteName: $this->self: table $this->memberTable does not exist in the {$this->dbinfo['database']} database");
+        $this->debug("$this->siteName: $this->self: table $this->memberTable does not exist in the $this->dbinfo->database database");
       }
       
       // BLP 2014-09-16 -- add nomemberpagecnt
 
       if(!$this->nomemberpagecnt) {
         $this->query("select count(*) from information_schema.tables ".
-                     "where (table_schema = '{$this->dbinfo['database']}') and (table_name = 'memberpagecnt')");
+                     "where (table_schema = '$this->dbinfo->database') and (table_name = 'memberpagecnt')");
 
         list($ok) = $this->fetchrow('num');
 
@@ -1108,7 +1078,7 @@ EOF;
 
           $this->query($sql);
         } else {
-          $this->debug("$this->siteName: $this->self: table memberpagecnt does not exist in the {$this->dbinfo['database']} database");
+          $this->debug("$this->siteName: $this->self: table memberpagecnt does not exist in the $this->dbinfo->database database");
         }
       }
     }

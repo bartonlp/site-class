@@ -14,6 +14,8 @@ class WithMysql extends TestCase { //PHPUnit_Extensions_Database_TestCase {
                      'memberTable' => "members",
                      'headFile'=>"./includes/head.i.php",
 //                     'footerFile'=>"./includes/footer.i.php",
+                     'noTrack' => true,
+                     'count' => false,
                      'dbinfo' => array(
                                        "host"=>"localhost",
                                        "user"=>"siteclass",
@@ -27,6 +29,7 @@ class WithMysql extends TestCase { //PHPUnit_Extensions_Database_TestCase {
 
   protected function setUp() {
     ErrorClass::setNoHtml(true);
+    $this->s = arraytoobjectdeep($this->s);
     $this->S = new SiteClass($this->s);
   }
 
@@ -36,7 +39,7 @@ class WithMysql extends TestCase { //PHPUnit_Extensions_Database_TestCase {
 
     $this->assertTrue(!is_null($S));
     $this->assertTrue(!is_null($S->getDb()));
-    $this->assertEquals($S->getDb()->__toString(), "dbMysqli");
+    $this->assertEquals($S->getDbName(), "siteclass");
     $this->assertEquals($S->copyright, $this->s['copyright']);
     $this->assertEquals($S->doctype, '<!DOCTYPE html>');
     $this->assertEquals($S->siteName, 'Test');
@@ -104,7 +107,7 @@ class WithMysql extends TestCase { //PHPUnit_Extensions_Database_TestCase {
     $h = <<<EOF
 <!DOCTYPE html>
 <html lang="en" >
-This is the header via a return.
+This is the header via a return!
 
 EOF;
 

@@ -10,40 +10,57 @@ class Database extends dbAbstract {
    * constructor
    * @param mixed
    *    1) strings: host, user, password, database, engine
-   *    2) array: as above
+   *    2) array: can be $dbinfo or $_site with everythin
    *    3) object: as above
    */
-  
+
   public function __construct(/* mixed */) {
     $args = func_get_args();
     $n = func_num_args();
     $arg = array();
 
-    if($n == 1) {
-      // An array or object
-      $a = $args[0];
+    if($args[0]->isSiteClass) {
+      $arg = $args[0]->dbinfo;
+    } else {
+      if($n == 1) {
+        if(!$args[0]->dbinfo) {
+          $arg = $args[0];
+        } else {
+          // An array or object
+          $a = $args[0];
 
-      if(is_object($a)) {
-        foreach($a as $k=>$v) {
-          $arg[$k] = $v;
+          if(is_object($a)) {
+            foreach($a as $k=>$v) {
+              $arg[$k] = $v;
+            }
+          } elseif(is_array($a)) {
+            $arg = $a;
+          } else {
+            throw(new Exception("Error: argument not array or object: ". print_r($a, true)));
+          }
         }
-      } elseif(is_array($a)) {
-        $arg = $a;
       } else {
-        throw(new Exception("Error: argument not array or object: ". print_r($a, true)));
+        // strings
+        $keys = array('host', 'user', 'password', 'database', 'engine');
+        for($i=0; $i < $n; ++$i) {
+          $arg[$keys[$i]] = $args[$i];
+        }
+        $arg = (object)$arg;
       }
-    } elseif($n > 1) {
-      // strings
-      $keys = array('host', 'user', 'password', 'database', 'engine');
-      for($i=0; $i < $n; ++$i) {
-        $arg[$keys[$i]] = $args[$i];
+
+      // Transfer $args to $this
+      
+      foreach($arg as $k=>$v) {
+        $this->$k = $v; 
       }
+      $db = null;
+      $err = null;
+      $arg = $this->dbinfo ? $this->dbinfo : $arg;
     }
 
-    $db = null;
-    $err = null;
-    $arg = (object)$arg;
-
+    //vardump("dbinfo", $arg);
+    //vardump("this", $this);
+    
     if(!isset($arg->engine)) {
       $this->errno = -2;
       $this->error = "'engine' not defined";

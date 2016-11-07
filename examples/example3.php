@@ -20,9 +20,8 @@ $dbinfo = array(
 ErrorClass::setNoEmailErrs(true);
 ErrorClass::setDevelopment(true);
 
-$db = new Database($dbinfo);
-
 $S = new SiteClass($_site);
+$db = new Database((object)$dbinfo);
 $S->setDb($db);
 
 // The rest is like the above example. 

@@ -19,6 +19,8 @@ $_site = array(
 ErrorClass::setNoEmailErrs(true);
 ErrorClass::setDevelopment(true);
 
+$_site = arraytoobjectdeep($_site);
+
 $S = new SiteClass($_site);
 
 list($top, $footer) = $S->getPageTopBottom();

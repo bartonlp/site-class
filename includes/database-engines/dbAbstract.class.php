@@ -14,7 +14,7 @@ abstract class dbAbstract {
   abstract public function __toString();
 
   public function getDbName() {
-    return $this->db->database;
+    return $this->dbinfo->database;
   }
 
   public function getDb() {
@@ -22,7 +22,7 @@ abstract class dbAbstract {
   }
 
   public function setDb($db) {
-    $this->db = $this->databaseClass = $db;
+    $this->db = $db;
   }
   
   // The following methods either execute or if the method is not defined throw an Exception

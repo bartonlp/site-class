@@ -32,7 +32,6 @@ class dbMysqli extends dbAbstract {
    * @var resource $db
    */
   
-  protected $host, $user, $password, $database;
   private $result; // for select etc. a result set.
   
   static public $lastQuery = null; // for debugging
