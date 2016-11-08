@@ -16,6 +16,17 @@ The examples require '../vendor/bartonlp/site-class/includes/'.
 5. [example5.php](example5.php) Uses siteautoload.class.php and dbTables class.
 
 The next example show insertion and updating of the database and 'dbTables' useage.
+To have this work you must set the permissions and group on the 'test.sdb' table and on the examples directory:
+
+```bash
+sudo chgrp www-data test.sdb
+sudo chmod g+w test.sdb
+cd ..
+sudo chgrp www-data examples
+sudo chmod g+w examples
+```
+
+Now the following examples should work. All of the following examples need to be able to update the 'test.sdb' database.
 
 [example-insert-update.php](example-insert-update.php)
 
@@ -27,12 +38,11 @@ You can use other frameworks or templeting engines. Here we will use *Twig* a po
 *Twig* is a super powerful templet engine with looping and conditional statements and much more. 
 Here we do just about the minimum just as an example.
 
-There is a 'vendor' directory in the examples directory which has *Twig* and *Altorouter* already installed. 
-You may want to do:
+There is no 'vendor' directory in the examples directory. You will need to run 'composer' to get *Twig* and *Altorouter* installed. 
+
 ```bash
-composer update
+composer install
 ```
-to insure you have current versions.
 
 [example-with-twig.php](example-with-twig.php)
 

@@ -4,6 +4,18 @@
 // To run this file you need to install Twig. You can do that in this ('examples') directory
 // with the command 'composer require twig/twig:~1.0'
 // I have NOT included Twig in this repository!
+if(!file_exists("vendor/autoload.php")) {
+  echo <<<EOF
+<h1>Error No 'vendor/autoload.php'</h1>
+<p>You must get the repositorys. From the command line do:</p>
+<pre>
+composer install
+</pre>
+<p>Then try this agan.</p>
+EOF;
+  exit();
+}
+                
 require_once("vendor/autoload.php"); // for the installed vendor for Twig!
 
 $_site = require_once(getenv("SITELOAD"). "/siteload.php");
