@@ -60,8 +60,8 @@ class Database extends dbAbstract {
 
     //vardump("dbinfo", $arg);
     //vardump("this", $this);
-    
-    if(!isset($arg->engine)) {
+
+    if(isset($arg->engine) === false) {
       $this->errno = -2;
       $this->error = "'engine' not defined";
       throw(new SqlException(__METHOD__, $this));

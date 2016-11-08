@@ -8,15 +8,20 @@
 // We are in 'vendor/bartonlp/site-class/includes' so we want to go back three directories to load
 // autoload.php
 
-$dir = __DIR__;
-require_once("$dir/../../../autoload.php");
-$docroot = $_SERVER['DOCUMENT_ROOT'];
-$self = $_SERVER['PHP_SELF'];
+require_once(__DIR__ ."/../../../autoload.php");
+return json_decode(findsitemap());
 
-// Check that there really is a file and this isn't a "friendly" url
+function findsitemap() {
+  $docroot = $_SERVER['DOCUMENT_ROOT'];
 
-if(file_exists($docroot . $self)) {
-  $dir = dirname($self);
+  if(file_exists("mysitemap.json")) {
+    return file_get_contents("mysitemap.json");
+  } else {
+    if($docroot == getcwd()) {
+      return null;
+    }
+    chdir('..');
+    // Recurse
+    return findsitemap();
+  }
 }
-
-return json_decode(file_get_contents($docroot . $dir ."/mysitemap.json"));
