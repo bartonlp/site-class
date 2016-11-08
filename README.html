@@ -66,7 +66,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li>SiteClass.class.php : tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.</li>
 </ul>
 <p>The following database engines are provided as the following classes:</p>
-<ol style="list-style-type: decimal">
+<ol>
 <li>dbMysqli.class.php : (rigorously tested) This is the latest PHP version of the MySql database engine.</li>
 <li>dbSqlite.class.php : sqlite3 (used for the examples)</li>
 </ol>
@@ -74,16 +74,28 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <h2 id="additional-documentation">Additional Documentation</h2>
 <p><a href="https://bartonlp.github.io/site-class">SiteClass Documentation</a></p>
 <h2 id="disclamer">Disclamer</h2>
-<p>To start, this framework is meant for Linux not Windows. I don't use Windows, like it or have it, so nothing has been tried on Windows.</p>
-<p>I use Linux Mint which is an Ubuntu derivative which is a Debian derivative. I have not tried this package on any distributions that do not evolve from Debian.</p>
+<p>To start, this framework is meant for Linux not Windows. I don't use Windows, like it or have it,<br />
+so nothing has been tried on Windows.</p>
+<p>I use Linux Mint which is an Ubuntu derivative which is a Debian derivative.<br />
+I have not tried this package on any distributions that do not evolve from Debian.</p>
 <h2 id="install">Install</h2>
 <p>There are several ways to install this project.</p>
 <h3 id="download-the-zip-file">Download The ZIP File</h3>
-<p>Download the ZIP file from GitHub. Expand it and move the 'includes' directory somewhere. On a system with Apache2, I usually put the 'includes' directory in the /var/www directory that Apache creates. Apache also usually creates /var/www/html and makes this the default DocumentRoot. I put the 'includes' directory just outside of the DocumentRoot. In my servers I have /var/www and then have my virtual hosts off that directory. That way the 'includes' directory is easily available to all of my virtual hosts.</p>
-<p>If you are testing with the PHP server I put a 'www' directory off my $HOME and put the 'includes' directory there. I then make my test DocumentRoot off '~/www' like '~/www/test'. I <code>cd</code> to the test directory and do <code>php -S localhost:8080</code>. I can then use my browser and goto <code>localhost:8080</code> and see my 'index.php' file.</p>
+<p>Download the ZIP file from GitHub. Expand it and move the 'includes' directory somewhere. On a system with Apache2,<br />
+I usually put the 'includes' directory in the /var/www directory that Apache creates.<br />
+Apache also usually creates /var/www/html and makes this the default DocumentRoot.<br />
+I put the 'includes' directory just outside of the DocumentRoot.<br />
+In my servers I have /var/www and then have my virtual hosts off that directory.<br />
+That way the 'includes' directory is easily available to all of my virtual hosts.</p>
+<p>If you are testing with the PHP server I put a 'www' directory off my $HOME and put the 'includes' directory there.<br />
+I then make my test DocumentRoot off '~/www' like '~/www/test'. I <code>cd</code> to the test directory and<br />
+do <code>php -S localhost:8080</code>. I can then use my browser and goto <code>localhost:8080</code> and see my 'index.php' file.</p>
 <h3 id="use-composer">Use Composer</h3>
-<p>If you have Apache or Nginx installed then you should made your project root somewhere within your DocumentRoot ('/var/www/html' for Apache2 on Ubuntu). Or if you want to make a seperate Apache virtual host with a registered domain name you can make your new project in '/var/www'.</p>
-<p>Create a directory <code>mkdir myproject; cd myproject</code>, this is your project root directory. Add the following to 'composer.json', just cut and past:</p>
+<p>If you have Apache or Nginx installed then you should made your project root somewhere within your<br />
+DocumentRoot ('/var/www/html' for Apache2 on Ubuntu). Or if you want to make a seperate Apache virtual host with a<br />
+registered domain name you can make your new project in '/var/www'.</p>
+<p>Create a directory <code>mkdir myproject; cd myproject</code>, this is your project root directory.<br />
+Add the following to 'composer.json', just cut and past:</p>
 <div class="sourceCode"><pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
   <span class="dt">&quot;require&quot;</span><span class="fu">:</span> <span class="fu">{</span>
       <span class="dt">&quot;bartonlp/site-class&quot;</span><span class="fu">:</span> <span class="st">&quot;dev-master&quot;</span>
@@ -94,20 +106,28 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p><strong>OR</strong> you can just run</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">composer</span> require bartonlp/site-class:dev-master</code></pre></div>
 <p>which will create the 'composer.json' for you and load the package like 'composer install' above.</p>
-<p>In your PHP file add <code>require_once($PATH_TO_VENDOR . '/vendor/autoload.php');</code> where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.</p>
+<p>In your PHP file add <code>require_once($PATH_TO_VENDOR . '/vendor/autoload.php');</code><br />
+where '$PATH' is the path to the 'vendor' directory like './' or '../' etc.</p>
 <p>There are some example files in the 'examples' directory at '$PATH_TO_VENDOR/vendor/bartonlp/site-class/examples'.</p>
 <h2 id="examples">Examples</h2>
-<p>The code shown below can be found in the 'examples' directory at http://github.com/bartonlp/site-class or from your project root at 'vendor/bartonlp/site-class/examples'. There is an 'EXAMPLES.md' and 'EXAMPLES.html' in the 'examples' directory.</p>
-<p style="color: green">
-The code in the 'examples' directory has actually been tested and runs. The code in this README was originally copied in from the examples code but may have changed for some reason. Therefore you should use the examples code rather than doing a copy and past from this README.
-</p>
-<p>If you have Apache or Nginx installed then you should have made your project root somewhere within your DocumentRoot, for example '/var/www/html/myproject'.</p>
-<p>If you don't have Apache or Nginx installed on your computer you can use the PHP server. Do the following from your project root:</p>
+<p>The code shown below can be found in the 'examples' directory at <a href="http://github.com/bartonlp/site-class" class="uri">http://github.com/bartonlp/site-class</a> or<br />
+from your project root at 'vendor/bartonlp/site-class/examples'. There is an 'EXAMPLES.md' and 'EXAMPLES.html'<br />
+in the 'examples' directory.</p>
+<p style="color: green">The code in the 'examples' directory has actually been tested and runs. 
+The code in this README was originally copied in from the examples code but may have changed for some reason. 
+Therefore you should use the examples code rather than doing a copy and past from this README.</p>
+<p>If you have Apache or Nginx installed then you should have made your project root somewhere within your DocumentRoot,<br />
+for example '/var/www/html/myproject'.</p>
+<p>If you don't have Apache or Nginx installed on your computer you can use the PHP server.<br />
+Do the following from your project root:</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">php</span> -S localhost:8080</code></pre></div>
-<p>Then use your browser by entering <code>http://localhost:8080/vendor/bartonlp/site-class/README.html</code> in the browsers location bar.</p>
-<p>The code in the 'examples' directory uses the <strong>sqlite3</strong> database engine. There should be a 'test.sdb' database file in the 'examples' directory already.</p>
+<p>Then use your browser by entering <code>http://localhost:8080/vendor/bartonlp/site-class/README.html</code><br />
+in the browsers location bar.</p>
+<p>The code in the 'examples' directory uses the <strong>sqlite3</strong> database engine.<br />
+There should be a 'test.sdb' database file in the 'examples' directory already.</p>
 <p>I have included a 'sqlite.sql' file that can be run from the command line if you want to recreate the 'members' table.</p>
-<p>You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc. From the command line in the directory where the SiteClass was downloaded:</p>
+<p>You will need to get sqlite3 and get the PHP sqlite packages along with mysql etc.<br />
+From the command line in the directory where the SiteClass was downloaded:</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">$ <span class="kw">cd</span> examples
 $ <span class="kw">sqlite3</span> test.sdb
 <span class="kw">sqlite&gt;</span> drop table members<span class="kw">;</span>
@@ -122,7 +142,7 @@ $ <span class="kw">sqlite3</span> test.sdb
 <span class="kw">sqlite&gt;</span> .quit
 $</code></pre></div>
 <p>This should create a new 'members' table in the 'test.sdb' database.</p>
-<hr>
+<hr />
 <p>There are a number of ways to use the framework:</p>
 <p><strong>First</strong> you can just use the SiteClass all by itself.</p>
 <div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
@@ -147,7 +167,7 @@ $</code></pre></div>
 <span class="kw">$footer</span>
 <span class="kw">EOF;</span></code></pre></div>
 <p>That is the simplest usage. You get a generic head and a genericfooter. No database or other stuff.</p>
-<hr>
+<hr />
 <p>You can extend this by adding a database either by instantiating the 'Database' class directly or indirectly.</p>
 <div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>  
 <span class="co">// example2.php</span>
@@ -191,7 +211,7 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
 <span class="kw">$footer</span>
 <span class="kw">EOF;</span></code></pre></div>
 <p>The above example uses the 'query' and 'fetchrow' methods to do some database operations.</p>
-<hr>
+<hr />
 <p>The database could also be instantiated explicitly as follows:</p>
 <div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// example3.php</span>
@@ -240,14 +260,19 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
 <span class="st">&lt;hr&gt;</span>
 <span class="kw">$footer</span>
 <span class="kw">EOF;</span></code></pre></div>
-<hr>
-<p>You can also use the 'siteload.php' file to load the json file 'mysitemap.json' to further automate working with the framework. This file is in the 'includes' directory. There is a 'mysitemap.json.php' file that is well commented. You can uncomment sections of this file or add items as needed.</p>
+<hr />
+<p>You can also use the 'siteload.php' file to load the json file 'mysitemap.json' to further automate working<br />
+with the framework. This file is in the 'includes' directory. There is a 'mysitemap.json.php' file that is well commented.<br />
+You can uncomment sections of this file or add items as needed.</p>
 <p>You can run this file as a CLI program and it will output to 'stdout'. Create your 'mysitemap.json' file as follows:</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">./mysitemap.json.php</span> <span class="kw">&gt;</span>mysitemap.json</code></pre></div>
-<p>Copy the created file to your project directory. There is already a 'mysitemap.json' file in the 'examples' directory.</p>
-<p>I set the Apache2 environment variable 'SITELOAD' to point to my 'siteload.php' file in 'vendor/bartonlp/site-class/includes'. You can add it to your '/etc/apache2/apache2.conf', to an apache2 virtual host or to your '.htaccess' file. I will assume you have done this in the following examples.</p>
+<p>Copy the created file to your project directory.<br />
+There is already a 'mysitemap.json' file in the 'examples' directory.</p>
+<p>I set the Apache2 environment variable 'SITELOAD' to point to my 'siteload.php' file in<br />
+'vendor/bartonlp/site-class/includes'. You can add it to your '/etc/apache2/apache2.conf', to an apache2 virtual host<br />
+or to your '.htaccess' file. I will assume you have done this in the following examples.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">SetEnv</span> SITELOAD /var/www/vendor/bartonlp/site-class/includes/siteload.php</code></pre></div>
-<p>This example uses 'SITELOAD', 'query' and 'fetchrow':</p>
+<p>This example loads the 'mysitemap.json' file and uses 'query' and 'fetchrow':</p>
 <div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// Example4.php</span>
 
@@ -276,7 +301,7 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
 <span class="st">&lt;hr&gt;</span>
 <span class="kw">$footer</span>
 <span class="kw">EOF;</span></code></pre></div>
-<hr>
+<hr />
 <p>In addition to the SiteClass and Database classes there are several others classes in the 'database-engins' directory:</p>
 <ul>
 <li>ErrorClass</li>
@@ -284,8 +309,7 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
 <li>dbTables</li>
 <li>and a file with helper functions ('helper-functions.php').</li>
 </ul>
-<hr>
-<p>The dbTables class uses the Database class to make creating tables simple. For example:</p>
+<p>The dbTables class uses the Database class to make creating tables simple. This example uses the environment variable 'SITELOAD':</p>
 <div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// example5.php</span>
 
@@ -326,11 +350,17 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
 <span class="st">&lt;hr&gt;</span>
 <span class="kw">$footer</span>
 <span class="kw">EOF;</span></code></pre></div>
-<p>The 'maketable' method takes several optional arguments to help setup the table. Using the options you can give your table an id or class or set any other attributes. You can also pass a 'callback' function which can modify the rows as they are selected (see the 'example-insert-update.php' file in the 'examples' directory for more information).</p>
-<hr>
+<p>The 'maketable' method takes several optional arguments to help setup the table.<br />
+Using the options you can give your table an id or class or set any other attributes.<br />
+You can also pass a 'callback' function which can modify the rows as they are selected<br />
+(see the 'example-insert-update.php' file in the 'examples' directory for more information).</p>
+<p>There is more information at <a href="http://bartonlp.github.io/site-class/dbTables.html">dbTables Documentation</a>.</p>
+<hr />
 <h2 id="the-mysitemap.json-file">The 'mysitemap.json' File</h2>
-<p>The 'mysitemap.json' file is the site configuration file. 'siteload.php' loads the 'mysitemap.json' file that is in the current directory. If a 'mysitemap.json' file is not found an exception is thrown.</p>
-<p>Once a 'mysitemap.json' file is found the information in it is read in via 'require_once'. The information from the 'mysitemap.json' file is returned as a PHP object.</p>
+<p>The 'mysitemap.json' file is the site configuration file. 'siteload.php' loads the 'mysitemap.json' file<br />
+that is in the current directory. If a 'mysitemap.json' file is not found an exception is thrown.</p>
+<p>Once a 'mysitemap.json' file is found the information in it is read in via 'require_once'.<br />
+The information from the 'mysitemap.json' file is returned as a PHP object.</p>
 <p>You can generate a 'mysitemap.json' file by running 'mysitemap.json.php' and redirecting the output to 'mysitemap.json'.</p>
 <p>My usual directory structure starts under a 'www' subdirectory. On an Apache2 host the structure looks like this:</p>
 <pre class="plain"><code>/var/www/vendor          // this is the &#39;composer&#39; directory where the &#39;bartonlp/site-class&#39; resides
@@ -340,8 +370,10 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
                          // &#39;footerFile&#39; and child classes live</code></pre>
 <p>If I have multiple virtual hosts they are all off the '/var/www' directory instead of a single 'html' directory.</p>
 <h3 id="how-the-xxxfile-files-look">How the xxxFile files look</h3>
-<p>In the 'mysitemap.json' file there can be three elements that describe the location of special files. These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.</p>
-<p>I put the three special file in my '/var/www/html/includes' directory (where 'html' may be one of your virtual hosts and not named 'html').</p>
+<p>In the 'mysitemap.json' file there can be three elements that describe the location of special files.<br />
+These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.</p>
+<p>I put the three special file in my '/var/www/html/includes' directory (where 'html' may be one of your virtual hosts<br />
+and not named 'html').</p>
 <p>Here is an example of my 'headFile':</p>
 <div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
 <span class="co">// head.i.php for bartonphillips.com</span>
@@ -364,8 +396,11 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
 <span class="kw">{$arg[&#39;css&#39;]}</span>
 <span class="st">&lt;/head&gt;</span>
 <span class="st">EOF;</span></code></pre></div>
-<p>These 'xxxFile' files return their contents. The <span class="math inline"><em>a</em><em>r</em><em>g</em><em>a</em><em>r</em><em>r</em><em>a</em><em>y</em><em>i</em><em>s</em><em>c</em><em>r</em><em>e</em><em>a</em><em>t</em><em>e</em><em>d</em><em>f</em><em>o</em><em>r</em><em>m</em><em>t</em><em>h</em><em>e</em><em>a</em><em>r</em><em>g</em><em>u</em><em>m</em><em>e</em><em>n</em><em>t</em><em>p</em><em>a</em><em>s</em><em>s</em><em>e</em><em>d</em><em>t</em><em>o</em><em>t</em><em>h</em><em>e</em>′<em>g</em><em>e</em><em>t</em><em>P</em><em>a</em><em>g</em><em>e</em><em>T</em><em>o</em><em>p</em><em>B</em><em>o</em><em>t</em><em>t</em><em>o</em><em>m</em>′<em>m</em><em>e</em><em>t</em><em>h</em><em>o</em><em>d</em>.<em>T</em><em>h</em><em>e</em>′<em>g</em><em>e</em><em>t</em><em>P</em><em>a</em><em>g</em><em>e</em><em>T</em><em>o</em><em>p</em><em>B</em><em>o</em><em>t</em><em>t</em><em>o</em><em>m</em>′<em>m</em><em>e</em><em>t</em><em>h</em><em>o</em><em>d</em><em>a</em><em>l</em><em>s</em><em>o</em><em>h</em><em>a</em><em>s</em><em>a</em><em>c</em><em>c</em><em>e</em><em>s</em><em>s</em><em>t</em><em>o</em><em>t</em><em>h</em><em>e</em><em>S</em><em>i</em><em>t</em><em>e</em><em>C</em><em>l</em><em>a</em><em>s</em><em>s</em>′</span>this' property.</p>
-<p>You will see if you delve into the SiteClass code that many things can be passed to the getPageTopBottom method, and the various sub-methods, but the standard things are:</p>
+<p>These 'xxxFile' files return their contents.<br />
+The $arg array is created form the argument passed to the 'getPageTopBottom' method.<br />
+The 'getPageTopBottom' method also has access to the SiteClass '$this' property.</p>
+<p>You will see if you delve into the SiteClass code that many things can be passed to the getPageTopBottom method,<br />
+and the various sub-methods, but the standard things are:</p>
 <ul>
 <li>title</li>
 <li>desc</li>
@@ -374,7 +409,8 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
 <li>script</li>
 <li>css</li>
 </ul>
-<p>As you saw in example 5 above (test5.php in the 'examples' directory) I passed a '$h' object to 'SiteClass'. For example it might look like this:</p>
+<p>As you saw in example 5 above (test5.php in the 'examples' directory) I passed a '$h' object to 'SiteClass'.<br />
+For example it might look like this:</p>
 <div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">$h</span>-&gt;title = <span class="st">&#39;my title&#39;</span><span class="ot">;</span>
 <span class="kw">$h</span>-&gt;desc = <span class="st">&#39;This is the description&#39;</span><span class="ot">;</span>
 <span class="kw">$h</span>-&gt;<span class="fu">link</span> = <span class="st">&#39;&lt;link rel=&quot;stylesheet&quot; href=&quot;test.css&quot;&gt;&#39;</span><span class="ot">;</span>
@@ -382,9 +418,16 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
 <span class="kw">$h</span>-&gt;script = <span class="st">&#39;&lt;script&gt; var a=&quot;test&quot;; &lt;/script&gt;&#39;</span><span class="ot">;</span>
 <span class="kw">$h</span>-&gt;css = <span class="st">&#39;&lt;style&gt; /* some css */ #test { width: 10px; } &lt;/style&gt;&#39;</span><span class="ot">;</span>
 <span class="kw">$S</span> = <span class="kw">new</span> SiteClass<span class="ot">(</span><span class="kw">$h</span><span class="ot">);</span></code></pre></div>
-<p>As you can see in the 'headFile' example the '<span class="math inline"><em>t</em><em>h</em><em>i</em><em>s</em>′<em>c</em><em>a</em><em>n</em><em>a</em><em>l</em><em>s</em><em>o</em><em>b</em><em>e</em><em>u</em><em>s</em><em>e</em><em>d</em><em>a</em><em>s</em><em>i</em><em>n</em>′</span>this-&gt;copyright'. Any of the public, protected or private '$this' properties can be used in any of the special files as they are all included within 'SiteClass.class.php'.</p>
-<p>As these special files are PHP files you can do anything else that you need to, including database queries. Just remember that you need to use '<span class="math inline">$this'. For example, to do a query do `$</span>this-&gt;query(<span class="math inline">$sql);` not `$</span>S-&gt;query(<span class="math inline">$sql);`. You can't use the variable from your project file that you created via the `$</span>S = new SiteClass($h);` because it is NOT within scope.</p>
-<p>I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything you like. In the 'mysitemap.json' just add the full path to the file. For example:</p>
+<p>As you can see in the 'headFile' example the '$this' can also be used as in '$this-&gt;copyright'.<br />
+Any of the public, protected or private '$this' properties can be used in any of the special files as they<br />
+are all included within 'SiteClass.class.php'.</p>
+<p>As these special files are PHP files you can do anything else that you need to,<br />
+including database queries. Just remember that you need to use '$this'.<br />
+For example, to do a query do <code>$this-&gt;query($sql);</code> not <code>$S-&gt;query($sql);</code>.<br />
+You can't use the variable from your project file that you created via the <code>$S = new SiteClass($h);</code><br />
+because it is NOT within scope.</p>
+<p>I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything you like.<br />
+In the 'mysitemap.json' just add the full path to the file. For example:</p>
 <div class="sourceCode"><pre class="sourceCode json"><code class="sourceCode json"><span class="fu">{</span>
     <span class="dt">&quot;siteDomain&quot;</span><span class="fu">:</span> <span class="st">&quot;localhost&quot;</span><span class="fu">,</span>
     <span class="dt">&quot;siteName&quot;</span><span class="fu">:</span> <span class="st">&quot;YourSiteName&quot;</span><span class="fu">,</span>
@@ -399,13 +442,14 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
     <span class="dt">&quot;headFile&quot;</span><span class="fu">:</span> <span class="st">&quot;includes/head.i.php&quot;</span><span class="fu">,</span>
     <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="kw">false</span>
 <span class="fu">}</span></code></pre></div>
-There is a default for the head, banner and footer section if you do not have special files. The DOCTYPE is by default
-<!DOCTYPE html>
-<p>but that can be altered via an argument to the 'getPageTopBottom' method (<code>$h-&gt;doctype='xxx';</code>).</p>
+<p>There is a default for the head, banner and footer section if you do not have special files.<br />
+The DOCTYPE is by default <!DOCTYPE html> but that can be altered via an argument to the 'getPageTopBottom'<br />
+method (<code>$h-&gt;doctype='xxx';</code>).</p>
 <p>Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.</p>
-<hr>
+<hr />
 <h1 id="doing-page-counting-and-analysis">Doing Page Counting and Analysis</h1>
-<p>If you want to do page counting and analysis there are several MySql tables that you can use. The MySql schema for these tables is in the <em>mysql.schema</em> file in the repository.</p>
+<p>If you want to do page counting and analysis there are several MySql tables that you can use. The MySql schema for these<br />
+tables is in the <em>mysql.schema</em> file in the repository.</p>
 <p>The tables are:</p>
 <ul>
 <li>bots : the SiteClass has logic to try to determin which user agents might be robots.</li>
@@ -529,12 +573,22 @@ There is a default for the head, banner and footer section if you do not have sp
   <span class="kw">KEY</span> `agent` (`agent`)
 ) ENGINE=MyISAM <span class="kw">DEFAULT</span> CHARSET=utf8;</code></pre></div>
 <p>If you look at <em>SiteClass</em> you will see several methods in the constructor:</p>
-<p><em><span class="math inline"><em>t</em><em>h</em><em>i</em><em>s</em> − &gt;<em>t</em><em>r</em><em>a</em><em>c</em><em>k</em><em>b</em><em>o</em><em>t</em><em>s</em>(); *</span>this-&gt;tracker(); </em><span class="math inline"><em>t</em><em>h</em><em>i</em><em>s</em> − &gt;<em>d</em><em>o</em><em>a</em><em>n</em><em>a</em><em>l</em><em>y</em><em>s</em><em>i</em><em>s</em>(); *</span>this-&gt;logagent(); *$this-&gt;counter();</p>
-<p>If you look at these methods you will see that they are protected by a check of the database to see if the tables exists in the database. If the table does not exist an 'error_log' message is output. You can prevent the error message by setting &quot;noErrorLog&quot;: &quot;true&quot; in the 'mysitemap.json' file.</p>
-<hr>
+<p><em>$this-&gt;trackbots();<br />
+</em>$this-&gt;tracker();<br />
+<em>$this-&gt;doanalysis();<br />
+</em>$this-&gt;logagent();<br />
+*$this-&gt;counter();</p>
+<p>If you look at these methods you will see that they are protected by a check of the database to see if the tables<br />
+exists in the database. If the table does not exist an 'error_log' message is output.<br />
+You can prevent the error message by setting &quot;noErrorLog&quot;: &quot;true&quot; in the 'mysitemap.json' file.</p>
+<hr />
 <h1 id="tests">Tests</h1>
-<p>In the 'tests' directory there are a series of mostly database engine tests. If you want to test MySql you will need to first install the packages (both OS and PHP5) and then configure each with a user and password etc. Setting up the databases is beyond the scope of this README. The tests are set up for an account with user 'siteclass' and password 'siteclass' with database 'siteclass' (no single quotes of course).</p>
-<hr>
+<p>In the 'tests' directory there are a series of mostly database engine tests. If you want to test MySql<br />
+you will need to first install the packages (both OS and PHP5) and then configure each with a user and password etc.<br />
+Setting up the databases is beyond the scope of this README.<br />
+The tests are set up for an account with user 'siteclass' and password 'siteclass' with database 'siteclass'<br />
+(no single quotes of course).</p>
+<hr />
 <h1 id="class-methods">Class Methods</h1>
 <p>While there are a number of methods for each of the major classes there are really only a small handful you will use on a regular bases. The ones most used have some documentation with them.</p>
 <h2 id="siteclass-methods">SiteClass methods:</h2>
@@ -591,15 +645,15 @@ I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are
 <li>public function makeresultrows($query, $rowdesc, array $extra=array())</li>
 <li>public function maketable($query, array $extra=null)<br />
 $extra is an optional assoc array: $extra['callback'], $extra['callback2'], $extra['footer'] and $extra['attr'].<br />
-$extra['attr'] is an assoc array that can have attributes for the
-<table>
-tag, like 'id', 'title', 'class', 'style' etc.<br />
+$extra['attr'] is an assoc array that can have attributes for the <table> tag, like 'id', 'title', 'class', 'style' etc.<br />
 $extra['callback'] function that can modify the header after it is filled in.<br />
 $extra['footer'] a footer string<br />
-<span class="citation">@return</span> array [{string table}, {result}, {num}, {hdr}, table=&gt;{string}, result=&gt;{result}, num=&gt;{num rows}, header=&gt;{hdr}]<br />
+@return array [{string table}, {result}, {num}, {hdr}, table=&gt;{string}, result=&gt;{result},<br />
+num=&gt;{num rows}, header=&gt;{hdr}]<br />
 or === false</li>
 </ul>
 <h2 id="contact-me">Contact Me</h2>
-<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a> Copyright © 2015 Barton Phillips</p>
+<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a><br />
+Copyright © 2015 Barton Phillips</p>
 </body>
 </html>

@@ -130,7 +130,7 @@ $
 
 This should create a new 'members' table in the 'test.sdb' database.
 
-<hr>
+---
 
 There are a number of ways to use the framework:
 
@@ -162,7 +162,7 @@ EOF;
 
 That is the simplest usage. You get a generic head and a genericfooter. No database or other stuff.
 
-<hr>
+---
 
 You can extend this by adding a database either by instantiating the 'Database' class directly or indirectly. 
 
@@ -212,7 +212,7 @@ EOF;
 
 The above example uses the 'query' and 'fetchrow' methods to do some database operations.
 
-<hr>
+---
 
 The database could also be instantiated explicitly as follows:
 
@@ -266,7 +266,7 @@ $footer
 EOF;
 ```
 
-<hr>
+---
 
 You can also use the 'siteload.php' file to load the json file 'mysitemap.json' to further automate working 
 with the framework. This file is in the 'includes' directory. There is a 'mysitemap.json.php' file that is well commented. 
@@ -289,7 +289,7 @@ or to your '.htaccess' file. I will assume you have done this in the following e
 SetEnv SITELOAD /var/www/vendor/bartonlp/site-class/includes/siteload.php
 ```
 
-This example uses 'SITELOAD', 'query' and 'fetchrow':
+This example loads the 'mysitemap.json' file and uses 'query' and 'fetchrow':
 
 ```php
 <?php
@@ -322,7 +322,7 @@ $footer
 EOF;
 ```
 
-<hr>
+---
 
 In addition to the SiteClass and Database classes there are several others classes in the 'database-engins' directory:
 
@@ -331,9 +331,8 @@ In addition to the SiteClass and Database classes there are several others class
 * dbTables
 * and a file with helper functions ('helper-functions.php').
 
-<hr>
 
-The dbTables class uses the Database class to make creating tables simple. For example:
+The dbTables class uses the Database class to make creating tables simple. This example uses the environment variable 'SITELOAD':
 
 ```php
 <?php
@@ -383,7 +382,9 @@ Using the options you can give your table an id or class or set any other attrib
 You can also pass a 'callback' function which can modify the rows as they are selected 
 (see the 'example-insert-update.php' file in the 'examples' directory for more information).
 
-<hr>
+There is more information at [dbTables Documentation](http://bartonlp.github.io/site-class/dbTables.html).
+
+---
 
 ## The 'mysitemap.json' File
 
@@ -504,7 +505,7 @@ method (`$h->doctype='xxx';`).
 
 Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.
 
-<hr>
+---
 
 # Doing Page Counting and Analysis
 
@@ -649,7 +650,7 @@ If you look at these methods you will see that they are protected by a check of 
 exists in the database. If the table does not exist an 'error_log' message is output.
 You can prevent the error message by setting "noErrorLog": "true" in the 'mysitemap.json' file.
 
-<hr>
+---
 
 # Tests
 
@@ -659,7 +660,7 @@ Setting up the databases is beyond the scope of this README.
 The tests are set up for an account with user 'siteclass' and password 'siteclass' with database 'siteclass' 
 (no single quotes of course).
 
-<hr>
+---
 
 # Class Methods
 
