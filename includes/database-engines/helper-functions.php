@@ -134,3 +134,20 @@ if(!function_exists('escapeltgt')) {
     return $value;
   }
 }
+
+// Callback to get the user id for SqlError
+
+if(!function_exists('ErrorGetId')) {
+  function ErrorGetId() {
+    $id = $_COOKIE['SiteId'];
+    // do we have an id?
+    if(empty($id)) {
+      // NO id this is the generic version
+      $id = "IP={$_SERVER['REMOTE_ADDR']}<br>\nAGENT={$_SERVER['HTTP_USER_AGENT']}";
+    } else {
+      // This is for members
+      $id = "ID=$id, IP={$_SERVER['REMOTE_ADDR']}<br>\nAGENT={$_SERVER['HTTP_USER_AGENT']}";
+    }
+    return $id;
+  }
+}

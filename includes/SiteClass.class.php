@@ -1095,23 +1095,3 @@ EOF;
     error_log($msg);
   }
 } // End of Class
-
-//-----------------
-// Helper Functions
-//-----------------
-
-// Callback to get the user id for SqlError
-// NOTE: sites that have members will overload this in their class file. This is a generic version
-// that does not understand users so it grabs the ip address and agent only.
-
-if(!function_exists('ErrorGetId')) {
-  function ErrorGetId() {
-    $id = $_COOKIE['SiteId'];
-    if(empty($id)) {
-      $id = "IP={$_SERVER['REMOTE_ADDR']}, AGENT={$_SERVER['HTTP_USER_AGENT']}";
-    } else {
-      $id = "ID=$id, IP={$_SERVER['REMOTE_ADDR']}, AGENT={$_SERVER['HTTP_USER_AGENT']}";
-    }
-    return $id;
-  }
-}

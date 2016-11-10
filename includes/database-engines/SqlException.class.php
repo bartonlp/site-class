@@ -131,27 +131,27 @@ class SqlException extends Exception {
           $args = rtrim($args, ", ");
         }
 
-        //if(($size = strlen($args)) > 500) $msg = "args Too Long: $size";
-
         if($bk['class']) {
           $classfunc = "<b>{$bk['class']}::{$bk['function']}($args)</b>";
         } else {
           $classfunc = "function <b>{$bk['function']}($args)</b>";
         }
-        $firstcaller .= "$classfunc<br>in <b>{$bk['file']}</b><br>".
-                        "on line <b>{$bk['line']}</b><br>";
+        $firstcaller .= "$classfunc<br> in <b>{$bk['file']}</b><br>".
+                        " on line <b>{$bk['line']}</b><br>\n";
       }
     }
-
+    $cwd = getcwd();
+    
     $error = <<<EOF
-<p>&quot;<i>$msg</i>&quot;
+<p>&quot;<i>$msg</i>&quot;<br>
 error=&quot;<i>$Error</i>&quot;, errno=&quot;<i>$Errno</i>&quot;<br>
-called from <strong>{$caller['file']}</strong><br> 
-on line <strong>{$caller['line']}</strong><br>
+cwd=$cwd<br>
+called from <strong>{$caller['file']}</strong><br> on line <strong>{$caller['line']}</strong><br>
+
 EOF;
 
     if(isset($firstcaller)) {
-      $error .= "Back Trace:<br>$firstcaller";
+      $error .= "Back Trace:<br>\n$firstcaller";
     }
 
     return array($error, $Errno);

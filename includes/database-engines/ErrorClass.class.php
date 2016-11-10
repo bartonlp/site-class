@@ -37,11 +37,9 @@ function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext)
                       E_STRICT             => 'Runtime Notice',
                       E_RECOVERABLE_ERROR  => 'Catchable Fatal Error'
                      );
-
+  
   $errmsg = "File=$errfile\nLine=$errline\nMessage=$errstr ";
 
-  //error_log($errmsg);
-  
   $backtrace = debug_backtrace();
 
   array_shift($backtrace); // get rid of first trace which is this function.
@@ -81,7 +79,7 @@ function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext)
   // This may be defined by sites that have members
 
   finalOutput($errmsg, "{$errortype[$errno]}");
-  return true;
+  return true; // DON'T do normal error handeling.
 }
 
 //******************************  
@@ -133,11 +131,11 @@ function my_exceptionhandler($e) {
       }
       $args = rtrim($args, ", ");
 
-      $traceback .= "file: $file<br>line: $line<br>class: $class<br>".
+      $traceback .= "file: $file<br>line: $line<br>class: $class<br>\n".
                     "function: $function($args)<br><br>";
     }
 
-    if($traceback) $traceback = "<hr><div style='text-align: left'>Trace back:<br>$traceback</div>";
+    if($traceback) $traceback = "<hr><div style='text-align: left'>Trace back:<br>\n$traceback</div>";
 
     $error = <<<EOF
 <div style="text-align: center; width: 85%; margin: auto auto; background-color: white; border: 1px solid black; padding: 10px;">
@@ -146,7 +144,6 @@ in file <b>{$e->getFile()}</b><br>on line {$e->getLine()}
 $traceback
 </div>
 EOF;
-    
   }
 
   finalOutput($error, "$cl");
@@ -162,20 +159,19 @@ function finalOutput($error, $from) {
   // Turn the error message into just plane text with LF at end of each line where a BR was.
   // and remove the "ERROR" header and any blank lines.
 
-  $err = preg_replace("/<br>/", "\n", $error);
-  $err = htmlspecialchars_decode(preg_replace("/<.*?>/", '', $err));
-  $err = preg_replace("/^\s*?\n/m", '', $err);
+  $err = html_entity_decode(preg_replace("/<.*?>/", '', $error));
+  $err = preg_replace("/^\s*$/", '', $err);
 
   // Callback to get the user ID if the callback exists
 
   $userId = '';
-  $agent = $_SERVER['HTTP_USER_AGENT'] . "\n";
   
   if(function_exists('ErrorGetId')) {
     $userId = "User: " . ErrorGetId();
   }
 
-  if($userId) $userId = "$userId\n";
+  if(!$userId) $userId = "agent: ". $_SERVER['HTTP_USER_AGENT'] . "\n";
+;
 
   // Email error information to webmaster
   // During debug set the Error class's $noEmailErrs to ture
@@ -193,7 +189,7 @@ function finalOutput($error, $from) {
 
   date_default_timezone_set('America/Los_Angeles');
 
-  error_log("ErrorClass, finalOutput: $from\n$err\n$userId\n$agent");
+  error_log("ErrorClass, finalOutput: $from\n$err{$userId}");
 
   if(ErrorClass::getDevelopment() !== true) {
     // Minimal error message
@@ -262,17 +258,15 @@ class ErrorClass {
     if(isset($args->nohtml)) self::$noHtml = $args->noHtml;
     if(isset($args->noOutput)) self::$noOutput = $args->noOutput;
 
-    // ignore E_NOTICE and E_WARNING errors by default
+    // ignore E_NOTICE, E_WARNING and E_STRICT errors by default
     
     if(!isset($args->errType)) {
       if(is_null(self::$errType)) {
-        error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
         set_error_handler('my_errorhandler', E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
       } // if self::$errType is set then the handler has already been set
     } else {
       // $args->errType is set
       self::$errType = $args->errType;
-      error_reporting($args->errType);
       set_error_handler('my_errorhandler', $args->errType);
     }
   }
