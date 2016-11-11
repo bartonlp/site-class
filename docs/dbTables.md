@@ -101,9 +101,10 @@ Here is an example with all of the items:
 ```php
 $info = $T->maketable($sql, array('callback'=>callback1, 'callback2'=>callback2,  
         'footer'=>$footer, 'attr'=>array('border'=>'1', 'class'=>'something')));
+// $info[0] or $info['table'] is the table html.
 ```
 
-There is a second **dbTables** method which is not used directly as much. It creates only the result rows.
+There is a second **dbTables** method which is not used directly as much. This method is called by 'maketable'. It creates only the result rows.
 
 ```bash
   /**
@@ -129,8 +130,6 @@ There is a second **dbTables** method which is not used directly as much. It cre
   
   public function makeresultrows($query, $rowdesc, array $extra=array()) {...}
 ```
-
-The database methods are implemented for all supported engines. There are some minor behavioral differences, for example in the syntax the engine queries uses or the return values. For example sqlite3 does not support a number of rows returned functionality and there are also several (many) syntactial differenced between sqlite and mysql when it comes to supported functions etc. (caviat emptor).
 
 ## dbTables Methods
 

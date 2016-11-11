@@ -198,7 +198,7 @@ I set the Apache2 environment variable 'SITELOAD' to point to my 'siteload.php' 
 SetEnv SITELOAD /var/www/vendor/bartonlp/site-class/includes/siteload.php
 ```
 
-This example uses loads the 'mysitemap.json' explisitly and converts it into an object. The next example uses 'SITELOAD'.
+This example uses the 'mysitemap.json' explicitly and converts it into an object. The next example uses 'SITELOAD'.
 
 ```php
 <?php
@@ -242,7 +242,7 @@ In addition to the SiteClass and Database classes there are several others class
 
 ---
 
-The dbTables class uses the Database class to make creating tables simple. For example:
+The dbTables class uses the Database class to make creating tables simple.
 
 ```php
 <?php

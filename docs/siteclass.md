@@ -28,9 +28,11 @@ This method calls getPageHead(), getPageBanner(), getPageFooter().
 
 ## Database methods:
 
+The database methods are implemented for all supported engines. There are some minor behavioral differences in the syntax the engine queries uses or the return values. For example sqlite3 does not support a number of rows functionality and there are also several syntactial differences between sqlite and mysql (caviat emptor).
+
 * constructor
-* public function getDb()
-* public function setDb($db)
+* public function getDb(). Get the database object.
+* public function setDb($db). Set the database object.
 * public function query($query)  
 This is the workhourse of the database. It is used for 'select', 'update', 'insert' and basically anything you need to do like 'drop', 'alter' etc. $query is the sql statement.
 * public function fetchrow($result=null, $type="both")  
