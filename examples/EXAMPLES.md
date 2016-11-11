@@ -18,6 +18,8 @@ The examples require '../vendor/bartonlp/site-class/includes/'.
 The next example show insertion and updating of the database and 'dbTables' useage.
 To have this work you must set the permissions and group on the 'test.sdb' table and on the examples directory:
 
+### Set Permisions
+
 ```bash
 sudo chgrp www-data test.sdb
 sudo chmod g+w test.sdb

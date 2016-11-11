@@ -3,7 +3,7 @@
 **SiteClass** is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
 
 
-The code shown below can be found in the 'examples' directory at http://github.com/bartonlp/site-class or from your project root at 'vendor/bartonlp/site-class/examples'. There is an 'EXAMPLES.md' and 'EXAMPLES.html' in the 'examples' directory.
+The code shown below can be found in the 'examples' directory at http://github.com/bartonlp/site-class or from your project root at 'vendor/bartonlp/site-class/examples'. There is an 'EXAMPLES.md' and [EXAMPLES.html](../examples/EXAMPLES.html) in the 'examples' directory.
 
 <p style="color: green">The code in the 'examples' directory has actually been tested and runs. 
 The code in this README was originally copied in from the examples code but may have changed for some reason. 
@@ -288,6 +288,72 @@ EOF;
 ```
 
 The 'maketable' method takes several optional arguments to help setup the table. Using the options you can give your table an id or class or set any other attributes. You can also pass a 'callback' function which can modify the rows as they are selected (see the 'example-insert-update.php' file in the 'examples' directory for more information). Also take a look at [dbTables Documentation](dbTables.html).
+
+---
+
+## Using Other Libraries
+
+### Twig
+
+You can use other frameworks or templeting engines. Here we will use *Twig* a popular templet engine. 
+*Twig* is a super powerful templet engine with looping and conditional statements and much more. 
+Here we do just about the minimum just as an example.
+
+There is no 'vendor' directory in the examples directory. You will need to run 'composer' to get *Twig* and *Altorouter* installed. 
+
+```bash
+composer install
+```
+
+[example-with-twig.php](../examples/example-with-twig.php)
+
+If you get an error check out [EXAMPLES set premisions](../examples/EXAMPLES.html).
+
+### ReST Routing with Altorouter
+
+If you need ReST routing (or pretty routing or SEO friendly routing as it is sometime called) 
+you could use one of the popular routing engines available with *Meteor*, *Laravel*, *Synfony2* or *Silex* 
+but then again by that point you might as well just bite the bullet and spend the hours or 
+days trying to figure out those frameworks.
+
+There is a pretty simple router called *Altorouter* which can be used without too much work. 
+
+The file 'example-route.php' would normally be your 'index.php' in a production environment. 
+When using a server with Apache2 you would need a '.htaccess' file in the directory where the 'index.php' lives. 
+The '.htaccess' file would look like this:
+
+```bash
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule . index.php [L]
+```
+
+This says that if the requested filename does not exist go to the 'index.php' file instead.
+
+To test this without renaming the 'example-route.php' you can use the PHP server like this:
+
+```bash
+HOME=/var/www php -S localhost:8080 example-route.php
+```
+
+The PHP server uses the 'example-route.php' file and you don't need a '.htaccess' file.
+
+Prefixing the command with 'HOME=...' sets the 'HOME' environment variable. Have it point to your 'vendor/autoload.php'
+file. 
+
+Now you can run the program. It will display a table and a form you can use to insert new records. 
+Also a button lets you reset the database table to its original state. 
+If you click on a number in the 'ID' column of the table you get an edit page where you can change the names.
+
+You can also get to the edit page by entering the URI '/edit/3' for example. 
+That will take you to the edit page for 'ID' three. 
+From that page you and enter the URI '/home' which will take you back to the home page.
+
+The advantage of ReST is you do not actually need a '/edit/3' or a '/home' directory on your system. 
+These are just syntactical links to control logic and as a result are easily modified. 
+Also some people think that '/edit/3' somehow looks cooler then '?edit=3', I am not sure I agree. 
+ReST is syntactical sugar that takes more code and obfuscates what is really going on.  
+But that is just my opinion.
 
 ---
 [Examples](examples.html)  

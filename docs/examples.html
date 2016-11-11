@@ -58,7 +58,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <body>
 <h1 id="siteclass-verion-2.0">SiteClass Verion 2.0</h1>
 <p><strong>SiteClass</strong> is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.</p>
-<p>The code shown below can be found in the 'examples' directory at <a href="http://github.com/bartonlp/site-class" class="uri">http://github.com/bartonlp/site-class</a> or from your project root at 'vendor/bartonlp/site-class/examples'. There is an 'EXAMPLES.md' and 'EXAMPLES.html' in the 'examples' directory.</p>
+<p>The code shown below can be found in the 'examples' directory at <a href="http://github.com/bartonlp/site-class" class="uri">http://github.com/bartonlp/site-class</a> or from your project root at 'vendor/bartonlp/site-class/examples'. There is an 'EXAMPLES.md' and <a href="../examples/EXAMPLES.html">EXAMPLES.html</a> in the 'examples' directory.</p>
 <p style="color: green">The code in the 'examples' directory has actually been tested and runs. 
 The code in this README was originally copied in from the examples code but may have changed for some reason. 
 Therefore you should use the examples code rather than doing a copy and past from this README.</p>
@@ -289,6 +289,45 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
 <span class="kw">$footer</span>
 <span class="kw">EOF;</span></code></pre></div>
 <p>The 'maketable' method takes several optional arguments to help setup the table. Using the options you can give your table an id or class or set any other attributes. You can also pass a 'callback' function which can modify the rows as they are selected (see the 'example-insert-update.php' file in the 'examples' directory for more information). Also take a look at <a href="dbTables.html">dbTables Documentation</a>.</p>
+<hr />
+<h2 id="using-other-libraries">Using Other Libraries</h2>
+<h3 id="twig">Twig</h3>
+<p>You can use other frameworks or templeting engines. Here we will use <em>Twig</em> a popular templet engine.<br />
+<em>Twig</em> is a super powerful templet engine with looping and conditional statements and much more.<br />
+Here we do just about the minimum just as an example.</p>
+<p>There is no 'vendor' directory in the examples directory. You will need to run 'composer' to get <em>Twig</em> and <em>Altorouter</em> installed.</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">composer</span> install</code></pre></div>
+<p><a href="../examples/example-with-twig.php">example-with-twig.php</a></p>
+<p>If you get an error check out <a href="../examples/EXAMPLES.html">EXAMPLES set premisions</a>.</p>
+<h3 id="rest-routing-with-altorouter">ReST Routing with Altorouter</h3>
+<p>If you need ReST routing (or pretty routing or SEO friendly routing as it is sometime called)<br />
+you could use one of the popular routing engines available with <em>Meteor</em>, <em>Laravel</em>, <em>Synfony2</em> or <em>Silex</em><br />
+but then again by that point you might as well just bite the bullet and spend the hours or<br />
+days trying to figure out those frameworks.</p>
+<p>There is a pretty simple router called <em>Altorouter</em> which can be used without too much work.</p>
+<p>The file 'example-route.php' would normally be your 'index.php' in a production environment.<br />
+When using a server with Apache2 you would need a '.htaccess' file in the directory where the 'index.php' lives.<br />
+The '.htaccess' file would look like this:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">RewriteEngine</span> On
+<span class="kw">RewriteCond</span> %<span class="dt">{REQUEST_FILENAME}</span> !-f
+<span class="kw">RewriteRule</span> . index.php [L]</code></pre></div>
+<p>This says that if the requested filename does not exist go to the 'index.php' file instead.</p>
+<p>To test this without renaming the 'example-route.php' you can use the PHP server like this:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ot">HOME=</span>/var/www <span class="kw">php</span> -S localhost:8080 example-route.php</code></pre></div>
+<p>The PHP server uses the 'example-route.php' file and you don't need a '.htaccess' file.</p>
+<p>Prefixing the command with 'HOME=...' sets the 'HOME' environment variable. Have it point to your 'vendor/autoload.php'<br />
+file.</p>
+<p>Now you can run the program. It will display a table and a form you can use to insert new records.<br />
+Also a button lets you reset the database table to its original state.<br />
+If you click on a number in the 'ID' column of the table you get an edit page where you can change the names.</p>
+<p>You can also get to the edit page by entering the URI '/edit/3' for example.<br />
+That will take you to the edit page for 'ID' three.<br />
+From that page you and enter the URI '/home' which will take you back to the home page.</p>
+<p>The advantage of ReST is you do not actually need a '/edit/3' or a '/home' directory on your system.<br />
+These are just syntactical links to control logic and as a result are easily modified.<br />
+Also some people think that '/edit/3' somehow looks cooler then '?edit=3', I am not sure I agree.<br />
+ReST is syntactical sugar that takes more code and obfuscates what is really going on.<br />
+But that is just my opinion.</p>
 <hr />
 <p><a href="examples.html">Examples</a><br />
 <a href="dbTables.html">dbTables</a><br />
