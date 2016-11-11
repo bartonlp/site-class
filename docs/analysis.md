@@ -175,7 +175,7 @@ The 'tracker.js' will use AJAX to communicate with the 'tracker.php' and 'beacon
 
 ## Page Counting
 
-If you want a page counter you can add '$counterWigget' to your 'footer.i.php' file. You can pass arguments via the `$S->getPageTopBottom($h, $b);` by passing a '$b' array. You can pass 'msg', 'msg1', 'msg2' and 'ctrmsg'. Or of course anything else you might want in your footer. The 'ctrmsg' is inserted just above the counter so you can add a reset message like "Counter Reset on Oct. 20, 2088".
+If you want a page counter you can add '$counterWigget' to your 'footer.i.php' file. You can pass arguments via the `$S->getPageTopBottom($h, $b);` by passing a '$b' array. You can pass 'msg', 'msg1', 'msg2' and 'ctrmsg'. Or of course anything else you might want in your footer. The 'ctrmsg' is inserted just above the counter so you can add a reset message like "Counter Reset: 2016-03-27".
 
 ```php
 return <<<EOF
@@ -225,7 +225,11 @@ The '$counterWigget' has *css* to render the counter.
 }
 ```
 
-The above code created a centered table with a yellow 8 pixel ridge border, a light orangeish background and deep redish numbers. Using the above *css* you can create almost any type of counter you want. 
+The above code created a centered table with a yellow 8 pixel ridge border, a light orangeish background and deep redish numbers. 
+
+![Counter](counter.png)
+
+Using the above *css* you can create almost any type of counter you want. 
 
 ---
 [Examples](examples.html)  

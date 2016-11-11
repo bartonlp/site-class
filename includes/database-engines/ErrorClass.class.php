@@ -131,7 +131,7 @@ function my_exceptionhandler($e) {
       }
       $args = rtrim($args, ", ");
 
-      $traceback .= "file: $file<br>line: $line<br>class: $class<br>\n".
+      $traceback .= " file: $file<br> line: $line<br> class: $class<br>\n".
                     "function: $function($args)<br><br>";
     }
 
