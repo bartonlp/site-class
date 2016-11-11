@@ -6,11 +6,10 @@
 
 ## The 'mysitemap.json' File
 
-The 'mysitemap.json' file is the site configuration file. 'siteload.php' loads the 'mysitemap.json' file 
-that is in the current directory. If a 'mysitemap.json' file is not found an exception is thrown.
+The 'mysitemap.json' file is the site configuration file. 'siteload.php' loads the 'mysitemap.json' file that is in the current directory. If a 'mysitemap.json' file is not found in the current directory the parent directory is searched and this continues up until the DocuementRoot is searched and if still not found an exception is thrown.
 
-Once a 'mysitemap.json' file is found the information in it is read in via 'require_once'. 
-The information from the 'mysitemap.json' file is returned as a PHP object.
+Once a 'mysitemap.json' file is found the information in it is read in via 'file_get_contents()'. 
+The information from the 'mysitemap.json' file is converted into a PHP object and returned.
 
 You can generate a 'mysitemap.json' file by running 'mysitemap.json.php' and redirecting the output to 'mysitemap.json'.
 
@@ -26,7 +25,7 @@ My usual directory structure starts under a 'www' subdirectory. On an Apache2 ho
 
 If I have multiple virtual hosts they are all off the '/var/www' directory instead of a single 'html' directory.
 
-### How the xxxFile files look
+## How the xxxFile files look
 
 In the 'mysitemap.json' file there can be three elements that describe the location of special files. 
 These files are 1) 'headFile', 2) 'bannerFile' and 3) 'footerFile'.
@@ -38,7 +37,7 @@ Here is an example of my 'headFile':
 
 ```php
 <?php
-// head.i.php for bartonphillips.com
+// head.i.php
 
 return <<<EOF
 <head>
@@ -60,12 +59,9 @@ return <<<EOF
 EOF;
 ```
 
-These 'xxxFile' files return their contents.
-The $arg array is created form the argument passed to the 'getPageTopBottom' method. 
-The 'getPageTopBottom' method also has access to the SiteClass '$this' property.
+These 'xxxFile' files return their contents. The $arg array is created form the argument passed to the 'getPageTopBottom' method. The 'getPageTopBottom' method also has access to the SiteClass '$this' property.
 
-You will see if you delve into the SiteClass code that many things can be passed to the getPageTopBottom method, 
-and the various sub-methods, but the standard things are:
+You will see if you delve into the SiteClass code that many things can be passed to the getPageTopBottom method, and the various sub-methods, but the standard things are:
 
 * title
 * desc
@@ -74,8 +70,7 @@ and the various sub-methods, but the standard things are:
 * script
 * css
 
-As you saw in example 5 above (test5.php in the 'examples' directory) I passed a '$h' object to 'SiteClass'. 
-For example it might look like this:
+As you saw in example 5 (example5.php in the 'examples' directory) I passed a '$h' object to `getPageTopBottom($h);`. For example it might look like this:
 
 ```php
 $h->title = 'my title';
@@ -84,21 +79,14 @@ $h->link = '<link rel="stylesheet" href="test.css">';
 $h->extra = '<!-- this can be anything from a meta, link, script etc -->';
 $h->script = '<script> var a="test"; </script>';
 $h->css = '<style> /* some css */ #test { width: 10px; } </style>';
-$S = new SiteClass($h);
+list($top, $footer) = $S->getPageTopBottom($h);
 ```
 
-As you can see in the 'headFile' example the '$this' can also be used as in '$this->copyright'. 
-Any of the public, protected or private '$this' properties can be used in any of the special files as they 
-are all included within 'SiteClass.class.php'.
+As you can see in the 'headFile' example the '$this' can also be used as in '$this->copyright'. Any of the public, protected or private '$this' properties can be used in any of the special files as they are all included within 'SiteClass.class.php'.
 
-As these special files are PHP files you can do anything else that you need to, 
-including database queries. Just remember that you need to use '$this'. 
-For example, to do a query do `$this->query($sql);` not `$S->query($sql);`. 
-You can't use the variable from your project file that you created via the `$S = new SiteClass($h);` 
-because it is NOT within scope.
+As these special files are PHP files you can do anything else that you need to, including database queries. Just remember that you need to use '$this'. For example, to do a query do `$this->query($sql);` not `$S->query($sql);`. You can't use the variable from your project file that you created via the `$S = new SiteClass($h);` because it is NOT within scope.
 
-I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything you like. 
-In the 'mysitemap.json' just add the full path to the file. For example:
+I usually call these files 'head.i.php', 'banner.i.php' and 'footer.i.php' but you can name them anything you like. In the 'mysitemap.json' just add the full path to the file. For example:
 
 ```json
 {
@@ -117,9 +105,7 @@ In the 'mysitemap.json' just add the full path to the file. For example:
 }
 ```
 
-There is a default for the head, banner and footer section if you do not have special files. 
-The DOCTYPE is by default `<!DOCTYPE html>` but that can be altered via an argument to the 'getPageTopBottom' 
-method (`$h->doctype='xxx';`).
+There is a default for the head, banner and footer section if you do not have special files. The DOCTYPE is by default `<!DOCTYPE html>` but that can be altered via an argument to the 'getPageTopBottom' method (`$h->doctype='xxx';`).
 
 Creating the special files make the tedious boiler plate simple and yet configureable via the $arg array.
 

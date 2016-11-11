@@ -73,7 +73,7 @@ $footer
 EOF;
 ```
 
-That is the simplest usage. You get a generic head and a genericfooter. No database or other stuff.
+That is the simplest usage. You get a generic head and a generic footer. No database or other stuff.
 
 <hr>
 
@@ -90,7 +90,7 @@ $_site = array(
   'siteName' => "Example2",
   'copyright' => "2016 Barton L. Phillips",
   'memberTable' => "members",
-  'noTrack' => true, // do tracking logic in SiteClass
+  'noTrack' => true, // don't do tracking logic in SiteClass
   'dbinfo' => array(
     'database' => 'test.sdb',
     'engine' => 'sqlite3'
@@ -198,7 +198,7 @@ I set the Apache2 environment variable 'SITELOAD' to point to my 'siteload.php' 
 SetEnv SITELOAD /var/www/vendor/bartonlp/site-class/includes/siteload.php
 ```
 
-This example uses 'SITELOAD', 'query' and 'fetchrow':
+This example uses loads the 'mysitemap.json' explisitly and converts it into an object. The next example uses 'SITELOAD'.
 
 ```php
 <?php
@@ -287,7 +287,7 @@ $footer
 EOF;
 ```
 
-The 'maketable' method takes several optional arguments to help setup the table. Using the options you can give your table an id or class or set any other attributes. You can also pass a 'callback' function which can modify the rows as they are selected (see the 'example-insert-update.php' file in the 'examples' directory for more information).
+The 'maketable' method takes several optional arguments to help setup the table. Using the options you can give your table an id or class or set any other attributes. You can also pass a 'callback' function which can modify the rows as they are selected (see the 'example-insert-update.php' file in the 'examples' directory for more information). Also take a look at [dbTables Documentation](dbTables.html).
 
 ---
 [Examples](examples.html)  

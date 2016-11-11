@@ -12,19 +12,17 @@ While there are a number of methods for each of the major classes there are real
 
 * constructor
 * public function setSiteCookie($cookie, $value, $expire, $path="/")
-* public function getId() // if a memberTable
-* public function setId($id) // if a memberTable
 * public function getIp()
 * public function getPageTopBottom($h, $b=null)  
 This is the most used method. It takes one or two arguments which can be string|array|object.  
 $h can have 'title', 'desc', 'banner' and a couple of other less used options.  
 $b is for the footer or bottom. I sometimes pass a &lt;hr&gt; but you can also pass a 'msg', 'msg1', 'msg2' (see the code). I usually put things into the 'footerFile' but on occasions a page needs something extra.  
-This method calls getPageHead(), getBanner(), getFooter().
+This method calls getPageHead(), getPageBanner(), getPageFooter().
 * public function getPageTop($header, $banner=null, $bodytag=null)
-* public function getDoctype()
-* public function getPageHead(/*$title, $desc=null, $extra=null, $doctype, $lang*/)
+* public function getPageHead(/* mixed */)
 * public function getPageBanner($mainTitle, $nonav=false, $bodytag=null)
 * public function getPageFooter(/* mixed */)
+* public function getDoctype()
 * public function \__toString()
 * A number of 'protected' methods and properties that can be used in a child class.
 
@@ -32,6 +30,7 @@ This method calls getPageHead(), getBanner(), getFooter().
 
 * constructor
 * public function getDb()
+* public function setDb($db)
 * public function query($query)  
 This is the workhourse of the database. It is used for 'select', 'update', 'insert' and basically anything you need to do like 'drop', 'alter' etc. $query is the sql statement.
 * public function fetchrow($result=null, $type="both")  
@@ -44,7 +43,7 @@ while(list($name, $email) = $S->fetchrow('num')) { ... }
 
 * public function queryfetch($query, $retarray=false)
 * public function getLastInsertId()  
-After an 'insert' this method returns the new row primary key id.
+After an 'insert' this method returns the new row's primary key id.
 * public function getResult()  
 Returns the result object from the last 'query'. Usually not needed.
 * public function escape($string)

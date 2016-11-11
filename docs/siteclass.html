@@ -7,41 +7,23 @@
   <title>SiteClass Methods</title>
   <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
-div.sourceCode { overflow-x: auto; }
 table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
   margin: 0; padding: 0; vertical-align: baseline; border: none; }
 table.sourceCode { width: 100%; line-height: 100%; }
 td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
 td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code > span.dt { color: #902000; } /* DataType */
-code > span.dv { color: #40a070; } /* DecVal */
-code > span.bn { color: #40a070; } /* BaseN */
-code > span.fl { color: #40a070; } /* Float */
-code > span.ch { color: #4070a0; } /* Char */
-code > span.st { color: #4070a0; } /* String */
-code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code > span.ot { color: #007020; } /* Other */
-code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code > span.fu { color: #06287e; } /* Function */
-code > span.er { color: #ff0000; font-weight: bold; } /* Error */
-code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-code > span.cn { color: #880000; } /* Constant */
-code > span.sc { color: #4070a0; } /* SpecialChar */
-code > span.vs { color: #4070a0; } /* VerbatimString */
-code > span.ss { color: #bb6688; } /* SpecialString */
-code > span.im { } /* Import */
-code > span.va { color: #19177c; } /* Variable */
-code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code > span.op { color: #666666; } /* Operator */
-code > span.bu { } /* BuiltIn */
-code > span.ex { } /* Extension */
-code > span.pp { color: #bc7a00; } /* Preprocessor */
-code > span.at { color: #7d9029; } /* Attribute */
-code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
   </style>
   
   <style>
@@ -63,60 +45,43 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p>While there are a number of methods for each of the major classes there are really only a small handful you will use on a regular bases. The ones most used have some documentation with them.</p>
 <h2 id="siteclass-methods">SiteClass methods:</h2>
 <ul>
-<li>constructor</li>
-<li>public function setSiteCookie($cookie, $value, $expire, $path=&quot;/&quot;)</li>
-<li>public function getId() // if a memberTable</li>
-<li>public function setId($id) // if a memberTable</li>
-<li>public function getIp()</li>
-<li>public function getPageTopBottom($h, $b=null)<br />
-This is the most used method. It takes one or two arguments which can be string|array|object.<br />
-$h can have 'title', 'desc', 'banner' and a couple of other less used options.<br />
-$b is for the footer or bottom. I sometimes pass a &lt;hr&gt; but you can also pass a 'msg', 'msg1', 'msg2' (see the code). I usually put things into the 'footerFile' but on occasions a page needs something extra.<br />
-This method calls getPageHead(), getBanner(), getFooter().</li>
-<li>public function getPageTop($header, $banner=null, $bodytag=null)</li>
-<li>public function getDoctype()</li>
-<li>public function getPageHead(/<em>$title, $desc=null, $extra=null, $doctype, $lang</em>/)</li>
-<li>public function getPageBanner($mainTitle, $nonav=false, $bodytag=null)</li>
-<li>public function getPageFooter(/* mixed */)</li>
-<li>public function __toString()</li>
+<li>constructor<br /></li>
+<li>public function setSiteCookie($cookie, $value, $expire, $path=&quot;/&quot;)<br /></li>
+<li>public function getIp()<br /></li>
+<li>public function getPageTopBottom($h, $b=null)<br />This is the most used method. It takes one or two arguments which can be string|array|object.<br />$h can have 'title', 'desc', 'banner' and a couple of other less used options.<br />$b is for the footer or bottom. I sometimes pass a &lt;hr&gt; but you can also pass a 'msg', 'msg1', 'msg2' (see the code). I usually put things into the 'footerFile' but on occasions a page needs something extra.<br />This method calls getPageHead(), getPageBanner(), getPageFooter().<br /></li>
+<li>public function getPageTop($header, $banner=null, $bodytag=null)<br /></li>
+<li>public function getPageHead(/* mixed */)<br /></li>
+<li>public function getPageBanner($mainTitle, $nonav=false, $bodytag=null)<br /></li>
+<li>public function getPageFooter(/* mixed */)<br /></li>
+<li>public function getDoctype()<br /></li>
+<li>public function __toString()<br /></li>
 <li>A number of 'protected' methods and properties that can be used in a child class.</li>
 </ul>
 <h2 id="database-methods">Database methods:</h2>
 <ul>
-<li>constructor</li>
-<li>public function getDb()</li>
-<li>public function query($query)<br />
-This is the workhourse of the database. It is used for 'select', 'update', 'insert' and basically anything you need to do like 'drop', 'alter' etc. $query is the sql statement.</li>
-<li>public function fetchrow($result=null, $type=&quot;both&quot;)<br />
-Probably the second most used method. If it follows the 'query' the $result is not needed. The only time $result is needed is if there are other queries in a while loop. In that case you need to get the result of the query by calling the getResult() method before running the while loop.<br />
-The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only an associative array, while 'num' return a numeric array. I usually use a numeric array with</li>
+<li>constructor<br /></li>
+<li>public function getDb()<br /></li>
+<li>public function setDb($db)<br /></li>
+<li>public function query($query)<br />This is the workhourse of the database. It is used for 'select', 'update', 'insert' and basically anything you need to do like 'drop', 'alter' etc. $query is the sql statement.<br /></li>
+<li>public function fetchrow($result=null, $type=&quot;both&quot;)<br />Probably the second most used method. If it follows the 'query' the $result is not needed. The only time $result is needed is if there are other queries in a while loop. In that case you need to get the result of the query by calling the getResult() method before running the while loop.<br />The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only an associative array, while 'num' return a numeric array. I usually use a numeric array with</li>
 </ul>
-<div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">while</span><span class="ot">(</span><span class="fu">list</span><span class="ot">(</span><span class="kw">$name</span><span class="ot">,</span> <span class="kw">$email</span><span class="ot">)</span> = <span class="kw">$S</span>-&gt;fetchrow<span class="ot">(</span><span class="st">&#39;num&#39;</span><span class="ot">))</span> { <span class="st">...</span> }</code></pre></div>
+<pre class="sourceCode php"><code class="sourceCode php">while(list($name, $email) = $S-&gt;fetchrow(&#39;num&#39;)) { ... }</code></pre>
 <ul>
-<li>public function queryfetch($query, $retarray=false)</li>
-<li>public function getLastInsertId()<br />
-After an 'insert' this method returns the new row primary key id.</li>
-<li>public function getResult()<br />
-Returns the result object from the last 'query'. Usually not needed.</li>
-<li>public function escape($string)</li>
-<li>public function escapeDeep($value)</li>
-<li>public function getNumRows($result=null)</li>
-<li>public function prepare($query)<br />
-I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are not as well tested as the other methods.</li>
-<li>public function bindParam($format)</li>
-<li>public function bindResults($format)</li>
-<li>public function execute()</li>
+<li>public function queryfetch($query, $retarray=false)<br /></li>
+<li>public function getLastInsertId()<br />After an 'insert' this method returns the new row's primary key id.<br /></li>
+<li>public function getResult()<br />Returns the result object from the last 'query'. Usually not needed.<br /></li>
+<li>public function escape($string)<br /></li>
+<li>public function escapeDeep($value)<br /></li>
+<li>public function getNumRows($result=null)<br /></li>
+<li>public function prepare($query)<br />I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are not as well tested as the other methods.<br /></li>
+<li>public function bindParam($format)<br /></li>
+<li>public function bindResults($format)<br /></li>
+<li>public function execute()<br /></li>
 <li>public function getErrorInfo()</li>
 </ul>
 <hr />
-<p><a href="examples.html">Examples</a><br />
-<a href="dbTables.html">dbTables</a><br />
-<a href="siteclass.html">SiteClass Methods</a><br />
-<a href="files.html">Additional Files</a><br />
-<a href="analysis.html">Analysis and Tracking</a><br />
-<a href="index.html">Index</a></p>
+<p><a href="examples.html">Examples</a><br /><a href="dbTables.html">dbTables</a><br /><a href="siteclass.html">SiteClass Methods</a><br /><a href="files.html">Additional Files</a><br /><a href="analysis.html">Analysis and Tracking</a><br /><a href="index.html">Index</a></p>
 <h2 id="contact-me">Contact Me</h2>
-<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a><br />
-Copyright © 2015 Barton Phillips</p>
+<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a><br />Copyright © 2015 Barton Phillips</p>
 </body>
 </html>
