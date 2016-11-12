@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <title>Test Readme file</title>
+  <title>Testing</title>
   <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
 div.sourceCode { overflow-x: auto; }
@@ -56,18 +56,21 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
   </style>
 </head>
 <body>
-<h1 id="unit-tests">Unit Tests</h1>
-<p>These test use phpunit.<br />
-From this directory enter:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ot">HOME=</span><span class="kw">&lt;path_to_autoload.php&gt;</span> phpunit --stderr <span class="kw">&lt;</span>filename<span class="kw">&gt;;</span></code></pre></div>
-<p>Where 'path_to_autoload.php' is the path to the location of 'vendor/autoload.php',<br />
-and 'filename' is one of the three file that follow:</p>
+<h1 id="testing">Testing</h1>
+<hr />
+<h2 id="phpunit">phpunit</h2>
+<p>You will need to insure that 'phpunit' is installed. 'phpunit' is on <a href="https://github.com/sebastianbergmann/phpunit">GitHub</a> checkout the README for instalation instruction.</p>
+<p>Once you have 'phpunit' installed you can run the following test:</p>
 <ul>
 <li>topBottom.php</li>
 <li>withSqlite3.php</li>
 <li>withMysql.php</li>
 </ul>
-<h2 id="mysql">MySql</h2>
+<p>From 'tests' directory enter:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ot">HOME=</span><span class="kw">&lt;path_to_autoload.php&gt;</span> phpunit --stderr <span class="kw">&lt;</span>filename<span class="kw">&gt;;</span></code></pre></div>
+<p>Where 'path_to_autoload.php' is the path to the location of 'vendor/autoload.php',<br />
+and 'filename' is one of the three file that follow:</p>
+<h2 id="using-mysql">Using MySql</h2>
 <p>To use the 'withMysql.php' test you will need to setup the MySql database. First you will need to create a<br />
 database 'siteclass'. Then you will need to grand priveleges.</p>
 <div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql">mysql&gt; <span class="kw">create</span> <span class="kw">database</span> siteclass;
@@ -91,14 +94,31 @@ mysql&gt; show grants <span class="kw">for</span> siteclass@localhost;
 mysql&gt; exit</code></pre></div>
 <p>Now you can run the 'withMysql.php' with:</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ot">HOME=</span>/var/www <span class="kw">phpunit</span> --stderr withMysql.php</code></pre></div>
-<h2 id="sqlite3">Sqlite3</h2>
-<p>There is already a Sqlite3 database. It is called just 'siteclass'. You can run the 'withSqlite3.php'<br />
+<h2 id="using-sqlite3">Using Sqlite3</h2>
+<p>There is already a Sqlite3 database in the 'tests' directory. It is called just 'siteclass'. You can run the 'withSqlite3.php'<br />
 with:</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ot">HOME=</span>/var/www <span class="kw">phpunit</span> --stderr withSqlite3.php</code></pre></div>
-<h2 id="top-bottom">Top Bottom</h2>
+<h2 id="top-bottom-test">Top Bottom Test</h2>
 <p>The final test 'topBottom.php' does not need a database and only test the 'getPageHead', 'getPageFooter'<br />
 and 'getPageTopBottom' methods and the 'includes/' files.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ot">HOME=</span>/var/www <span class="kw">phpunit</span> --stderr topBottom.php</code></pre></div>
 <p>Feel free to extend the test if you like.</p>
+<hr />
+<p><a href="examples.html">Examples</a><br />
+<a href="dbTables.html">dbTables</a><br />
+<a href="siteclass.html">SiteClass Methods</a><br />
+<a href="files.html">Additional Files</a><br />
+<a href="analysis.html">Analysis and Tracking</a><br />
+<a href="testing.html">Testing</a><br />
+<a href="index.html">Index</a></p>
+<h2 id="contact-me">Contact Me</h2>
+<p>Barton Phillips : <script type="text/javascript">
+<!--
+h='&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#x2f;&#x2f;&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;'+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;&#32;&#40;&#x2f;&#x2f;&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#32;&#x61;&#116;&#32;&#x67;&#x6d;&#x61;&#x69;&#108;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;&#x29;</noscript><br />
+Copyright © 2015 Barton Phillips<br />
+Project maintained by <a href="https://github.com/bartonlp">bartonlp</a></p>
 </body>
 </html>

@@ -1,6 +1,4 @@
-# SiteClass Verion 2.0
-
-**SiteClass** is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
+# Analysis and Tracking
 
 ---
 
@@ -232,11 +230,13 @@ The above code created a centered table with a yellow 8 pixel ridge border, a li
 Using the above *css* you can create almost any type of counter you want. 
 
 ---
-[Examples](examples.html)  
-[dbTables](dbTables.html)  
-[SiteClass Methods](siteclass.html)  
-[Additional Files](files.html)  
-[Analysis and Tracking](analysis.html)  
+
+[Examples](examples.html)
+[dbTables](dbTables.html)
+[SiteClass Methods](siteclass.html)
+[Additional Files](files.html)
+[Analysis and Tracking](analysis.html)
+[Testing](testing.html)
 [Index](index.html)
 
 ## Contact Me

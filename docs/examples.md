@@ -1,9 +1,8 @@
-# SiteClass Verion 2.0
+# Examples
 
-**SiteClass** is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
+---
 
-
-The code shown below can be found in the 'examples' directory at http://github.com/bartonlp/site-class or from your project root at 'vendor/bartonlp/site-class/examples'. There is an 'EXAMPLES.md' and [EXAMPLES.html](../examples/EXAMPLES.html) in the 'examples' directory.
+The code shown below can be found in the 'examples' directory at http://github.com/bartonlp/site-class or from your project root at 'vendor/bartonlp/site-class/examples'. There is an 'EXAMPLES.md' and EXAMPLES.html in the 'examples' directory.
 
 <p style="color: green">The code in the 'examples' directory has actually been tested and runs. 
 The code in this README was originally copied in from the examples code but may have changed for some reason. 
@@ -356,11 +355,13 @@ ReST is syntactical sugar that takes more code and obfuscates what is really goi
 But that is just my opinion.
 
 ---
-[Examples](examples.html)  
-[dbTables](dbTables.html)  
-[SiteClass Methods](siteclass.html)  
-[Additional Files](files.html)  
-[Analysis and Tracking](analysis.html)  
+
+[Examples](examples.html)
+[dbTables](dbTables.html)
+[SiteClass Methods](siteclass.html)
+[Additional Files](files.html)
+[Analysis and Tracking](analysis.html)
+[Testing](testing.html)
 [Index](index.html)
 
 ## Contact Me

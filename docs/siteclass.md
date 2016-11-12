@@ -1,6 +1,4 @@
-# SiteClass Verion 2.0
-
-**SiteClass** is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
+# SiteClass and Database Methods
 
 ---
 
@@ -65,6 +63,7 @@ I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are
 [SiteClass Methods](siteclass.html)
 [Additional Files](files.html)
 [Analysis and Tracking](analysis.html)
+[Testing](testing.html)
 [Index](index.html)
 
 ## Contact Me

@@ -25,5 +25,6 @@ pagetitle="Additional Files";
 /usr/bin/pandoc -f markdown_github -Vpagetitle="$pagetitle" -Vmath="$css" -s files.md -o files.html
 pagetitle="Analysis";
 /usr/bin/pandoc -f markdown_github -Vpagetitle="$pagetitle" -Vmath="$css" -s analysis.md -o analysis.html
-
+pagetitle="Testing";
+/usr/bin/pandoc -f markdown_github -Vpagetitle="$pagetitle" -Vmath="$css" -s testing.md -o testing.html
 

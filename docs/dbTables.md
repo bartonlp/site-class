@@ -1,12 +1,8 @@
-# Site-class 2.0
-SiteClass class mini framework for simple, small websites.
-## dbTables
+# dbTables
 
-This is the documentation for dbTables.
+---
 
-In addition to the SiteClass and Database classes there are several others classes in the 'database-engins' directory.
-
-The dbTables class uses the Database class to make creating tables simple. For example:
+The **dbTables** makes creating tables simple.
 
 ```php
 <?php
@@ -145,11 +141,13 @@ $extra['footer'] a footer string
  or === false
 
 ---
-[Examples](examples.html)  
-[dbTables](dbTables.html)  
-[SiteClass Methods](siteclass.html)  
-[Additional Files](files.html)  
-[Analysis and Tracking](analysis.html)  
+
+[Examples](examples.html)
+[dbTables](dbTables.html)
+[SiteClass Methods](siteclass.html)
+[Additional Files](files.html)
+[Analysis and Tracking](analysis.html)
+[Testing](testing.html)
 [Index](index.html)
 
 ## Contact Me
