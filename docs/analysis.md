@@ -1,8 +1,8 @@
-# Analysis and Tracking
+# Page Counting, Analysis and Tracking
 
 ---
 
-## Doing Page Counting and Analysis
+## Analysis and Tracking with MySql
 
 If you want to do page counting and analysis there are several MySql tables that you can use. The MySql schema for these tables is in the *mysql.schema* file in the repository.
 
