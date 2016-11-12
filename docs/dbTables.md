@@ -136,9 +136,7 @@ $extra is an optional assoc array: $extra['callback'], $extra['callback2'], $ext
 $extra['attr'] is an assoc array that can have attributes for the <table> tag, like 'id', 'title', 'class', 'style' etc.  
 $extra['callback'] function that can modify the header after it is filled in.  
 $extra['footer'] a footer string   
-@return array [{string table}, {result}, {num}, {hdr}, table=>{string}, result=>{result},
- num=>{num rows}, header=>{hdr}]  
- or === false
+@return array [{string table}, {result}, {num}, {hdr}, table=>{string}, result=>{result}, num=>{num rows}, header=>{hdr}] or === false
 
 ---
 
