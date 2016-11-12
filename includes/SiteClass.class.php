@@ -1,6 +1,6 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.  
-define("SITE_CLASS_VERSION", "2.0.0");
+define("SITE_CLASS_VERSION", "2.0.1");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -9,7 +9,7 @@ define("SITE_CLASS_VERSION", "2.0.0");
  *
  * @package SiteClass
  * @author Barton Phillips <barton@bartonphillips.com>
- * @version v2.0.0
+ * @version v2.0.1
  * @link http://www.bartonphillips.com
  * @copyright Copyright (c) 2010, Barton Phillips
  * @license  MIT
@@ -334,7 +334,6 @@ class SiteClass extends dbAbstract {
         $arg['title'] = $a;
       } elseif(is_object($a)) {
         foreach($a as $k=>$v) {
-          //echo "$k=$v<br>\n";
           $arg[$k] = $v;
         }
       } elseif(is_array($a)) {
@@ -998,7 +997,7 @@ EOF;
                  "where (table_schema = '$this->masterdb') and (table_name = 'logagent')");
 
     list($ok) = $this->fetchrow('num');
-      
+
     if($ok == 1) {
       $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, id, created, lasttime) " .
              "values('$this->siteName', '$this->ip', '$agent', '1', '$this->id', now(), now()) ".
@@ -1006,7 +1005,7 @@ EOF;
         
       $this->query($sql);
     } else {
-      $this->debug("$this->siteName: $this->self: table logagent does not exist in the $this->dbinfo->database database");
+      $this->debug("$this->siteName: $this->self: table logagent does not exist in the {$this->dbinfo->database} database");
     }
 
     // Do insert into logagent2 which has only the last n days
@@ -1015,7 +1014,7 @@ EOF;
                  "where (table_schema = '$this->masterdb') and (table_name = 'logagent2')");
 
     list($ok) = $this->fetchrow('num');
-      
+
     if($ok == 1) {
       $sql = "insert into $this->masterdb.logagent2 (site, ip, agent, count, id, created, lasttime) ".
              "values('$this->siteName', '$this->ip', '$agent', '1', '$this->id', now(), now()) ".
@@ -1023,7 +1022,7 @@ EOF;
 
       $this->query($sql);
     } else {
-      $this->debug("$this->siteName: $this->self: table logagent2 does not exist in the $this->dbinfo->database database");
+      $this->debug("$this->siteName: $this->self: table logagent2 does not exist in the {$this->dbinfo->database} database");
     }
   }
 
@@ -1046,7 +1045,7 @@ EOF;
       $agent = $this->escape($this->agent);
 
       $this->query("select count(*) from information_schema.tables ".
-                   "where (table_schema = '$this->dbinfo->database') and (table_name = '$this->memberTable')");
+                   "where (table_schema = '{$this->dbinfo->database}') and (table_name = '$this->memberTable')");
 
       list($ok) = $this->fetchrow('num');
 
@@ -1060,14 +1059,14 @@ EOF;
 
         $this->query($sql);
       } else {
-        $this->debug("$this->siteName: $this->self: table $this->memberTable does not exist in the $this->dbinfo->database database");
+        $this->debug("$this->siteName: $this->self: table $this->memberTable does not exist in the {$this->dbinfo->database} database");
       }
       
       // BLP 2014-09-16 -- add nomemberpagecnt
 
       if(!$this->nomemberpagecnt) {
         $this->query("select count(*) from information_schema.tables ".
-                     "where (table_schema = '$this->dbinfo->database') and (table_name = 'memberpagecnt')");
+                     "where (table_schema = '{$this->dbinfo->database}') and (table_name = 'memberpagecnt')");
 
         list($ok) = $this->fetchrow('num');
 
@@ -1078,7 +1077,7 @@ EOF;
 
           $this->query($sql);
         } else {
-          $this->debug("$this->siteName: $this->self: table memberpagecnt does not exist in the $this->dbinfo->database database");
+          $this->debug("$this->siteName: $this->self: table memberpagecnt does not exist in the {$this->dbinfo->database} database");
         }
       }
     }
