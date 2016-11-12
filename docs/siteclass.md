@@ -2,11 +2,9 @@
 
 ---
 
-# Class Methods
+## SiteClass methods:
 
 While there are a number of methods for each of the major classes there are really only a small handful you will use on a regular bases. The ones most used have some documentation with them.
-
-## SiteClass methods:
 
 * constructor
 * public function setSiteCookie($cookie, $value, $expire, $path="/")
