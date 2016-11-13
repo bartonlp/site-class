@@ -162,6 +162,7 @@ class SiteClass extends dbAbstract {
 
   /**
    * setSiteCookie()
+   * @return bool true if OK else false
    */
 
   public function setSiteCookie($cookie, $value, $expire, $path="/") {
@@ -173,8 +174,9 @@ class SiteClass extends dbAbstract {
 
     // setcookie($name, $value, $expire=0, $path="", $domain="", $secure=false, $httponly=false) 
     if(!setcookie($cookie, "$value", $expire, $path, $ref)) {
-      throw(new Exception("Error: setSiteCookie() can't set cookie"));
+      return false;
     }
+    return true;
   }
 
   /**
@@ -955,7 +957,9 @@ EOF;
         $this->query($sql);
 
         $cookietime = time() + (60*10);
-        $this->setSiteCookie("mytime", time(), $cookietime);
+        if(!$this->setSiteCookie("mytime", time(), $cookietime);) {
+          error_log("SiteClass: Can't setSiteCookie() at ".__LINE__);
+        }
       } catch(Exception $e) {
         if($e->getCode() != 1062) { // 1062 is dup key error
           throw(new Exception(__CLASS__ ."::daycount() error=$e"));
@@ -969,7 +973,9 @@ EOF;
         } else {
           // set cookie to expire in 10 minutes
           $cookietime = time() + (60*10);
-          $this->setSiteCookie("mytime", time(), $cookietime);
+          if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
+            error_log("SiteClass: Can't setSiteCookie() at ".__LINE__);
+          }
 
           $sql = "update $this->masterdb.daycounts set$realUpdate$botsUpdate$memberUpdate visits=visits+1, ".
                  "lasttime=now() ".
