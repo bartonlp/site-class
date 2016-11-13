@@ -957,7 +957,7 @@ EOF;
         $this->query($sql);
 
         $cookietime = time() + (60*10);
-        if(!$this->setSiteCookie("mytime", time(), $cookietime);) {
+        if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
           error_log("SiteClass: Can't setSiteCookie() at ".__LINE__);
         }
       } catch(Exception $e) {
