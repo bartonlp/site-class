@@ -172,8 +172,7 @@ class SiteClass extends dbAbstract {
 
     $ref = $this->siteDomain;
 
-    // setcookie($name, $value, $expire=0, $path="", $domain="", $secure=false, $httponly=false) 
-    if(!setcookie($cookie, "$value", $expire, $path, $ref)) {
+    if(!setcookie($cookie, $value, $expire, $path, $ref)) {
       return false;
     }
     return true;

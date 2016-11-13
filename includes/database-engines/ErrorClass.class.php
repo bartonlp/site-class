@@ -140,7 +140,7 @@ function my_exceptionhandler($e) {
     $error = <<<EOF
 <div style="text-align: center; width: 85%; margin: auto auto; background-color: white; border: 1px solid black; padding: 10px;">
 Class: <b>$cl</b><br>\nException: &quot;<b>{$e->getMessage()}</b>&quot;<br>
-in file <b>{$e->getFile()}</b><br>on line {$e->getLine()}
+in file <b>{$e->getFile()}</b><br> on line {$e->getLine()}
 $traceback
 </div>
 EOF;
