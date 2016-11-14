@@ -31,7 +31,7 @@ class dbMysqli extends dbAbstract {
    * MySqli Database Link Identifier
    * @var resource $db
    */
-  
+
   private $result; // for select etc. a result set.
   
   static public $lastQuery = null; // for debugging

@@ -10,11 +10,15 @@ abstract class dbAbstract {
   protected $db;
 
   // Each child class needs to have a __toString() method
-  
+
   abstract public function __toString();
 
   public function getDbName() {
-    return $this->dbinfo->database;
+    $database = $this->db->database;
+    if($database) {
+      return $database;
+    }
+    return $this->db->db->database;
   }
 
   public function getDb() {

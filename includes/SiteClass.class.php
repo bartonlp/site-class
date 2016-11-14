@@ -995,7 +995,7 @@ EOF;
     if($this->nodb) {
       return;
     }
-
+    $database = $this->getDbName();
     $agent = $this->escape($this->agent);
 
     $this->query("select count(*) from information_schema.tables ".
@@ -1010,7 +1010,7 @@ EOF;
         
       $this->query($sql);
     } else {
-      $this->debug("$this->siteName: $this->self: table logagent does not exist in the {$this->dbinfo->database} database");
+      $this->debug("$this->siteName: $this->self: table logagent does not exist in the $database database");
     }
 
     // Do insert into logagent2 which has only the last n days
@@ -1027,7 +1027,7 @@ EOF;
 
       $this->query($sql);
     } else {
-      $this->debug("$this->siteName: $this->self: table logagent2 does not exist in the {$this->dbinfo->database} database");
+      $this->debug("$this->siteName: $this->self: table logagent2 does not exist in the $database database");
     }
   }
 
@@ -1044,13 +1044,15 @@ EOF;
       return;
     }
 
+    $database = $this->getDbName();
+    
     // If there is a member 'id' then update the memberTable
 
     if($this->id && $this->memberTable) {
       $agent = $this->escape($this->agent);
 
       $this->query("select count(*) from information_schema.tables ".
-                   "where (table_schema = '{$this->dbinfo->database}') and (table_name = '$this->memberTable')");
+                   "where (table_schema = '$database') and (table_name = '$this->memberTable')");
 
       list($ok) = $this->fetchrow('num');
 
@@ -1064,14 +1066,14 @@ EOF;
 
         $this->query($sql);
       } else {
-        $this->debug("$this->siteName: $this->self: table $this->memberTable does not exist in the {$this->dbinfo->database} database");
+        $this->debug("$this->siteName: $this->self: table $this->memberTable does not exist in the $database database");
       }
       
       // BLP 2014-09-16 -- add nomemberpagecnt
 
       if(!$this->nomemberpagecnt) {
         $this->query("select count(*) from information_schema.tables ".
-                     "where (table_schema = '{$this->dbinfo->database}') and (table_name = 'memberpagecnt')");
+                     "where (table_schema = '$database') and (table_name = 'memberpagecnt')");
 
         list($ok) = $this->fetchrow('num');
 
@@ -1082,7 +1084,7 @@ EOF;
 
           $this->query($sql);
         } else {
-          $this->debug("$this->siteName: $this->self: table memberpagecnt does not exist in the {$this->dbinfo->database} database");
+          $this->debug("$this->siteName: $this->self: table memberpagecnt does not exist in the $database database");
         }
       }
     }
