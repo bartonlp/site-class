@@ -66,16 +66,12 @@ class dbSqlite extends dbAbstract {
     if($this->db) {
       return $this->db;
     }
-    //$db = new SQLiteDatabase($this->database);
-    $db = new SQlite3($this->database);
-    //$db = @sqlite_open($this->database);
-
-    if($db === false) {
-      throw new SqlException(__METHOD__ . ": Can't connect to database: {$db->loastError}", $this);
-    }
     
-    $this->db = $db; // set this right away so if we get an error below $this->db is valid
+    $db = new SQlite3($this->database);
 
+    $db->enableExceptions(true);
+
+    $this->db = $db; // set this right away so if we get an error below $this->db is valid
     return $db;
   }
 
@@ -100,18 +96,18 @@ class dbSqlite extends dbAbstract {
     $db = $this->opendb();
 
     if(preg_match("/^select|show/i", $query)) {
-      $result = @$db->query($query);
+      $result = $db->query($query);
       if($result === false) {
         throw new SqlException($query, $this);
       }
       $this->result = $result;
     } else {
-      $result = @$db->exec($query);
+      $result = $db->exec($query);
       if($result === false) {
         throw new SqlException($query, $this);
       }
     }
-    return;
+    return 1; // because Sqlite3 does not return the number of items we return one so checks do not fail.
   }
 
   /**
@@ -245,7 +241,7 @@ class dbSqlite extends dbAbstract {
     if(get_magic_quotes_runtime()) {
       $string = stripslashes($string);
     }
-    return @sqlite_escape_string($string);
+    return $db->escapeString($string);
   }
 
   //

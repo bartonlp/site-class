@@ -738,8 +738,10 @@ EOF;
 
   /**
    * doanalysis()
+   * BLP 2016-11-16 -- NOT USED ANY MORE we use logagent and logagent2 for analysis now.
+   *                   Therefore $this->analysys is not used either and can be removed from mysitemap.json!
    */
-
+/*
   protected function doanalysis() {
     if($this->nodb) {
       return;
@@ -771,7 +773,8 @@ EOF;
       }
     }
   }
-
+*/
+  
   /**
    * setmyip()
    * insert ignore to table myip
