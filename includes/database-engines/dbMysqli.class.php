@@ -95,6 +95,8 @@ class dbMysqli extends dbAbstract {
   /**
    * query()
    * Query database table
+   * BLP 2016-11-20 -- Query is for a SINGLE query ONLY. Don't do multiple querys!
+   *  mysqli has a multi_query() but I have not written a method for it!
    * @param string $query SQL statement.
    * @return mixed result-set for select etc, true/false for insert etc.
    * On error calls SqlError() and exits.
@@ -234,29 +236,7 @@ class dbMysqli extends dbAbstract {
 
   public function getLastInsertId() {
     $db = $this->opendb();
-    // NOTE: if you have multiple items in an insert the insert_id is for the first one in the
-    // group. For example: "insert into test (name) values('one'),('two'),('three')". The id field
-    // is auto_increment. insert_id will be 1 if this is done right after the creation of the
-    // table. But the last id is really 3. affected_rows is 3 so the last id is:
-    // (insert_id + affected_rows -1)
-
-    // $db->info shows:
-    // Insert:  Records: 4  Duplicates: 0  Warnings: 0 // insert multipe records one statement
-    // Update:  Rows matched: 2  Changed: 2  Warnings: 0 // update id in (100, 101) etc.
-    // Insert/upsate: Records: 2 Duplicates: 1 Warnings: 0 // insert 2 records on duplicate key
-    // update 1 record. So one straight insert in this case went info id 110, one insert that was a
-    // duplicate so we did one (id 100 was already there) update. affected_rows is 3 here.
-    // insert_id was 100 -- not sure why, I would have thought 110.
-    // If the info says 'Rows matched:' then it is an update.
-    // If the info says 'Records:' without any 'Duplicates:' then it is a insert/update
-    // It also looks like $db->info is only filled in if $db->affected_rows is greater than one!
-    
-    // If the 'insert ignore ...' did in fact NOT do an insert then insert_id is zero and there
-    // were no affected_rows so we need to test for that and return zero not -1.
-    
-    if($db->insert_id === 0) return 0;
-    
-    return ($db->insert_id + $db->affected_rows) -1;
+    return $db->insert_id;
   }
   
   /**
