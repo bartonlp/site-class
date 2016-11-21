@@ -33,7 +33,7 @@ class dbMysqli extends dbAbstract {
    */
 
   private $result; // for select etc. a result set.
-  
+    
   static public $lastQuery = null; // for debugging
   static public $lastNonSelectResult = null; // for insert, update etc.
   
@@ -58,8 +58,8 @@ class dbMysqli extends dbAbstract {
     $this->opendb();
 
     // make warning show up as exceptions
-    $driver = new mysqli_driver;
-    $driver->report_mode = MYSQLI_REPORT_STRICT;
+//    $driver = new mysqli_driver;
+//    $driver->report_mode = MYSQLI_REPORT_STRICT;
   }
   
   /**
@@ -70,25 +70,27 @@ class dbMysqli extends dbAbstract {
   
   protected function opendb() {
     // Only do one open
-    
+
     if($this->db) {
       return $this->db;
     }
     $db = new mysqli($this->host, $this->user, $this->password);
-    
+
     if($db->connect_errno) {
       $this->errno = $db->connect_errno;
       $this->error = $db->connect_error;
       throw new SqlException(__METHOD__ . ": Can't connect to database", $this);
     }
     
-    $this->db = $db; // set this right away so if we get an error below $this->db is valid
+    //$this->db = $db; // set this right away so if we get an error below $this->db is valid
 
     if(!@$db->select_db($this->database)) {
       throw new SqlException(__METHOD__ . " Can't select database", $this);
     }
+
     // BLP 2016-03-16 -- make sure we are la time. 
     $db->query("set time_zone = 'PST8PDT'");
+    $this->db = $db;
     return $db;
   }
 

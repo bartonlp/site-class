@@ -115,9 +115,9 @@ class SiteClass extends dbAbstract {
       $this->logagent(); // in 'masterdb' database. logip and logagent
       $this->setmyip();
     }
-    
+
     // If 'count' is false we don't do these counters
-    
+
     if($this->count) {
       // Get the count for hitCount. This is done even if countMe is false. The hitCount is always
       // updated (unless the counter file does not exist).
@@ -699,8 +699,6 @@ EOF;
     }
   }
 
-
-  
   /**
    * tracker()
    * track if java script or not.
@@ -715,7 +713,7 @@ EOF;
                  "where (table_schema = '$this->masterdb') and (table_name = 'tracker')");
 
     list($ok) = $this->fetchrow('num');
-
+    
     if($ok == 1) {
       $agent = $this->escape($this->agent);
 
