@@ -10,6 +10,10 @@
 
 require_once(__DIR__ ."/../../../autoload.php");
 
+$mydir = dirname($_SERVER['SCRIPT_FILENAME']);
+
+chdir($mydir);
+
 $_site = json_decode(findsitemap());
 
 if(!$_site) {
@@ -28,9 +32,10 @@ function findsitemap() {
   if(file_exists("mysitemap.json")) {
     return file_get_contents("mysitemap.json");
   } else {
-    if($docroot == getcwd()) {
+    if($docroot == getcwd() || '/' == getcwd()) {
       return null;
     }
+    echo "dir: ".getcwd()."\n";
     chdir('..');
     // Recurse
     return findsitemap();
