@@ -735,45 +735,6 @@ EOF;
   }
 
   /**
-   * doanalysis()
-   * BLP 2016-11-16 -- NOT USED ANY MORE we use logagent and logagent2 for analysis now.
-   *                   Therefore $this->analysys is not used either and can be removed from mysitemap.json!
-   */
-/*
-  protected function doanalysis() {
-    if($this->nodb) {
-      return;
-    }
-
-    if($this->analysis) {
-      $this->query("select count(*) from information_schema.tables ".
-                   "where (table_schema = '$this->masterdb') and ".
-                   "((table_name = 'analysis' or table_name = 'analysis2'))");
-
-      list($ok) = $this->fetchrow('num');
-
-      if($ok == 2) {
-        // Don't count ME
-        if(!$this->isMe()) {
-          $agent = $this->escape($this->agent);
-          $this->query("insert into $this->masterdb.analysis (agent, count, created, lasttime) ".
-                       "values('$agent', 1, current_date(), now()) ".
-                       "on duplicate key update count=count+1, lasttime=now()");
-
-          // analysis2 only keeps 60 days of data. Every night a cron job removes old data.
-          
-          $this->query("insert into $this->masterdb.analysis2 (agent, count, created, lasttime) ".
-                       "values('$agent', 1, current_date(), now()) ".
-                       "on duplicate key update count=count+1, lasttime=now()");
-        }
-      } else {
-        $this->debug("$this->siteName: $this->self: table analysis and/or analysis2 do not exist in the $this->masterdb database");
-      }
-    }
-  }
-*/
-  
-  /**
    * setmyip()
    * insert ignore to table myip
    */
