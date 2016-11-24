@@ -35,7 +35,6 @@ function findsitemap() {
     if($docroot == getcwd() || '/' == getcwd()) {
       return null;
     }
-    echo "dir: ".getcwd()."\n";
     chdir('..');
     // Recurse
     return findsitemap();
