@@ -1,9 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta http-equiv="Content-Style-Type" content="text/css" />
-  <meta name="generator" content="pandoc" />
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>Examples</title>
   <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
@@ -54,6 +54,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
     background-color: #EEF3E2;
   }
   </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
 </head>
 <body>
 <h1 id="examples">Examples</h1>
@@ -297,8 +300,8 @@ ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><
 Here we do just about the minimum just as an example.</p>
 <p>There is no 'vendor' directory in the examples directory. You will need to run 'composer' to get <em>Twig</em> and <em>Altorouter</em> installed.</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">composer</span> install</code></pre></div>
-<p><a href="../examples/example-with-twig.php">example-with-twig.php</a></p>
-<p>If you get an error check out <a href="../examples/EXAMPLES.html">EXAMPLES set premisions</a>.</p>
+<p>The check out the 'example-with-twig.php' in the repositories 'examples' directory.</p>
+<p>If you get an error check out 'EXAMPLES.html' in the 'examples' directory.</p>
 <h3 id="rest-routing-with-altorouter">ReST Routing with Altorouter</h3>
 <p>If you need ReST routing (or pretty routing or SEO friendly routing as it is sometime called)<br />
 you could use one of the popular routing engines available with <em>Meteor</em>, <em>Laravel</em>, <em>Synfony2</em> or <em>Silex</em><br />
@@ -312,7 +315,7 @@ The '.htaccess' file would look like this:</p>
 <span class="kw">RewriteCond</span> %<span class="dt">{REQUEST_FILENAME}</span> !-f
 <span class="kw">RewriteRule</span> . index.php [L]</code></pre></div>
 <p>This says that if the requested filename does not exist go to the 'index.php' file instead.</p>
-<p>To test this without renaming the 'example-route.php' you can use the PHP server like this:</p>
+<p>To test this without renaming the 'example-route.php' you can use the PHP server like this from the 'examples' directory on your server:</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ot">HOME=</span>/var/www <span class="kw">php</span> -S localhost:8080 example-route.php</code></pre></div>
 <p>The PHP server uses the 'example-route.php' file and you don't need a '.htaccess' file.</p>
 <p>Prefixing the command with 'HOME=...' sets the 'HOME' environment variable. Have it point to your 'vendor/autoload.php'<br />

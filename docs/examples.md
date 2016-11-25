@@ -304,9 +304,9 @@ There is no 'vendor' directory in the examples directory. You will need to run '
 composer install
 ```
 
-[example-with-twig.php](../examples/example-with-twig.php)
+The check out the 'example-with-twig.php' in the repositories 'examples' directory.
 
-If you get an error check out [EXAMPLES set premisions](../examples/EXAMPLES.html).
+If you get an error check out 'EXAMPLES.html' in the 'examples' directory.
 
 ### ReST Routing with Altorouter
 
@@ -329,7 +329,7 @@ RewriteRule . index.php [L]
 
 This says that if the requested filename does not exist go to the 'index.php' file instead.
 
-To test this without renaming the 'example-route.php' you can use the PHP server like this:
+To test this without renaming the 'example-route.php' you can use the PHP server like this from the 'examples' directory on your server:
 
 ```bash
 HOME=/var/www php -S localhost:8080 example-route.php
