@@ -7,6 +7,8 @@ $S = new Database($_site);
 $ip = $_SERVER['REMOTE_ADDR'];
 $agent = $_SERVER['HTTP_USER_AGENT'];
 
+//error_log("tracker: ". print_r($_REQUEST, true));
+
 // Post an ajax error message
 
 if($_POST['page'] == 'ajaxmsg') {
@@ -16,6 +18,16 @@ if($_POST['page'] == 'ajaxmsg') {
   $ipagent = ($_POST['ipagent'] == 'true') ? ": $ip, $agent" : '';
   error_log("tracker: AJAXMSG, $S->siteName, '$msg'" . $ipagent);
   echo "AJAXMSG OK";
+  exit();
+}
+
+$S->query("select count(*) from information_schema.tables ".
+          "where (table_schema = '$S->masterdb') and (table_name = 'tracker')");
+
+list($ok) = $S->fetchrow('num');
+
+if($ok != 1) {
+  error_log("No tracker in $S->masterdb");
   exit();
 }
 
@@ -29,7 +41,9 @@ if($_POST['page'] == 'start') {
     exit();
   }
 
-  $S->query("update $_site->masterdb.tracker set isJavaScript=isJavaScript|1, lasttime=now() where id='$id'");
+  //error_log("tracker: start,    $S->siteName, $id, $ip, $agent");
+  
+  $S->query("update $S->masterdb.tracker set isJavaScript=isJavaScript|1, lasttime=now() where id='$id'");
   echo "Start OK";
   exit();
 }
@@ -44,8 +58,6 @@ if($_POST['page'] == 'load') {
     exit();
   }
 
-  //error_log("tracker: load, $_site->siteName, $id, $ip, $agent");
-  
   $S->query("update $S->masterdb.tracker set isJavaScript=isJavaScript|2, lasttime=now() where id='$id'");
   echo "Load OK";
   exit();
@@ -70,8 +82,8 @@ if($_POST['page'] == 'pagehide') {
   // or (256|512|1024) tracker:beforeunload/unload/pagehide. We should update.
   
   if(($js & ~(4127)) == 0) {
-    //error_log("tracker: beforeunload, $_site->siteName, $id, $ip, $agent, $js");
-    $S->query("update $_site->masterdb.tracker set endtime=now(), difftime=timediff(now(),starttime), ".
+    //error_log("tracker: beforeunload,   $S->siteName, $id, $ip, $agent, $js");
+    $S->query("update $S->masterdb.tracker set endtime=now(), difftime=timediff(now(),starttime), ".
               "isJavaScript=isJavaScript|1024, lasttime=now() where id=$id");
   }
   echo "pagehide OK";
@@ -84,7 +96,7 @@ if($_POST['page'] == 'beforeunload') {
   $id = $_POST['id'];
 
   if(!$id) {
-    error_log("tracker: $_site->siteName: BEFOREUNLOAD NO ID, $ip, $agent");
+    error_log("tracker: $S->siteName: BEFOREUNLOAD NO ID, $ip, $agent");
     exit();
   }
 
@@ -97,7 +109,7 @@ if($_POST['page'] == 'beforeunload') {
   // or (256|512) tracker:beforeunload/unload. We should update.
   
   if(($js & ~(4127)) == 0) {
-    //error_log("tracker: beforeunload, $S->siteName, $id, $ip, $agent, $js");
+    //error_log("tracker: beforeunload,   $S->siteName, $id, $ip, $agent, $js");
     $S->query("update $S->masterdb.tracker set endtime=now(), difftime=timediff(now(),starttime), ".
               "isJavaScript=isJavaScript|256, lasttime=now() where id=$id");
   }
@@ -124,6 +136,7 @@ if($_POST['page'] == 'unload') {
   // or (256|512) tracker:beforeunload/unload. We should update.
   
   if(($js & ~(4127)) == 0) {
+    //error_log("tracker: unload,   $S->siteName, $id, $ip, $agent, $js");
     $S->query("update $S->masterdb.tracker set endtime=now(), difftime=timediff(now(),starttime), ".
               "isJavaScript=isJavaScript|512, lasttime=now() where id=$id");
   }
@@ -264,32 +277,6 @@ if($_POST['page'] == 'timer') {
     error_log(print_r($e, true));
   }
   echo "Timer OK";
-  exit();
-}
-
-// Capture the fingerprint
-
-if($_POST['page'] == 'fingerprint') {  
-  $finger = $_POST['finger'];
-  $page = $_POST['pagename'];
-
-  if(!$finger) {
-    error_log("tracker: $S->siteName: TIMER NO finger, $ip, $agent");
-    exit();
-  }
-
-  //error_log("tracker: finger $S->siteName, $finger, $page, $ip, $agent");
-  
-  try {
-    $sql = "insert into $S->masterdb.finger (ip, finger, page, agent, count, created, lasttime) ".
-           "values('$ip', '$finger', '$page', '$agent', 1, now(), now()) ".
-           "on duplicate key update count=count+1, lasttime=now()";
-    
-    $S->query($sql);
-  } catch(Exception $e) {
-    error_log(print_r($e, true));
-  }
-  echo "Finger OK";
   exit();
 }
 

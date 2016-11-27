@@ -31,17 +31,18 @@ function postAjaxMsg(msg) {
 // NO 'logo' nothing happens. I should probably fix this at some point.
 
 jQuery(document).ready(function($) {
-  console.log("loc: " +LocalPath);
+  console.log("LocalPath: " +LocalPath);
   $("#logo").attr('src', LocalPath +"/tracker.php?page=script&id="+lastId);
 });
 
 // The rest of this is for everybody!
 
 (function($) {
-  console.log("last id: " + lastId);
+  console.log("lastId: " + lastId);
   
   var trackerUrl = LocalPath + "/tracker.php";
-
+  var beaconUrl = LocalPath + "/beacon.php";
+  
   // 'start' is done weather or not 'load' happens.
 
   $.ajax({
@@ -49,11 +50,11 @@ jQuery(document).ready(function($) {
     data: {page: 'start', id: lastId },
     type: 'post',
     success: function(data) {
-           console.log(data);
-         },
-         error: function(err) {
-           console.log(err);
-         }
+      console.log(data);
+    },
+    error: function(err) {
+      console.log(err);
+    }
   });
   
   $(window).on("load", function(e) {
@@ -62,11 +63,11 @@ jQuery(document).ready(function($) {
       data: {page: 'load', 'id': lastId},
       type: 'post',
       success: function(data) {
-             console.log(data);
-           },
-           error: function(err) {
-             console.log(err);
-           }
+        console.log(data);
+      },
+      error: function(err) {
+        console.log(err);
+      }
     });
   });
 
@@ -77,14 +78,14 @@ jQuery(document).ready(function($) {
       type: 'post',
       async: false,
       success: function(data) {
-             console.log(data);
-           },
-           error: function(err) {
-             console.log(err);
-           }
+        console.log(data);
+      },
+      error: function(err) {
+        console.log(err);
+      }
     });
   });
-
+  
   $(window).on("unload", function(e) {
     $.ajax({
       url: trackerUrl,
@@ -92,11 +93,11 @@ jQuery(document).ready(function($) {
       type: 'post',
       async: false,
       success: function(data) {
-             console.log(data);
-           },
-           error: function(err) {
-             console.log(err);
-           }
+        console.log(data);
+      },
+      error: function(err) {
+        console.log(err);
+      }
     });
   });
 
@@ -107,27 +108,27 @@ jQuery(document).ready(function($) {
       type: 'post',
       async: false,
       success: function(data) {
-             console.log(data);
-           },
-           error: function(err) {
-             console.log(err);
-           }
+        console.log(data);
+      },
+      error: function(err) {
+        console.log(err);
+      }
     });
   });
 
   // We will use beacon also
-  
+
   if(navigator.sendBeacon) {
     $(window).on("pagehide", function() {
-      navigator.sendBeacon('/beacon.php', JSON.stringify({'id':lastId, 'which': 1}));
+      navigator.sendBeacon(beaconUrl, JSON.stringify({'id':lastId, 'which': 1}));
     });
 
     $(window).on("unload", function() {
-      navigator.sendBeacon('/beacon.php', JSON.stringify({'id':lastId, 'which': 2}));
+      navigator.sendBeacon(beaconUrl, JSON.stringify({'id':lastId, 'which': 2}));
     });
 
     $(window).on('beforeunload ',function() {
-      navigator.sendBeacon('/beacon.php', JSON.stringify({'id':lastId, 'which': 4}));    
+      navigator.sendBeacon(beaconUrl, JSON.stringify({'id':lastId, 'which': 4}));    
     });
   } else {
     var msg = "NEW: Beacon NOT SUPPORTED";
@@ -141,19 +142,19 @@ jQuery(document).ready(function($) {
 
   function runtimer() {
     if($cnt++ < 20) {
-      $time += 2000;
+      $time += 10000;
     }
     $.ajax({
       url: trackerUrl,
       data: {page: 'timer', id: lastId },
       type: 'post',
       success: function(data) {
-             console.log(data);
-             setTimeout(runtimer, $time)
-           },
-           error: function(err) {
-             console.log(err);
-           }
+        console.log(data);
+        setTimeout(runtimer, $time)
+      },
+      error: function(err) {
+        console.log(err);
+      }
     });
   }
 

@@ -3,6 +3,10 @@
 // BLP 2014-03-06 -- ajax for tracker.js
 
 $_site = require_once(getenv("SITELOAD")."/siteload.php");
+
+$dbinfo = $_site->dbinfo;
+$_site = (array)$_site;
+
 $S = new Database($_site);
 
 $agent = $_SERVER['HTTP_USER_AGENT'];
@@ -24,8 +28,6 @@ if(!$id) {
   // or (256|512|1024) tracker:pagehide/beforeunload/unload. We should update.
   
   if(($js & ~(4127)) == 0) {
-    error_log("beacon: $S->siteName: which={$data['which']}: id=$id, js=$js");
-
     // 'which' can be 1, 2, or 4
     
     $beacon = $data['which'] * 32; // 0x20, 0x40 or 0x80

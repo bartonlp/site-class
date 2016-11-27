@@ -2,6 +2,9 @@
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.  
 define("SITE_CLASS_VERSION", "2.0.1");
 
+// BLP 2016-11-27 -- changed the sense of $this->myIP and $this->myUri. Now $this->myUri can be an
+// object and $this->myIp can be an array.
+
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
 /**
@@ -91,9 +94,16 @@ class SiteClass extends dbAbstract {
     }
 
     // If myUri is set get the ip address into myIp
+    // BLP 2016-11-27 -- Changed meaning. It can be an object
     
     if(isset($this->myUri)) {
-      $this->myIp = gethostbyname($this->myUri); // get my home ip address
+      if(is_array($this->myUri)) {
+        foreach($this->myUri as $v) {
+          $this->myIp[] = gethostbyname($v);
+        }
+      } else {
+        $this->myIp = gethostbyname($this->myUri); // get my home ip address
+      }
     }
 
     $this->ip = $_SERVER['REMOTE_ADDR'];
@@ -157,7 +167,16 @@ class SiteClass extends dbAbstract {
    */
 
   public function isMe() {
-    return ($this->myIp == $this->ip);
+    if(is_array($this->myIp)) {
+      foreach($this->myIp as $v) {
+        if($v == $this-ip) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return ($this->myIp == $this->ip);
+    }
   }
 
   /**
@@ -636,8 +655,16 @@ EOF;
       return;
     }
 
-    if(gethostbyname('bartonlp.com') == $this->ip || gethostbyname('bartonlp.org') == $this->ip) {
-      return;
+    if(is_array($this->myIp)) {
+      foreach($this->myIp as $v) {
+        if($this->ip == $v) {
+          return;
+        }
+      }
+    } else {
+      if($this->ip == $this->myIp) {
+        return;
+      }
     }
     
     $this->query("select count(*) from information_schema.tables ".
