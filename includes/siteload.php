@@ -27,7 +27,11 @@ exit();
 return $_site;
 
 function findsitemap() {
-  $docroot = $_SERVER['DOCUMENT_ROOT'];
+  if($_SERVER['VIRTUALHOST_DOCUMENT_ROOT']) {
+    $docroot = $_SERVER['VIRTUALHOST_DOCUMENT_ROOT'];
+  } else {
+    $docroot = $_SERVER['DOCUMENT_ROOT'];
+  }
 
   if(file_exists("mysitemap.json")) {
     return file_get_contents("mysitemap.json");
