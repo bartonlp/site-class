@@ -169,7 +169,7 @@ class SiteClass extends dbAbstract {
   public function isMe() {
     if(is_array($this->myIp)) {
       foreach($this->myIp as $v) {
-        if($v == $this-ip) {
+        if($v == $this->ip) {
           return true;
         }
       }
@@ -767,7 +767,7 @@ EOF;
    */
 
   protected function setmyip() {
-    if($this->nodb || !$this->myIp) {
+    if($this->nodb || !(list($ip) = array_intersect([$this->ip], $this->myIp))) {
       return;
     }
 
@@ -781,7 +781,7 @@ EOF;
       return;
     }
 
-    $this->query("insert ignore into $this->masterdb.myip values('$this->myIp', now())");
+    $this->query("insert ignore into $this->masterdb.myip values('$ip', now())");
   }
 
   /**
