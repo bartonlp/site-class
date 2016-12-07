@@ -143,10 +143,10 @@ if(!function_exists('ErrorGetId')) {
     // do we have an id?
     if(empty($id)) {
       // NO id this is the generic version
-      $id = "IP={$_SERVER['REMOTE_ADDR']}<br>\nAGENT={$_SERVER['HTTP_USER_AGENT']}";
+      $id = "IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
     } else {
       // This is for members
-      $id = "ID=$id, IP={$_SERVER['REMOTE_ADDR']}<br>\nAGENT={$_SERVER['HTTP_USER_AGENT']}";
+      $id = "ID=$id, IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
     }
     return $id;
   }
