@@ -11,10 +11,9 @@
 require_once(__DIR__ ."/../../../autoload.php");
 
 $mydir = dirname($_SERVER['SCRIPT_FILENAME']);
-
 chdir($mydir);
 
-$_site = json_decode(findsitemap());
+$_site = json_decode(findsitemap($mydir));
 
 if(!$_site) {
   echo <<<EOF
@@ -26,7 +25,18 @@ exit();
 }
 return $_site;
 
-function findsitemap() {
+// Function to search for the mysitemap.json
+// We pass the $mydir to the function. This is from 'SCRIPT_FILENAME' which has the absolute path
+// to the target with the full DOCUMENT_ROOT plus the directory path from the docroot to the
+// target.
+// For example DOCUMENT_ROOT + /path/target
+// So we take this and if we do not find the files at first we do a $mysite = dirname($mysite) and
+// then do a chdir($mysite); This may not be DOCUMENT_ROOT + ... but may the REAL path. For Example
+// if we did a symlink to DOCUMENT_ROOT + 'weewx/index.php' and the symlink were
+// /extra/weewx then if we did a chdir('..') we would get to /extra which is wrong.
+// What we want is /var/www/weewx to /var/wwww.
+
+function findsitemap($mydir) {
   if($_SERVER['VIRTUALHOST_DOCUMENT_ROOT']) {
     $docroot = $_SERVER['VIRTUALHOST_DOCUMENT_ROOT'];
   } else {
@@ -36,11 +46,18 @@ function findsitemap() {
   if(file_exists("mysitemap.json")) {
     return file_get_contents("mysitemap.json");
   } else {
-    if($docroot == getcwd() || '/' == getcwd()) {
+    // If we didn't find the mysitemap.json then have we reached to docroot? Or have we reached the
+    // root. We should actually never reach the root.
+    
+    if($docroot == $mydir || '/' == getcwd()) {
       return null;
     }
-    chdir('..');
+    // We are not at the root so do $mydir = dirname($mydir). For example if $mydir is
+    // '/var/www/weewx' it becomes '/var/www'
+    
+    $mydir = dirname($mydir);
+    chdir($mydir); // This will change the dir to something under the docroot
     // Recurse
-    return findsitemap();
+    return findsitemap($mydir);
   }
 }
