@@ -2,6 +2,8 @@
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.  
 define("SITE_CLASS_VERSION", "2.0.1");
 
+// BLP 2016-12-20 -- in tracker() add refid=$_SERVER['HTTP_REFERER'] and alter table tracker change
+// refid to varchar(255).
 // BLP 2016-11-27 -- changed the sense of $this->myIP and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
@@ -729,6 +731,7 @@ EOF;
   /**
    * tracker()
    * track if java script or not.
+   * BLP 2016-12-20 -- added refid. This could be overwritten by tracker.php 'script' by the id of a previous item.
    */
 
   protected function tracker() {
@@ -749,11 +752,13 @@ EOF;
       if($this->isBot) {
         $java = 0x2000; // This is the robots tag
       }
-      
+
+      $refid = $_SERVER['HTTP_REFERER'];
+  
       //$this->debug("SiteClass: tracker, $this->siteName, $this->ip, $agent, $this->self");
       
-      $this->query("insert into $this->masterdb.tracker (site, page, ip, agent, starttime, isJavaScript, lasttime) ".
-                   "values('$this->siteName', '$this->requestUri', '$this->ip','$agent', now(), $java, now())");
+      $this->query("insert into $this->masterdb.tracker (site, page, ip, agent, refid, starttime, isJavaScript, lasttime) ".
+                   "values('$this->siteName', '$this->requestUri', '$this->ip','$agent', '$refid', now(), $java, now())");
 
       $this->LAST_ID = $this->getLastInsertId();
     } else {
