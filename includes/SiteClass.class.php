@@ -121,6 +121,8 @@ class SiteClass extends dbAbstract {
     // and are always done regardless of 'count' and 'countMe'!
     // These all check $this->nodb first and return at once if it is true.
 
+    $this->checkIfBot(); // This set $this->isBot.
+    
     if($this->noTrack != true) {
       $this->trackbots(); // Should be the FIRST in the group. This sets $this->isBot
       $this->tracker();
@@ -642,6 +644,32 @@ EOF;
 
   }
 
+  /**
+   * checkIfBot()
+   * Checks if the user-agent looks like a bot or if the ip is in the bots table.
+   * Set $this->isBot true/false.
+   * return nothing.
+   */
+  
+  protected function checkIfBot() {
+    if($this->nodb) {
+      return;
+    }
+    $this->query("select count(*) from information_schema.tables ".
+                 "where (table_schema = '$this->masterdb') and (table_name = 'bots')");
+
+    list($ok) = $this->fetchrow('num');
+
+    if($ok == 1) {
+      $agent = $this->escape($this->agent);
+
+      $this->isBot = preg_match("~\+*http://|Googlebot-Image|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
+                                "GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
+                                "http client|PECL::HTTP~i", $this->agent)
+                     || ($this->query("select ip from $this->masterdb.bots where ip='$this->ip'")) ? true : false;          
+    }
+  }
+  
   // ********
   // Counters
   // ********
@@ -668,64 +696,50 @@ EOF;
         return;
       }
     }
+
+    // This has been set by checkIfBot()
     
+    if($this->isBot) {
+      try {
+        $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, who, creation_time, lasttime) ".
+                     "values('$this->ip', '$agent', 1, 4, '$this->siteName', now(), now())");
+      } catch(Exception $e) {
+        if($e->getCode() == 1062) { // duplicate key
+          $this->query("select who from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
+
+          list($who) = $this->fetchrow('num');
+
+          if(!$who) {
+            $who = $this->siteName;
+          }
+
+          if(strpos($who, $this->siteName) === false) {
+            $who .= ", $this->siteName";
+          }
+
+          $this->query("update $this->masterdb.bots set robots=robots | 8, who='$who', count=count+1, lasttime=now() ".
+                       "where ip='$this->ip' and agent='$agent'");
+        } else {
+          throw($e);
+        }
+      }
+    }
+    // Now do bots2
+
     $this->query("select count(*) from information_schema.tables ".
-                 "where (table_schema = '$this->masterdb') and (table_name = 'bots')");
+                 "where (table_schema = '$this->masterdb') and (table_name = 'bots2')");
 
     list($ok) = $this->fetchrow('num');
 
     if($ok == 1) {
-      $agent = $this->escape($this->agent);
-
-      $this->isBot = preg_match("~\+*http://|Googlebot-Image|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
-                                "GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
-                                "http client|PECL::HTTP~i", $this->agent)
-                     || ($this->query("select ip from $this->masterdb.bots where ip='$this->ip'")) ? true : false;
-          
       if($this->isBot) {
-        try {
-          $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, who, creation_time, lasttime) ".
-                       "values('$this->ip', '$agent', 1, 4, '$this->siteName', now(), now())");
-        } catch(Exception $e) {
-          if($e->getCode() == 1062) { // duplicate key
-            $this->query("select who from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
-
-            list($who) = $this->fetchrow('num');
-
-            if(!$who) {
-              $who = $this->siteName;
-            }
-
-            if(strpos($who, $this->siteName) === false) {
-              $who .= ", $this->siteName";
-            }
-
-            $this->query("update $this->masterdb.bots set robots=robots | 8, who='$who', count=count+1, lasttime=now() ".
-                         "where ip='$this->ip' and agent='$agent'");
-          } else {
-            throw($e);
-          }
-        }
+        $this->query("insert into $this->masterdb.bots2 (ip, agent, date, site, which, count, lasttime) ".
+                     "values('$this->ip', '$agent', current_date(), '$this->siteName', 2, 1, now()) ".
+                     "on duplicate key update count=count+1, lasttime=now()");
       }
-      // Now do bots2
-
-      $this->query("select count(*) from information_schema.tables ".
-                   "where (table_schema = '$this->masterdb') and (table_name = 'bots2')");
-
-      list($ok) = $this->fetchrow('num');
-
-      if($ok == 1) {
-        if($this->isBot) {
-          $this->query("insert into $this->masterdb.bots2 (ip, agent, date, site, which, count, lasttime) ".
-                       "values('$this->ip', '$agent', current_date(), '$this->siteName', 2, 1, now()) ".
-                       "on duplicate key update count=count+1, lasttime=now()");
-        }
-      } else {
-        $this->debug("$this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database");
-      } 
     } else {
-      $this->debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database");
-    }
+      $this->debug("$this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database");
+    } 
   }
 
   /**
