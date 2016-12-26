@@ -17,13 +17,28 @@ require_once(__DIR__ ."/../../../autoload.php");
 
 if(!$_SERVER['DOCUMENT_ROOT'] && !$_SERVER['VIRTUALHOST_DOCUMENT_ROOT']) {
   // This is a CLI program
+
+  // Is SCRIPT_FILENAME an absolute path?
   
-  $mydir = $_SERVER['PWD'];
-  if(($x = dirname($_SERVER['SCRIPT_FILENAME'])) != '.') {
-    $mydir .= "/$x";
+  if(strpos($_SERVER['SCRIPT_FILENAME'], "/") == 0) {
+    // First character is a / so absoulte path
+    
+    $mydir = dirname($_SERVER['SCRIPT_FILENAME']);
+  } else {
+    // SCRIPT_FILENAME is NOT an absolute path
+    // Use PWD and then look at SCRIPT_FILENAME
+    
+    $mydir = $_SERVER['PWD'];
+    // If SCRIPT_FILENAME start with a dot (.) then we are in the target dir so do nothing.
+    // Else we use the dirname() and append it to mydir.
+    
+    if(($x = dirname($_SERVER['SCRIPT_FILENAME'])) != '.') {
+      $mydir .= "/$x";
+    }
   }
 } else {
   // Normal apache program
+  // The SCRIPT_FILENAME is always an absolute path
   
   $mydir = dirname($_SERVER['SCRIPT_FILENAME']);
   $docroot = $_SERVER['DOCUMENT_ROOT'] ? $_SERVER['DOCUMENT_ROOT'] : $S_SERVER['VIRTUALHOST_DOCUMENT_ROOT'];
@@ -56,7 +71,7 @@ return $_site;
 
 function findsitemap($mydir) {
   global $docroot;
-  
+
   if(file_exists($mydir . "/mysitemap.json")) {
     return file_get_contents($mydir . "/mysitemap.json");
   } else {
