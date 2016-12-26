@@ -10,8 +10,26 @@
 
 require_once(__DIR__ ."/../../../autoload.php");
 
-$mydir = dirname($_SERVER['SCRIPT_FILENAME']);
-chdir($mydir);
+// Now check to see if we have a DOCUMENT_ROOT or VIRTUALHOST_DOCUMENT_ROOT.
+// If we DON't we will use PWD which should be and if SCRIPT_FILENAME is not dot (.)
+// then we add it to PWD.
+// This is for CLI files. For regular PHP via apache we just use the ROOT.
+
+if(!$_SERVER['DOCUMENT_ROOT'] && !$_SERVER['VIRTUALHOST_DOCUMENT_ROOT']) {
+  // This is a CLI program
+  
+  $mydir = $_SERVER['PWD'];
+  if(($x = dirname($_SERVER['SCRIPT_FILENAME'])) != '.') {
+    $mydir .= "/$x";
+  }
+} else {
+  // Normal apache program
+  
+  $mydir = dirname($_SERVER['SCRIPT_FILENAME']);
+  $docroot = $_SERVER['DOCUMENT_ROOT'] ? $_SERVER['DOCUMENT_ROOT'] : $S_SERVER['VIRTUALHOST_DOCUMENT_ROOT'];
+}
+
+//chdir($mydir);
 
 $_site = json_decode(findsitemap($mydir));
 
@@ -37,26 +55,23 @@ return $_site;
 // What we want is /var/www/weewx to /var/wwww.
 
 function findsitemap($mydir) {
-  if($_SERVER['VIRTUALHOST_DOCUMENT_ROOT']) {
-    $docroot = $_SERVER['VIRTUALHOST_DOCUMENT_ROOT'];
-  } else {
-    $docroot = $_SERVER['DOCUMENT_ROOT'];
-  }
-
-  if(file_exists("mysitemap.json")) {
-    return file_get_contents("mysitemap.json");
+  global $docroot;
+  
+  if(file_exists($mydir . "/mysitemap.json")) {
+    return file_get_contents($mydir . "/mysitemap.json");
   } else {
     // If we didn't find the mysitemap.json then have we reached to docroot? Or have we reached the
     // root. We should actually never reach the root.
-    
-    if($docroot == $mydir || '/' == getcwd()) {
+
+    if($docroot == $mydir || '/' == $mydir) {
       return null;
     }
+
     // We are not at the root so do $mydir = dirname($mydir). For example if $mydir is
     // '/var/www/weewx' it becomes '/var/www'
-    
+    //echo "mydir: $mydir\n";
     $mydir = dirname($mydir);
-    chdir($mydir); // This will change the dir to something under the docroot
+    //chdir($mydir); // This will change the dir to something under the docroot
     // Recurse
     return findsitemap($mydir);
   }
