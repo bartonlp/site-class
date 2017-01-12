@@ -760,14 +760,14 @@ EOF;
     
     if($ok == 1) {
       $agent = $this->escape($this->agent);
-
+      
       $java = 0;
       
       if($this->isBot) {
         $java = 0x2000; // This is the robots tag
       }
 
-      $refid = $_SERVER['HTTP_REFERER'];
+      $refid = $this->escape($_SERVER['HTTP_REFERER']);
   
       //$this->debug("SiteClass: tracker, $this->siteName, $this->ip, $agent, $this->self");
       
