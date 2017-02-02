@@ -111,11 +111,7 @@ class SiteClass extends dbAbstract {
     $this->ip = $_SERVER['REMOTE_ADDR'];
     $this->agent = $_SERVER['HTTP_USER_AGENT'];
     $this->self = $_SERVER['PHP_SELF'];
-    if($this->siteName == "Conejoskiclub") {
-      $this->requestUri =  $_SERVER['REQUEST_URI'];
-    } else {
-      $this->requestUri = $this->self;
-    }
+    $this->requestUri = $this->self;
 
     // These all use database 'barton'
     // and are always done regardless of 'count' and 'countMe'!
