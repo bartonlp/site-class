@@ -52,6 +52,8 @@ class SiteClass extends dbAbstract {
   public function __construct($s=null) {
     ErrorClass::init(); // BLP 2014-12-31 -- Make sure this is done
 
+    //vardump($s);
+    
     $this->isSiteClass = true;
     
     date_default_timezone_set("America/Los_Angeles");
@@ -532,9 +534,11 @@ EOF;
 
     // Make the bottom of the page counter
 
-    // Set ctrmsg to 'Counter Reset: 2016-03-27' if not set
+    // If $arg['ctrmsg'] use it.
+    // If $this->ctrmsg use it.
+    // Else blank
 
-    $arg['ctrmsg'] = $arg['ctrmsg'] ? $arg['ctrmsg'] : 'Counter Reset: 2016-03-27';
+    $arg['ctrmsg'] = $arg['ctrmsg'] ? $arg['ctrmsg'] : $this->ctrmsg;
 
     // counterWigget is available to the footerFile to used if wanted.
     
