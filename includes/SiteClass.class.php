@@ -663,7 +663,7 @@ EOF;
     if($ok == 1) {
       $agent = $this->escape($this->agent);
 
-      $this->isBot = preg_match("~\+*http://|Googlebot-Image|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
+      $this->isBot = preg_match("~\+*https?://|Googlebot-Image|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
                                 "GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
                                 "http client|PECL::HTTP~i", $this->agent)
                      || ($this->query("select ip from $this->masterdb.bots where ip='$this->ip'")) ? true : false;          
