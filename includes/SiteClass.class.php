@@ -251,16 +251,14 @@ class SiteClass extends dbAbstract {
    * Gets both the page <head> section and the banner
    * The first argument ($header) is either a string, an array or an object and is required.
    * The array/object version has the 'title', 'description', 'script&styles etc',
-   * 'documennt type', 'banner' and 'nonav',
-   * (it can also look like $header=>array(head=>array(), banner=>"banner", nonav=>bool),
+   * 'documennt type', 'banner',
+   * (it can also look like $header=>array(head=>array(), banner=>"banner",
    * where head can have 'title','desc', 'extra' and 'doctype'
    * and banner has a banner string. This is depreciated).
    * The string version has just the 'title' which is then used for the 'description' also.
    * The second argument is optional and a string with the 'banner'.
    * The banner can either be part of the first argument as 'banner' or the second argument.
    * If the second argument is not present then $header[banner] is used (which could also be null).
-   *
-   * NOTE: added nonav which can only be used as part of the header array!
    *
    * @param string|array|object $header assoc array [title][desc][extra][doctype][banner][bodytag]
    *   or string title
@@ -287,7 +285,7 @@ class SiteClass extends dbAbstract {
         $header['title'] = $header[0];
         unset($header[0]);
       }
-      $arg = $header; // this is then title, desc, extra, nonav, doctype, banner, maybe bodytag
+      $arg = $header; // this is then title, desc, extra, doctype, banner, maybe bodytag
     } else {
       throw(new Exception("Error: getPageTop() wrong argument type"));
     }
@@ -297,8 +295,6 @@ class SiteClass extends dbAbstract {
     if(!$arg['doctype']) {
       $arg['doctype'] = $this->doctype;
     }
-
-    $nonav = $arg['nonav'] ? $arg['nonav'] : false;
 
     // NOTE: the bodytag and banner strings override the $arg values.
     // So if we have the initial arguments 'object', 'string', 'string' the two string
@@ -313,7 +309,7 @@ class SiteClass extends dbAbstract {
 
     // Get the page's banner section
 
-    $banner = $this->getPageBanner($banner, $nonav, $bodytag);
+    $banner = $this->getPageBanner($banner, $bodytag);
 
     return "$head\n$banner";
   }
@@ -433,20 +429,19 @@ EOF;
 
   /** getBanner. Depreciated **/
 
-  public function getBanner($mainTitle, $nonav=false, $bodytag=null) {
-    return $this->getPageBanner($mainTitle, $nonav, $bodytag);
+  public function getBanner($mainTitle, $bodytag=null) {
+    return $this->getPageBanner($mainTitle, $bodytag);
   }
   
   /**
    * getPageBanner()
    * Get Page Banner
    * @param string $mainTitle
-   * @param bool $nonav if set to true then the navigation bar is NOT displayed (for homepage).
    * @param string $bodytag
    * @return string banner
    */
 
-  public function getPageBanner($mainTitle, $nonav=false, $bodytag=null) {
+  public function getPageBanner($mainTitle, $bodytag=null) {
     $bodytag = $bodytag ? $bodytag : "<body>";
 
     if(!is_null($this->bannerFile)) {
