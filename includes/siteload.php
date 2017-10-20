@@ -9,6 +9,7 @@
 // autoload.php
 
 require_once(__DIR__ ."/../../../autoload.php");
+$old = error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
 
 // Now check to see if we have a DOCUMENT_ROOT or VIRTUALHOST_DOCUMENT_ROOT.
 // If we DON't we will use PWD which should be and if SCRIPT_FILENAME is not dot (.)
@@ -56,6 +57,7 @@ EOF;
   error_log("ERROR: siteload.php. No 'mysitemap.json' found in " . getcwd() . " for file {$_SERVER['PHP_SELF']}");
 exit();
 }
+error_reporting($old);
 return $_site;
 
 // Function to search for the mysitemap.json
