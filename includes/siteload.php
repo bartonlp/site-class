@@ -9,6 +9,7 @@
 // autoload.php
 
 require_once(__DIR__ ."/../../../autoload.php");
+
 $old = error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
 
 // Now check to see if we have a DOCUMENT_ROOT or VIRTUALHOST_DOCUMENT_ROOT.
@@ -18,17 +19,14 @@ $old = error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
 
 if(!$_SERVER['DOCUMENT_ROOT'] && !$_SERVER['VIRTUALHOST_DOCUMENT_ROOT']) {
   // This is a CLI program
-
   // Is SCRIPT_FILENAME an absolute path?
   
-  if(strpos($_SERVER['SCRIPT_FILENAME'], "/") == 0) {
+  if(strpos($_SERVER['SCRIPT_FILENAME'], "/") === 0) {
     // First character is a / so absoulte path
-    
     $mydir = dirname($_SERVER['SCRIPT_FILENAME']);
   } else {
     // SCRIPT_FILENAME is NOT an absolute path
     // Use PWD and then look at SCRIPT_FILENAME
-    
     $mydir = $_SERVER['PWD'];
     // If SCRIPT_FILENAME start with a dot (.) then we are in the target dir so do nothing.
     // Else we use the dirname() and append it to mydir.
@@ -40,7 +38,6 @@ if(!$_SERVER['DOCUMENT_ROOT'] && !$_SERVER['VIRTUALHOST_DOCUMENT_ROOT']) {
 } else {
   // Normal apache program
   // The SCRIPT_FILENAME is always an absolute path
-  
   $mydir = dirname($_SERVER['SCRIPT_FILENAME']);
   $docroot = $_SERVER['DOCUMENT_ROOT'] ? $_SERVER['DOCUMENT_ROOT'] : $S_SERVER['VIRTUALHOST_DOCUMENT_ROOT'];
 }
