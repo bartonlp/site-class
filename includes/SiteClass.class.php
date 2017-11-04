@@ -1,11 +1,12 @@
 <?php
-// SITE_CLASS_VERSION must change when the GitHub Release version changes.  
-define("SITE_CLASS_VERSION", "2.0.1");
-
+// SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2017-11-01 -- counter2 left() for filename
 // BLP 2016-12-20 -- in tracker() add refid=$_SERVER['HTTP_REFERER'] and alter table tracker change
 // refid to varchar(255).
 // BLP 2016-11-27 -- changed the sense of $this->myIP and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
+
+define("SITE_CLASS_VERSION", "2.0.3");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -14,7 +15,7 @@ define("SITE_CLASS_VERSION", "2.0.1");
  *
  * @package SiteClass
  * @author Barton Phillips <barton@bartonphillips.com>
- * @version v2.0.1
+ * @version v2.0.3
  * @link http://www.bartonphillips.com
  * @copyright Copyright (c) 2010, Barton Phillips
  * @license  MIT
@@ -864,8 +865,9 @@ EOF;
 
     if($ok) {
       if($this->isBot) {
+        // BLP 2017-11-01 -- add left to keep from getting too long errors
         $sql = "insert into $this->masterdb.counter2 (site, date, filename, count, bots, lasttime) ".
-               "values('$this->siteName', now(), '$this->requestUri', 0, 1, now()) ".
+               "values('$this->siteName', now(), left('$this->requestUri', 254), 0, 1, now()) ".
                "on duplicate key update bots=bots+1, lasttime=now()";
       } else {
         $member = 0;
@@ -875,9 +877,9 @@ EOF;
           $member = 1;
           $memberUpdate = ", members=members+1";
         }
-
+        // BLP 2017-11-01 -- add left to keep from getting too long errors
         $sql = "insert into $this->masterdb.counter2 (site, date, filename, count, members, lasttime) ".
-               "values('$this->siteName', now(), '$this->requestUri', 1, $member, now()) ".
+               "values('$this->siteName', now(), left('$this->requestUri', 254), 1, $member, now()) ".
                "on duplicate key update count=count+1$memberUpdate, lasttime=now()";
       }
       $this->query($sql);
