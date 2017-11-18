@@ -67,5 +67,5 @@ I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are
 ## Contact Me
 
 Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a>
-Copyright &copy; 2015 Barton Phillips
+Copyright &copy; 2017 Barton Phillips
 Project maintained by [bartonlp](https://github.com/bartonlp)

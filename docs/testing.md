@@ -86,6 +86,6 @@ Feel free to extend the test if you like.
 ## Contact Me
 
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
-Copyright &copy; 2015 Barton Phillips  
+Copyright &copy; 2017 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)
 
