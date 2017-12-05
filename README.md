@@ -14,7 +14,7 @@ The following database engines are provided:
 1. dbMysqli.class.php : (rigorously tested) This is the latest PHP version of the MySql database engine.
 2. dbSqlite.class.php : sqlite3 (used for the examples)
 
-There are a couple of additional databases but they have not be rigouously tested.
+There are a couple of additional databases but they have not been rigouously tested.
 
 ## SiteClass Documentation 
 
@@ -24,4 +24,4 @@ There are a couple of additional databases but they have not be rigouously teste
 
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
 [My Website](http://www.bartonphillips.com)  
-Copyright &copy; 2015 Barton Phillips
+Copyright &copy; 2017 Barton Phillips
