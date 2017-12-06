@@ -120,9 +120,8 @@ class SiteClass extends dbAbstract {
     // and are always done regardless of 'count' and 'countMe'!
     // These all check $this->nodb first and return at once if it is true.
 
-    $this->checkIfBot(); // This set $this->isBot.
-    
     if($this->noTrack != true) {
+      $this->checkIfBot(); // This set $this->isBot.
       $this->trackbots(); // Should be the FIRST in the group. This sets $this->isBot
       $this->tracker();
       $this->logagent(); // in 'masterdb' database. logip and logagent
