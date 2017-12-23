@@ -171,7 +171,6 @@ function finalOutput($error, $from) {
   }
 
   if(!$userId) $userId = "agent: ". $_SERVER['HTTP_USER_AGENT'] . "\n";
-;
 
   // Email error information to webmaster
   // During debug set the Error class's $noEmailErrs to ture
