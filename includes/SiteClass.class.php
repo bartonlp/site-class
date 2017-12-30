@@ -122,7 +122,7 @@ class SiteClass extends dbAbstract {
 
     if($this->noTrack != true) {
       $this->checkIfBot(); // This set $this->isBot.
-      $this->trackbots(); // Should be the FIRST in the group. This sets $this->isBot
+      $this->trackbots(); 
       $this->tracker();
       $this->logagent(); // in 'masterdb' database. logip and logagent
       $this->setmyip();
