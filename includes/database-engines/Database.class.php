@@ -72,7 +72,8 @@ class Database extends dbAbstract {
       case "mysqli":
         $class = "db" . ucfirst(strtolower($arg->engine));
         if(class_exists($class)) {
-          $db = @new $class($arg->host, $arg->user, $arg->password, $arg->database);
+          $db = @new $class($arg->host, $arg->user, $arg->password, $arg->database,
+                            $arg->port);
         } else {
           throw(new SqlException(__METHOD__ .": Class Not Found : $class<br>"));
         }

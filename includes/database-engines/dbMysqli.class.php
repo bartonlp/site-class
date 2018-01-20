@@ -47,7 +47,7 @@ class dbMysqli extends dbAbstract {
    * as a side effect opens the database, that is connects and selects the database
    */
 
-  public function __construct($host, $user, $password, $database) {
+  public function __construct($host, $user, $password, $database, $port) {
     if(preg_match("/^(.*?):/", $host, $m)) {
       $host = $m[1];
     }
@@ -55,6 +55,7 @@ class dbMysqli extends dbAbstract {
     $this->user = $user;
     $this->password = $password;
     $this->database = $database;
+    $this->port = $port;
     $this->opendb();
 
     // make warning show up as exceptions
@@ -74,7 +75,8 @@ class dbMysqli extends dbAbstract {
     if($this->db) {
       return $this->db;
     }
-    $db = new mysqli($this->host, $this->user, $this->password);
+
+    $db = new mysqli($this->host, $this->user, $this->password, $this->database, $this->port);
 
     if($db->connect_errno) {
       $this->errno = $db->connect_errno;
