@@ -55,13 +55,19 @@ you could use one of the popular routing engines available with *Meteor*, *Larav
 but then again by that point you might as well just bite the bullet and spend the hours or 
 days trying to figure out those frameworks.
 
-There is a pretty simple router called *Altorouter* which can be used without too much work. 
+There is a pretty simple router called *Altorouter* which can be used without too much work.
+It is at https://github.com/dannyvankooten/AltoRouter and can be loaded with **composer** as:
+
+```
+composer require altorouter/altorouter
+```
 
 The file 'example-route.php' would normally be your 'index.php' in a production environment. 
 When using a server with Apache2 you would need a '.htaccess' file in the directory where the 'index.php' lives. 
 The '.htaccess' file would look like this:
 
 ```bash
+# Only rewrite if a real file does not exist.
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule . index.php [L]
@@ -77,8 +83,8 @@ HOME=/var/www php -S localhost:8080 example-route.php
 
 The PHP server uses the 'example-route.php' file and you don't need a '.htaccess' file.
 
-Prefixing the command with 'HOME=...' sets the 'HOME' environment variable. Have it point to your 'vendor/autoload.php'
-file. 
+Prefixing the command with 'HOME=...' sets the 'HOME' environment variable. Have it point to your
+'vendor/autoload.php' file. 
 
 Now you can run the program. It will display a table and a form you can use to insert new records. 
 Also a button lets you reset the database table to its original state. 
@@ -99,7 +105,8 @@ But that is just my opinion.
 Have fun with my mini framework. Get in there and look at the code, there really isn't that much of it. 
 Try it out and if you have any comments or suggestions please let me know. 
 
-You can email me at <a href="mailto://barton@bartonphillips.com">barton@bartonphillips.com</a>. 
-My homepage is http://www.bartonphillips.com.
+## Contact Me [Barton Phillips](mailto:bartonphillips@gmail.com)
+## My homepage is http://www.bartonphillips.com
 
-Cheers.
+
+

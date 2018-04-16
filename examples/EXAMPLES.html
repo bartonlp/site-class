@@ -96,19 +96,22 @@ Here we do just about the minimum just as an example.</p>
 you could use one of the popular routing engines available with <em>Meteor</em>, <em>Laravel</em>, <em>Synfony2</em> or <em>Silex</em><br />
 but then again by that point you might as well just bite the bullet and spend the hours or<br />
 days trying to figure out those frameworks.</p>
-<p>There is a pretty simple router called <em>Altorouter</em> which can be used without too much work.</p>
+<p>There is a pretty simple router called <em>Altorouter</em> which can be used without too much work.<br />
+It is at <a href="https://github.com/dannyvankooten/AltoRouter" class="uri">https://github.com/dannyvankooten/AltoRouter</a> and can be loaded with <strong>composer</strong> as:</p>
+<pre><code>composer require altorouter/altorouter</code></pre>
 <p>The file 'example-route.php' would normally be your 'index.php' in a production environment.<br />
 When using a server with Apache2 you would need a '.htaccess' file in the directory where the 'index.php' lives.<br />
 The '.htaccess' file would look like this:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">RewriteEngine</span> On
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># Only rewrite if a real file does not exist.</span>
+<span class="kw">RewriteEngine</span> On
 <span class="kw">RewriteCond</span> %<span class="dt">{REQUEST_FILENAME}</span> !-f
 <span class="kw">RewriteRule</span> . index.php [L]</code></pre></div>
 <p>This says that if the requested filename does not exist go to the 'index.php' file instead.</p>
 <p>To test this without renaming the 'example-route.php' you can use the PHP server like this:</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ot">HOME=</span>/var/www <span class="kw">php</span> -S localhost:8080 example-route.php</code></pre></div>
 <p>The PHP server uses the 'example-route.php' file and you don't need a '.htaccess' file.</p>
-<p>Prefixing the command with 'HOME=...' sets the 'HOME' environment variable. Have it point to your 'vendor/autoload.php'<br />
-file.</p>
+<p>Prefixing the command with 'HOME=...' sets the 'HOME' environment variable. Have it point to your<br />
+'vendor/autoload.php' file.</p>
 <p>Now you can run the program. It will display a table and a form you can use to insert new records.<br />
 Also a button lets you reset the database table to its original state.<br />
 If you click on a number in the 'ID' column of the table you get an edit page where you can change the names.</p>
@@ -123,8 +126,12 @@ But that is just my opinion.</p>
 <h2 id="conclusion">Conclusion</h2>
 <p>Have fun with my mini framework. Get in there and look at the code, there really isn't that much of it.<br />
 Try it out and if you have any comments or suggestions please let me know.</p>
-<p>You can email me at <a href="mailto://barton@bartonphillips.com">barton@bartonphillips.com</a>.<br />
-My homepage is <a href="http://www.bartonphillips.com" class="uri">http://www.bartonphillips.com</a>.</p>
-<p>Cheers.</p>
+<h2 id="contact-me-barton-phillips">Contact Me <script type="text/javascript">
+<!--
+h='&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#66;&#x61;&#114;&#116;&#x6f;&#110;&#32;&#80;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;'+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#66;&#x61;&#114;&#116;&#x6f;&#110;&#32;&#80;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#32;&#40;&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#32;&#x61;&#116;&#32;&#x67;&#x6d;&#x61;&#x69;&#108;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;&#x29;</noscript></h2>
+<h2 id="my-homepage-is-httpwww.bartonphillips.com">My homepage is <a href="http://www.bartonphillips.com" class="uri">http://www.bartonphillips.com</a></h2>
 </body>
 </html>
