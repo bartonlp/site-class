@@ -1,4 +1,5 @@
 <?php
+// BLP 2018-04-20 -- Add $__info so altorouter.php can change things.  
 // This is the site loader for Composer based sites using mysitemap.json
 // We first get the vendor/autoload.php
 // and then we get the DOCUMENT_ROOT and PHP_SELF
@@ -45,6 +46,12 @@ if(!$_SERVER['DOCUMENT_ROOT'] && !$_SERVER['VIRTUALHOST_DOCUMENT_ROOT']) {
 //chdir($mydir);
 
 $_site = json_decode(findsitemap($mydir));
+
+// BLP 2018-04-20 -- Add $__info
+foreach($__info as $k=>$v) {
+  $_site->$k = $v;
+}
+// BLP 2018-04-20 -- end of add
 
 if(!$_site) {
   echo <<<EOF

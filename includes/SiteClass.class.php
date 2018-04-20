@@ -1,12 +1,13 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2018-04-20 -- move the init section
 // BLP 2017-11-01 -- counter2 left() for filename
 // BLP 2016-12-20 -- in tracker() add refid=$_SERVER['HTTP_REFERER'] and alter table tracker change
 // refid to varchar(255).
 // BLP 2016-11-27 -- changed the sense of $this->myIP and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "2.0.3");
+define("SITE_CLASS_VERSION", "2.0.4");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -15,7 +16,7 @@ define("SITE_CLASS_VERSION", "2.0.3");
  *
  * @package SiteClass
  * @author Barton Phillips <barton@bartonphillips.com>
- * @version v2.0.3
+ * @version v2.0.4
  * @link http://www.bartonphillips.com
  * @copyright Copyright (c) 2010, Barton Phillips
  * @license  MIT
@@ -56,7 +57,15 @@ class SiteClass extends dbAbstract {
     //vardump($s);
     
     $this->isSiteClass = true;
+
+    // BLP 2018-04-20 -- INIT SECTION. Moved for altorouter.php
+    // Now I can add stuff to mysitemap.json and have it update these also.
     
+    $this->ip = $_SERVER['REMOTE_ADDR'];
+    $this->agent = $_SERVER['HTTP_USER_AGENT'];
+    $this->self = $_SERVER['PHP_SELF'];
+    $this->requestUri = $this->self;
+
     date_default_timezone_set("America/Los_Angeles");
     
     $arg = array(); // temp array for $s during parsing
@@ -110,12 +119,6 @@ class SiteClass extends dbAbstract {
         $this->myIp = gethostbyname($this->myUri); // get my home ip address
       }
     }
-
-    $this->ip = $_SERVER['REMOTE_ADDR'];
-    $this->agent = $_SERVER['HTTP_USER_AGENT'];
-    $this->self = $_SERVER['PHP_SELF'];
-    $this->requestUri = $this->self;
-
     // These all use database 'barton'
     // and are always done regardless of 'count' and 'countMe'!
     // These all check $this->nodb first and return at once if it is true.
