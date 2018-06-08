@@ -1,5 +1,6 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2018-06-08 -- fix $agent in trackbots()
 // BLP 2018-04-20 -- move the init section
 // BLP 2017-11-01 -- counter2 left() for filename
 // BLP 2016-12-20 -- in tracker() add refid=$_SERVER['HTTP_REFERER'] and alter table tracker change
@@ -698,46 +699,54 @@ EOF;
     // This has been set by checkIfBot()
     
     if($this->isBot) {
-      try {
-        $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, who, creation_time, lasttime) ".
-                     "values('$this->ip', '$agent', 1, 4, '$this->siteName', now(), now())");
-      } catch(Exception $e) {
-        if($e->getCode() == 1062) { // duplicate key
-          $this->query("select who from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
+      // BLP 2018-06-08 -- $agent set
+      $agent = $this->agent;
+    
+      $this->query("select count(*) from information_schema.tables ".
+                 "where (table_schema = '$this->masterdb') and (table_name = 'bots')");
 
-          list($who) = $this->fetchrow('num');
+      list($ok) = $this->fetchrow('num');
+      if($ok == 1) {
+        try {
+          $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, who, creation_time, lasttime) ".
+                       "values('$this->ip', '$agent', 1, 4, '$this->siteName', now(), now())");
+        } catch(Exception $e) {
+          if($e->getCode() == 1062) { // duplicate key
+            $this->query("select who from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
 
-          if(!$who) {
-            $who = $this->siteName;
+            list($who) = $this->fetchrow('num');
+
+            if(!$who) {
+              $who = $this->siteName;
+            }
+
+            if(strpos($who, $this->siteName) === false) {
+              $who .= ", $this->siteName";
+            }
+
+            $this->query("update $this->masterdb.bots set robots=robots | 8, who='$who', count=count+1, lasttime=now() ".
+                         "where ip='$this->ip' and agent='$agent'");
+          } else {
+            throw($e);
           }
-
-          if(strpos($who, $this->siteName) === false) {
-            $who .= ", $this->siteName";
-          }
-
-          $this->query("update $this->masterdb.bots set robots=robots | 8, who='$who', count=count+1, lasttime=now() ".
-                       "where ip='$this->ip' and agent='$agent'");
-        } else {
-          throw($e);
         }
       }
-    }
-    // Now do bots2
 
-    $this->query("select count(*) from information_schema.tables ".
-                 "where (table_schema = '$this->masterdb') and (table_name = 'bots2')");
+      // Now do bots2
 
-    list($ok) = $this->fetchrow('num');
+      $this->query("select count(*) from information_schema.tables ".
+                   "where (table_schema = '$this->masterdb') and (table_name = 'bots2')");
 
-    if($ok == 1) {
-      if($this->isBot) {
+      list($ok) = $this->fetchrow('num');
+
+      if($ok == 1) {
         $this->query("insert into $this->masterdb.bots2 (ip, agent, date, site, which, count, lasttime) ".
                      "values('$this->ip', '$agent', current_date(), '$this->siteName', 2, 1, now()) ".
                      "on duplicate key update count=count+1, lasttime=now()");
+      } else {
+        $this->debug("$this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database");
       }
-    } else {
-      $this->debug("$this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database");
-    } 
+    }
   }
 
   /**
