@@ -1,5 +1,6 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2018-06-10 -- If our ip is in myIp then WE ARE NOT A BOT!
 // BLP 2018-06-08 -- fix $agent in trackbots()
 // BLP 2018-04-20 -- move the init section
 // BLP 2017-11-01 -- counter2 left() for filename
@@ -8,7 +9,7 @@
 // BLP 2016-11-27 -- changed the sense of $this->myIP and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "2.0.4");
+define("SITE_CLASS_VERSION", "2.0.5");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -654,6 +655,20 @@ EOF;
     if($this->nodb) {
       return;
     }
+
+    // BLP 2018-06-10 -- 
+    // If our ip is in myIp then WE ARE NOT A BOT!
+    
+    if(is_array($this->myIp)) {
+      if(array_intersect([$this->ip], $this->myIp)) {
+        reeturn;
+      }
+    } else {
+      if($this->ip == $this->myIp) {
+        return;
+      }
+    }
+
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'bots')");
 
