@@ -1,12 +1,14 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2018-07-01 -- Added logic to look at bartonphillips.net if myUri is a string and starts with
+// http. Also add logic to add a date to copyright.
 // BLP 2018-06-10 -- If our ip is in myIp then WE ARE NOT A BOT!
 // BLP 2018-06-08 -- fix $agent in trackbots()
 // BLP 2018-04-20 -- move the init section
 // BLP 2017-11-01 -- counter2 left() for filename
 // BLP 2016-12-20 -- in tracker() add refid=$_SERVER['HTTP_REFERER'] and alter table tracker change
 // refid to varchar(255).
-// BLP 2016-11-27 -- changed the sense of $this->myIP and $this->myUri. Now $this->myUri can be an
+// BLP 2016-11-27 -- changed the sense of $this->myIp and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
 define("SITE_CLASS_VERSION", "2.0.5");
@@ -98,6 +100,12 @@ class SiteClass extends dbAbstract {
       $this->emailDomain = $this->siteDomain;
     }
 
+    // BLP 2018-07-01 -- Add the date to the copyright notice if one exists
+
+    if($this->copyright) {
+      $this->copyright = date("Y") . " $this->copyright";
+    }
+    
     if($this->nodb === true || is_null($this->dbinfo)) {
       // nodb === true so don't do any database stuff
       $this->nodb = true;
@@ -111,16 +119,30 @@ class SiteClass extends dbAbstract {
 
     // If myUri is set get the ip address into myIp
     // BLP 2016-11-27 -- Changed meaning. It can be an object
-    
+    // BLP 2018-07-01 -- Added logic to look at bartonphillips.net if myUri is a string and starts
+    // with http.
+
     if(isset($this->myUri)) {
       if(is_array($this->myUri)) {
         foreach($this->myUri as $v) {
           $this->myIp[] = gethostbyname($v);
         }
       } else {
-        $this->myIp = gethostbyname($this->myUri); // get my home ip address
+        if(strpos($this->myUri, 'http') == 0) {
+          $this->myUri = json_decode(file_get_contents($this->myUri));
+          if(is_array($this->myUri)) {
+            foreach($this->myUri as $v) {
+              $this->myIp[] = gethostbyname($v);
+            }
+          } else {
+            $this->myIp = gethostbyname($this->myUri); // get my home ip address
+          }
+        } else {
+          $this->myIp = gethostbyname($this->myUri); // get my home ip address
+        }
       }
     }
+    
     // These all use database 'barton'
     // and are always done regardless of 'count' and 'countMe'!
     // These all check $this->nodb first and return at once if it is true.
