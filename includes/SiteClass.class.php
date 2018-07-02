@@ -1,5 +1,6 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2018-07-02 -- Change 'isMe()' logic to use array_intersect() and then use 'isMe()' instead of old logic.
 // BLP 2018-07-01 -- Added logic to look at bartonphillips.net if myUri is a string and starts with
 // http. Also add logic to add a date to copyright.
 // BLP 2018-06-10 -- If our ip is in myIp then WE ARE NOT A BOT!
@@ -129,7 +130,13 @@ class SiteClass extends dbAbstract {
         }
       } else {
         if(strpos($this->myUri, 'http') == 0) {
-          $this->myUri = json_decode(file_get_contents($this->myUri));
+          // Here $this->myUri probably looks like 'https://bartonphillips.net/myUri.json'
+          // When we get that it is an array [myUri] so we want the elements of the array 0..n
+          // Now $this->myUri looks like it would from mysitemap.json if the array was in that
+          // file.
+
+          $this->myUri = json_decode(file_get_contents($this->myUri), true)['myUri'];
+
           if(is_array($this->myUri)) {
             foreach($this->myUri as $v) {
               $this->myIp[] = gethostbyname($v);
@@ -142,7 +149,7 @@ class SiteClass extends dbAbstract {
         }
       }
     }
-    
+
     // These all use database 'barton'
     // and are always done regardless of 'count' and 'countMe'!
     // These all check $this->nodb first and return at once if it is true.
@@ -197,12 +204,8 @@ class SiteClass extends dbAbstract {
 
   public function isMe() {
     if(is_array($this->myIp)) {
-      foreach($this->myIp as $v) {
-        if($v == $this->ip) {
-          return true;
-        }
-      }
-      return false;
+      // BLP 2018-07-02 -- use array_intersect()
+      return array_intersect([$this->ip], $this->myIp);
     } else {
       return ($this->myIp == $this->ip);
     }
@@ -678,17 +681,9 @@ EOF;
       return;
     }
 
-    // BLP 2018-06-10 -- 
-    // If our ip is in myIp then WE ARE NOT A BOT!
-    
-    if(is_array($this->myIp)) {
-      if(array_intersect([$this->ip], $this->myIp)) {
-        reeturn;
-      }
-    } else {
-      if($this->ip == $this->myIp) {
-        return;
-      }
+    // BLP 2018-07-02 -- replace old logic with 'isMe()'
+    if($this->isMe()) {
+      return;
     }
 
     $this->query("select count(*) from information_schema.tables ".
@@ -830,10 +825,12 @@ EOF;
    */
 
   protected function setmyip() {
-    if($this->nodb || !(list($ip) = array_intersect([$this->ip], $this->myIp))) {
+    // BLP 2018-07-02 -- replace old logic with 'isMe()'
+    
+    if($this->isMe()) {
       return;
     }
-
+    
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'myip')");
 
