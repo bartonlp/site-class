@@ -1,4 +1,7 @@
 <?php
+// BLP 2021-03-09 -- Removed via comment logic for $__info to support altorouter.php
+// BLP 2021-02-20 -- Added function stripComments($x) to remove comments '/*', '#' and '//' from
+// json file.
 // BLP 2018-04-20 -- Add $__info so altorouter.php can change things.  
 // This is the site loader for Composer based sites using mysitemap.json
 // We first get the vendor/autoload.php
@@ -47,11 +50,13 @@ if(!$_SERVER['DOCUMENT_ROOT'] && !$_SERVER['VIRTUALHOST_DOCUMENT_ROOT']) {
 
 $_site = json_decode(findsitemap($mydir));
 
-// BLP 2018-04-20 -- Add $__info
+/* BLP 2021-03-09 -- No longer use PUG
+// BLP 2018-04-20 -- Add $__info. For altorout.php 
 foreach($__info as $k=>$v) {
   $_site->$k = $v;
 }
 // BLP 2018-04-20 -- end of add
+*/
 
 if(!$_site) {
   echo <<<EOF
@@ -79,11 +84,16 @@ function findsitemap($mydir) {
   global $docroot;
 
   if(file_exists($mydir . "/mysitemap.json")) {
-    return file_get_contents($mydir . "/mysitemap.json");
+    // return stripComments(file_get_contents($mydir . "/mysitemap.json"));
+    $ret = stripComments(file_get_contents($mydir . "/mysitemap.json"));
+    //echo "ret: |$ret|<br>";
+    return $ret;
   } else {
     // If we didn't find the mysitemap.json then have we reached to docroot? Or have we reached the
     // root. We should actually never reach the root.
 
+    //echo "mydir: $mydir<br>";
+    
     if($docroot == $mydir || '/' == $mydir) {
       return null;
     }
@@ -96,4 +106,11 @@ function findsitemap($mydir) {
     // Recurse
     return findsitemap($mydir);
   }
+}
+
+// BLP 2021-02-20 -- Added this to remove any comments that may be in my 'mystiemap.json'
+
+function stripComments($x) {
+  $pat = '~".*?"(*SKIP)(*FAIL)|(?://[^\n]*)|(?:#[^\n]*)|(?:/\*.*?\*/)~s';
+  return preg_replace($pat, "", $x);
 }

@@ -53,6 +53,11 @@ class Database extends dbAbstract {
       foreach($arg as $k=>$v) {
         $this->$k = $v; 
       }
+
+      if($this->nodb) {
+        return;
+      }
+    
       $db = null;
       $err = null;
       $arg = $this->dbinfo ? $this->dbinfo : $arg;

@@ -185,8 +185,8 @@ function finalOutput($error, $from) {
   }
 
   // Log the raw error info.
-
-  date_default_timezone_set('America/Los_Angeles');
+  // BLP 2021-03-06 -- New server is in New York
+  date_default_timezone_set('America/New_York');
 
   error_log("ErrorClass, finalOutput: $from\n$err{$userId}");
 

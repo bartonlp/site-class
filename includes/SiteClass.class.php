@@ -1,5 +1,8 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-03-09 -- removed logagent2 logic.
+// BLP 2021-03-09 -- added nodb flag to setmyid(). 
+// BLP 2021-02-28 -- use $_SERVER['SERVER_NAME'] instead of $this->siteDomain.
 // BLP 2018-07-02 -- Change 'isMe()' logic to use array_intersect() and then use 'isMe()' instead of old logic.
 // BLP 2018-07-01 -- Added logic to look at bartonphillips.net if myUri is a string and starts with
 // http. Also add logic to add a date to copyright.
@@ -71,7 +74,10 @@ class SiteClass extends dbAbstract {
     $this->self = $_SERVER['PHP_SELF'];
     $this->requestUri = $this->self;
 
-    date_default_timezone_set("America/Los_Angeles");
+    // BLP 2021-03-06 -- our server 'bartonlp.org' is in New York.
+    // Our old server 'bartonlp.com' was in San Fransisco.
+    
+    date_default_timezone_set("America/New_York");
     
     $arg = array(); // temp array for $s during parsing
 
@@ -221,8 +227,10 @@ class SiteClass extends dbAbstract {
     // [, string $path [, string $domain [, bool $secure = false
     // [, bool $httponly = false ]]]]]] )
 
-    $ref = $this->siteDomain;
-
+    // BLP 2021-02-28 -- siteDomain is set in mysitemap.json and may not be the actual server.
+    //$ref = $this->siteDomain;
+    $ref = $_SERVER['SERVER_NAME'];
+    //error_log("cookie: $cookie, value: $value, expire: $expire, path: $path");
     if(!setcookie($cookie, $value, $expire, $path, $ref)) {
       return false;
     }
@@ -256,7 +264,7 @@ class SiteClass extends dbAbstract {
    * BLP 2014-12-31 -- Add footer to $h parameter to have the $b array etc.
    */
 
-  public function getPageTopBottom($h, $b=null) {
+  public function getPageTopBottom($h=null, $b=null) {
     // Force $h to be an array.
     $h = is_array($h) ? $h : (array)$h;
 
@@ -716,6 +724,10 @@ EOF;
       return;
     }
 
+    if($this->isMe()) {
+      return;
+    }
+    /* replace with isMe()
     if(is_array($this->myIp)) {
       foreach($this->myIp as $v) {
         if($this->ip == $v) {
@@ -727,7 +739,8 @@ EOF;
         return;
       }
     }
-
+    */
+    
     // This has been set by checkIfBot()
     
     if($this->isBot) {
@@ -740,11 +753,11 @@ EOF;
       list($ok) = $this->fetchrow('num');
       if($ok == 1) {
         try {
-          $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, who, creation_time, lasttime) ".
+          $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
                        "values('$this->ip', '$agent', 1, 4, '$this->siteName', now(), now())");
         } catch(Exception $e) {
           if($e->getCode() == 1062) { // duplicate key
-            $this->query("select who from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
+            $this->query("select site from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
 
             list($who) = $this->fetchrow('num');
 
@@ -756,7 +769,7 @@ EOF;
               $who .= ", $this->siteName";
             }
 
-            $this->query("update $this->masterdb.bots set robots=robots | 8, who='$who', count=count+1, lasttime=now() ".
+            $this->query("update $this->masterdb.bots set robots=robots | 8, site='$who', count=count+1, lasttime=now() ".
                          "where ip='$this->ip' and agent='$agent'");
           } else {
             throw($e);
@@ -825,9 +838,10 @@ EOF;
    */
 
   protected function setmyip() {
+    // BLP 2021-03-09 -- add nodb flag
     // BLP 2018-07-02 -- replace old logic with 'isMe()'
-    
-    if($this->isMe()) {
+    // BLP 2021-02-20 -- changed to == false and fixed error below
+    if($this->nodb === true || $this->isMe() == false) {
       return;
     }
     
@@ -841,7 +855,8 @@ EOF;
       return;
     }
 
-    $this->query("insert ignore into $this->masterdb.myip values('$ip', now())");
+    // BLP 2021-02-20 -- this was wrong. It did $ip instead of $this->ip
+    $this->query("insert ignore into $this->masterdb.myip values('$this->ip', now())");
   }
 
   /**
@@ -894,7 +909,7 @@ EOF;
   /**
    * counter2
    * count files accessed per day
-   * WARNING this may be overriden is a child class
+   * WARNING this may be overriden in a child class
    */
   
   protected function counter2() {
@@ -1000,6 +1015,7 @@ EOF;
       $curdate = date("Y-m-d");
       
       try {
+        // BLP 2021-02-20 -- note date and real must be escaped with `
         $sql = "insert into $this->masterdb.daycounts (site, `date`, `real`, bots, members, visits, lasttime) " .
                "values('$this->siteName', '$curdate', $real, $bots, $member, 1, now())";
 
@@ -1007,7 +1023,7 @@ EOF;
 
         $cookietime = time() + (60*10);
         if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
-          error_log("SiteClass: Can't setSiteCookie() at ".__LINE__);
+          $this->debug("$this->siteName: Can't setSiteCookie() at ".__LINE__);
         }
       } catch(Exception $e) {
         if($e->getCode() != 1062) { // 1062 is dup key error
@@ -1023,7 +1039,7 @@ EOF;
           // set cookie to expire in 10 minutes
           $cookietime = time() + (60*10);
           if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
-            error_log("SiteClass: Can't setSiteCookie() at ".__LINE__);
+            $this->debug("$this->siteName: Can't setSiteCookie() at ".__LINE__);
           }
 
           $sql = "update $this->masterdb.daycounts set$realUpdate$botsUpdate$memberUpdate visits=visits+1, ".
@@ -1038,14 +1054,14 @@ EOF;
   /**
    * logagent()
    * Log logagent
-   * logagent and logagent2 are now used for 'analysis'
+   * logagent is now used for 'analysis'
    */
   
   protected function logagent() {
     if($this->nodb) {
       return;
     }
-    $database = $this->getDbName();
+
     $agent = $this->escape($this->agent);
 
     $this->query("select count(*) from information_schema.tables ".
@@ -1060,88 +1076,13 @@ EOF;
         
       $this->query($sql);
     } else {
-      $this->debug("$this->siteName: $this->self: table logagent does not exist in the $database database");
-    }
-
-    // Do insert into logagent2 which has only the last n days
-    
-    $this->query("select count(*) from information_schema.tables ".
-                 "where (table_schema = '$this->masterdb') and (table_name = 'logagent2')");
-
-    list($ok) = $this->fetchrow('num');
-
-    if($ok == 1) {
-      $sql = "insert into $this->masterdb.logagent2 (site, ip, agent, count, id, created, lasttime) ".
-             "values('$this->siteName', '$this->ip', '$agent', '1', '$this->id', now(), now()) ".
-             "on duplicate key update count=count+1, id='$this->id', lasttime=now()";
-
-      $this->query($sql);
-    } else {
-      $this->debug("$this->siteName: $this->self: table logagent2 does not exist in the $database database");
-    }
-  }
-
-  /**
-   * trackmember()
-   * Track activity on site
-   * This table is in the siteName's database.
-   * NOTE: override this in your sites class if you need more features.
-   * By default this uses the 'logagent' and 'memberpagecnt' tables.
-   */
-
-  protected function trackmember() {
-    if($this->nodb) {
-      return;
-    }
-
-    $database = $this->getDbName();
-    
-    // If there is a member 'id' then update the memberTable
-
-    if($this->id && $this->memberTable) {
-      $agent = $this->escape($this->agent);
-
-      $this->query("select count(*) from information_schema.tables ".
-                   "where (table_schema = '$database') and (table_name = '$this->memberTable')");
-
-      list($ok) = $this->fetchrow('num');
-
-      if($ok) {
-        // BLP 2016-05-04 -- 
-        // The fname-lname are a unique index 'name' so we will not get duplicates of our users.
-        
-        $sql = "insert into $this->memberTable (fname, lname, email, visits, visittime) ".
-               "values('$this->fname', '$this->lname', '$this->email', '1', now()) ".
-               "on duplicate key update visits=visits+1, visittime=now()";
-
-        $this->query($sql);
-      } else {
-        $this->debug("$this->siteName: $this->self: table $this->memberTable does not exist in the $database database");
-      }
-      
-      // BLP 2014-09-16 -- add nomemberpagecnt
-
-      if(!$this->nomemberpagecnt) {
-        $this->query("select count(*) from information_schema.tables ".
-                     "where (table_schema = '$database') and (table_name = 'memberpagecnt')");
-
-        list($ok) = $this->fetchrow('num');
-
-        if($ok) {
-          $sql = "insert into memberpagecnt (page, id, ip, agent, count, lasttime) " .
-                 "values('$this->requestUri', '$this->id', '$this->ip', '$agent', '1', now()) ".
-                 "on duplicate key update count=count+1, ip='$this->ip', agent='$agent', lasttime=now()";
-
-          $this->query($sql);
-        } else {
-          $this->debug("$this->siteName: $this->self: table memberpagecnt does not exist in the $database database");
-        }
-      }
+      $this->debug("$this->siteName: $this->self: table logagent does not exist in the $this->masterdb database");
     }
   }
 
   /*
    * debug()
+   * If noErrorLog is set in mysitemap.json then don't do error_log()
    */
 
   protected function debug($msg) {

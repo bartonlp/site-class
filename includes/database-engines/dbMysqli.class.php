@@ -280,9 +280,9 @@ class dbMysqli extends dbAbstract {
   // real_escape_string
   
   public function escape($string) {
-    if(get_magic_quotes_runtime()) {
-      $string = stripslashes($string);
-    }
+//    if(get_magic_quotes_runtime()) {
+//      $string = stripslashes($string);
+//    }
     return @$this->db->real_escape_string($string);
   }
 
