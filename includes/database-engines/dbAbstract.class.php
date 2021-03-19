@@ -7,7 +7,7 @@
 // The db engines (dbMysqli.class.php, etc.) have most of these methods implemented.
 
 abstract class dbAbstract {
-  //protected $db;
+  // protected $db;
 
   // Each child class needs to have a __toString() method
 

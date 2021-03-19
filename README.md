@@ -1,4 +1,4 @@
-# SiteClass Verion 2.0
+# SiteClass Verion 3.0
 
 **SiteClass** is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
 
@@ -24,4 +24,4 @@ There are a couple of additional databases but they have not been rigouously tes
 
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
 [My Website](http://www.bartonphillips.com)  
-Copyright &copy; 2017 Barton Phillips
+Copyright &copy; 2021 Barton Phillips

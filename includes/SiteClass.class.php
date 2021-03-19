@@ -1,5 +1,10 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-03-16 -- removed 'member' logic from counter2(). Remove 'member' logic from daycount().
+// Remove $this-id from all functions. ErrorClass::setDevelopment(true) now sets
+// $noEmailErrs also to true. This can be overriden by settin ErrorClass::setNoEmailErrs(false)
+// after setting development.
+// BLP 2021-03-11 -- add escape for agent.
 // BLP 2021-03-09 -- removed logagent2 logic.
 // BLP 2021-03-09 -- added nodb flag to setmyid(). 
 // BLP 2021-02-28 -- use $_SERVER['SERVER_NAME'] instead of $this->siteDomain.
@@ -15,7 +20,7 @@
 // BLP 2016-11-27 -- changed the sense of $this->myIp and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "2.0.5");
+define("SITE_CLASS_VERSION", "3.0.0");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -70,7 +75,6 @@ class SiteClass extends dbAbstract {
     // Now I can add stuff to mysitemap.json and have it update these also.
     
     $this->ip = $_SERVER['REMOTE_ADDR'];
-    $this->agent = $_SERVER['HTTP_USER_AGENT'];
     $this->self = $_SERVER['PHP_SELF'];
     $this->requestUri = $this->self;
 
@@ -119,11 +123,16 @@ class SiteClass extends dbAbstract {
       $this->count = $this->countMe = false;
     }
 
+    // BLP 2021-03-11 -- add escape for HTTP_USER_AGENT to cope with ' etc.
+    
     if(is_null($this->db) && $this->nodb !== true && !is_null($this->dbinfo)) {
       // instantiate the Database. Pass Everything on to Database
       $this->db = new Database($this);
+      $this->agent = $this->escape($_SERVER['HTTP_USER_AGENT']); 
+    } else {
+      $this->agent = $_SERVER['HTTP_USER_AGENT'];
     }
-
+    
     // If myUri is set get the ip address into myIp
     // BLP 2016-11-27 -- Changed meaning. It can be an object
     // BLP 2018-07-01 -- Added logic to look at bartonphillips.net if myUri is a string and starts
@@ -655,6 +664,7 @@ EOF;
     if($this->nodb) return null;
 
     // Counter at bottom of page
+    // hitCount is updated by 'counter()'
     $hits = number_format($this->hitCount);
 
     // Let the redered appearance be up to the pages css!
@@ -865,6 +875,7 @@ EOF;
    * WARNING this could be  overriden in your sites class if you need more features.
    * By default this uses a table 'counter' with 'filename', 'count', and 'lasttime'.
    *  'filename' is the primary key.
+   * counter() updates $this->hitCount
    */
 
   protected function counter() {
@@ -895,12 +906,14 @@ EOF;
       }
 
       // Now retreive the hit count value after it may have been incremented
-
-      list($cnt) = $this->queryfetch("select realcnt ".
-                                     "from $this->masterdb.counter ".
-                                     "where site='$this->siteName' and filename='$filename'");
+      // BLP 2021-03-16 -- replace queryfetch() with query() and fetchrow('num')
       
-      $this->hitCount = ($cnt[0]) ? $cnt[0] : 0;
+      $sql = "select realcnt ".
+             "from $this->masterdb.counter ".
+             "where site='$this->siteName' and filename='$filename'";
+      $this->query($sql);
+      list($cnt) = $this->fetchrow('num');
+      $this->hitCount = $cnt ? $cnt : 0;
     } else {
       $this->debug("$this->siteName: $this->self: table counter does not exist in the $this->masterdb database");
     }      
@@ -910,6 +923,7 @@ EOF;
    * counter2
    * count files accessed per day
    * WARNING this may be overriden in a child class
+   * BLP 2021-03-16 -- removed 'member' logic
    */
   
   protected function counter2() {
@@ -924,24 +938,12 @@ EOF;
     list($ok) = $this->fetchrow('num');
 
     if($ok) {
-      if($this->isBot) {
-        // BLP 2017-11-01 -- add left to keep from getting too long errors
-        $sql = "insert into $this->masterdb.counter2 (site, date, filename, count, bots, lasttime) ".
-               "values('$this->siteName', now(), left('$this->requestUri', 254), 0, 1, now()) ".
-               "on duplicate key update bots=bots+1, lasttime=now()";
-      } else {
-        $member = 0;
-        $memberUpdate = '';
+      $bot = $this->isBot ? 1 : 0;
 
-        if($this->id) {
-          $member = 1;
-          $memberUpdate = ", members=members+1";
-        }
-        // BLP 2017-11-01 -- add left to keep from getting too long errors
-        $sql = "insert into $this->masterdb.counter2 (site, date, filename, count, members, lasttime) ".
-               "values('$this->siteName', now(), left('$this->requestUri', 254), 1, $member, now()) ".
-               "on duplicate key update count=count+1$memberUpdate, lasttime=now()";
-      }
+      // BLP 2017-11-01 -- add left to keep from getting too long errors
+      $sql = "insert into $this->masterdb.counter2 (site, date, filename, count, bots, lasttime) ".
+             "values('$this->siteName', now(), left('$this->requestUri', 254), 0, 1, now()) ".
+             "on duplicate key update bots=bots+$bot, lasttime=now()";
       $this->query($sql);
     } else {
       $this->debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database");
@@ -957,6 +959,7 @@ EOF;
    *   then we count it.
    *   If $inc == 'all' or 'All' etc. then $check=$what="all";
    * May need to redefine in an extended class
+   * BLP 2021-03-16 -- removed 'member' logic
    */
 
   protected function daycount($inc) {
@@ -995,14 +998,9 @@ EOF;
       $what = $check = "all"; // BLP 2016-02-09 -- chance from "index.php" to "all" if not specified;
     }
 
-    $member = $real = $bots = 0;
-    $memberUpdate = $realUpdate = $botsUpdate = '';
+    $real = $bots = 0;
+    $realUpdate = $botsUpdate = '';
     
-    if($this->id) {
-      $member = 1;
-      $memberUpdate = " members=members+1,";
-    }
-
     if($this->isBot) {
       $bots = 1;
       $botsUpdate = " bots=bots+1,";
@@ -1016,8 +1014,8 @@ EOF;
       
       try {
         // BLP 2021-02-20 -- note date and real must be escaped with `
-        $sql = "insert into $this->masterdb.daycounts (site, `date`, `real`, bots, members, visits, lasttime) " .
-               "values('$this->siteName', '$curdate', $real, $bots, $member, 1, now())";
+        $sql = "insert into $this->masterdb.daycounts (site, `date`, `real`, bots, visits, lasttime) " .
+               "values('$this->siteName', '$curdate', $real, $bots, 1, now())";
 
         $this->query($sql);
 
@@ -1033,7 +1031,7 @@ EOF;
         // This is the 10 minute time delay for visitors vs hits
 
         if($_COOKIE['mytime']) {        
-          $sql = "update $this->masterdb.daycounts set$realUpdate$botsUpdate$memberUpdate lasttime=now() ".
+          $sql = "update $this->masterdb.daycounts set$realUpdate$botsUpdate lasttime=now() ".
                  "where site='$this->siteName' and date='$curdate'";
         } else {
           // set cookie to expire in 10 minutes
@@ -1042,7 +1040,7 @@ EOF;
             $this->debug("$this->siteName: Can't setSiteCookie() at ".__LINE__);
           }
 
-          $sql = "update $this->masterdb.daycounts set$realUpdate$botsUpdate$memberUpdate visits=visits+1, ".
+          $sql = "update $this->masterdb.daycounts set$realUpdate$botsUpdate visits=visits+1, ".
                  "lasttime=now() ".
                  "where site='$this->siteName' and date='$curdate'";
         }
@@ -1055,6 +1053,7 @@ EOF;
    * logagent()
    * Log logagent
    * logagent is now used for 'analysis'
+   * BLP 2021-03-16 -- remove $this->id and id from logagent.
    */
   
   protected function logagent() {
@@ -1070,8 +1069,8 @@ EOF;
     list($ok) = $this->fetchrow('num');
 
     if($ok == 1) {
-      $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, id, created, lasttime) " .
-             "values('$this->siteName', '$this->ip', '$agent', '1', '$this->id', now(), now()) ".
+      $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime) " .
+             "values('$this->siteName', '$this->ip', '$agent', '1', now(), now()) ".
              "on duplicate key update count=count+1, lasttime=now()";
         
       $this->query($sql);

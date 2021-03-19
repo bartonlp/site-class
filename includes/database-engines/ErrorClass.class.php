@@ -1,6 +1,7 @@
 <?php
 /* MAINTAINED and WELL TESTED */
-
+// BLP 2021-03-15 -- see setDevelopment()
+  
 // Contains the my_errorhandler, my_exceptionhandler, Error class.
 // set_exception_handler to my_exceptionhandler
 // The Error class constructor does set_error_handler to my_errorhandler.
@@ -288,9 +289,12 @@ class ErrorClass {
   static public function getErrorType() {
     return self::$errType;
   }
+
+  //BLP 2021-03-15 -- if we set development also set noEmaiErrs!
   
   static public function setDevelopment($b) {
     self::$development = $b;
+    self::$noEmailErrs = true;
   }
 
   static public function getDevelopment() {
