@@ -1,7 +1,6 @@
 {
     "name": "bartonlp/site-class",
     "description": "PHP framework to make creating websites easier",
-    "version": "3.0.0",
     "license": "MIT",
     "authors": [
         {
