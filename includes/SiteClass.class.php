@@ -1,5 +1,7 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-03-22 -- add 'options' to setSiteCookie().
+// BLP 2021-03-22 -- remove daycountwhat from constructor values amd $inc from daycount().
 // BLP 2021-03-16 -- removed 'member' logic from counter2(). Remove 'member' logic from daycount().
 // Remove $this-id from all functions. ErrorClass::setDevelopment(true) now sets
 // $noEmailErrs also to true. This can be overriden by settin ErrorClass::setNoEmailErrs(false)
@@ -56,7 +58,7 @@ class SiteClass extends dbAbstract {
    *
    * @param array|object $s
    *  fields: siteDomain, subDomain, headFile,
-   *  bannerFile, footerFile, count, daycountwhat, emailDomain, nodb:
+   *  bannerFile, footerFile, count, emailDomain, nodb,
    *  these fields are all protected. 
    *  If there are more elements in $s they become public properties. You can add myUri to populate
    *  $this->myIp if you don't want to count webmaster activity.
@@ -197,7 +199,7 @@ class SiteClass extends dbAbstract {
         // is checked and if true we return at once.
         $this->counter2(); // in 'masterdb' database
         // arg can be ALL or a file or an array of files OR nothing! 
-        $this->daycount($this->daycountwhat); // in 'masterdb' database
+        $this->daycount(); // in 'masterdb' database
       }
     }
   }
@@ -240,7 +242,18 @@ class SiteClass extends dbAbstract {
     //$ref = $this->siteDomain;
     $ref = $_SERVER['SERVER_NAME'];
     //error_log("cookie: $cookie, value: $value, expire: $expire, path: $path");
-    if(!setcookie($cookie, $value, $expire, $path, $ref)) {
+    // BLP 2021-03-22 -- New. use $options to hold values. Set 'secure' true, 'httponly' true, and
+    // 'samesite' None. Samesite is a new feature.
+    
+    $options =  array(
+                      'expires' => $expire,
+                      'path' => $path,
+                      'domain' => '.' . $ref, // leading dot for compatibility or use subdomain
+                      'secure' => true,     // or false
+                      'httponly' => true,    // or false
+                      'samesite' => 'None' // None || Lax  || Strict
+                     );                      
+    if(!setcookie($cookie, $value, $options)) {
       return false;
     }
     return true;
@@ -954,15 +967,13 @@ EOF;
    * daycount()
    * Day Counts
    * WARNING this could be overriden in a child class.
-   * @param string|array $inc. String is the name of the file to count. Array is multiple files to count.
-   *   An array should look like array('/index', '/antherpage', 'etc'). We will in_array($this->self, $inc) === true
-   *   then we count it.
-   *   If $inc == 'all' or 'All' etc. then $check=$what="all";
+   * BLP 2021-03-22 -- remove $inc
+   * BLP 2021-03-22 -- 
    * May need to redefine in an extended class
    * BLP 2021-03-16 -- removed 'member' logic
    */
 
-  protected function daycount($inc) {
+  protected function daycount() {
     if($this->nodb) {
       return;
     }
@@ -977,75 +988,45 @@ EOF;
       return;
     }
 
-    $what = basename($this->self);
-
     $ip = $this->ip;
 
-    if($inc) {
-      if(is_array($inc)) {
-        if(in_array($what, $inc)) {
-          $check = $what;
-        } else {
-          $check = null; // not in array so make sure it does not match $what!
-        }
-      } elseif(strtolower($inc) == "all") {
-        // Not an array and ALL
-        $what = $check = "all";
-      } else {
-        $check = $inc;
+    [$real, $bots] = $this->isBot ? [0,1] : [1,0];
+
+    $curdate = date("Y-m-d");
+
+    try {
+      // BLP 2021-02-20 -- note date and real must be escaped with `
+      $sql = "insert into $this->masterdb.daycounts (site, `date`, `real`, bots, visits, lasttime) " .
+             "values('$this->siteName', '$curdate', $real, $bots, 1, now())";
+
+      $this->query($sql);
+
+      $cookietime = time() + (60*10);
+      if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
+        $this->debug("$this->siteName: Can't setSiteCookie() at ".__LINE__);
       }
-    } else {
-      $what = $check = "all"; // BLP 2016-02-09 -- chance from "index.php" to "all" if not specified;
-    }
+    } catch(Exception $e) {
+      if($e->getCode() != 1062) { // 1062 is dup key error
+        throw(new Exception(__CLASS__ ."::daycount() error=$e"));
+      }
 
-    $real = $bots = 0;
-    $realUpdate = $botsUpdate = '';
-    
-    if($this->isBot) {
-      $bots = 1;
-      $botsUpdate = " bots=bots+1,";
-    } else {
-      $real = 1;
-      $realUpdate = " `real`=`real`+1,";
-    }
+      // This is the 10 minute time delay for visitors vs hits
 
-    if($what == $check) {
-      $curdate = date("Y-m-d");
-      
-      try {
-        // BLP 2021-02-20 -- note date and real must be escaped with `
-        $sql = "insert into $this->masterdb.daycounts (site, `date`, `real`, bots, visits, lasttime) " .
-               "values('$this->siteName', '$curdate', $real, $bots, 1, now())";
-
-        $this->query($sql);
-
+      if($_COOKIE['mytime']) {        
+        $sql = "update $this->masterdb.daycounts set `real`=`real`+$real, bots=bots+$bots, lasttime=now() ".
+               "where site='$this->siteName' and date='$curdate'";
+      } else {
+        // set cookie to expire in 10 minutes
         $cookietime = time() + (60*10);
         if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
           $this->debug("$this->siteName: Can't setSiteCookie() at ".__LINE__);
         }
-      } catch(Exception $e) {
-        if($e->getCode() != 1062) { // 1062 is dup key error
-          throw(new Exception(__CLASS__ ."::daycount() error=$e"));
-        }
 
-        // This is the 10 minute time delay for visitors vs hits
-
-        if($_COOKIE['mytime']) {        
-          $sql = "update $this->masterdb.daycounts set$realUpdate$botsUpdate lasttime=now() ".
-                 "where site='$this->siteName' and date='$curdate'";
-        } else {
-          // set cookie to expire in 10 minutes
-          $cookietime = time() + (60*10);
-          if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
-            $this->debug("$this->siteName: Can't setSiteCookie() at ".__LINE__);
-          }
-
-          $sql = "update $this->masterdb.daycounts set$realUpdate$botsUpdate visits=visits+1, ".
-                 "lasttime=now() ".
-                 "where site='$this->siteName' and date='$curdate'";
-        }
-        $this->query($sql);
+        $sql = "update $this->masterdb.daycounts set `real`=`real`+$real, bots=bots+$bots, visits=visits+1, ".
+               "lasttime=now() ".
+               "where site='$this->siteName' and date='$curdate'";
       }
+      $this->query($sql);
     }
   }
   
