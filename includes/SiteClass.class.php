@@ -8,7 +8,7 @@
 // after setting development.
 // BLP 2021-03-11 -- add escape for agent.
 // BLP 2021-03-09 -- removed logagent2 logic.
-// BLP 2021-03-09 -- added nodb flag to setmyid(). 
+// BLP 2021-03-09 -- added nodb flag to setmyip(). 
 // BLP 2021-02-28 -- use $_SERVER['SERVER_NAME'] instead of $this->siteDomain.
 // BLP 2018-07-02 -- Change 'isMe()' logic to use array_intersect() and then use 'isMe()' instead of old logic.
 // BLP 2018-07-01 -- Added logic to look at bartonphillips.net if myUri is a string and starts with
@@ -22,7 +22,7 @@
 // BLP 2016-11-27 -- changed the sense of $this->myIp and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "3.0.0");
+define("SITE_CLASS_VERSION", "3.0.1");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -62,7 +62,7 @@ class SiteClass extends dbAbstract {
    *  these fields are all protected. 
    *  If there are more elements in $s they become public properties. You can add myUri to populate
    *  $this->myIp if you don't want to count webmaster activity.
-   *  count is default true and countMe is default false. The rest of the values are 'null' if not
+   *  'count' is default true and 'countMe' is default false. The rest of the values are 'null' if not
    *  specifically set in $s.
    */
   
@@ -141,12 +141,12 @@ class SiteClass extends dbAbstract {
     // with http.
 
     if(isset($this->myUri)) {
-      if(is_array($this->myUri)) {
+      if(is_array($this->myUri)) { // an array from mysitemap.json. IP addresses or URLs
         foreach($this->myUri as $v) {
-          $this->myIp[] = gethostbyname($v);
+          $this->myIp[] = gethostbyname($v); // If this fails it returns $v which can be an ip address not a url.
         }
-      } else {
-        if(strpos($this->myUri, 'http') == 0) {
+      } else { // not an array but a string
+        if(strpos($this->myUri, 'http') == 0) { // is the string a full URL?
           // Here $this->myUri probably looks like 'https://bartonphillips.net/myUri.json'
           // When we get that it is an array [myUri] so we want the elements of the array 0..n
           // Now $this->myUri looks like it would from mysitemap.json if the array was in that
@@ -155,16 +155,16 @@ class SiteClass extends dbAbstract {
           $this->myUri = json_decode(file_get_contents($this->myUri), true)['myUri'];
 
           if(is_array($this->myUri)) {
-            foreach($this->myUri as $v) {
-              $this->myIp[] = gethostbyname($v);
+            foreach($this->myUri as $v) { // pick the array apart
+              $this->myIp[] = gethostbyname($v); // If this fails it returns $v which can be an ip address not a url.
             }
-          } else {
-            $this->myIp = gethostbyname($this->myUri); // get my home ip address
+          } else { // this is a single string
+            $this->myIp = gethostbyname($this->myUri); // get my home ip address. Same as above.
           }
-        } else {
-          $this->myIp = gethostbyname($this->myUri); // get my home ip address
+        } else { // just a straight string and NOT from a full URL
+          $this->myIp = gethostbyname($this->myUri); // get my home ip address. Same as above.
         }
-      }
+      } 
     }
 
     // These all use database 'barton'
@@ -172,11 +172,11 @@ class SiteClass extends dbAbstract {
     // These all check $this->nodb first and return at once if it is true.
 
     if($this->noTrack != true) {
-      $this->checkIfBot(); // This set $this->isBot.
-      $this->trackbots(); 
-      $this->tracker();
-      $this->logagent(); // in 'masterdb' database. logip and logagent
-      $this->setmyip();
+      $this->checkIfBot(); // This set $this->isBot. Does a isMe() so I never get set as a bot!
+      $this->trackbots();  // both 'bots' and 'bots2'. This also does a isMe() so never get put into the 'bots*' tables.
+      $this->tracker();    // This logs Me and everybody else!
+      $this->logagent();   // This logs Me and everybody else!
+      $this->setmyip();    //
     }
 
     // If 'count' is false we don't do these counters
@@ -186,7 +186,13 @@ class SiteClass extends dbAbstract {
       // updated (unless the counter file does not exist).
       // That is why it is here rather than after the countMe test below!
 
-      $this->counter(); // in 'masterdb' database
+      // BLP 2021-03-27 -- NOTE: counter() checks for not isMe() and countMe is false.
+      // So it does NOT count Me but it still gets the 'realcnt' even if the cound was NOT done.
+      // The 'realcnt' is placed in '$this->hitCount'.
+      // I may want to decouple this and have a counter() and a gethitcount() function. OR NOT
+      // because gethitcount() would have to happen after a non-Me count?
+      
+      $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
 
       // If this is me and $countMe is false (default is false) then don't count.
       // not (true && true) ==   false, it is me and countMe=false
@@ -198,7 +204,6 @@ class SiteClass extends dbAbstract {
         // These are all checked for existance in the database in the functions and also the nodb
         // is checked and if true we return at once.
         $this->counter2(); // in 'masterdb' database
-        // arg can be ALL or a file or an array of files OR nothing! 
         $this->daycount(); // in 'masterdb' database
       }
     }
@@ -216,15 +221,15 @@ class SiteClass extends dbAbstract {
   /**
    * isMe()
    * Check if this access is from ME
-   * @return bool true if me else false
+   * @return an array. The array == true but does not === true!
    */
 
   public function isMe() {
     if(is_array($this->myIp)) {
       // BLP 2018-07-02 -- use array_intersect()
-      return array_intersect([$this->ip], $this->myIp);
+      return array_intersect([$this->ip], $this->myIp); // returns an array!
     } else {
-      return ($this->myIp == $this->ip);
+      return ($this->myIp == $this->ip); // returns a bool
     }
   }
 
@@ -360,8 +365,11 @@ class SiteClass extends dbAbstract {
     // So if we have the initial arguments 'object', 'string', 'string' the two string
     // values take presidence!
 
-    $bodytag = $bodytag ? $bodytag : $arg['bodytag'];    
-    $banner = $banner ? $banner : $arg['banner']; 
+    $bodytag = $bodytag ? $bodytag : $arg['bodytag'];
+    // BLP 2021-03-27 -- if $banner (from constructor) or $arg['banner'] are empty then use
+    // mainTitle from mysitemap.json if it exists. 
+    $banner = $banner ? $banner : $arg['banner'];
+    $banner = $banner ? $banner : $this->mainTitle;
 
     // Get the page <head> section
 
@@ -750,19 +758,6 @@ EOF;
     if($this->isMe()) {
       return;
     }
-    /* replace with isMe()
-    if(is_array($this->myIp)) {
-      foreach($this->myIp as $v) {
-        if($this->ip == $v) {
-          return;
-        }
-      }
-    } else {
-      if($this->ip == $this->myIp) {
-        return;
-      }
-    }
-    */
     
     // This has been set by checkIfBot()
     
@@ -838,7 +833,7 @@ EOF;
       
       $java = 0;
       
-      if($this->isBot) {
+      if($this->isBot) { // can NEVER be me!
         $java = 0x2000; // This is the robots tag
       }
 
@@ -864,7 +859,7 @@ EOF;
     // BLP 2021-03-09 -- add nodb flag
     // BLP 2018-07-02 -- replace old logic with 'isMe()'
     // BLP 2021-02-20 -- changed to == false and fixed error below
-    if($this->nodb === true || $this->isMe() == false) {
+    if($this->nodb === true || $this->isMe() == false) { // because isMe() could return an empte array which == false but not === false
       return;
     }
     
@@ -1034,7 +1029,7 @@ EOF;
    * logagent()
    * Log logagent
    * logagent is now used for 'analysis'
-   * BLP 2021-03-16 -- remove $this->id and id from logagent.
+   * BLP 2021-03-16 -- remove $this->id and id from 'logagent' table.
    */
   
   protected function logagent() {
