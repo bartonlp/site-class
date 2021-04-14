@@ -59,12 +59,13 @@ foreach($__info as $k=>$v) {
 */
 
 if(!$_site) {
-  echo <<<EOF
+  $_site =<<<EOF
 <h1>NO 'mysitemap.json' Found</h1>
 <p>To run {$_SERVER['PHP_SELF']} you must have a 'mysitemap.json' somewhere within the Document Root.</p>
 EOF;
   error_log("ERROR: siteload.php. No 'mysitemap.json' found in " . getcwd() . " for file {$_SERVER['PHP_SELF']}");
-exit();
+  echo $_site;
+  exit();
 }
 error_reporting($old);
 return $_site;
