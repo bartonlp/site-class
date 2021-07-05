@@ -9,6 +9,56 @@
 // we combine DOCUMENT_ROOT and the dirname(PHP_SELF) and '/mysitemap.json'
 // and return the mysitemap.json file for the site.
 
+// Function to search for the mysitemap.json
+// We pass the $mydir to the function. This is from 'SCRIPT_FILENAME' which has the absolute path
+// to the target with the full DOCUMENT_ROOT plus the directory path from the docroot to the
+// target.
+// For example DOCUMENT_ROOT + /path/target
+// So we take this and if we do not find the files at first we do a $mysite = dirname($mysite) and
+// then do a chdir($mysite); This may not be DOCUMENT_ROOT + ... but may the REAL path. For Example
+// if we did a symlink to DOCUMENT_ROOT + 'weewx/index.php' and the symlink were
+// /extra/weewx then if we did a chdir('..') we would get to /extra which is wrong.
+// What we want is /var/www/weewx to /var/wwww.
+
+if(!function_exists("findsitemap")) {
+  function findsitemap($mydir) {
+    global $docroot;
+
+    if(file_exists($mydir . "/mysitemap.json")) {
+      // return stripComments(file_get_contents($mydir . "/mysitemap.json"));
+      $ret = stripComments(file_get_contents($mydir . "/mysitemap.json"));
+      //echo "ret: |$ret|<br>";
+      return $ret;
+    } else {
+      // If we didn't find the mysitemap.json then have we reached to docroot? Or have we reached the
+      // root. We should actually never reach the root.
+
+      //echo "mydir: $mydir<br>";
+
+      if($docroot == $mydir || '/' == $mydir) {
+        return null;
+      }
+
+      // We are not at the root so do $mydir = dirname($mydir). For example if $mydir is
+      // '/var/www/weewx' it becomes '/var/www'
+      //echo "mydir: $mydir\n";
+      $mydir = dirname($mydir);
+      //chdir($mydir); // This will change the dir to something under the docroot
+      // Recurse
+      return findsitemap($mydir);
+    }
+  }
+}
+
+// BLP 2021-02-20 -- Added this to remove any comments that may be in my 'mystiemap.json'
+
+if(!function_exists("stripComments")) {
+  function stripComments($x) {
+    $pat = '~".*?"(*SKIP)(*FAIL)|(?://[^\n]*)|(?:#[^\n]*)|(?:/\*.*?\*/)~s';
+    return preg_replace($pat, "", $x);
+  }
+}
+
 // We are in 'vendor/bartonlp/site-class/includes' so we want to go back three directories to load
 // autoload.php
 
@@ -70,48 +120,3 @@ EOF;
 error_reporting($old);
 return $_site;
 
-// Function to search for the mysitemap.json
-// We pass the $mydir to the function. This is from 'SCRIPT_FILENAME' which has the absolute path
-// to the target with the full DOCUMENT_ROOT plus the directory path from the docroot to the
-// target.
-// For example DOCUMENT_ROOT + /path/target
-// So we take this and if we do not find the files at first we do a $mysite = dirname($mysite) and
-// then do a chdir($mysite); This may not be DOCUMENT_ROOT + ... but may the REAL path. For Example
-// if we did a symlink to DOCUMENT_ROOT + 'weewx/index.php' and the symlink were
-// /extra/weewx then if we did a chdir('..') we would get to /extra which is wrong.
-// What we want is /var/www/weewx to /var/wwww.
-
-function findsitemap($mydir) {
-  global $docroot;
-
-  if(file_exists($mydir . "/mysitemap.json")) {
-    // return stripComments(file_get_contents($mydir . "/mysitemap.json"));
-    $ret = stripComments(file_get_contents($mydir . "/mysitemap.json"));
-    //echo "ret: |$ret|<br>";
-    return $ret;
-  } else {
-    // If we didn't find the mysitemap.json then have we reached to docroot? Or have we reached the
-    // root. We should actually never reach the root.
-
-    //echo "mydir: $mydir<br>";
-    
-    if($docroot == $mydir || '/' == $mydir) {
-      return null;
-    }
-
-    // We are not at the root so do $mydir = dirname($mydir). For example if $mydir is
-    // '/var/www/weewx' it becomes '/var/www'
-    //echo "mydir: $mydir\n";
-    $mydir = dirname($mydir);
-    //chdir($mydir); // This will change the dir to something under the docroot
-    // Recurse
-    return findsitemap($mydir);
-  }
-}
-
-// BLP 2021-02-20 -- Added this to remove any comments that may be in my 'mystiemap.json'
-
-function stripComments($x) {
-  $pat = '~".*?"(*SKIP)(*FAIL)|(?://[^\n]*)|(?:#[^\n]*)|(?:/\*.*?\*/)~s';
-  return preg_replace($pat, "", $x);
-}
