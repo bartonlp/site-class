@@ -31,7 +31,6 @@ define("SITE_CLASS_VERSION", "3.0.1");
  *
  * @package SiteClass
  * @author Barton Phillips <barton@bartonphillips.com>
- * @version v2.0.4
  * @link http://www.bartonphillips.com
  * @copyright Copyright (c) 2010, Barton Phillips
  * @license  MIT
@@ -460,7 +459,7 @@ class SiteClass extends dbAbstract {
       if(($p = require_once($this->headFile)) != 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
-        $pageHeadText = "{$html}\n$pageHeadText";
+        $pageHeadText = "{$html}\n"; // BLP 2021-07-12 -- remove $pageHeadText as it has NO value here
       }
     } else {
       // Make a default <head>
