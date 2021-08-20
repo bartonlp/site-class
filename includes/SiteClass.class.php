@@ -134,36 +134,33 @@ class SiteClass extends dbAbstract {
       $this->agent = $_SERVER['HTTP_USER_AGENT'];
     }
     
-    // If myUri is set get the ip address into myIp
+    // If myUri is set get the ip address into myIp (from mysitemap.json)
     // BLP 2016-11-27 -- Changed meaning. It can be an object
     // BLP 2018-07-01 -- Added logic to look at bartonphillips.net if myUri is a string and starts
     // with http.
 
+    // BLP 2021-08-19 -- rework logic to make it clearer.
+    
     if(isset($this->myUri)) {
-      if(is_array($this->myUri)) { // an array from mysitemap.json. IP addresses or URLs
-        foreach($this->myUri as $v) {
+      // Is the string a full URL to bartonphillips.net/myUri.json?
+
+      if(strpos($this->myUri, 'https://bartonphillips.net/myUri.json') == 0) {
+        // The json file has an array, but we add true to the json_decode just in case. 
+
+        // BLP 2021-08-18 -- Add skip logic for the myUri.json file so we can add comments.
+        $pat = '~".*?"(*SKIP)(*FAIL)|(?://[^\n]*)|(?:#[^\n]*)|(?:/\*.*?\*/)~s';
+        $this->myUri = json_decode(preg_replace($pat, "", file_get_contents($this->myUri)), true)['myUri'];
+      }
+
+      // myUri could be an arrary if we had a full url
+        
+      if(is_array($this->myUri)) {
+        foreach($this->myUri as $v) { // pick the array apart
           $this->myIp[] = gethostbyname($v); // If this fails it returns $v which can be an ip address not a url.
         }
-      } else { // not an array but a string
-        if(strpos($this->myUri, 'http') == 0) { // is the string a full URL?
-          // Here $this->myUri probably looks like 'https://bartonphillips.net/myUri.json'
-          // When we get that it is an array [myUri] so we want the elements of the array 0..n
-          // Now $this->myUri looks like it would from mysitemap.json if the array was in that
-          // file.
-
-          $this->myUri = json_decode(file_get_contents($this->myUri), true)['myUri'];
-
-          if(is_array($this->myUri)) {
-            foreach($this->myUri as $v) { // pick the array apart
-              $this->myIp[] = gethostbyname($v); // If this fails it returns $v which can be an ip address not a url.
-            }
-          } else { // this is a single string
-            $this->myIp = gethostbyname($this->myUri); // get my home ip address. Same as above.
-          }
-        } else { // just a straight string and NOT from a full URL
-          $this->myIp = gethostbyname($this->myUri); // get my home ip address. Same as above.
-        }
-      } 
+      } else { // this is a single string which could be a uri or an IP address
+          $this->myIp = gethostbyname($this->myUri); // get my home ip address.
+      }
     }
 
     // These all use database 'barton'
@@ -364,11 +361,11 @@ class SiteClass extends dbAbstract {
     // So if we have the initial arguments 'object', 'string', 'string' the two string
     // values take presidence!
 
-    $bodytag = $bodytag ? $bodytag : $arg['bodytag'];
+    $bodytag = $bodytag ?? $arg['bodytag'];
     // BLP 2021-03-27 -- if $banner (from constructor) or $arg['banner'] are empty then use
     // mainTitle from mysitemap.json if it exists. 
-    $banner = $banner ? $banner : $arg['banner'];
-    $banner = $banner ? $banner : $this->mainTitle;
+    $banner = $banner ?? $arg['banner'];
+    $banner = $banner ?? $this->mainTitle;
 
     // Get the page <head> section
 
@@ -509,7 +506,7 @@ EOF;
    */
 
   public function getPageBanner($mainTitle, $bodytag=null) {
-    $bodytag = $bodytag ? $bodytag : "<body>";
+    $bodytag = $bodytag ?? "<body>"; // use null coalescing operator
 
     if(!is_null($this->bannerFile)) {
       // BLP 2015-04-25 -- if return use it.
@@ -600,7 +597,7 @@ EOF;
     // If $this->ctrmsg use it.
     // Else blank
 
-    $arg['ctrmsg'] = $arg['ctrmsg'] ? $arg['ctrmsg'] : $this->ctrmsg;
+    $arg['ctrmsg'] = $arg['ctrmsg'] ?? $this->ctrmsg;
 
     // counterWigget is available to the footerFile to used if wanted.
     
@@ -920,7 +917,7 @@ EOF;
              "where site='$this->siteName' and filename='$filename'";
       $this->query($sql);
       list($cnt) = $this->fetchrow('num');
-      $this->hitCount = $cnt ? $cnt : 0;
+      $this->hitCount = $cnt ?? 0;
     } else {
       $this->debug("$this->siteName: $this->self: table counter does not exist in the $this->masterdb database");
     }      
