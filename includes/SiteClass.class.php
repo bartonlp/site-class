@@ -1,5 +1,8 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-09-02 -- Using PHP_MAJOR_VERSION looked like a good idea but it just does not work. If
+// I use the null coalesing oporator I get a parser error because the code is parsed before wht
+// Version can be checked. I am removing the PHP_MAJOR_VERSION code.
 // BLP 2021-09-02 -- add PHP_MAJOR_VERSION to deferentiate between PHP 5 and PHP 7 (search for
 // PHP_MAJOR_VERION)
 // BLP 2021-03-22 -- add 'options' to setSiteCookie().
@@ -369,21 +372,14 @@ class SiteClass extends dbAbstract {
     // So if we have the initial arguments 'object', 'string', 'string' the two string
     // values take presidence!
 
-    if(PHP_MAJOR_VERSION != 7) {
-      $bodytag = $bodytag ? $bodytag : $arg['bodytag'];
-    } else {
-      $bodytag = $bodytag ?? $arg['bodytag'];
-    }
+    $bodytag = $bodytag ?? $arg['bodytag'];
+    
     // BLP 2021-03-27 -- if $banner (from constructor) or $arg['banner'] are empty then use
     // mainTitle from mysitemap.json if it exists.
 
-    if(PHP_MAJOR_VERSION != 7) {
-      $banner = $banner ? $banner : $arg['banner'];
-      $banner = $banner ? $banner : $this->mainTitle;
-    } else {
-      $banner = $banner ?? $arg['banner'];
-      $banner = $banner ?? $this->mainTitle;
-    }
+    $banner = $banner ?? $arg['banner'];
+    $banner = $banner ?? $this->mainTitle;
+    
     // Get the page <head> section
 
     $head = $this->getPageHead($arg);
@@ -523,11 +519,7 @@ EOF;
    */
 
   public function getPageBanner($mainTitle, $bodytag=null) {
-    if(PHP_MAJOR_VERSION != 7) {
-      $bodytag = $bodytag ? $bodytag:  "<body>"; // use null coalescing operator
-    } else {
-      $bodytag = $bodytag ?? "<body>"; // use null coalescing operator
-    }
+    $bodytag = $bodytag ?? "<body>"; // use null coalescing operator
     
     if(!is_null($this->bannerFile)) {
       // BLP 2015-04-25 -- if return use it.
@@ -618,11 +610,8 @@ EOF;
     // If $this->ctrmsg use it.
     // Else blank
 
-    if(PHP_MAJOR_VERSION != 7) {
-      $arg['ctrmsg'] = $arg['ctrmsg'] ? $arg['ctrmsg'] : $this->ctrmsg;
-    } else {
-      $arg['ctrmsg'] = $arg['ctrmsg'] ?? $this->ctrmsg;
-    }
+    $arg['ctrmsg'] = $arg['ctrmsg'] ?? $this->ctrmsg;
+    
     // counterWigget is available to the footerFile to used if wanted.
     
     $counterWigget = $this->getCounterWigget($arg['ctrmsg']); // ctrmsg may be null which is OK
@@ -943,11 +932,7 @@ EOF;
       
       $this->query($sql);
       list($cnt) = $this->fetchrow('num');
-      if(PHP_MAJOR_VERSION != 7) {
-        $this->hitCount = $cnt ? $cnt : 0;
-      } else {
-        $this->hitCount = $cnt ?? 0;
-      }
+      $this->hitCount = $cnt ?? 0;
     } else {
       $this->debug("$this->siteName: $this->self: table counter does not exist in the $this->masterdb database");
     }      
@@ -1017,12 +1002,8 @@ EOF;
 
     $ip = $this->ip;
 
-    if(PHP_MAJOR_VERSION != 7) {
-      list($real, $bots) = $this->isBot ? [0,1] : [1,0];
-    } else {
-      [$real, $bots] = $this->isBot ? [0,1] : [1,0];
-    }
-    
+    [$real, $bots] = $this->isBot ? [0,1] : [1,0];
+        
     $curdate = date("Y-m-d");
 
     try {
