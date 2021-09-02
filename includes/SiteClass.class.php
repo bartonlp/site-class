@@ -27,7 +27,7 @@
 // BLP 2016-11-27 -- changed the sense of $this->myIp and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "3.0.4");
+define("SITE_CLASS_VERSION", "3.0.5");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
