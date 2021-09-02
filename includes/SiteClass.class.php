@@ -1,5 +1,7 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-09-02 -- add PHP_MAJOR_VERSION to deferentiate between PHP 5 and PHP 7 (search for
+// PHP_MAJOR_VERION)
 // BLP 2021-03-22 -- add 'options' to setSiteCookie().
 // BLP 2021-03-22 -- remove daycountwhat from constructor values amd $inc from daycount().
 // BLP 2021-03-16 -- removed 'member' logic from counter2(). Remove 'member' logic from daycount().
@@ -22,7 +24,7 @@
 // BLP 2016-11-27 -- changed the sense of $this->myIp and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "3.0.1");
+define("SITE_CLASS_VERSION", "3.0.4");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -44,10 +46,11 @@ define("SITE_CLASS_VERSION", "3.0.1");
 class SiteClass extends dbAbstract {
   private $hitCount = null;
   
-  // Give these default values.
+  // Give these default values incase they are not mentioned in mysitemap.json.
+  // Note they could still be null from mysitemap.json!
+  
   public $count = true;
   public $countMe = false;
-  public $id = 0; // default to not a member
   
   // Current Doc Type
   public $doctype = "<!DOCTYPE html>";
@@ -72,9 +75,6 @@ class SiteClass extends dbAbstract {
     
     $this->isSiteClass = true;
 
-    // BLP 2018-04-20 -- INIT SECTION. Moved for altorouter.php
-    // Now I can add stuff to mysitemap.json and have it update these also.
-    
     $this->ip = $_SERVER['REMOTE_ADDR'];
     $this->self = $_SERVER['PHP_SELF'];
     $this->requestUri = $this->self;
@@ -166,8 +166,9 @@ class SiteClass extends dbAbstract {
     // These all use database 'barton'
     // and are always done regardless of 'count' and 'countMe'!
     // These all check $this->nodb first and return at once if it is true.
-
-    if($this->noTrack != true) {
+    // BLP 2021-08-20 -- change != to !==
+    
+    if($this->noTrack !== true) {
       $this->checkIfBot(); // This set $this->isBot. Does a isMe() so I never get set as a bot!
       $this->trackbots();  // both 'bots' and 'bots2'. This also does a isMe() so never get put into the 'bots*' tables.
       $this->tracker();    // This logs Me and everybody else!
@@ -183,22 +184,25 @@ class SiteClass extends dbAbstract {
       // That is why it is here rather than after the countMe test below!
 
       // BLP 2021-03-27 -- NOTE: counter() checks for not isMe() and countMe is false.
-      // So it does NOT count Me but it still gets the 'realcnt' even if the cound was NOT done.
+      // So it does NOT count Me but it still gets the 'realcnt' even if the count was NOT done.
       // The 'realcnt' is placed in '$this->hitCount'.
-      // I may want to decouple this and have a counter() and a gethitcount() function. OR NOT
-      // because gethitcount() would have to happen after a non-Me count?
-      
+          
       $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
 
+      // BLP 2021-08-20 -- Change countMe to not true because countMe could be null.
       // If this is me and $countMe is false (default is false) then don't count.
-      // not (true && true) ==   false, it is me and countMe=false
-      // not (true && false) ==  true,  it is me and countMe=true 
-      // not (false && true) ==  true,  it isn't me and countMe=false
-      // not (false && false) == true,  it isn't me and countMe=false
+      //     isMe() && countMe!==true
+      // not (true  && false)  == true, it is me and countMe=true 
+      // not (true  && true)   == false,  it is me and countMe=false (or null)
+      // not (false && false)  == true,  it isn't me and countMe=true
+      // not (false && true)   == true,  it isn't me and countMe=false (or null)
+      // So basically I only want to NOT do the counter2 and daycount if it is Me and countMe is
+      // false.
 
-      if(!(($this->isMe()) && ($this->countMe === false))) {
+      if(!(($this->isMe()) && ($this->countMe !== true))) {
         // These are all checked for existance in the database in the functions and also the nodb
         // is checked and if true we return at once.
+
         $this->counter2(); // in 'masterdb' database
         $this->daycount(); // in 'masterdb' database
       }
@@ -217,15 +221,19 @@ class SiteClass extends dbAbstract {
   /**
    * isMe()
    * Check if this access is from ME
-   * @return an array. The array == true but does not === true!
+   * Note myIp could be an array of IP addresses.
+   * @return true if ip == myIp else false!
    */
 
   public function isMe() {
+    // Is myIp an array?
+    
     if(is_array($this->myIp)) {
       // BLP 2018-07-02 -- use array_intersect()
-      return array_intersect([$this->ip], $this->myIp); // returns an array!
+      return (array_intersect([$this->ip], $this->myIp)[0] === null) ? false : true;
     } else {
-      return ($this->myIp == $this->ip); // returns a bool
+      // Not an array so this has a sincle IP address.
+      return ($this->myIp == $this->ip);
     }
   }
 
@@ -361,12 +369,21 @@ class SiteClass extends dbAbstract {
     // So if we have the initial arguments 'object', 'string', 'string' the two string
     // values take presidence!
 
-    $bodytag = $bodytag ?? $arg['bodytag'];
+    if(PHP_MAJOR_VERSION != 7) {
+      $bodytag = $bodytag ? $bodytag : $arg['bodytag'];
+    } else {
+      $bodytag = $bodytag ?? $arg['bodytag'];
+    }
     // BLP 2021-03-27 -- if $banner (from constructor) or $arg['banner'] are empty then use
-    // mainTitle from mysitemap.json if it exists. 
-    $banner = $banner ?? $arg['banner'];
-    $banner = $banner ?? $this->mainTitle;
+    // mainTitle from mysitemap.json if it exists.
 
+    if(PHP_MAJOR_VERSION != 7) {
+      $banner = $banner ? $banner : $arg['banner'];
+      $banner = $banner ? $banner : $this->mainTitle;
+    } else {
+      $banner = $banner ?? $arg['banner'];
+      $banner = $banner ?? $this->mainTitle;
+    }
     // Get the page <head> section
 
     $head = $this->getPageHead($arg);
@@ -506,8 +523,12 @@ EOF;
    */
 
   public function getPageBanner($mainTitle, $bodytag=null) {
-    $bodytag = $bodytag ?? "<body>"; // use null coalescing operator
-
+    if(PHP_MAJOR_VERSION != 7) {
+      $bodytag = $bodytag ? $bodytag:  "<body>"; // use null coalescing operator
+    } else {
+      $bodytag = $bodytag ?? "<body>"; // use null coalescing operator
+    }
+    
     if(!is_null($this->bannerFile)) {
       // BLP 2015-04-25 -- if return use it.
       if(($b = require($this->bannerFile)) != 1) {
@@ -597,8 +618,11 @@ EOF;
     // If $this->ctrmsg use it.
     // Else blank
 
-    $arg['ctrmsg'] = $arg['ctrmsg'] ?? $this->ctrmsg;
-
+    if(PHP_MAJOR_VERSION != 7) {
+      $arg['ctrmsg'] = $arg['ctrmsg'] ? $arg['ctrmsg'] : $this->ctrmsg;
+    } else {
+      $arg['ctrmsg'] = $arg['ctrmsg'] ?? $this->ctrmsg;
+    }
     // counterWigget is available to the footerFile to used if wanted.
     
     $counterWigget = $this->getCounterWigget($arg['ctrmsg']); // ctrmsg may be null which is OK
@@ -717,6 +741,7 @@ EOF;
     }
 
     // BLP 2018-07-02 -- replace old logic with 'isMe()'
+    
     if($this->isMe()) {
       return;
     }
@@ -852,10 +877,7 @@ EOF;
    */
 
   protected function setmyip() {
-    // BLP 2021-03-09 -- add nodb flag
-    // BLP 2018-07-02 -- replace old logic with 'isMe()'
-    // BLP 2021-02-20 -- changed to == false and fixed error below
-    if($this->nodb === true || $this->isMe() == false) { // because isMe() could return an empte array which == false but not === false
+    if($this->nodb === true || $this->isMe() === false) {
       return;
     }
     
@@ -895,7 +917,10 @@ EOF;
     if($ok == 1) {
       $filename = $this->requestUri; // get the name of the file
 
-      if(!(($this->isMe()) && ($this->countMe === false))) {
+      // BLP 2021-08-20 -- The only time I don't want to do this is if isMe===true and
+      // countMe===false.
+      
+      if(!(($this->isMe()) && ($this->countMe !== true))) {
         // realcnt is ONLY NON BOTS
         
         $realcnt = $this->isBot ? 0 : 1;
@@ -909,15 +934,20 @@ EOF;
         $this->query($sql);
       }
 
-      // Now retreive the hit count value after it may have been incremented
-      // BLP 2021-03-16 -- replace queryfetch() with query() and fetchrow('num')
+      // Now retreive the hit count value after it may have been incremented above.
+      // It will only not be incremented if isMe===true and countMe===false
       
       $sql = "select realcnt ".
              "from $this->masterdb.counter ".
              "where site='$this->siteName' and filename='$filename'";
+      
       $this->query($sql);
       list($cnt) = $this->fetchrow('num');
-      $this->hitCount = $cnt ?? 0;
+      if(PHP_MAJOR_VERSION != 7) {
+        $this->hitCount = $cnt ? $cnt : 0;
+      } else {
+        $this->hitCount = $cnt ?? 0;
+      }
     } else {
       $this->debug("$this->siteName: $this->self: table counter does not exist in the $this->masterdb database");
     }      
@@ -942,12 +972,18 @@ EOF;
     list($ok) = $this->fetchrow('num');
 
     if($ok) {
+      // BLP 2021-08-20 -- here count is the number of NON Bots. This is not like counter where
+      // count is everything and realcnt is non bots. There to get bots you have to do
+      // (count-realcnt).
+      
       $bot = $this->isBot ? 1 : 0;
-
+      $cnt = $bot ? 0 : 1;
+      
       // BLP 2017-11-01 -- add left to keep from getting too long errors
       $sql = "insert into $this->masterdb.counter2 (site, date, filename, count, bots, lasttime) ".
-             "values('$this->siteName', now(), left('$this->requestUri', 254), 0, 1, now()) ".
-             "on duplicate key update bots=bots+$bot, lasttime=now()";
+             "values('$this->siteName', now(), left('$this->requestUri', 254), $cnt , $bot, now()) ".
+             "on duplicate key update count=count+$cnt, bots=bots+$bot, lasttime=now()";
+      
       $this->query($sql);
     } else {
       $this->debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database");
@@ -981,8 +1017,12 @@ EOF;
 
     $ip = $this->ip;
 
-    [$real, $bots] = $this->isBot ? [0,1] : [1,0];
-
+    if(PHP_MAJOR_VERSION != 7) {
+      list($real, $bots) = $this->isBot ? [0,1] : [1,0];
+    } else {
+      [$real, $bots] = $this->isBot ? [0,1] : [1,0];
+    }
+    
     $curdate = date("Y-m-d");
 
     try {
