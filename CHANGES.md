@@ -26,3 +26,4 @@ and added symlinks to either the whole directory or items within it to the other
 <li>www.bartonphillips.net: my CookiLess domain</li>
 </ul>
 
+See the includes/SiteClass.class.php file for a list of changes.

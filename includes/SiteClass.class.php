@@ -1,5 +1,12 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-09-24 -- guard myip below from other users. See the 'test' database and 'test' user.
+// I added a check for $this->dbinfo->user equal 'barton' and $this->noTrack not true.
+// Also added $this->noTrack to the check for $this->count before doing the counter().
+// BLP 2021-09-24 -- add if($this->nodb !== true) to BLP 2021-09-15
+// BLP 2021-09-15 -- use 'myip' table to extend what might be in myUri. We could stop using myUri
+// in mysitemap.json if we want to. I have actually commented myUri out of all the mysitemap.json
+// files.
 // BLP 2021-09-02 -- Using PHP_MAJOR_VERSION looked like a good idea but it just does not work. If
 // I use the null coalesing oporator I get a parser error because the code is parsed before wht
 // Version can be checked. I am removing the PHP_MAJOR_VERSION code.
@@ -27,7 +34,7 @@
 // BLP 2016-11-27 -- changed the sense of $this->myIp and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "3.0.5");
+define("SITE_CLASS_VERSION", "3.0.6");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -125,6 +132,7 @@ class SiteClass extends dbAbstract {
       // nodb === true so don't do any database stuff
       $this->nodb = true;
       $this->count = $this->countMe = false;
+      $this->noTrack = true; // BLP 2021-09-24 -- 
     }
 
     // BLP 2021-03-11 -- add escape for HTTP_USER_AGENT to cope with ' etc.
@@ -143,11 +151,11 @@ class SiteClass extends dbAbstract {
     // with http.
 
     // BLP 2021-08-19 -- rework logic to make it clearer.
-    
-    if(isset($this->myUri)) {
+
+    if(isset($this->myUri)) { // BLP 2021-09-21 -- myUri is NOT set in mysitemap.json currently
       // Is the string a full URL to bartonphillips.net/myUri.json?
 
-      if(strpos($this->myUri, 'https://bartonphillips.net/myUri.json') == 0) {
+      if(strpos($this->myUri, 'https://bartonphillips.net/myUri.json') === 0) {
         // The json file has an array, but we add true to the json_decode just in case. 
 
         // BLP 2021-08-18 -- Add skip logic for the myUri.json file so we can add comments.
@@ -156,17 +164,39 @@ class SiteClass extends dbAbstract {
       }
 
       // myUri could be an arrary if we had a full url
-        
+
       if(is_array($this->myUri)) {
         foreach($this->myUri as $v) { // pick the array apart
           $this->myIp[] = gethostbyname($v); // If this fails it returns $v which can be an ip address not a url.
         }
       } else { // this is a single string which could be a uri or an IP address
-          $this->myIp = gethostbyname($this->myUri); // get my home ip address.
+        $this->myIp[0] = gethostbyname($this->myUri); // get my home ip address.
       }
     }
 
-    // These all use database 'barton'
+    // BLP 2021-09-15 -- add items to myIp from the myip table.
+    // Note: myUri is NOT used in any mysitemap.json files at this time so everything comes from
+    // the myip table. See the bartonphillips.com/ index.php, index.i.php and register.php files
+    // for how the myip table is updated.
+    // BLP 2021-09-24 -- The masterdb must be owned by 'barton'. That is the dbinfo->user must be
+    // 'barton'. There is one database where this is not true. The 'test' database has a
+    // mysitemap.json file that has dbinfo->user as 'test'.
+    // In general all databases that are going to do anything with counters etc. must have a user
+    // of 'barton' or set $this->noTrack to true. Still the program can
+    // NOT do any calls via masterdb!
+    
+    if($this->dbinfo->user == 'barton' && $this->nodb !== true && $this->noTrack !== true) { // BLP 2021-09-24 -- add full list
+      $sql = "select myIp from $this->masterdb.myip";
+      $this->query($sql);
+      while([$ip] = $this->fetchrow('num')) {
+        $this->myIp[] = $ip;
+        //error_log("SiteClass: ip from 'myip': $ip");
+      }
+    }
+    
+    //error_log("SiteClass: myIp: " . print_r($this->myIp, true));
+    
+    // These all use database 'barton' ($this->masterdb)
     // and are always done regardless of 'count' and 'countMe'!
     // These all check $this->nodb first and return at once if it is true.
     // BLP 2021-08-20 -- change != to !==
@@ -176,12 +206,12 @@ class SiteClass extends dbAbstract {
       $this->trackbots();  // both 'bots' and 'bots2'. This also does a isMe() so never get put into the 'bots*' tables.
       $this->tracker();    // This logs Me and everybody else!
       $this->logagent();   // This logs Me and everybody else!
-      $this->setmyip();    //
+      $this->setmyip();
     }
 
     // If 'count' is false we don't do these counters
 
-    if($this->count) {
+    if($this->noTrack !== true && $this->count) { // BLP 2021-09-24 -- add noTrack
       // Get the count for hitCount. This is done even if countMe is false. The hitCount is always
       // updated (unless the counter file does not exist).
       // That is why it is here rather than after the countMe test below!
@@ -225,17 +255,20 @@ class SiteClass extends dbAbstract {
    * isMe()
    * Check if this access is from ME
    * Note myIp could be an array of IP addresses.
-   * @return true if ip == myIp else false!
+   * @return true if $this->ip == $this->myIp else false!
+   * BLP 2021-09-21 -- myIp is NOT currently loaded from myUri in mysitemap.json. Therefore it is always an array.
    */
 
   public function isMe() {
-    // Is myIp an array?
+    // Is myIp an array? Only if loaded from myUri in mysitemap.json. This can be an array or a
+    // link to bartonphillips.net/myUri.json
     
     if(is_array($this->myIp)) {
       // BLP 2018-07-02 -- use array_intersect()
       return (array_intersect([$this->ip], $this->myIp)[0] === null) ? false : true;
     } else {
-      // Not an array so this has a sincle IP address.
+      // Not an array so this has a single IP address.
+      // BLP 2021-09-15 -- This should no longer happen!
       return ($this->myIp == $this->ip);
     }
   }
@@ -256,7 +289,7 @@ class SiteClass extends dbAbstract {
     //error_log("cookie: $cookie, value: $value, expire: $expire, path: $path");
     // BLP 2021-03-22 -- New. use $options to hold values. Set 'secure' true, 'httponly' true, and
     // 'samesite' None. Samesite is a new feature.
-    
+
     $options =  array(
                       'expires' => $expire,
                       'path' => $path,
@@ -288,7 +321,7 @@ class SiteClass extends dbAbstract {
   public function getHitCount() {
     return $this->hitCount;
   }
-  
+
   /**
    * getPageTopBottom()
    * Get Page Top and Footer
@@ -303,14 +336,14 @@ class SiteClass extends dbAbstract {
     $h = is_array($h) ? $h : (array)$h;
 
     // BLP 2014-12-31 -- New footer item is added to $b.
-    
+
     if(isset($h['footer'])) {
       // BLP 2014-12-31 -- force both to arrays
       $b = (array)$b + (array)$h['footer'];
     }
 
     // Do getPageTop and getPageFooter
-    
+
     $top = $this->getPageTop($h);
     $footer = $this->getPageFooter($b);
     // return the array which we usually get via list($top, $footer)
@@ -373,13 +406,13 @@ class SiteClass extends dbAbstract {
     // values take presidence!
 
     $bodytag = $bodytag ?? $arg['bodytag'];
-    
+
     // BLP 2021-03-27 -- if $banner (from constructor) or $arg['banner'] are empty then use
     // mainTitle from mysitemap.json if it exists.
 
     $banner = $banner ?? $arg['banner'];
     $banner = $banner ?? $this->mainTitle;
-    
+
     // Get the page <head> section
 
     $head = $this->getPageHead($arg);
@@ -509,7 +542,7 @@ EOF;
   public function getBanner($mainTitle, $bodytag=null) {
     return $this->getPageBanner($mainTitle, $bodytag);
   }
-  
+
   /**
    * getPageBanner()
    * Get Page Banner
@@ -520,7 +553,7 @@ EOF;
 
   public function getPageBanner($mainTitle, $bodytag=null) {
     $bodytag = $bodytag ?? "<body>"; // use null coalescing operator
-    
+
     if(!is_null($this->bannerFile)) {
       // BLP 2015-04-25 -- if return use it.
       if(($b = require($this->bannerFile)) != 1) {
@@ -558,7 +591,7 @@ EOF;
   public function getFooter() {
     return $this->getPageFooter();
   }
-  
+
   /**
    * getPageFooter()
    * Get Page Footer
@@ -595,7 +628,7 @@ EOF;
       } // elseif(is_null($a)) this is OK because getPageTopBottom($h, $b) will always pass a $b
       //   even if it is null.
     } elseif($n > 1) {
-    // String items are being passed and must be in this order.
+      // String items are being passed and must be in this order.
       $keys = array('msg', 'msg1', 'msg2', 'ctrmsg', 'nofooter');
       $ar = array();
       for($i=0; $i < $n; ++$i) {
@@ -611,9 +644,9 @@ EOF;
     // Else blank
 
     $arg['ctrmsg'] = $arg['ctrmsg'] ?? $this->ctrmsg;
-    
+
     // counterWigget is available to the footerFile to used if wanted.
-    
+
     $counterWigget = $this->getCounterWigget($arg['ctrmsg']); // ctrmsg may be null which is OK
 
     if(!is_null($this->footerFile)) {
@@ -627,40 +660,40 @@ EOF;
 <footer>
 EOF;
       // If nofooter then only <footer></footer></body></html>
-      
+
       if(!$arg['nofooter']) {
-        // BLP 2014-12-31 -- added msg. string them together
+      // BLP 2014-12-31 -- added msg. string them together
 
-        if($arg['msg'] || $arg['msg1']) {
-          $pageFooterText .= "<div id='footerMsg'>{$arg['msg']}{$arg['msg1']}</div>\n";
-        }
+      if($arg['msg'] || $arg['msg1']) {
+        $pageFooterText .= "<div id='footerMsg'>{$arg['msg']}{$arg['msg1']}</div>\n";
+      }
 
-        // BLP 2015-04-10 -- only if we are counting
+      // BLP 2015-04-10 -- only if we are counting
 
-        if($this->count) {
-          $pageFooterText .= $counterWigget;
-        }
+      if($this->count) {
+        $pageFooterText .= $counterWigget;
+      }
 
-        $rdate = getlastmod();
-        $date = date("M d, Y H:i:s", $rdate);
+      $rdate = getlastmod();
+      $date = date("M d, Y H:i:s", $rdate);
 
-        if(defined('EMAILFROM')) {
-          $mailtoName = EMAILFROM;
-        } elseif(isset($this->EMAILFROM)) {
-          $mailtoName = $this->EMAILFROM;
-        } else {
-          $mailtoName = "webmaster@$this->emailDomain";
-        }
+      if(defined('EMAILFROM')) {
+        $mailtoName = EMAILFROM;
+      } elseif(isset($this->EMAILFROM)) {
+        $mailtoName = $this->EMAILFROM;
+      } else {
+        $mailtoName = "webmaster@$this->emailDomain";
+      }
 
-        $pageFooterText .= <<<EOF
+      $pageFooterText .= <<<EOF
 <div style="text-align: center;">
 <p id='lastmodified'>Last Modified&nbsp;$date</p>
 <p id='contactUs'><a href='mailto:$mailtoName'>Contact Us</a></p>
 </div>
 EOF;
-        if(!empty($arg['msg2'])) {
-          $pageFooterText .=  $arg['msg2'];
-        }
+      if(!empty($arg['msg2'])) {
+      $pageFooterText .=  $arg['msg2'];
+      }
       }
       $pageFooterText .= <<<EOF
 </footer>
@@ -675,7 +708,7 @@ EOF;
   /**
    * __toString();
    */
-  
+
   public function __toString() {
     return __CLASS__;
   }
@@ -723,14 +756,14 @@ EOF;
    * Set $this->isBot true/false.
    * return nothing.
    */
-  
+
   protected function checkIfBot() {
     if($this->nodb) {
       return;
     }
 
     // BLP 2018-07-02 -- replace old logic with 'isMe()'
-    
+
     if($this->isMe()) {
       return;
     }
@@ -749,7 +782,7 @@ EOF;
                      || ($this->query("select ip from $this->masterdb.bots where ip='$this->ip'")) ? true : false;          
     }
   }
-  
+
   // ********
   // Counters
   // ********
@@ -768,15 +801,15 @@ EOF;
     if($this->isMe()) {
       return;
     }
-    
+
     // This has been set by checkIfBot()
-    
+
     if($this->isBot) {
       // BLP 2018-06-08 -- $agent set
       $agent = $this->agent;
-    
+
       $this->query("select count(*) from information_schema.tables ".
-                 "where (table_schema = '$this->masterdb') and (table_name = 'bots')");
+                   "where (table_schema = '$this->masterdb') and (table_name = 'bots')");
 
       list($ok) = $this->fetchrow('num');
       if($ok == 1) {
@@ -832,25 +865,25 @@ EOF;
     if($this->nodb) {
       return;
     }
-    
+
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'tracker')");
 
     list($ok) = $this->fetchrow('num');
-    
+
     if($ok == 1) {
       $agent = $this->escape($this->agent);
-      
+
       $java = 0;
-      
+
       if($this->isBot) { // can NEVER be me!
         $java = 0x2000; // This is the robots tag
       }
 
       $refid = $this->escape($_SERVER['HTTP_REFERER']);
-  
+
       //$this->debug("SiteClass: tracker, $this->siteName, $this->ip, $agent, $this->self");
-      
+
       $this->query("insert into $this->masterdb.tracker (site, page, ip, agent, refid, starttime, isJavaScript, lasttime) ".
                    "values('$this->siteName', '$this->requestUri', '$this->ip','$agent', '$refid', now(), $java, now())");
 
@@ -862,13 +895,16 @@ EOF;
 
   /**
    * setmyip()
-   * insert ignore to table myip
+   * BLP 2021-09-21 -- this is new logic to update the myip table.
+   * This is NOT done if we are not using a database or isMe() is false. That is it is NOT me.
    */
 
   protected function setmyip() {
     if($this->nodb === true || $this->isMe() === false) {
       return;
     }
+
+    // This IS ME so make sure the myip table exists and then insert/update the myip table.
     
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'myip')");
@@ -880,8 +916,12 @@ EOF;
       return;
     }
 
-    // BLP 2021-02-20 -- this was wrong. It did $ip instead of $this->ip
-    $this->query("insert ignore into $this->masterdb.myip values('$this->ip', now())");
+    // BLP 2021-09-21 -- do an insert/update. I have added lasttime to the table.
+    
+    $sql = "insert into $this->masterdb.myip values('$this->ip', now(), now()) " .
+           "on duplicate key update myIp='$this->ip', lasttime=now()";
+
+    $this->query($sql);
   }
 
   /**
