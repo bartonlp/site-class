@@ -139,14 +139,14 @@ if(!function_exists('escapeltgt')) {
 
 if(!function_exists('ErrorGetId')) {
   function ErrorGetId() {
-    $id = $_COOKIE['SiteId'];
+    $email = explode(":", $_COOKIE['SiteId'])[1];
     // do we have an id?
-    if(empty($id)) {
-      // NO id this is the generic version
+    if(empty($email)) {
+      // NO email this is the generic version
       $id = "IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
     } else {
       // This is for members
-      $id = "ID=$id, IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
+      $id = "CookieEmail=$email, IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
     }
     return $id;
   }
