@@ -349,92 +349,17 @@ class SiteClass extends dbAbstract {
     return array($top, $footer);
   }
 
-  // BLP 2021-10-13 -- Removed this and added new version with just $h
+  // BLP 2021-10-13 -- New code
   /**
    * getPageTop()
    * Get Page Top
    * Gets both the page <head> section and the banner
-   * The first argument ($header) is either a string, an array or an object and is required.
-   * The array/object version has the 'title', 'description', 'script&styles etc',
-   * 'documennt type', 'banner',
-   * (it can also look like $header=>array(head=>array(), banner=>"banner",
-   * where head can have 'title','desc', 'extra' and 'doctype'
-   * and banner has a banner string. This is depreciated).
-   * The string version has just the 'title' which is then used for the 'description' also.
-   * The second argument is optional and a string with the 'banner'.
-   * The banner can either be part of the first argument as 'banner' or the second argument.
-   * If the second argument is not present then $header[banner] is used (which could also be null).
-   *
-   * @param string|array|object $header assoc array [title][desc][extra][doctype][banner][bodytag]
-   *   or string title
-   * @param string $banner
-   * @param string $bodytag a custome body tag, defaults to null
-   *   (bodytag can also be a member of the $header array or object)
+   * @param object $h assoc 
    * @return string with the <head> section and the banner.
    */
-
-  /*
-  public function getPageTop($header, $banner=null, $bodytag=null) {
-    $arg = array();
-
-    if(is_string($header)) {
-      $arg['title'] = $header;
-      // $banner and $bodytag are handled below. Therefore we could have
-      // an object, string, string in which case $banner string and $bodytag string
-      // would override $header->banner etc.
-    } elseif(is_object($header)) {
-      foreach($header as $k=>$v) {
-        $arg[$k] = $v; // turn the object into the $arg array
-      }
-    } elseif(is_array($header)) {
-      if(isset($header[0])) { // BLP 2014-12-31 --
-        $header['title'] = $header[0];
-        unset($header[0]);
-      }
-      $arg = $header; // this is then title, desc, extra, doctype, banner, maybe bodytag
-    } else {
-      throw(new Exception("Error: getPageTop() wrong argument type"));
-    }
-
-    // If doctype is not supplied then use the constructor version which may be the default
-
-    if(!$arg['doctype']) {
-      $arg['doctype'] = $this->doctype;
-    }
-
-    // NOTE: the bodytag and banner strings override the $arg values.
-    // So if we have the initial arguments 'object', 'string', 'string' the two string
-    // values take presidence!
-
-    $bodytag = $bodytag ?? $arg['bodytag'];
-
-    // BLP 2021-03-27 -- if $banner (from constructor) or $arg['banner'] are empty then use
-    // mainTitle from mysitemap.json if it exists.
-
-    $banner = $banner ?? $arg['banner'];
-    $banner = $banner ?? $this->mainTitle;
-
-    // Get the page <head> section
-
-    $head = $this->getPageHead($arg);
-
-    // Get the page's banner section
-
-    $banner = $this->getPageBanner($banner, $bodytag);
-
-    return "$head\n$banner";
-  }
-  */
-
-  /* BLP 2021-10-13 -- NEW VERSION */
-  /* Only uses $h */
   
-  public function getPageTop($h) {
-    // If doctype is not supplied then use the constructor version which may be the default
-
-    if(!$h->doctype) {
-      $h->doctype = $this->doctype;
-    }
+  public function getPageTop($h=null) {
+    $h->doctype = $h->doctype ?? $this->doctype;
 
     // from getPageTopBottom($h.. or from mysitemap.json
     
@@ -463,148 +388,23 @@ class SiteClass extends dbAbstract {
   /**
    * getPageHead()
    * Get the page <head></head> stuff including the doctype etc.
-   * This can take either 5 args or an array or object
-   * @param string $title
-   * @param string $desc or null
-   * @param string $extra or null
-   * @param string $doctype
-   * @param string $lang or null
-   * @param string $htmlextra or null. Extra items for the <html tag.
-   * or 
-   * @param array array[title=>"title", ...]
-   * or
-   * @param object object->title = "title" etc.
-   * NOTE: the array or object can have 'link' or 'preheadcomment'. These are added to the head
-   *   section if they exist in the headFile or if the default is used.
+   * @param object $h
    */
-  // BLP 2021-10-13 -- Added logic that was in head.i.php for determining if I should use $this or
-  // what was in $h
 
-  /* OLD Version */
-  //public function getPageHead(/*$title, $desc=null, $extra=null, $doctype, $lang*/) {
-  /*
-    $n = func_num_args();
-    $args = func_get_args();
-    $arg = array();
-
-    if($n == 1) {
-      $a = $args[0];
-      if(is_string($a)) {
-        $arg['title'] = $a;
-      } elseif(is_object($a)) {
-        foreach($a as $k=>$v) {
-          $arg[$k] = $v;
-        }
-      } elseif(is_array($a)) {
-        $arg = $a;
-      } else {
-        $this->debug("Error: getPageHead() argument no valid: ". var_export($a, true));
-        throw(new Exception("Error: getPageHead() argument no valid: ". var_export($a, true)));
-      }
-    } elseif($n > 1) {
-      $keys = array(title, desc, extra, doctype, lang);
-      $ar = array();
-      for($i=0; $i < $n; ++$i) {
-        $ar[$keys[$i]] = $args[$i];
-      }
-      $arg = $ar;
-    }
-
-    // this->doctype can be initialized in the constuctor. If $arg['doctype'] has a value here
-    // we want to use it for this page head. Otherwise use the this->doctype which may be the
-    // default set by the constructor
-
-    $arg['doctype'] = !is_null($arg['doctype']) ? $arg['doctype'] : $this->doctype;
-
-    if(is_null($arg['desc'])) {
-      $arg['desc'] = $arg['title'];
-    }
-
-    if(is_null($arg['lang'])) $arg['lang'] = 'en'; // default language is english
-
-    $html = '<html lang="' . $arg['lang'] . '" ' . $arg['htmlextra'] . ">"; // stuff like manafest etc.
-
-    $dtype = $arg['doctype'];
-
-    // What if headFile is null?
-
-    if(!is_null($this->headFile)) {
-      // BLP 2015-04-25 -- If the require has a return value use it.
-      if(($p = require_once($this->headFile)) != 1) {
-        $pageHeadText = "{$html}\n$p";
-      } else {
-        $pageHeadText = "{$html}\n"; // BLP 2021-07-12 -- remove $pageHeadText as it has NO value here
-      }
-    } else {
-      // Make a default <head>
-      $pageHeadText =<<<EOF
-$html
-<!-- Default Head -->
-<head>
-  <title>{$arg['title']}</title>
-  <!-- METAs -->
-  <meta charset="utf-8"/>
-  <meta name="description" content="{$arg['desc']}"/>
-  <!-- local link -->
-{$arg['link']}
-  <!-- extra -->
-{$arg['extra']}
-  <!-- local script -->
-{$arg['script']}
-  <!-- local css -->
-{$arg['css']}
-</head>
-
-EOF;
-    }
-
-    // Default header has < /> elements. If not XHTML we remove the /> at the end!
-    $pageHead = <<<EOF
-{$arg['preheadcomment']}{$dtype}
-$pageHeadText
-
-EOF;
-
-    return $pageHead;
-  }
-  */
-
-  public function getPageHead($h) {
-    // this->doctype can be initialized in the constuctor. If $arg['doctype'] has a value here
-    // we want to use it for this page head. Otherwise use the this->doctype which may be the
-    // default set by the constructor
-
-    $h->doctype = !is_null($h->doctype) ? $h->doctype : $this->doctype;
-
-    if(is_null($h->title)) {
-      $h->title = $this->title;
-    }
-    if(is_null($h->desc)) {
-      $h->desc = $h->title;
-    }
-
-    if(empty($h->favicon)) {
-      $h->favicon = $this->favicon ?? 'https://bartonphillips.net/images/favicon.ico';
-    }
-
-    //vardump("h", $h);
-    //vardump("this", $this);
+  public function getPageHead($h=null) {
+    // use either $h or $this values or a constant
     
-    if(empty($h->defaultCss)) {
-      $h->defaultCss = $this->defaultCss ?? 'https://bartonphillips.net/css/blp.css';
-    }
+    $dtype = $h->doctype ?? $this->doctype;
+    $h->title = $h->title ?? $this->title ?? $this->siteName;
+    $h->desc = $h->desc ?? $h->title;
+    $h->keywords = $h->keywords ?? $this->keywords ?? "Something Interesting";
 
-    if(empty($h->keywords)) {
-      $h->keywords = $this->keywords;
-    }
+    $h->favicon = $h->favicon ?? $this->favicon ?? 'https://bartonphillips.net/images/favicon.ico';
+    $h->defaultCss = $h->defaultCss ?? $this->defaultCss ?? 'https://bartonphillips.net/css/blp.css';
 
-    if(is_null($h->lang)) {
-      $h->lang = 'en'; // default language is english
-    }
+    $h->lang = $h->lang ?? 'en';
 
     $html = '<html lang="' . $h->lang . '" ' . $h->htmlextra . ">"; // stuff like manafest etc.
-
-    $dtype = $h->doctype;
 
     // What if headFile is null?
 
@@ -660,13 +460,9 @@ EOF;
     $bodytag = $bodytag ?? "<body>"; // use null coalescing operator
 
     if(!is_null($this->bannerFile)) {
-      // BLP 2015-04-25 -- if return use it.
-      if(($b = require($this->bannerFile)) != 1) {
-        $pageBannerText = $b;
-      }
+      $pageBannerText = require($this->bannerFile);
     } else {
       // a default banner
-      // The default banner does not have the IE warnings etc.
       $pageBannerText =<<<EOF
 <!-- Default Header/Banner -->
 <header>
@@ -691,75 +487,24 @@ $pageBannerText
 EOF;
   }
 
-  /** getFooter. Depreciated **/
-
-  public function getFooter() {
-    return $this->getPageFooter();
-  }
-
   /**
    * getPageFooter()
    * Get Page Footer
-   * @param variable number of args.
-   *   arguments can be seperate args (defaults: $msg='', $msg1='', $msg2='', $ctrmsg=''. $nofooter='')
-   *   an assoc array, or an object.
-   *   for array and object the elements are 'msg', 'msg1', 'msg2', 'ctrmsg', 'nofooter',
-   *   Seperate args must be in the above order. nofooter can be true, false or null etc.
+   * @param object $b
    * @return string
    */
-  // BLP 2021-10-13 -- need to change this also
   
-  public function getPageFooter(/* mixed */) {
-    // If called from getPageTopBottom($h, $b) then $b
-    // will be there even though it may be null. This is not an error.
-
-    $n = func_num_args();
-    $args = func_get_args();
-    $arg = array();
-
-    if($n == 1) {
-      $a = $args[0];
-      if(is_string($a)) {
-        $arg['msg'] = $a;
-      } elseif(is_object($a)) {
-        foreach($a as $k=>$v) {
-          $arg[$k] = $v;
-        }
-      } elseif(is_array($a)) {
-        if(isset($a[0])) { // BLP 2014-12-31 --
-          $a['msg'] = $a[0];
-        }
-
-        $arg = $a;
-      } // elseif(is_null($a)) this is OK because getPageTopBottom($h, $b) will always pass a $b
-      //   even if it is null.
-    } elseif($n > 1) {
-      // String items are being passed and must be in this order.
-      $keys = array('msg', 'msg1', 'msg2', 'ctrmsg', 'nofooter');
-      $ar = array();
-      for($i=0; $i < $n; ++$i) {
-        $ar[$keys[$i]] = $args[$i];
-      }
-      $arg = $ar;
-    }
-
+  public function getPageFooter($b=null) {
     // Make the bottom of the page counter
 
-    // If $arg['ctrmsg'] use it.
-    // If $this->ctrmsg use it.
-    // Else blank
-
-    $arg['ctrmsg'] = $arg['ctrmsg'] ?? $this->ctrmsg;
+    $b->ctrmsg = $b->ctrmsg ?? $this->ctrmsg;
 
     // counterWigget is available to the footerFile to used if wanted.
 
-    $counterWigget = $this->getCounterWigget($arg['ctrmsg']); // ctrmsg may be null which is OK
+    $counterWigget = $this->getCounterWigget($b->ctrmsg); // ctrmsg may be null which is OK
 
     if(!is_null($this->footerFile)) {
-      // BLP 2015-04-25 -- if return value use it.
-      if(($p = require($this->footerFile)) != 1) { // bring in $pageFooterText
-        $pageFooterText = $p;
-      }
+      $pageFooterText = require($this->footerFile);
     } else {
       $pageFooterText = <<<EOF
 <!-- Default Footer -->
@@ -767,39 +512,35 @@ EOF;
 EOF;
       // If nofooter then only <footer></footer></body></html>
 
-      if(!$arg['nofooter']) {
-      // BLP 2014-12-31 -- added msg. string them together
+      if(!$b->nofooter) {
+        if($b->msg || $b->msg1) {
+          $pageFooterText .= "<div id='footerMsg'>{$b->msg}{$b->msg1}</div>\n";
+        }
 
-      if($arg['msg'] || $arg['msg1']) {
-        $pageFooterText .= "<div id='footerMsg'>{$arg['msg']}{$arg['msg1']}</div>\n";
-      }
+        if($this->count) {
+          $pageFooterText .= $counterWigget;
+        }
 
-      // BLP 2015-04-10 -- only if we are counting
+        $rdate = getlastmod();
+        $date = date("M d, Y H:i:s", $rdate);
 
-      if($this->count) {
-        $pageFooterText .= $counterWigget;
-      }
+        if(defined('EMAILFROM')) {
+          $mailtoName = EMAILFROM;
+        } elseif(isset($this->EMAILFROM)) {
+          $mailtoName = $this->EMAILFROM;
+        } else {
+          $mailtoName = "webmaster@$this->emailDomain";
+        }
 
-      $rdate = getlastmod();
-      $date = date("M d, Y H:i:s", $rdate);
-
-      if(defined('EMAILFROM')) {
-        $mailtoName = EMAILFROM;
-      } elseif(isset($this->EMAILFROM)) {
-        $mailtoName = $this->EMAILFROM;
-      } else {
-        $mailtoName = "webmaster@$this->emailDomain";
-      }
-
-      $pageFooterText .= <<<EOF
+        $pageFooterText .= <<<EOF
 <div style="text-align: center;">
 <p id='lastmodified'>Last Modified&nbsp;$date</p>
 <p id='contactUs'><a href='mailto:$mailtoName'>Contact Us</a></p>
 </div>
 EOF;
-      if(!empty($arg['msg2'])) {
-      $pageFooterText .=  $arg['msg2'];
-      }
+        if(!empty($b->msg2)) {
+          $pageFooterText .=  $b->msg2;
+        }
       }
       $pageFooterText .= <<<EOF
 </footer>
@@ -818,7 +559,6 @@ EOF;
   public function __toString() {
     return __CLASS__;
   }
-
 
   // ********************************************************************************
   // Private and protected methods
