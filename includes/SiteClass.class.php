@@ -1,5 +1,9 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-10-13 -- Major rework of getPage*(). Only pass $h in. It has everything along with
+// $this from mysitemap.json. Logic determins what to use.
+// BLP 2021-10-06 -- in setSiteCookie() changed httponly to false. Use $this->siteDomain for ref.
+// see comment
 // BLP 2021-09-24 -- guard myip below from other users. See the 'test' database and 'test' user.
 // I added a check for $this->dbinfo->user equal 'barton' and $this->noTrack not true.
 // Also added $this->noTrack to the check for $this->count before doing the counter().
@@ -285,18 +289,19 @@ class SiteClass extends dbAbstract {
 
     // BLP 2021-02-28 -- siteDomain is set in mysitemap.json and may not be the actual server.
     //$ref = $this->siteDomain;
-    $ref = $_SERVER['SERVER_NAME'];
-    //error_log("cookie: $cookie, value: $value, expire: $expire, path: $path");
+    $ref = $this->siteDomain; //$_SERVER['SERVER_NAME']; // BLP 2021-10-06 -- use siteDomain instead
+    //error_log("cookie: $cookie, value: $value, expire: $expire, path: $path, ref: $ref");
     // BLP 2021-03-22 -- New. use $options to hold values. Set 'secure' true, 'httponly' true, and
     // 'samesite' None. Samesite is a new feature.
 
     $options =  array(
                       'expires' => $expire,
                       'path' => $path,
-                      'domain' => '.' . $ref, // leading dot for compatibility or use subdomain
-                      'secure' => true,     // or false
-                      'httponly' => true,    // or false
-                      'samesite' => 'None' // None || Lax  || Strict
+                      'domain' => $ref, // leading dot for compatibility or use subdomain
+                      // BLP 2021-10-06 -- changed httponly to false.
+                      'secure' => true,      // or false
+                      'httponly' => false,    // or true 
+                      'samesite' => 'None'    // None || Lax  || Strict
                      );                      
     if(!setcookie($cookie, $value, $options)) {
       return false;
@@ -332,14 +337,8 @@ class SiteClass extends dbAbstract {
    */
 
   public function getPageTopBottom($h=null, $b=null) {
-    // Force $h to be an array.
-    $h = is_array($h) ? $h : (array)$h;
-
-    // BLP 2014-12-31 -- New footer item is added to $b.
-
-    if(isset($h['footer'])) {
-      // BLP 2014-12-31 -- force both to arrays
-      $b = (array)$b + (array)$h['footer'];
+    if(isset($h->footer)) {
+      $b = $h->footer;
     }
 
     // Do getPageTop and getPageFooter
@@ -350,6 +349,7 @@ class SiteClass extends dbAbstract {
     return array($top, $footer);
   }
 
+  // BLP 2021-10-13 -- Removed this and added new version with just $h
   /**
    * getPageTop()
    * Get Page Top
@@ -373,6 +373,7 @@ class SiteClass extends dbAbstract {
    * @return string with the <head> section and the banner.
    */
 
+  /*
   public function getPageTop($header, $banner=null, $bodytag=null) {
     $arg = array();
 
@@ -423,6 +424,32 @@ class SiteClass extends dbAbstract {
 
     return "$head\n$banner";
   }
+  */
+
+  /* BLP 2021-10-13 -- NEW VERSION */
+  /* Only uses $h */
+  
+  public function getPageTop($h) {
+    // If doctype is not supplied then use the constructor version which may be the default
+
+    if(!$h->doctype) {
+      $h->doctype = $this->doctype;
+    }
+
+    // from getPageTopBottom($h.. or from mysitemap.json
+    
+    $banner = $h->banner ?? $this->mainTitle;
+
+    // Get the page <head> section
+
+    $head = $this->getPageHead($h);
+
+    // Get the page's banner section
+
+    $banner = $this->getPageBanner($banner, $h->bodytag);
+
+    return "$head\n$banner";
+  }
 
   /**
    * getDoctype()
@@ -450,8 +477,12 @@ class SiteClass extends dbAbstract {
    * NOTE: the array or object can have 'link' or 'preheadcomment'. These are added to the head
    *   section if they exist in the headFile or if the default is used.
    */
+  // BLP 2021-10-13 -- Added logic that was in head.i.php for determining if I should use $this or
+  // what was in $h
 
-  public function getPageHead(/*$title, $desc=null, $extra=null, $doctype, $lang*/) {
+  /* OLD Version */
+  //public function getPageHead(/*$title, $desc=null, $extra=null, $doctype, $lang*/) {
+  /*
     $n = func_num_args();
     $args = func_get_args();
     $arg = array();
@@ -536,13 +567,87 @@ EOF;
 
     return $pageHead;
   }
+  */
 
-  /** getBanner. Depreciated **/
+  public function getPageHead($h) {
+    // this->doctype can be initialized in the constuctor. If $arg['doctype'] has a value here
+    // we want to use it for this page head. Otherwise use the this->doctype which may be the
+    // default set by the constructor
 
-  public function getBanner($mainTitle, $bodytag=null) {
-    return $this->getPageBanner($mainTitle, $bodytag);
+    $h->doctype = !is_null($h->doctype) ? $h->doctype : $this->doctype;
+
+    if(is_null($h->title)) {
+      $h->title = $this->title;
+    }
+    if(is_null($h->desc)) {
+      $h->desc = $h->title;
+    }
+
+    if(empty($h->favicon)) {
+      $h->favicon = $this->favicon ?? 'https://bartonphillips.net/images/favicon.ico';
+    }
+
+    //vardump("h", $h);
+    //vardump("this", $this);
+    
+    if(empty($h->defaultCss)) {
+      $h->defaultCss = $this->defaultCss ?? 'https://bartonphillips.net/css/blp.css';
+    }
+
+    if(empty($h->keywords)) {
+      $h->keywords = $this->keywords;
+    }
+
+    if(is_null($h->lang)) {
+      $h->lang = 'en'; // default language is english
+    }
+
+    $html = '<html lang="' . $h->lang . '" ' . $h->htmlextra . ">"; // stuff like manafest etc.
+
+    $dtype = $h->doctype;
+
+    // What if headFile is null?
+
+    if(!is_null($this->headFile)) {
+      // BLP 2015-04-25 -- If the require has a return value use it.
+      if(($p = require_once($this->headFile)) != 1) {
+        $pageHeadText = "{$html}\n$p";
+      } else {
+        $pageHeadText = "{$html}\n"; // BLP 2021-07-12 -- remove $pageHeadText as it has NO value here
+      }
+    } else {
+      // Make a default <head>
+      $pageHeadText =<<<EOF
+$html
+<!-- Default Head -->
+<head>
+  <title>{$h->title}</title>
+  <!-- METAs -->
+  <meta charset="utf-8"/>
+  <meta name="description" content="{$h->desc}"/>
+  <!-- local link -->
+{$h->link}
+  <!-- extra -->
+{$h->extra}
+  <!-- local script -->
+{$h->script}
+  <!-- local css -->
+{$h->css}
+</head>
+
+EOF;
+    }
+
+    // Default header has < /> elements. If not XHTML we remove the /> at the end!
+    $pageHead = <<<EOF
+{$h->preheadcomment}{$dtype}
+$pageHeadText
+
+EOF;
+
+    return $pageHead;
   }
-
+  
   /**
    * getPageBanner()
    * Get Page Banner
@@ -602,7 +707,8 @@ EOF;
    *   Seperate args must be in the above order. nofooter can be true, false or null etc.
    * @return string
    */
-
+  // BLP 2021-10-13 -- need to change this also
+  
   public function getPageFooter(/* mixed */) {
     // If called from getPageTopBottom($h, $b) then $b
     // will be there even though it may be null. This is not an error.
