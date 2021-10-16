@@ -283,25 +283,23 @@ class SiteClass extends dbAbstract {
    */
 
   public function setSiteCookie($cookie, $value, $expire, $path="/") {
-    // bool setcookie ( string $name [, string $value [, int $expire = 0
-    // [, string $path [, string $domain [, bool $secure = false
-    // [, bool $httponly = false ]]]]]] )
-
-    // BLP 2021-02-28 -- siteDomain is set in mysitemap.json and may not be the actual server.
-    //$ref = $this->siteDomain;
-    $ref = $this->siteDomain; //$_SERVER['SERVER_NAME']; // BLP 2021-10-06 -- use siteDomain instead
-    //error_log("cookie: $cookie, value: $value, expire: $expire, path: $path, ref: $ref");
+    $ref = "." . $this->siteDomain; // BLP 2021-10-16 -- added dot back to ref.
+    
     // BLP 2021-03-22 -- New. use $options to hold values. Set 'secure' true, 'httponly' true, and
     // 'samesite' None. Samesite is a new feature.
 
+    //error_log("SiteClass - setSiteCookie: cookie: $cookie, value: $value, expire: $expire, path: $path, domain: $ref");
+
+    // BLP 2021-10-16 -- as of PHP 7.3 an array can be used and samesite is added.
+    
     $options =  array(
                       'expires' => $expire,
                       'path' => $path,
                       'domain' => $ref, // leading dot for compatibility or use subdomain
                       // BLP 2021-10-06 -- changed httponly to false.
                       'secure' => true,      // or false
-                      'httponly' => false,    // or true 
-                      'samesite' => 'None'    // None || Lax  || Strict
+                      'httponly' => false,    // or true. If true javascript can't be used.
+                      'samesite' => 'Strict'    // None || Lax  || Strict // BLP 2021-10-16 -- changed to Strict
                      );                      
     if(!setcookie($cookie, $value, $options)) {
       return false;
