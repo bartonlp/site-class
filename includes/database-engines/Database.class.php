@@ -1,5 +1,6 @@
 <?php
 /* Well tested and maintained */
+// BLP 2021-10-24 -- Added agent and ip if not isSiteClass.
 
 /**
  * Database wrapper class
@@ -10,12 +11,13 @@ class Database extends dbAbstract {
    * constructor
    * @param mixed
    *    1) strings: host, user, password, database, engine
-   *    2) array: can be $dbinfo or $_site with everythin
+   *    2) array: can be $dbinfo or $_site with everything
    *    3) object: as above
    */
 
   public function __construct(/* mixed */) {
     $args = func_get_args();
+    
     $n = func_num_args();
     $arg = array();
 
@@ -57,10 +59,10 @@ class Database extends dbAbstract {
       if($this->nodb) {
         return;
       }
-    
+
       $db = null;
       $err = null;
-      $arg = $this->dbinfo ? $this->dbinfo : $arg;
+      $arg = $this->dbinfo ?? $arg;
     }
 
     //vardump("dbinfo", $arg);
@@ -99,6 +101,13 @@ class Database extends dbAbstract {
       throw(new SqlException(__METHOD__ . ": Connect failed", $this));
     }
     $this->db = $db;
+
+    // BLP 2021-10-24 -- Check isSiteClass and if NOT set set the agent and ip
+    
+    if(!$args[0]->isSiteClass) {
+      $this->agent = $this->escape($_SERVER['HTTP_USER_AGENT']);
+      $this->ip = $_SERVER['REMOTE_ADDR'];
+    }
   }
   
   public function __toString() {

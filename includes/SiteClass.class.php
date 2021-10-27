@@ -1,5 +1,9 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-10-24 -- Database checks for isSiteClass and if NOT set it sets ip and agent.
+// BLP 2021-10-24 -- move $this->agent up with $this-ip and make a not by $this->escape() that it
+// is only available after Datebase is loaded. Removed escape() $agent because if nodb is set it is already escaped
+// BLP 2021-10-24 -- add $lastmod to getPageFooter().
 // BLP 2021-10-13 -- Major rework of getPage*(). Only pass $h in. It has everything along with
 // $this from mysitemap.json. Logic determins what to use.
 // BLP 2021-10-06 -- in setSiteCookie() changed httponly to false. Use $this->siteDomain for ref.
@@ -89,7 +93,10 @@ class SiteClass extends dbAbstract {
     
     $this->isSiteClass = true;
 
+    // BLP 2021-10-24 -- move $this->agent up here so it is part of Database
+    
     $this->ip = $_SERVER['REMOTE_ADDR'];
+    $this->agent = $_SERVER['HTTP_USER_AGENT']; // BLP 2021-10-24 -- 
     $this->self = $_SERVER['PHP_SELF'];
     $this->requestUri = $this->self;
 
@@ -131,22 +138,24 @@ class SiteClass extends dbAbstract {
     if($this->copyright) {
       $this->copyright = date("Y") . " $this->copyright";
     }
+
+    // If no database in mysitemap.json set everything so the database is not loaded.
+    // BLP 2021-10-24 -- combine with else.
     
     if($this->nodb === true || is_null($this->dbinfo)) {
       // nodb === true so don't do any database stuff
       $this->nodb = true;
       $this->count = $this->countMe = false;
       $this->noTrack = true; // BLP 2021-09-24 -- 
-    }
-
-    // BLP 2021-03-11 -- add escape for HTTP_USER_AGENT to cope with ' etc.
-    
-    if(is_null($this->db) && $this->nodb !== true && !is_null($this->dbinfo)) {
-      // instantiate the Database. Pass Everything on to Database
-      $this->db = new Database($this);
-      $this->agent = $this->escape($_SERVER['HTTP_USER_AGENT']); 
     } else {
-      $this->agent = $_SERVER['HTTP_USER_AGENT'];
+      // BLP 2021-03-11 -- add escape for HTTP_USER_AGENT to cope with ' etc.
+      // If we have already instantiated a Database the $this->db will not be null so don't do the
+      // Database again!
+      // instantiate the Database. Pass Everything on to Database
+
+      $this->db = new Database($this);
+      // BLP 2021-10-24 -- NOTE escape is part of mysqli which is only instantiated after Database.
+      $this->agent = $this->escape($this->agent); 
     }
     
     // If myUri is set get the ip address into myIp (from mysitemap.json)
@@ -280,16 +289,14 @@ class SiteClass extends dbAbstract {
   /**
    * setSiteCookie()
    * @return bool true if OK else false
+   * BLP 2021-10-25 -- added thedomain
    */
 
-  public function setSiteCookie($cookie, $value, $expire, $path="/") {
-    $ref = "." . $this->siteDomain; // BLP 2021-10-16 -- added dot back to ref.
-    
+  public function setSiteCookie($cookie, $value, $expire, $path="/", $thedomain=null) {
+    $ref = $thedomain ?? "." . $this->siteDomain; // BLP 2021-10-16 -- added dot back to ref.
+
     // BLP 2021-03-22 -- New. use $options to hold values. Set 'secure' true, 'httponly' true, and
     // 'samesite' None. Samesite is a new feature.
-
-    //error_log("SiteClass - setSiteCookie: cookie: $cookie, value: $value, expire: $expire, path: $path, domain: $ref");
-
     // BLP 2021-10-16 -- as of PHP 7.3 an array can be used and samesite is added.
     
     $options =  array(
@@ -300,7 +307,8 @@ class SiteClass extends dbAbstract {
                       'secure' => true,      // or false
                       'httponly' => false,    // or true. If true javascript can't be used.
                       'samesite' => 'Strict'    // None || Lax  || Strict // BLP 2021-10-16 -- changed to Strict
-                     );                      
+                     );
+        
     if(!setcookie($cookie, $value, $options)) {
       return false;
     }
@@ -497,10 +505,14 @@ EOF;
 
     $b->ctrmsg = $b->ctrmsg ?? $this->ctrmsg;
 
-    // counterWigget is available to the footerFile to used if wanted.
+    // counterWigget is available to the footerFile to use if wanted.
 
     $counterWigget = $this->getCounterWigget($b->ctrmsg); // ctrmsg may be null which is OK
 
+    // BLP 2021-10-24 -- lastmod is also available to footerFile to use if wanted.
+    
+    $lastmod = "Last Modified: " . date("M j, Y H:i", getlastmod());
+    
     if(!is_null($this->footerFile)) {
       $pageFooterText = require($this->footerFile);
     } else {
@@ -618,8 +630,6 @@ EOF;
     list($ok) = $this->fetchrow('num');
 
     if($ok == 1) {
-      $agent = $this->escape($this->agent);
-
       $this->isBot = preg_match("~\+*https?://|Googlebot-Image|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
                                 "GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
                                 "http client|PECL::HTTP~i", $this->agent)
@@ -649,14 +659,14 @@ EOF;
     // This has been set by checkIfBot()
 
     if($this->isBot) {
-      // BLP 2018-06-08 -- $agent set
-      $agent = $this->agent;
-
       $this->query("select count(*) from information_schema.tables ".
                    "where (table_schema = '$this->masterdb') and (table_name = 'bots')");
 
       list($ok) = $this->fetchrow('num');
       if($ok == 1) {
+        // BLP 2018-06-08 -- $agent set
+        $agent = $this->agent;
+
         try {
           $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
                        "values('$this->ip', '$agent', 1, 4, '$this->siteName', now(), now())");
@@ -716,7 +726,7 @@ EOF;
     list($ok) = $this->fetchrow('num');
 
     if($ok == 1) {
-      $agent = $this->escape($this->agent);
+      $agent = $this->agent;
 
       $java = 0;
 
@@ -938,7 +948,7 @@ EOF;
       return;
     }
 
-    $agent = $this->escape($this->agent);
+    $agent = $this->agent;
 
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'logagent')");
