@@ -1,5 +1,7 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-10-27 -- Change trackbots() bots2 to or in the value (2 for SiteClass). I changed the
+// cron job that updates bots and bots2. bots2 now has a value of 8 for cron not zero.
 // BLP 2021-10-24 -- Database checks for isSiteClass and if NOT set it sets ip and agent.
 // BLP 2021-10-24 -- move $this->agent up with $this-ip and make a not by $this->escape() that it
 // is only available after Datebase is loaded. Removed escape() $agent because if nodb is set it is already escaped
@@ -645,6 +647,7 @@ EOF;
    * trackbots()
    * Track both bots and bots2
    * This sets $this->isBot unless the 'bots' table is not found.
+   * BLP 2021-10-27 -- which gets value ored in.
    */
 
   protected function trackbots() {
@@ -700,9 +703,11 @@ EOF;
       list($ok) = $this->fetchrow('num');
 
       if($ok == 1) {
+        // BLP 2021-10-27 -- I have change bots2. The values of which should be ored in.
+        
         $this->query("insert into $this->masterdb.bots2 (ip, agent, date, site, which, count, lasttime) ".
                      "values('$this->ip', '$agent', current_date(), '$this->siteName', 2, 1, now()) ".
-                     "on duplicate key update count=count+1, lasttime=now()");
+                     "on duplicate key update which=which|2, count=count+1, lasttime=now()");
       } else {
         $this->debug("$this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database");
       }
