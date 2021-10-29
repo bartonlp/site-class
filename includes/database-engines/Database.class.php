@@ -1,5 +1,6 @@
 <?php
 /* Well tested and maintained */
+// BLP 2021-10-28 -- see comment below.
 // BLP 2021-10-24 -- Added agent and ip if not isSiteClass.
 
 /**
@@ -8,66 +9,34 @@
 
 class Database extends dbAbstract {
   /**
+   * BLP 2021-10-28 -- major overhall. Now we pass only an object in, before we passed a complicated 'mixed' in.
+   * There is no program that uses anything but $_site from mysitemap.json.
+   *
    * constructor
-   * @param mixed
-   *    1) strings: host, user, password, database, engine
-   *    2) array: can be $dbinfo or $_site with everything
-   *    3) object: as above
+   * @param $args object.
+   * $args should have all of the $this from SiteClass or $_site from mysitemap.json
+   * To just pass in the required database options set $args->dbinfo = (object) $ar
+   * where $ar is an assocative array with ["host"=>"localhost",...]
    */
 
-  public function __construct(/* mixed */) {
-    $args = func_get_args();
-    
-    $n = func_num_args();
-    $arg = array();
-
-    if($args[0]->isSiteClass) {
-      $arg = $args[0]->dbinfo;
-    } else {
-      if($n == 1) {
-        if(!$args[0]->dbinfo) {
-          $arg = $args[0];
-        } else {
-          // An array or object
-          $a = $args[0];
-
-          if(is_object($a)) {
-            foreach($a as $k=>$v) {
-              $arg[$k] = $v;
-            }
-          } elseif(is_array($a)) {
-            $arg = $a;
-          } else {
-            throw(new Exception("Error: argument not array or object: ". print_r($a, true)));
-          }
-        }
-      } else {
-        // strings
-        $keys = array('host', 'user', 'password', 'database', 'engine');
-        for($i=0; $i < $n; ++$i) {
-          $arg[$keys[$i]] = $args[$i];
-        }
-        $arg = (object)$arg;
-      }
-
-      // Transfer $args to $this
-      
-      foreach($arg as $k=>$v) {
-        $this->$k = $v; 
-      }
-
-      if($this->nodb) {
-        return;
-      }
-
-      $db = null;
-      $err = null;
-      $arg = $this->dbinfo ?? $arg;
+  public function __construct(object $args) {
+    foreach($args as $k=>$v) {
+      $this->$k = $v;
     }
+
+    if($this->nodb) {
+      return;
+    }
+
+    $db = null;
+    $err = null;
+    $arg = $this->dbinfo;
 
     //vardump("dbinfo", $arg);
     //vardump("this", $this);
     //$arg->engine = null;
+
+    $password = require("/var/www/bartonphillipsnet/PASSWORDS/database-password");
     
     if(isset($arg->engine) === false) {
       $this->errno = -2;
@@ -79,8 +48,7 @@ class Database extends dbAbstract {
       case "mysqli":
         $class = "db" . ucfirst(strtolower($arg->engine));
         if(class_exists($class)) {
-          $db = @new $class($arg->host, $arg->user, $arg->password, $arg->database,
-                            $arg->port);
+          $db = @new $class($arg->host, $arg->user, $password, $arg->database, $arg->port);
         } else {
           throw(new SqlException(__METHOD__ .": Class Not Found : $class<br>"));
         }
@@ -89,7 +57,7 @@ class Database extends dbAbstract {
         // This is native sqlite not via pdo.
         $class = "dbSqlite";
         if(class_exists($class)) {
-          $db = @new $class($arg->host, $arg->user, $arg->password, $arg->database);
+          $db = @new $class($arg->host, $arg->user, $password, $arg->database);
         } else {
           throw(new SqlException(__METHOD__ .": Class Not Found : $class<br>"));
         }      
@@ -104,7 +72,7 @@ class Database extends dbAbstract {
 
     // BLP 2021-10-24 -- Check isSiteClass and if NOT set set the agent and ip
     
-    if(!$args[0]->isSiteClass) {
+    if(!$this->isSiteClass) {
       $this->agent = $this->escape($_SERVER['HTTP_USER_AGENT']);
       $this->ip = $_SERVER['REMOTE_ADDR'];
     }

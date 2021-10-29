@@ -1,3 +1,8 @@
+# BLP 2021-10-28 -- Reworked Database.class.php
+
+It only use a single object. I no longer get password from the domain's mysitemap.json. I now get it from a secure location at
+/var/www/bartonphillipsnet/PASSWORDS/datbase-password. This location is not saved to github.com and is secure against Internet access.
+
 # BLP 2021-03-27 -- remove 'members' from counter2
 
 In the future I may remove the 'counter' table and just use 'counter2'. The 'counter' table has the sum of all hits while the 
