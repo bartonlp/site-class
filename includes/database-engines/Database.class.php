@@ -36,7 +36,7 @@ class Database extends dbAbstract {
     //vardump("this", $this);
     //$arg->engine = null;
 
-    $password = require("/var/www/bartonphillipsnet/PASSWORDS/database-password");
+    $password = ($this->dbinfo->password) ?? require("/var/www/bartonphillipsnet/PASSWORDS/database-password");
     
     if(isset($arg->engine) === false) {
       $this->errno = -2;
