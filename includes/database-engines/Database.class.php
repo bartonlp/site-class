@@ -1,5 +1,6 @@
 <?php
 /* Well tested and maintained */
+// BLP 2021-11-11 -- For RPI let us use the $this->dbinfo->password if it exists
 // BLP 2021-10-28 -- see comment below.
 // BLP 2021-10-24 -- Added agent and ip if not isSiteClass.
 
@@ -36,6 +37,8 @@ class Database extends dbAbstract {
     //vardump("this", $this);
     //$arg->engine = null;
 
+    // BLP 2021-11-11 --
+    
     $password = ($this->dbinfo->password) ?? require("/var/www/bartonphillipsnet/PASSWORDS/database-password");
     
     if(isset($arg->engine) === false) {
