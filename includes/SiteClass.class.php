@@ -43,7 +43,7 @@
 // BLP 2016-11-27 -- changed the sense of $this->myIp and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "3.0.7");
+define("SITE_CLASS_VERSION", "3.0.8");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -78,13 +78,11 @@ class SiteClass extends dbAbstract {
    * Constructor
    *
    * @param array|object $s
-   *  fields: siteDomain, subDomain, headFile,
-   *  bannerFile, footerFile, count, emailDomain, nodb,
-   *  these fields are all protected. 
-   *  If there are more elements in $s they become public properties. You can add myUri to populate
-   *  $this->myIp if you don't want to count webmaster activity.
+   *  fields: are from mysitemap.json
    *  'count' is default true and 'countMe' is default false. The rest of the values are 'null' if not
-   *  specifically set in $s.
+   *  specifically set in $s (mysitemap.json).
+   *  $s has the values from $_site = require_once(getenv("SITELOADNAME"));
+   *  which uses siteload.php to gets values from mysitemap.json.
    */
   
   public function __construct($s=null) {
@@ -366,7 +364,7 @@ class SiteClass extends dbAbstract {
    */
   
   public function getPageTop($h=null) {
-    $h->doctype = $h->doctype ?? $this->doctype;
+    //$h->doctype = $h->doctype ?? $this->doctype; BLP 2021-12-08 -- removed
 
     // from getPageTopBottom($h.. or from mysitemap.json
     
@@ -403,13 +401,12 @@ class SiteClass extends dbAbstract {
     
     $dtype = $h->doctype ?? $this->doctype;
     $h->title = $h->title ?? $this->title ?? $this->siteName;
-    $h->desc = $h->desc ?? $h->title;
+    $h->desc = $h->desc ?? $this->title ?? $h->title; // BLP 2021-12-08 -- add $this->title from mysitemap.json
     $h->keywords = $h->keywords ?? $this->keywords ?? "Something Interesting";
-
     $h->favicon = $h->favicon ?? $this->favicon ?? 'https://bartonphillips.net/images/favicon.ico';
     $h->defaultCss = $h->defaultCss ?? $this->defaultCss ?? 'https://bartonphillips.net/css/blp.css';
-
-    $h->lang = $h->lang ?? 'en';
+    $h->preheadcomment = $h->preheadcomment ?? $this->preheadcomment;
+    $h->lang = $h->lang ?? $this->lang ?? 'en';
 
     $html = '<html lang="' . $h->lang . '" ' . $h->htmlextra . ">"; // stuff like manafest etc.
 
@@ -420,7 +417,7 @@ class SiteClass extends dbAbstract {
       if(($p = require_once($this->headFile)) != 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
-        $pageHeadText = "{$html}\n"; // BLP 2021-07-12 -- remove $pageHeadText as it has NO value here
+        throw(new Exception("SiteClass: getPageHead() headFile returned 1"));
       }
     } else {
       // Make a default <head>
