@@ -1,6 +1,6 @@
 <?php
 /* MAINTAINED and WELL TESTED. This is the default Database and has received extensive testing */
-
+// BLP 2021-12-11 -- add fetch_obj() to fetchrow();
 /**
  * Database Class
  *
@@ -140,6 +140,8 @@ class dbMysqli extends dbAbstract {
    * 5) $stm->bind_result($one, $two);
    * 6) $stm->fetch();
    * 7) echo "one=$one, two=$two<br>";
+   * BLP 2021-12-11 -- NOTE: we do not have a bind_param(), execute(), bind_result() or fetch() functions in this module.
+   * You will have to use the native PHP functions with the returned $stm.
    */
   
   public function prepare($query) {
@@ -193,7 +195,7 @@ class dbMysqli extends dbAbstract {
   /**
    * fetchrow()
    * @param resource identifier returned from query.
-   * @param string, type of fetch: assoc==associative array, num==numerical array, or both
+   * @param string, type of fetch: assoc==associative array, num==numerical array, obj==object, or both
    * @return array, either assoc or numeric, or both
    * NOTE: if $result is a string then it is the type and we use $this->result for result.
    */
@@ -216,6 +218,9 @@ class dbMysqli extends dbAbstract {
         break;
       case "num":  // numerical array
         $row = $result->fetch_row();
+        break;
+      case "obj": // object BLP 2021-12-11 -- added
+        $row = $result->fetch_object();
         break;
       case "both":
       default:
