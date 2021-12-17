@@ -1,5 +1,7 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-12-16 -- changed bots2 which to 8.
+// BLP 2021-12-13 -- add $S->refid
 // BLP 2021-10-27 -- 
 // BLP 2021-10-24 -- Database checks for isSiteClass and if NOT set it sets ip and agent.
 // BLP 2021-10-24 -- move $this->agent up with $this-ip and make a not by $this->escape() that it
@@ -43,7 +45,7 @@
 // BLP 2016-11-27 -- changed the sense of $this->myIp and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "3.0.8");
+define("SITE_CLASS_VERSION", "3.0.9");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -97,6 +99,7 @@ class SiteClass extends dbAbstract {
     $this->ip = $_SERVER['REMOTE_ADDR'];
     $this->agent = $_SERVER['HTTP_USER_AGENT']; // BLP 2021-10-24 -- 
     $this->self = $_SERVER['PHP_SELF'];
+    $this->refid = $_SERVER['HTTP_REFERER']; // BLP 2021-12-13 -- add refid
     $this->requestUri = $this->self;
 
     // BLP 2021-03-06 -- our server 'bartonlp.org' is in New York.
@@ -163,6 +166,7 @@ class SiteClass extends dbAbstract {
     // with http.
 
     // BLP 2021-08-19 -- rework logic to make it clearer.
+    // BLP 2021-12-13 -- myUri is depreciated, don't use it.
 
     if(isset($this->myUri)) { // BLP 2021-09-21 -- myUri is NOT set in mysitemap.json currently
       // Is the string a full URL to bartonphillips.net/myUri.json?
@@ -202,7 +206,6 @@ class SiteClass extends dbAbstract {
       $this->query($sql);
       while([$ip] = $this->fetchrow('num')) {
         $this->myIp[] = $ip;
-        //error_log("SiteClass: ip from 'myip': $ip");
       }
     }
     
@@ -703,9 +706,9 @@ EOF;
       if($ok == 1) {
         // BLP 2021-10-27 -- Primary key is (ip, agent, date, site, which). There is only one of
         // these with the which value. On update just inc count and set lasttime.
-        
+        // BLP 2021-12-16 -- changed from 2 to 8 (robots=2, sitemap=4, cron=16)
         $this->query("insert into $this->masterdb.bots2 (ip, agent, date, site, which, count, lasttime) ".
-                     "values('$this->ip', '$agent', current_date(), '$this->siteName', 2, 1, now()) ".
+                     "values('$this->ip', '$agent', current_date(), '$this->siteName', 8, 1, now()) ".
                      "on duplicate key update count=count+1, lasttime=now()");
       } else {
         $this->debug("$this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database");
@@ -738,7 +741,7 @@ EOF;
         $java = 0x2000; // This is the robots tag
       }
 
-      $refid = $this->escape($_SERVER['HTTP_REFERER']);
+      $refid = $this->escape($S->refid); // BLP 2021-12-13 -- 
 
       //$this->debug("SiteClass: tracker, $this->siteName, $this->ip, $agent, $this->self");
 
