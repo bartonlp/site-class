@@ -1,5 +1,6 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-12-20 -- setSiteCookie() add defaults for $secure, $httponly and $samesite
 // BLP 2021-12-16 -- changed bots2 which to 8.
 // BLP 2021-12-13 -- add $S->refid
 // BLP 2021-10-27 -- 
@@ -45,7 +46,7 @@
 // BLP 2016-11-27 -- changed the sense of $this->myIp and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "3.0.9");
+define("SITE_CLASS_VERSION", "3.0.10");
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -291,12 +292,16 @@ class SiteClass extends dbAbstract {
   /**
    * setSiteCookie()
    * @return bool true if OK else false
+   * BLP 2021-12-20 -- add $secure, $httponly and $samesite as default to null. Then check them with ?? and set defaults.
    * BLP 2021-10-25 -- added thedomain
    */
 
-  public function setSiteCookie($cookie, $value, $expire, $path="/", $thedomain=null) {
+  public function setSiteCookie($cookie, $value, $expire, $path="/", $thedomain=null, $secure=null, $httponly=null, $samesite=null) {
     $ref = $thedomain ?? "." . $this->siteDomain; // BLP 2021-10-16 -- added dot back to ref.
-
+    $secure = $secure ?? true;
+    $httponly = $httponly ?? false;
+    $samesite = $samesite ?? 'Lax'; // BLP 2021-12-20 -- Make the default 'Lax' it was 'Strict'
+    
     // BLP 2021-03-22 -- New. use $options to hold values. Set 'secure' true, 'httponly' true, and
     // 'samesite' None. Samesite is a new feature.
     // BLP 2021-10-16 -- as of PHP 7.3 an array can be used and samesite is added.
@@ -305,12 +310,11 @@ class SiteClass extends dbAbstract {
                       'expires' => $expire,
                       'path' => $path,
                       'domain' => $ref, // leading dot for compatibility or use subdomain
-                      // BLP 2021-10-06 -- changed httponly to false.
-                      'secure' => true,      // or false
-                      'httponly' => false,    // or true. If true javascript can't be used.
-                      'samesite' => 'Strict'    // None || Lax  || Strict // BLP 2021-10-16 -- changed to Strict
+                      'secure' => $secure,      // or false
+                      'httponly' => $httponly,    // or true. If true javascript can't be used.
+                      'samesite' => $samesite    // None || Lax  || Strict // BLP 2021-12-20 -- changed to Lax
                      );
-        
+
     if(!setcookie($cookie, $value, $options)) {
       return false;
     }
