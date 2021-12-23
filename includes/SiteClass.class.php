@@ -1,5 +1,6 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-12-20 -- tracker() makes isJavaScript = 0xffff if it is isMe() true.
 // BLP 2021-12-20 -- setSiteCookie() add defaults for $secure, $httponly and $samesite
 // BLP 2021-12-16 -- changed bots2 which to 8.
 // BLP 2021-12-13 -- add $S->refid
@@ -93,13 +94,13 @@ class SiteClass extends dbAbstract {
 
     //vardump($s);
     
-    $this->isSiteClass = true;
+    $this->isSiteClass = true; // This is used to tell Database that SiteClass was instantiated.
 
     // BLP 2021-10-24 -- move $this->agent up here so it is part of Database
     
     $this->ip = $_SERVER['REMOTE_ADDR'];
     $this->agent = $_SERVER['HTTP_USER_AGENT']; // BLP 2021-10-24 -- 
-    $this->self = $_SERVER['PHP_SELF'];
+    $this->self = htmlentities($_SERVER['PHP_SELF']); // BLP 2021-12-20 -- add htmlentities to protect against hacks.
     $this->refid = $_SERVER['HTTP_REFERER']; // BLP 2021-12-13 -- add refid
     $this->requestUri = $this->self;
 
@@ -626,7 +627,7 @@ EOF;
     // BLP 2018-07-02 -- replace old logic with 'isMe()'
 
     if($this->isMe()) {
-      return;
+      return false; // BLP 2021-12-20 -- return false insted of just return.
     }
 
     $this->query("select count(*) from information_schema.tables ".
@@ -634,10 +635,11 @@ EOF;
 
     list($ok) = $this->fetchrow('num');
 
+    // BLP 2021-12-23 -- add just plain 'bot' to list.
     if($ok == 1) {
       $this->isBot = preg_match("~\+*https?://|Googlebot-Image|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
                                 "GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
-                                "http client|PECL::HTTP~i", $this->agent)
+                                "http client|PECL::HTTP|bot~i", $this->agent) ? true : false // BLP 2021-12-20 -- true of false not 1 or 0
                      || ($this->query("select ip from $this->masterdb.bots where ip='$this->ip'")) ? true : false;          
     }
   }
@@ -739,7 +741,7 @@ EOF;
     if($ok == 1) {
       $agent = $this->agent;
 
-      $java = 0;
+      $java = $this->isMe() ? 0xffff : 0; // BLP 2021-12-20 -- if isMe() then make $java 0xffff
 
       if($this->isBot) { // can NEVER be me!
         $java = 0x2000; // This is the robots tag
