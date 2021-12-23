@@ -1,5 +1,6 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2021-12-23 -- add just plain 'bot' to list.
 // BLP 2021-12-20 -- tracker() makes isJavaScript = 0xffff if it is isMe() true.
 // BLP 2021-12-20 -- setSiteCookie() add defaults for $secure, $httponly and $samesite
 // BLP 2021-12-16 -- changed bots2 which to 8.
