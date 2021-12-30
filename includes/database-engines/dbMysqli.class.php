@@ -102,8 +102,8 @@ class dbMysqli extends dbAbstract {
    * BLP 2016-11-20 -- Query is for a SINGLE query ONLY. Don't do multiple querys!
    *  mysqli has a multi_query() but I have not written a method for it!
    * @param string $query SQL statement.
-   * @return mixed result-set for select etc, true/false for insert etc.
-   * On error calls SqlError() and exits.
+   * @return: if $result === true the number of affected_rows (delete, insert, etc). Else ruturns num_rows.
+   * if $result === false calls SqlError() and exits.
    */
 
   public function query($query) {
@@ -116,6 +116,8 @@ class dbMysqli extends dbAbstract {
     if($result === false) {
       throw(new SqlException($query, $this));
     }
+
+    // result is a mixed result-set for select etc, true/false for insert etc.
     
     if($result === true) { // did not return a result object 
       $numrows = $db->affected_rows;

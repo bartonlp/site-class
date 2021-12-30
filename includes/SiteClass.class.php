@@ -1,7 +1,11 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
-// BLP 2021-12-23 -- add just plain 'bot' to list.
-// BLP 2021-12-20 -- tracker() makes isJavaScript = 0xffff if it is isMe() true.
+// BLP 2021-12-28 -- Added $b->script in default footer in getPageFooter(). Put not $this->count in side not $this->noTrack
+// Add explanation of how zero gets into isJavaScript in tracker.
+// Also remove $ok and use fetchrow('num')[0] instead in table checks.
+// Also added __LINE__ to all debug messages.
+// BLP 2021-12-23 -- add just plain 'bot', 'spider' and "HeadlessChrome" to list.
+// BLP 2021-12-20 -- tracker() makes isJavaScript = 0x8000 if it is isMe() true.
 // BLP 2021-12-20 -- setSiteCookie() add defaults for $secure, $httponly and $samesite
 // BLP 2021-12-16 -- changed bots2 which to 8.
 // BLP 2021-12-13 -- add $S->refid
@@ -171,6 +175,7 @@ class SiteClass extends dbAbstract {
     // BLP 2021-08-19 -- rework logic to make it clearer.
     // BLP 2021-12-13 -- myUri is depreciated, don't use it.
 
+    /* START: DEPRECIATED */
     if(isset($this->myUri)) { // BLP 2021-09-21 -- myUri is NOT set in mysitemap.json currently
       // Is the string a full URL to bartonphillips.net/myUri.json?
 
@@ -192,6 +197,8 @@ class SiteClass extends dbAbstract {
         $this->myIp[0] = gethostbyname($this->myUri); // get my home ip address.
       }
     }
+    /* END: DEPRECIATED */
+    
 
     // BLP 2021-09-15 -- add items to myIp from the myip table.
     // Note: myUri is NOT used in any mysitemap.json files at this time so everything comes from
@@ -203,15 +210,22 @@ class SiteClass extends dbAbstract {
     // In general all databases that are going to do anything with counters etc. must have a user
     // of 'barton' or set $this->noTrack to true. Still the program can
     // NOT do any calls via masterdb!
-    
-    if($this->dbinfo->user == 'barton' && $this->nodb !== true && $this->noTrack !== true) { // BLP 2021-09-24 -- add full list
-      $sql = "select myIp from $this->masterdb.myip";
-      $this->query($sql);
-      while([$ip] = $this->fetchrow('num')) {
-        $this->myIp[] = $ip;
+
+    $this->query("select count(*) from information_schema.tables ".
+                 "where (table_schema = '$this->masterdb') and (table_name = 'myip')");
+
+    if($this->fetchrow('num')[0]) {
+      if($this->dbinfo->user == 'barton' && $this->nodb !== true && $this->noTrack !== true) { // BLP 2021-09-24 -- add full list
+        $sql = "select myIp from $this->masterdb.myip";
+        $this->query($sql);
+        while([$ip] = $this->fetchrow('num')) {
+          $this->myIp[] = $ip;
+        }
       }
+    } else {
+      $this->debug("$this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__);
     }
-    
+
     //error_log("SiteClass: myIp: " . print_r($this->myIp, true));
     
     // These all use database 'barton' ($this->masterdb)
@@ -225,37 +239,37 @@ class SiteClass extends dbAbstract {
       $this->tracker();    // This logs Me and everybody else!
       $this->logagent();   // This logs Me and everybody else!
       $this->setmyip();
-    }
 
-    // If 'count' is false we don't do these counters
+      // If 'count' is false we don't do these counters
 
-    if($this->noTrack !== true && $this->count) { // BLP 2021-09-24 -- add noTrack
-      // Get the count for hitCount. This is done even if countMe is false. The hitCount is always
-      // updated (unless the counter file does not exist).
-      // That is why it is here rather than after the countMe test below!
+      if($this->count) { // BLP 2021-09-24 -- add noTrack
+        // Get the count for hitCount. This is done even if countMe is false. The hitCount is always
+        // updated (unless the counter file does not exist).
+        // That is why it is here rather than after the countMe test below!
 
-      // BLP 2021-03-27 -- NOTE: counter() checks for not isMe() and countMe is false.
-      // So it does NOT count Me but it still gets the 'realcnt' even if the count was NOT done.
-      // The 'realcnt' is placed in '$this->hitCount'.
-          
-      $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
+        // BLP 2021-03-27 -- NOTE: counter() checks for not isMe() and countMe is false.
+        // So it does NOT count Me but it still gets the 'realcnt' even if the count was NOT done.
+        // The 'realcnt' is placed in '$this->hitCount'.
 
-      // BLP 2021-08-20 -- Change countMe to not true because countMe could be null.
-      // If this is me and $countMe is false (default is false) then don't count.
-      //     isMe() && countMe!==true
-      // not (true  && false)  == true, it is me and countMe=true 
-      // not (true  && true)   == false,  it is me and countMe=false (or null)
-      // not (false && false)  == true,  it isn't me and countMe=true
-      // not (false && true)   == true,  it isn't me and countMe=false (or null)
-      // So basically I only want to NOT do the counter2 and daycount if it is Me and countMe is
-      // false.
+        $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
 
-      if(!(($this->isMe()) && ($this->countMe !== true))) {
-        // These are all checked for existance in the database in the functions and also the nodb
-        // is checked and if true we return at once.
+        // BLP 2021-08-20 -- Change countMe to not true because countMe could be null.
+        // If this is me and $countMe is false (default is false) then don't count.
+        //     isMe() && countMe!==true
+        // not (true  && false)  == true, it is me and countMe=true 
+        // not (true  && true)   == false,  it is me and countMe=false (or null)
+        // not (false && false)  == true,  it isn't me and countMe=true
+        // not (false && true)   == true,  it isn't me and countMe=false (or null)
+        // So basically I only want to NOT do the counter2 and daycount if it is Me and countMe is
+        // false.
 
-        $this->counter2(); // in 'masterdb' database
-        $this->daycount(); // in 'masterdb' database
+        if(!(($this->isMe()) && ($this->countMe !== true))) {
+          // These are all checked for existance in the database in the functions and also the nodb
+          // is checked and if true we return at once.
+
+          $this->counter2(); // in 'masterdb' database
+          $this->daycount(); // in 'masterdb' database
+        }
       }
     }
   }
@@ -559,7 +573,11 @@ EOF;
           $pageFooterText .=  $b->msg2;
         }
       }
+
+      // BLP 2021-12-28 -- Add $b->script after everything
+      
       $pageFooterText .= <<<EOF
+{$b->script}
 </footer>
 </body>
 </html>
@@ -628,20 +646,20 @@ EOF;
     // BLP 2018-07-02 -- replace old logic with 'isMe()'
 
     if($this->isMe()) {
-      return false; // BLP 2021-12-20 -- return false insted of just return.
+      return; 
     }
 
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'bots')");
 
-    list($ok) = $this->fetchrow('num');
-
-    // BLP 2021-12-23 -- add just plain 'bot' to list.
-    if($ok == 1) {
+    // BLP 2021-12-23 -- add just plain 'bot', 'spider' and 'HeadlessChrome' to list.
+    if($this->fetchrow('num')[0]) {
       $this->isBot = preg_match("~\+*https?://|Googlebot-Image|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
                                 "GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
-                                "http client|PECL::HTTP|bot~i", $this->agent) ? true : false // BLP 2021-12-20 -- true of false not 1 or 0
+                                "http client|PECL::HTTP|bot|spider|HeadlessChrome~i", $this->agent) ? true : false // BLP 2021-12-20 -- true of false not 1 or 0
                      || ($this->query("select ip from $this->masterdb.bots where ip='$this->ip'")) ? true : false;          
+    } else {
+      $this->debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__);
     }
   }
 
@@ -670,8 +688,8 @@ EOF;
       $this->query("select count(*) from information_schema.tables ".
                    "where (table_schema = '$this->masterdb') and (table_name = 'bots')");
 
-      list($ok) = $this->fetchrow('num');
-      if($ok == 1) {
+
+      if($this->fetchrow('num')[0]) {
         // BLP 2018-06-08 -- $agent set
         $agent = $this->agent;
 
@@ -708,17 +726,16 @@ EOF;
       $this->query("select count(*) from information_schema.tables ".
                    "where (table_schema = '$this->masterdb') and (table_name = 'bots2')");
 
-      list($ok) = $this->fetchrow('num');
-
-      if($ok == 1) {
+      if($this->fetchrow('num')) {
         // BLP 2021-10-27 -- Primary key is (ip, agent, date, site, which). There is only one of
         // these with the which value. On update just inc count and set lasttime.
         // BLP 2021-12-16 -- changed from 2 to 8 (robots=2, sitemap=4, cron=16)
+        
         $this->query("insert into $this->masterdb.bots2 (ip, agent, date, site, which, count, lasttime) ".
-                     "values('$this->ip', '$agent', current_date(), '$this->siteName', 8, 1, now()) ".
+                     "values('$this->ip', '$agent', now(), '$this->siteName', 8, 1, now())".
                      "on duplicate key update count=count+1, lasttime=now()");
       } else {
-        $this->debug("$this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database");
+        $this->debug("$this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database: ". __LINE__);
       }
     }
   }
@@ -737,12 +754,19 @@ EOF;
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'tracker')");
 
-    list($ok) = $this->fetchrow('num');
-
-    if($ok == 1) {
+    if($this->fetchrow('num')[0]) {
       $agent = $this->agent;
 
-      $java = $this->isMe() ? 0xffff : 0; // BLP 2021-12-20 -- if isMe() then make $java 0xffff
+      // BLP 2021-12-28 -- Explanation.
+      // Here we set $java (isJavaScript) to 0x8000 or zero.
+      // We then look at isBot and if nothing was found in the bots table and the regex did not
+      // match something in the list then isJavaScript will be zero.
+      // The visitor was probably a bot and will be added to the bots table as a 0x100 by the cron
+      // job checktracker2.php and to the bots2 table as 16. The bot was more than likely curl,
+      // wget, python or the like that sets its user-agent to something that would not trigger my
+      // regex. Such visitor leave very little footprint.
+      
+      $java = $this->isMe() ? 0x8000 : 0; // BLP 2021-12-20 -- if isMe() then make $java 0x8000
 
       if($this->isBot) { // can NEVER be me!
         $java = 0x2000; // This is the robots tag
@@ -757,7 +781,7 @@ EOF;
 
       $this->LAST_ID = $this->getLastInsertId();
     } else {
-      $this->debug("$this->siteName: $this->self: table tracker does not exist in the $this->masterdb database");
+      $this->debug("$this->siteName: $this->self: table tracker does not exist in the $this->masterdb database: ". __LINE__);
     }
   }
 
@@ -777,10 +801,8 @@ EOF;
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'myip')");
 
-    list($ok) = $this->fetchrow('num');
-
-    if($ok == 0) {
-      $this->debug("$this->siteName: $this->self: table myip does not exist in the $this->masterdb database");
+    if($this->fetchrow('num')[0] == 0) {
+      $this->debug("$this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__);
       return;
     }
 
@@ -809,9 +831,7 @@ EOF;
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'counter')");
 
-    list($ok) = $this->fetchrow('num');
-      
-    if($ok == 1) {
+    if($this->fetchrow('num')[0]) {
       $filename = $this->requestUri; // get the name of the file
 
       // BLP 2021-08-20 -- The only time I don't want to do this is if isMe===true and
@@ -842,7 +862,7 @@ EOF;
       list($cnt) = $this->fetchrow('num');
       $this->hitCount = $cnt ?? 0;
     } else {
-      $this->debug("$this->siteName: $this->self: table counter does not exist in the $this->masterdb database");
+      $this->debug("$this->siteName: $this->self: table counter does not exist in the $this->masterdb database: ". __LINE__);
     }      
   }
 
@@ -862,9 +882,7 @@ EOF;
                  "where (table_schema = '$this->masterdb') ".
                  "and (table_name = 'counter2')");
 
-    list($ok) = $this->fetchrow('num');
-
-    if($ok) {
+    if($this->fetchrow('num')[0]) {
       // BLP 2021-08-20 -- here count is the number of NON Bots. This is not like counter where
       // count is everything and realcnt is non bots. There to get bots you have to do
       // (count-realcnt).
@@ -879,7 +897,7 @@ EOF;
       
       $this->query($sql);
     } else {
-      $this->debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database");
+      $this->debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__);
     }
   }
   
@@ -901,10 +919,8 @@ EOF;
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'daycounts')");
 
-    list($ok) = $this->fetchrow('num');
-
-    if($ok == 0) {
-      $this->debug("$this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database");
+    if($this->fetchrow('num')[0] == 0) {
+      $this->debug("$this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database: ". __LINE__);
       return;
     }
 
@@ -921,7 +937,10 @@ EOF;
 
       $this->query($sql);
 
+      // Set $cookietime expires in 10 minutes
+      
       $cookietime = time() + (60*10);
+      
       if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
         $this->debug("$this->siteName: Can't setSiteCookie() at ".__LINE__);
       }
@@ -967,16 +986,14 @@ EOF;
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'logagent')");
 
-    list($ok) = $this->fetchrow('num');
-
-    if($ok == 1) {
+    if($this->fetchrow('num')[0]) {
       $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime) " .
              "values('$this->siteName', '$this->ip', '$agent', '1', now(), now()) ".
              "on duplicate key update count=count+1, lasttime=now()";
         
       $this->query($sql);
     } else {
-      $this->debug("$this->siteName: $this->self: table logagent does not exist in the $this->masterdb database");
+      $this->debug("$this->siteName: $this->self: table logagent does not exist in the $this->masterdb database: " . __LINE__);
     }
   }
 
