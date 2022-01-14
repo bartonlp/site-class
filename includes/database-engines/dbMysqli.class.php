@@ -84,14 +84,12 @@ class dbMysqli extends dbAbstract {
       throw new SqlException(__METHOD__ . ": Can't connect to database", $this);
     }
     
-    //$this->db = $db; // set this right away so if we get an error below $this->db is valid
-
     if(!@$db->select_db($this->database)) {
       throw new SqlException(__METHOD__ . " Can't select database", $this);
     }
 
-    // BLP 2016-03-16 -- make sure we are la time. 
-    $db->query("set time_zone = 'PST8PDT'");
+    // BLP 2021-12-31 -- EST/EDT New York
+    $db->query("set time_zone = 'EST5EDT'");
     $this->db = $db;
     return $db;
   }
@@ -102,7 +100,7 @@ class dbMysqli extends dbAbstract {
    * BLP 2016-11-20 -- Query is for a SINGLE query ONLY. Don't do multiple querys!
    *  mysqli has a multi_query() but I have not written a method for it!
    * @param string $query SQL statement.
-   * @return: if $result === true the number of affected_rows (delete, insert, etc). Else ruturns num_rows.
+   * @return: if $result === true returns the number of affected_rows (delete, insert, etc). Else ruturns num_rows.
    * if $result === false calls SqlError() and exits.
    */
 
@@ -113,13 +111,15 @@ class dbMysqli extends dbAbstract {
     
     $result = $db->query($query);
 
+    // If $result is false then exit
+    
     if($result === false) {
       throw(new SqlException($query, $this));
     }
 
-    // result is a mixed result-set for select etc, true/false for insert etc.
+    // result is a mixed result-set for select etc, true for insert etc.
     
-    if($result === true) { // did not return a result object 
+    if($result === true) { // did not return a result object. NOTE can't be false as we covered that above.
       $numrows = $db->affected_rows;
       self::$lastNonSelectResult = $result;
     } else {
@@ -156,58 +156,59 @@ class dbMysqli extends dbAbstract {
    * queryfetch()
    * Dose a query and then fetches the associated rows
    * @param string, the query
-   * @param string|null, if null then $type='both'
+   * @param string|null, $type can be 'num', 'assoc', 'obj' or 'both'. If null then $type='both'
    * @param bool|null, if null then false.
    *   if param1, param2=bool then $type='both' and $returnarray=param2
    * @return:
    *   1) if $returnarray is false returns the rows array.
    *   2) if $returnarray is true returns an array('rows'=>$rows, 'numrows'=>$numrows).
+   * NOTE the $query must be a 'select' that returns a result set. It can't be 'insert', 'delete', etc.
    */
   
   public function queryfetch($query, $type=null, $returnarray=null) {
-    if(stripos($query, 'select') === false) {
+    if(stripos($query, 'select') === false) { // Can't be anything but 'select'
       throw new SqlException($query, $this);
     }
 
     // queryfetch() can be
     // 1) queryfetch(param1) only 1 param in which case $type is set to
     // 'both'.
-    // 2) queryfetch(param1, param2) where param2 is a string like 'assoc', 'num' or
-    // 'both'
+    // 2) queryfetch(param1, param2) where param2 is a string like 'assoc', 'num', 'obj' or 'both'
     // 3) queryfetch(param1, param2) where param2 is a boolian in which case $type is set to
     // 'both' and $returnarray is set to the boolian value of param2.
-    // 4) queryfetch(param1, param2, param3) where the param values set the corisponding
-    // values.
-    
+    // 4) queryfetch(param1, param2, param3) where the param values set the corisponding values.
+
     if(is_null($type)) {
       $type = 'both';
     } elseif(is_bool($type) && is_null($returnarray)) {
       $returnarray = $type;
       $type = 'both';
     }  
-                               
+    
     $numrows = $this->query($query);
 
     while($row = $this->fetchrow($type)) {
       $rows[] = $row;
     }
+
     return ($returnarray) ? array('rows'=>$rows, 'numrows'=>$numrows) : $rows;
   }
 
   /**
    * fetchrow()
    * @param resource identifier returned from query.
-   * @param string, type of fetch: assoc==associative array, num==numerical array, obj==object, or both
+   * @param string, type of fetch: assoc==associative array, num==numerical array, obj==object, or both (for num and assoc).
    * @return array, either assoc or numeric, or both
-   * NOTE: if $result is a string then it is the type and we use $this->result for result.
+   * NOTE: if $result is a string then $result is the $type and we use $this->result for result.
    */
   
   public function fetchrow($result=null, $type="both") {
-    if(is_string($result)) {
+    if(is_string($result)) { // a string like num, assoc, obj or both
       $type = $result;
       $result = $this->result;
-    } elseif(!$result) {
-      $result = $this->result;
+    } elseif(get_debug_type($result) != "mysqli_result") {
+      //$result = $this->result;
+      throw(new SqlException("dbMysqli.class.php " .__LINE__. "get_debug_type() is not an 'mysqli_result'"));
     } 
 
     if(!$result) {

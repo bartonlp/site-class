@@ -1,5 +1,6 @@
 <?php
 /* Well tested and maintained */
+// BLP 2022-01-14 -- Now we get the password from /home/barton/database-password
 // BLP 2021-11-11 -- For RPI let us use the $this->dbinfo->password if it exists
 // BLP 2021-10-28 -- see comment below.
 // BLP 2021-10-24 -- Added agent and ip if not isSiteClass.
@@ -37,9 +38,11 @@ class Database extends dbAbstract {
     //vardump("this", $this);
     //$arg->engine = null;
 
-    // BLP 2021-11-11 --
-    
-    $password = ($this->dbinfo->password) ?? require("/var/www/bartonphillipsnet/PASSWORDS/database-password");
+    // BLP BLP 2022-01-14 -- The Database password is now in /home/barton/database-password on
+    // bartonlp.com et all (157.245.129.4), bartonphillips.org (HP) and
+    // http://bartonphillips.dynnds.org (RPI).
+
+    $password = ($this->dbinfo->password) ?? require("/home/barton/database-password");
     
     if(isset($arg->engine) === false) {
       $this->errno = -2;

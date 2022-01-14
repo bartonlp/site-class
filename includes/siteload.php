@@ -1,4 +1,5 @@
 <?php
+// BLP 2022-01-12 -- Reworked error messages so JSON errors are more visable. 
 // BLP 2021-03-09 -- Removed via comment logic for $__info to support altorouter.php
 // BLP 2021-02-20 -- Added function stripComments($x) to remove comments '/*', '#' and '//' from
 // json file.
@@ -25,18 +26,18 @@ if(!function_exists("findsitemap")) {
     global $docroot;
 
     if(file_exists($mydir . "/mysitemap.json")) {
-      // return stripComments(file_get_contents($mydir . "/mysitemap.json"));
-      $ret = stripComments(file_get_contents($mydir . "/mysitemap.json"));
-      //echo "ret: |$ret|<br>";
-      return $ret;
+      return stripComments(file_get_contents($mydir . "/mysitemap.json"));
     } else {
       // If we didn't find the mysitemap.json then have we reached to docroot? Or have we reached the
       // root. We should actually never reach the root.
 
-      //echo "mydir: $mydir<br>";
-
       if($docroot == $mydir || '/' == $mydir) {
-        return null;
+        echo <<<EOF
+<h1>NO 'mysitemap.json' Found</h1>
+<p>To run {$_SERVER['PHP_SELF']} you must have a 'mysitemap.json' somewhere within the Document Root.</p>
+EOF;
+        error_log("ERROR: siteload.php. No 'mysitemap.json' found in " . getcwd() . " for file {$_SERVER['PHP_SELF']}. DocRoot: $docroot");
+        exit();
       }
 
       // We are not at the root so do $mydir = dirname($mydir). For example if $mydir is
@@ -74,7 +75,7 @@ $old = error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
 if(!$_SERVER['DOCUMENT_ROOT'] && !$_SERVER['VIRTUALHOST_DOCUMENT_ROOT']) {
   // This is a CLI program
   // Is SCRIPT_FILENAME an absolute path?
-  
+  echo "WHAT?<br>";
   if(strpos($_SERVER['SCRIPT_FILENAME'], "/") === 0) {
     // First character is a / so absoulte path
     $mydir = dirname($_SERVER['SCRIPT_FILENAME']);
@@ -93,28 +94,27 @@ if(!$_SERVER['DOCUMENT_ROOT'] && !$_SERVER['VIRTUALHOST_DOCUMENT_ROOT']) {
   // Normal apache program
   // The SCRIPT_FILENAME is always an absolute path
   $mydir = dirname($_SERVER['SCRIPT_FILENAME']);
-  $docroot = $_SERVER['DOCUMENT_ROOT'] ? $_SERVER['DOCUMENT_ROOT'] : $S_SERVER['VIRTUALHOST_DOCUMENT_ROOT'];
+  $docroot = $_SERVER['DOCUMENT_ROOT'] ?? $S_SERVER['VIRTUALHOST_DOCUMENT_ROOT'];
 }
 
-//chdir($mydir);
+$ret = findsitemap($mydir);
+$_site = json_decode($ret);
 
-$_site = json_decode(findsitemap($mydir));
+// BLP 2022-01-12 -- If $_site is NULL that means the json_decode() failed.
 
-/* BLP 2021-03-09 -- No longer use PUG
-// BLP 2018-04-20 -- Add $__info. For altorout.php 
-foreach($__info as $k=>$v) {
-  $_site->$k = $v;
-}
-// BLP 2018-04-20 -- end of add
-*/
-
-if(!$_site) {
-  $_site =<<<EOF
-<h1>NO 'mysitemap.json' Found</h1>
-<p>To run {$_SERVER['PHP_SELF']} you must have a 'mysitemap.json' somewhere within the Document Root.</p>
+if(is_null($_site)) {
+  echo <<<EOF
+<h1>JSON ENCODING ERROR</h1>
+<p>Check mysitemap.json for an ilegal construct!</p>
 EOF;
-  error_log("ERROR: siteload.php. No 'mysitemap.json' found in " . getcwd() . " for file {$_SERVER['PHP_SELF']}");
-  echo $_site;
+
+  // BLP 2022-01-12 -- try to make error log message more helpful
+  
+  if(is_string($ret)) {
+    error_log("ERROR: siteload.php. Return form findsitemap() is a string. However json_decode() returned NULL. JSON ENCODING ERROR");
+  } else {
+    error_log("ERROR: siteload.php. Return from findsitemap() is NOT a string. SOMETHING WENT WRONG SOMEWHERE");
+  }
   exit();
 }
 error_reporting($old);

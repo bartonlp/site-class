@@ -1,5 +1,6 @@
 <?php
 /* MAINTAINED and WELL TESTED */
+// BLP 2022-01-02 -- add $type to queryfetch($q, $type, $returnarray).
 
 // Abstract database class
 // Most of this class is implemented here. This keeps us from having to duplicate this over and
@@ -59,10 +60,11 @@ abstract class dbAbstract {
       throw new Exception(__METHOD__ . " not implemented");
     }
   }
-  
-  public function queryfetch($query, $retarray=false) {
+
+  // BLP 2022-01-02 -- add type which was missing.
+  public function queryfetch($query, $type=null, $retarray=false) {
     if(method_exists($this->db, 'queryfetch')) {
-      return $this->db->queryfetch($query, $retarray);
+      return $this->db->queryfetch($query, $type, $retarray);
     } else {
       throw new Exception(__METHOD__ . " not implemented");
     }

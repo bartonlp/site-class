@@ -45,13 +45,15 @@ class SqlException extends Exception {
     $Error = "NO ERROR MESSAGE FOUND";
     $Errno = -1;
 
-    if(is_null($self) || is_null($errDb = $self->getDb()) || $self->getDb() === 0) {
+    // BLP 2021-12-31 -- remove $errDb
+    
+    if(is_null($self) || is_null($self->getDb()) || $self->getDb() === 0) {
       if(isset($self->errno) && isset($self->error)) {
         $Errno = $self->errno;
         $Error = $self->error;
       } else {
         $Errno = -9999;
-        $Error = "Self db not valid";
+        $Error = "No valid \$self->errno or \$self->error.";
       }
     } else {
       if(method_exists($self, 'getErrorInfo')) {
@@ -59,7 +61,7 @@ class SqlException extends Exception {
         $Error = $err['error'];
         $Errno = $err['errno'];
       } else {
-        throw(new Exception("method getErrorInfo missing"));
+        throw(new Exception("SqlException ".__LINE__. ": method getErrorInfo missing"));
       }
     }
 
@@ -144,7 +146,7 @@ class SqlException extends Exception {
     
     $error = <<<EOF
 <p>&quot;<i>$msg</i>&quot;<br>
-error=&quot;<i>$Error</i>&quot;, errno=&quot;<i>$Errno</i>&quot;<br>
+error=&quot;<i>$Error</i>&quot;, \$Errno=&quot;<i>$Errno</i>&quot;<br>
 cwd=$cwd<br>
 called from <strong>{$caller['file']}</strong><br> on line <strong>{$caller['line']}</strong><br>
 
