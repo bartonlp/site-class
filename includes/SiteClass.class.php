@@ -775,8 +775,9 @@ EOF;
       return;
     }
 
-    // BLP 2021-12-31 -- remove the insert/update. This ip must already be in myip. Just do an
-    // update of lasttime.
+    // BLP 2022-01-16 -- NOTE there are only two places where the ip address is added:
+    // bartonphillips.com/register.php and bonnieburch.com/addcookie.com.
+    
     $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
 
     if(!$this->query($sql)) {
