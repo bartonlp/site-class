@@ -1,5 +1,6 @@
 <?php
 /* MAINTAINED and WELL TESTED. This is the default Database and has received extensive testing */
+// BLP 2022-01-17 -- fix fetchrow() change get_debug_type() (only in PHP8) to get_class().
 // BLP 2021-12-11 -- add fetch_obj() to fetchrow();
 /**
  * Database Class
@@ -206,9 +207,8 @@ class dbMysqli extends dbAbstract {
     if(is_string($result)) { // a string like num, assoc, obj or both
       $type = $result;
       $result = $this->result;
-    } elseif(get_debug_type($result) != "mysqli_result") {
-      //$result = $this->result;
-      throw(new SqlException("dbMysqli.class.php " .__LINE__. "get_debug_type() is not an 'mysqli_result'"));
+    } elseif(get_class($result) != "mysqli_result") { // BLP 2022-01-17 -- use get_class() not get_debug_type() as it is only PHP8
+      throw(new SqlException("dbMysqli.class.php " .__LINE__. "get_class() is not an 'mysqli_result'"));
     } 
 
     if(!$result) {
