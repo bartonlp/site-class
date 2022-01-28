@@ -22,7 +22,7 @@
 //     the scope the error was triggered in. User error handler must not modify error context.  
 // If the function returns FALSE then the normal error handler continues.
 
-function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext) {
+function my_errorhandler($errno, $errstr, $errfile, $errline) { //, array $errcontext=null) {
   $errortype = array (
                       E_ERROR              => 'Error',
                       E_WARNING            => 'Warning',
@@ -52,7 +52,7 @@ function my_errorhandler($errno, $errstr, $errfile, $errline, array $errcontext)
       $btrace .= "function: {$val['function']} in {$val['file']} on line {$val['line']}\n";
       if(isset($val['args'])) {
         foreach($val['args'] as $arg) {        
-          if(@get_class($arg) || is_array($arg)) {
+          if(@get_class((object)$arg) || is_array($arg)) {
             //error_log("CLASS or ARRAY");
             // A class or array
             $x = escapeltgt(print_r($arg, true));
@@ -177,12 +177,14 @@ function finalOutput($error, $from) {
   // During debug set the Error class's $noEmailErrs to ture
   
   if(ErrorClass::getNoEmailErrs() !== true) {
-    $S = $GLOBALS["S"];
-    if(!$S || empty($S->EMAILADDRESS)) {
-      $S->EMAILADDRESS = $S->EMAILRETURN = $S->EMAILFROM = "bartonphillips@gmail.com";
+    $s = $GLOBALS["_site"];
+    
+    if(!$s || empty($s->EMAILADDRESS)) {
+      $s->EMAILADDRESS = $s->EMAILRETURN = $s->EMAILFROM = "bartonphillips@gmail.com";
     }
-    mail($S->EMAILADDRESS, $from, "{$err}{$userId}",
-         "From: ". $S->EMAILFROM, "-f ". $S->EMAILRETURN);
+    mail("bartonphillips@gmail.com", 'TEST', "Some more", "From: newbern-nc.info\r\nBcc: bartonphillips@gmail.com");        
+    //mail($s->EMAILADDRESS, $from, "{$err}{$userId}",
+      //   "From: ". $s->EMAILFROM, "-f ". $s->EMAILRETURN);
   }
 
   // Log the raw error info.
@@ -214,7 +216,7 @@ EOF;
   }
 
   if(ErrorClass::getNoOutput() !== true) {
-    echo $error;
+    echo $error; // BLP 2022-01-28 -- on CLI this outputs to the console, on apache it goes to the client screen.
   }
 }
 
@@ -271,14 +273,6 @@ class ErrorClass {
     }
   }
 
-  static public function setNoEmailErrs($b) {
-    self::$noEmailErrs = $b;
-  }
-
-  static public function getNoEmailErrs() {
-    return self::$noEmailErrs;
-  }
-  
   static public function setErrorType($bits) {
     self::$errType = $bits;
     //echo "Set error handler: $bits<br>\n";
@@ -299,6 +293,14 @@ class ErrorClass {
 
   static public function getDevelopment() {
     return self::$development;
+  }
+  
+  static public function setNoEmailErrs($b) {
+    self::$noEmailErrs = $b;
+  }
+
+  static public function getNoEmailErrs() {
+    return self::$noEmailErrs;
   }
   
   static public function setNoHtml($b) {

@@ -90,7 +90,7 @@ class dbMysqli extends dbAbstract {
     }
 
     // BLP 2021-12-31 -- EST/EDT New York
-    $db->query("set time_zone = 'EST5EDT'");
+    $db->query("set time_zone='EST5EDT'");
     $this->db = $db;
     return $db;
   }
@@ -115,7 +115,7 @@ class dbMysqli extends dbAbstract {
     // If $result is false then exit
     
     if($result === false) {
-      throw(new SqlException($query, $this));
+      throw new SqlException($query, $this);
     }
 
     // result is a mixed result-set for select etc, true for insert etc.
@@ -208,7 +208,7 @@ class dbMysqli extends dbAbstract {
       $type = $result;
       $result = $this->result;
     } elseif(get_class($result) != "mysqli_result") { // BLP 2022-01-17 -- use get_class() not get_debug_type() as it is only PHP8
-      throw(new SqlException("dbMysqli.class.php " .__LINE__. "get_class() is not an 'mysqli_result'"));
+      throw new SqlException("dbMysqli.class.php " .__LINE__. "get_class() is not an 'mysqli_result'");
     } 
 
     if(!$result) {
@@ -291,6 +291,7 @@ class dbMysqli extends dbAbstract {
 //    if(get_magic_quotes_runtime()) {
 //      $string = stripslashes($string);
 //    }
+
     return @$this->db->real_escape_string($string);
   }
 

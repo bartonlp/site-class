@@ -47,7 +47,7 @@ class Database extends dbAbstract {
     if(isset($arg->engine) === false) {
       $this->errno = -2;
       $this->error = "'engine' not defined";
-      throw(new SqlException(__METHOD__, $this));
+      throw new SqlException(__METHOD__, $this);
     }
 
     switch($arg->engine) {
@@ -56,7 +56,7 @@ class Database extends dbAbstract {
         if(class_exists($class)) {
           $db = @new $class($arg->host, $arg->user, $password, $arg->database, $arg->port);
         } else {
-          throw(new SqlException(__METHOD__ .": Class Not Found : $class<br>"));
+          throw new SqlException(__METHOD__ .": Class Not Found : $class<br>");
         }
         break;
       case "sqlite3":
@@ -65,21 +65,22 @@ class Database extends dbAbstract {
         if(class_exists($class)) {
           $db = @new $class($arg->host, $arg->user, $password, $arg->database);
         } else {
-          throw(new SqlException(__METHOD__ .": Class Not Found : $class<br>"));
+          throw new SqlException(__METHOD__ .": Class Not Found : $class<br>");
         }      
         break;
       default:
-        throw(new SqlException(__METHOD__ . ": Engine $arg->engine not valid", $this));
+        throw new SqlException(__METHOD__ . ": Engine $arg->engine not valid", $this);
     }
     if(is_null($db) || $db === false) {
-      throw(new SqlException(__METHOD__ . ": Connect failed", $this));
+      throw new SqlException(__METHOD__ . ": Connect failed", $this);
     }
     $this->db = $db;
 
     // BLP 2021-10-24 -- Check isSiteClass and if NOT set set the agent and ip
     
     if(!$this->isSiteClass) {
-      $this->agent = $this->escape($_SERVER['HTTP_USER_AGENT']);
+      $this->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- if CLI useragent is NULL so make it blank.
+      $this->agent = $this->escape($this->agent);
       $this->ip = $_SERVER['REMOTE_ADDR'];
     }
   }

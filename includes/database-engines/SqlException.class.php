@@ -61,7 +61,7 @@ class SqlException extends Exception {
         $Error = $err['error'];
         $Errno = $err['errno'];
       } else {
-        throw(new Exception("SqlException ".__LINE__. ": method getErrorInfo missing"));
+        throw new Exception("SqlException ".__LINE__. ": method getErrorInfo missing");
       }
     }
 

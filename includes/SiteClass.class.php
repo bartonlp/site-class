@@ -1,5 +1,6 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2022-01-24 -- getPageTop() use title if not banner
 // BLP 2022-01-04 -- getPageHead() $h->title. Change final default from siteName to self
 // BLP 2022-01-02 -- in getPageFooter() add/update use of nofooter, count, noLastmod and footerFile.
 // BLP 2021-12-31 -- Before checking table 'myip' make sure that the database user is 'barton'.
@@ -61,7 +62,7 @@
 // BLP 2016-11-27 -- changed the sense of $this->myIp and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "3.0.11");
+define("SITE_CLASS_VERSION", "3.0.12"); // BLP 2022-01-28 -- 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -113,9 +114,9 @@ class SiteClass extends dbAbstract {
     // BLP 2021-10-24 -- move $this->agent up here so it is part of Database
     
     $this->ip = $_SERVER['REMOTE_ADDR'];
-    $this->agent = $_SERVER['HTTP_USER_AGENT']; // BLP 2021-10-24 -- can't do escape until Database is instantiated!
+    $this->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- CLI agent is NULL so make it blank ''
     $this->self = htmlentities($_SERVER['PHP_SELF']); // BLP 2021-12-20 -- add htmlentities to protect against hacks.
-    $this->refid = $_SERVER['HTTP_REFERER']; // BLP 2021-12-13 -- add refid
+    $this->refid = $_SERVER['HTTP_REFERER'] ?? ''; // BLP 2022-01-28 -- CLI refid is NULL so make it blank ''
     $this->requestUri = $_SERVER['REQUEST_URI']; // BLP 2021-12-30 -- change from $this->self
 
     // BLP 2021-03-06 -- our server 'bartonlp.org' is in New York.
@@ -133,9 +134,8 @@ class SiteClass extends dbAbstract {
           $arg[$k] = $v;
         }
       } else {
-        throw(new Exception(__CLASS__ . " " . __LINE__ .": Argument to constructor not an array or object"));
+        throw new Exception(__CLASS__ .": Argument to constuctor not an array or object: ". __LINE__);
       }
-
       // Now make $this objects of the items that were in $s
       // That means you can put ANYTHING in $s and it will be public in $this!
     
@@ -174,7 +174,8 @@ class SiteClass extends dbAbstract {
 
       $this->db = new Database($this);
       // BLP 2021-10-24 -- NOTE escape is part of mysqli which is only instantiated after Database.
-      $this->agent = $this->escape($this->agent); 
+      // if CLI then it is '' blank not null from above.
+      $this->agent = $this->escape($this->agent);
     }
     
     // BLP 2021-09-15 -- add items to myIp from the myip table.
@@ -188,7 +189,7 @@ class SiteClass extends dbAbstract {
     // In general all databases that are going to do anything with counters etc. must have a user
     // of 'barton' or set $this->noTrack to true. Still the program can NOT do any calls via masterdb!
 
-    if($this->dbinfo->user == "barton") { // BLP 2021-12-31 -- make sure its the 'barton' user!
+    if($this->dbinfo->user == "barton" && $this->nodb !== true) { // BLP 2021-12-31 -- make sure its the 'barton' user!
       $this->query("select count(*) from information_schema.tables ".
                    "where (table_schema = '$this->masterdb') and (table_name = 'myip')");
 
@@ -332,7 +333,7 @@ class SiteClass extends dbAbstract {
    * BLP 2014-12-31 -- Add footer to $h parameter to have the $b array etc.
    */
 
-  public function getPageTopBottom($h=null, $b=null) {
+  public function getPageTopBottom($h=new stdClass, $b=new stdClass) {
     if(isset($h->footer)) {
       $b = $h->footer;
     }
@@ -354,13 +355,15 @@ class SiteClass extends dbAbstract {
    * @return string with the <head> section and the banner.
    */
   
-  public function getPageTop($h=null) {
+  public function getPageTop($h=new stdClass) {
     //$h->doctype = $h->doctype ?? $this->doctype; BLP 2021-12-08 -- removed
 
     // from getPageTopBottom($h.. or from mysitemap.json
-    
-    $banner = $h->banner ?? $this->mainTitle;
+    // BLP 2022-01-24 -- if we have a title but no banner add it with <h1>, otherwise use
+    // mainTitle. If mainTitle is empty then NOTHING.    
 
+    $banner = $h->banner ?? ($h->title ? "<h1>$h->title</h1>" : $this->mainTitle);
+    
     // Get the page <head> section
 
     $head = $this->getPageHead($h);
@@ -387,10 +390,21 @@ class SiteClass extends dbAbstract {
    * @param object $h
    */
 
-  public function getPageHead($h=null) {
+  public function getPageHead($h=new stdClass) {
+    // BLP 2022-01-24 -- moved this from head.i.php to here
+    
+    if($this->noTrack === true || $this->nodb === true) {
+      $trackerStr = '';
+    } else {
+      $trackerStr =<<<EOF
+<script data-lastid="$this->LAST_ID" src="https://bartonphillips.net/js/tracker.js"></script>
+EOF;
+    } 
+
     // use either $h or $this values or a constant
 
-    $dtype = $h->doctype ?? $this->doctype;
+    $dtype = $h->doctype ?? $this->doctype; // note that $this->doctype could also be from mysitemap.json
+
     $h->title = $h->title ?? $this->title ?? ltrim($this->self, '/'); // BLP 2022-01-04 -- change from siteName to self
     $h->desc = $h->desc ?? $this->title ?? $h->title; // BLP 2021-12-08 -- add $this->title from mysitemap.json
     $h->keywords = $h->keywords ?? $this->keywords ?? "Something Interesting";
@@ -398,20 +412,25 @@ class SiteClass extends dbAbstract {
     $h->defaultCss = $h->defaultCss ?? $this->defaultCss ?? 'https://bartonphillips.net/css/blp.css';
     $h->preheadcomment = $h->preheadcomment ?? $this->preheadcomment;
     $h->lang = $h->lang ?? $this->lang ?? 'en';
+    $h->htmlextra = $h->htmlextra ?? $this->htmlextra; // can also be from mysitemap.json
 
     $html = '<html lang="' . $h->lang . '" ' . $h->htmlextra . ">"; // stuff like manafest etc.
 
     // What if headFile is null?
 
     if(!is_null($this->headFile)) {
-      // BLP 2015-04-25 -- If the require has a return value use it.
+      // BLP 2022-01-24 -- $trackerStr is available.
+      // If the require returns -1 it is an error.
+      
       if(($p = require_once($this->headFile)) != 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
-        throw(new Exception(__CLASS__ . " " . __LINE__ .": getPageHead() headFile returned 1"));
+        throw new Exception(__CLASS__ . " " . __LINE__ .": getPageHead() headFile returned 1");
       }
     } else {
       // Make a default <head>
+      // BLP 2022-01-24 -- added jquery to default along with $trackerStr
+      
       $pageHeadText =<<<EOF
 $html
 <!-- Default Head -->
@@ -422,6 +441,11 @@ $html
   <meta name="description" content="{$h->desc}"/>
   <!-- local link -->
 {$h->link}
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/jquery-migrate-3.3.2.min.js"></script>
+  <script>jQuery.migrateMute = false; jQuery.migrateTrace = false;</script>
+$trackerStr
   <!-- extra -->
 {$h->extra}
   <!-- local script -->
@@ -489,7 +513,7 @@ EOF;
    * @return string
    */
   
-  public function getPageFooter($b=null) {
+  public function getPageFooter($b=new stdClass) {
     // BLP 2022-01-02 -- if nofooter is true just return an empty footer
 
     if(($b->nofooter ?? $this->nofooter) === true) {
@@ -579,7 +603,9 @@ EOF;
 
     // Counter at bottom of page
     // hitCount is updated by 'counter()'
-    $hits = number_format($this->hitCount);
+    if($this->hitCount) {
+      $hits = number_format($this->hitCount);
+    }
 
     // Let the redered appearance be up to the pages css!
     // #F5DEB3==rgb(245,222,179) is 'wheat' for the background
@@ -624,10 +650,15 @@ EOF;
     // NOTE our check of 'bots' happens before we would have added this client.
     
     if($this->fetchrow('num')[0]) {
-      $this->isBot = preg_match("~\+*https?://|bot|spider|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
-                                "GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
-                                "http client|PECL::HTTP~i", $this->agent) ? true : false // BLP 2021-12-20 -- true of false not 1 or 0
-                     || ($this->query("select ip from $this->masterdb.bots where ip='$this->ip'")) ? true : false;          
+      if(($x = preg_match("~\+*https?://|bot|spider|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
+                          "GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
+                          "http client|PECL::HTTP~i", $this->agent)) === 1) {
+        $this->isBot = true;
+      } elseif($x === false) {
+        throw new Exceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false");
+      } elseif($this->query("select ip from $this->masterdb.bots where ip='$this->ip'")) {
+        $this->isBot = true;
+      }
     } else {
       $this->debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__);
     }
@@ -686,7 +717,7 @@ EOF;
             $this->query("update $this->masterdb.bots set robots=robots | 8, site='$who', count=count+1, lasttime=now() ".
                          "where ip='$this->ip' and agent='$agent'");
           } else {
-            throw(new Exception(__CLASS__ . " " . __LINE__ . ":$e"));
+            throw new Exception(__CLASS__ . " " . __LINE__ . ":$e");
           }
         }
       }
@@ -742,8 +773,10 @@ EOF;
         $java = 0x2000; // This is the robots tag
       }
 
-      $refid = $this->escape($S->refid); // BLP 2021-12-13 -- 
-
+      if($refid !== null) {
+        $refid = $this->escape($this->refid); // if CLI this is blank not null.
+      }
+      
       //$this->debug("SiteClass: tracker, $this->siteName, $this->ip, $agent, $this->self");
 
       $this->query("insert into $this->masterdb.tracker (site, page, ip, agent, refid, starttime, isJavaScript, lasttime) ".
@@ -781,7 +814,7 @@ EOF;
     $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
 
     if(!$this->query($sql)) {
-      $this->debug("No such ip: $this->ip"); // this should not happen
+      $this->debug(__LINE__. ", update of myip failed, ip: $this->ip"); // this should not happen
     }
   }
 
@@ -906,7 +939,7 @@ EOF;
       }
     } catch(Exception $e) {
       if($e->getCode() != 1062) { // 1062 is dup key error
-        throw(new Exception(__CLASS__ . " " . __LINE__ .": daycount() error=$e"));
+        throw new Exception(__CLASS__ . " " . __LINE__ .": daycount() error=$e");
       }
 
       // This is the 10 minute time delay for visitors vs hits
@@ -965,10 +998,15 @@ EOF;
    * If noErrorLog is set in mysitemap.json then don't do error_log()
    */
 
-  protected function debug($msg) {
+  protected function debug($msg, $exit=false) {
     if($this->noErrorLog === true) {
       return;
     }
+
     error_log("SiteClass:: $msg");
+
+    if($exit === true) {
+      exit();
+    }
   }
 } // End of Class

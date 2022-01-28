@@ -139,7 +139,9 @@ if(!function_exists('escapeltgt')) {
 
 if(!function_exists('ErrorGetId')) {
   function ErrorGetId() {
-    $email = explode(":", $_COOKIE['SiteId'])[1];
+    if($_COOKIE['SiteId']) {
+      $email = explode(":", $_COOKIE['SiteId'])[1];
+    }
     // do we have an id?
     if(empty($email)) {
       // NO email this is the generic version
