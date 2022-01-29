@@ -333,7 +333,10 @@ class SiteClass extends dbAbstract {
    * BLP 2014-12-31 -- Add footer to $h parameter to have the $b array etc.
    */
 
-  public function getPageTopBottom($h=new stdClass, $b=new stdClass) {
+  public function getPageTopBottom(?object $h=null, ?object $b=null) {
+    $h = $h ?? new stdClass;
+    $b = $b ?? new stdClass;
+    
     if(isset($h->footer)) {
       $b = $h->footer;
     }
@@ -355,9 +358,11 @@ class SiteClass extends dbAbstract {
    * @return string with the <head> section and the banner.
    */
   
-  public function getPageTop($h=new stdClass) {
+  public function getPageTop(?object $h=null) {
     //$h->doctype = $h->doctype ?? $this->doctype; BLP 2021-12-08 -- removed
 
+    $h = $h ?? new stdClass;
+    
     // from getPageTopBottom($h.. or from mysitemap.json
     // BLP 2022-01-29 -- $h->banner or $this-mainTitle or $h->title in <h1>s or blank.
 
@@ -389,9 +394,10 @@ class SiteClass extends dbAbstract {
    * @param object $h
    */
 
-  public function getPageHead($h=new stdClass) {
+  public function getPageHead(?object $h=null) {
     // BLP 2022-01-24 -- moved this from head.i.php to here
-    
+
+    $h = $h ?? new stdClass;
     if($this->noTrack === true || $this->nodb === true) {
       $trackerStr = '';
     } else {
@@ -513,9 +519,11 @@ EOF;
    * @return string
    */
   
-  public function getPageFooter($b=new stdClass) {
+  public function getPageFooter(?object $b=null) {
     // BLP 2022-01-02 -- if nofooter is true just return an empty footer
 
+    $b = $b ?? new stdClass;
+    
     if(($b->nofooter ?? $this->nofooter) === true) {
       return <<<EOF
 <footer>

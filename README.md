@@ -1,8 +1,8 @@
-# SiteClass Verion 3.0.11
+# SiteClass Verion 3.0.12
 
-**SiteClass** version 3.0.11 is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
+**SiteClass** version 3.0.12 is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
 
-Updated 2022-01-16
+Updated BLP 2022-01-29 -- 
 
 This project has several parts that can function standalone or combined.
 
