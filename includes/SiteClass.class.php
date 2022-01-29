@@ -359,10 +359,9 @@ class SiteClass extends dbAbstract {
     //$h->doctype = $h->doctype ?? $this->doctype; BLP 2021-12-08 -- removed
 
     // from getPageTopBottom($h.. or from mysitemap.json
-    // BLP 2022-01-24 -- if we have a title but no banner add it with <h1>, otherwise use
-    // mainTitle. If mainTitle is empty then NOTHING.    
+    // BLP 2022-01-29 -- $h->banner or $this-mainTitle or $h->title in <h1>s or blank.
 
-    $banner = $h->banner ?? ($h->title ? "<h1>$h->title</h1>" : $this->mainTitle);
+    $banner = $h->banner ?? ($this->mainTitle ?? ($h->title ? "<h1>$h->title</h1>" : '')); // BLP 2022-01-29 -- if nothing then blank
     
     // Get the page <head> section
 
@@ -405,6 +404,7 @@ EOF;
 
     $dtype = $h->doctype ?? $this->doctype; // note that $this->doctype could also be from mysitemap.json
 
+    $h->base = $h->base ?? $this->base; // BLP 2022-01-28 -- new
     $h->title = $h->title ?? $this->title ?? ltrim($this->self, '/'); // BLP 2022-01-04 -- change from siteName to self
     $h->desc = $h->desc ?? $this->title ?? $h->title; // BLP 2021-12-08 -- add $this->title from mysitemap.json
     $h->keywords = $h->keywords ?? $this->keywords ?? "Something Interesting";
@@ -540,6 +540,12 @@ EOF;
 
     if(($b->noLastmod ?? $this->noLastmod) !== true) {
       $lastmod = "Last Modified: " . date("M j, Y H:i", getlastmod());
+    }
+
+    // BLP 2022-01-28 -- add noGeo
+    
+    if(($b->noGeo ?? $this->noGeo) !== true) {
+      $geo = "<script src='https://bartonphillips.net/js/geo.js'></script>";
     }
     
     if(($b->footerFile ?? $this->footerFile) !== false && $this->footerFile !== null) {
