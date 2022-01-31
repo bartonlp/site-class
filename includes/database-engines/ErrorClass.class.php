@@ -38,6 +38,8 @@ function my_errorhandler($errno, $errstr, $errfile, $errline) { //, array $errco
                       E_STRICT             => 'Runtime Notice',
                       E_RECOVERABLE_ERROR  => 'Catchable Fatal Error'
                      );
+
+  //error_log("Top of my_errorhandler: $errno, {$errortype[$errno]}, $errstr");
   
   $errmsg = "File=$errfile\nLine=$errline\nMessage=$errstr ";
 
@@ -93,7 +95,7 @@ function my_errorhandler($errno, $errstr, $errfile, $errline) { //, array $errco
 function my_exceptionhandler($e) {
   $cl =  get_class($e);
 
-  $error = $e; //->getMessage; // get the full error message
+  $error = $e; // get the full error message
 
   // If this is a SqlException then the formating etc. was done by the class
   
@@ -191,7 +193,7 @@ function finalOutput($error, $from) {
   // BLP 2021-03-06 -- New server is in New York
   date_default_timezone_set('America/New_York');
 
-  error_log("ErrorClass, finalOutput: $from\n$err{$userId}");
+  //error_log("ErrorClass, finalOutput: $from\n$err{$userId}");
 
   if(ErrorClass::getDevelopment() !== true) {
     // Minimal error message
@@ -218,6 +220,7 @@ EOF;
   if(ErrorClass::getNoOutput() !== true) {
     echo $error; // BLP 2022-01-28 -- on CLI this outputs to the console, on apache it goes to the client screen.
   }
+  return;
 }
 
 // Set exception handler
@@ -240,6 +243,9 @@ class ErrorClass {
   // args can be array|object. noEmailErrs, development, noHtml, noOutput, errType
   
   public static function init($args=null) {
+    // BLP 2022-01-31 -- Only do this once. It is called from SiteClass and then again from
+    // Database if SiteClass is instantiated. Or just once if only Database is instantiated.
+    
     if(is_null(self::$instance)) {
       self::$instance = new ErrorClass($args);
     }
@@ -265,6 +271,7 @@ class ErrorClass {
     if(!isset($args->errType)) {
       if(is_null(self::$errType)) {
         set_error_handler('my_errorhandler', E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
+        self::setErrorType(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
       } // if self::$errType is set then the handler has already been set
     } else {
       // $args->errType is set

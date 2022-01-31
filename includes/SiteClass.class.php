@@ -83,6 +83,8 @@ define("SITE_CLASS_VERSION", "3.0.12"); // BLP 2022-01-28 --
 
 class SiteClass extends dbAbstract {
   private $hitCount = null;
+
+  public $isSiteClass = true; // True if we instantiated SiteClass so Database knows that we have.
   
   // Give these default values incase they are not mentioned in mysitemap.json.
   // Note they could still be null from mysitemap.json!
@@ -96,62 +98,36 @@ class SiteClass extends dbAbstract {
   /**
    * Constructor
    *
-   * @param array|object $s
-   *  fields: are from mysitemap.json
-   *  'count' is default true and 'countMe' is default false. The rest of the values are 'null' if not
-   *  specifically set in $s (mysitemap.json).
+   * @param object $s. If this is not an object we get an error!
+   *  The $s is almost always from mysitemap.json.
+   *  Once in a while they can be changed by the program instantiating the class.
+   *  'count' is default true and 'countMe' is default false (above).
+   *  The rest of the values are 'null' if not specifically set by $s (mysitemap.json).
    *  $s has the values from $_site = require_once(getenv("SITELOADNAME"));
    *  which uses siteload.php to gets values from mysitemap.json.
    */
   
-  public function __construct($s=null) {
+  public function __construct(object $s) {
     ErrorClass::init(); // BLP 2014-12-31 -- Make sure this is done
 
-    //vardump($s);
-    
-    $this->isSiteClass = true; // This is used to tell Database that SiteClass was instantiated.
-
-    // BLP 2021-10-24 -- move $this->agent up here so it is part of Database
+    // Initialize a few items. NOTE they could be changed once $s is processed.
     
     $this->ip = $_SERVER['REMOTE_ADDR'];
     $this->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- CLI agent is NULL so make it blank ''
     $this->self = htmlentities($_SERVER['PHP_SELF']); // BLP 2021-12-20 -- add htmlentities to protect against hacks.
     $this->refid = $_SERVER['HTTP_REFERER'] ?? ''; // BLP 2022-01-28 -- CLI refid is NULL so make it blank ''
     $this->requestUri = $_SERVER['REQUEST_URI']; // BLP 2021-12-30 -- change from $this->self
-
+    
     // BLP 2021-03-06 -- our server 'bartonlp.org' is in New York.
-    // Our old server 'bartonlp.com' was in San Fransisco.
     
     date_default_timezone_set("America/New_York");
-    
-    $arg = []; // temp array for $s during parsing
 
-    if(!is_null($s)) {
-      if(is_array($s)) {
-        $arg = $s;
-      } elseif(is_object($s)) {
-        foreach($s as $k=>$v) {
-          $arg[$k] = $v;
-        }
-      } else {
-        throw new Exception(__CLASS__ .": Argument to constuctor not an array or object: ". __LINE__);
-      }
-      // Now make $this objects of the items that were in $s
-      // That means you can put ANYTHING in $s and it will be public in $this!
+    // Put the stuff from $s into $this
     
-      foreach($arg as $k=>$v) {
-        $this->$k = $v; 
-      }
+    foreach($s as $k=>$v) {
+      $this->$k = $v;
     }
-    
-    // FROM HERE ON WE DON'T USE $arg ANY MORE, INSTEAD WE USE $this
-
-    // If emailDomain is not set force it to siteDomain
-
-    if(!$this->emailDomain) {
-      $this->emailDomain = $this->siteDomain;
-    }
-
+        
     // BLP 2018-07-01 -- Add the date to the copyright notice if one exists
 
     if($this->copyright) {
@@ -255,26 +231,6 @@ class SiteClass extends dbAbstract {
   }
 
   /**
-   * getVersion()
-   * @return string version number
-   */
-
-  public function getVersion() {
-    return SITE_CLASS_VERSION;
-  }
-
-  /**
-   * isMe()
-   * Check if this access is from ME
-   * @return true if $this->ip == $this->myIp else false!
-   * BLP 2021-12-31 -- Remove myUrl stuff. myIp is always an array and never a string!
-   */
-
-  public function isMe() {
-    return (array_intersect([$this->ip], $this->myIp)[0] === null) ? false : true;
-  }
-
-  /**
    * setSiteCookie()
    * @return bool true if OK else false
    * BLP 2021-12-20 -- add $secure, $httponly and $samesite as default to null. Then check them with ?? and set defaults.
@@ -307,6 +263,26 @@ class SiteClass extends dbAbstract {
   }
 
   /**
+   * isMe()
+   * Check if this access is from ME
+   * @return true if $this->ip == $this->myIp else false!
+   * BLP 2021-12-31 -- Remove myUrl stuff. myIp is always an array and never a string!
+   */
+
+  public function isMe() {
+    return (array_intersect([$this->ip], $this->myIp)[0] === null) ? false : true;
+  }
+
+  /**
+   * getVersion()
+   * @return string version number
+   */
+
+  public function getVersion() {
+    return SITE_CLASS_VERSION;
+  }
+
+  /**
    * getIp()
    * Get the ip address
    * @return int ip address
@@ -325,61 +301,6 @@ class SiteClass extends dbAbstract {
   }
 
   /**
-   * getPageTopBottom()
-   * Get Page Top and Footer
-   * @param object|array $h top stuff
-   * @param object|array|string $b bottom stuff. If string them msg1
-   * @return array top, footer
-   * BLP 2014-12-31 -- Add footer to $h parameter to have the $b array etc.
-   */
-
-  public function getPageTopBottom(?object $h=null, ?object $b=null) {
-    $h = $h ?? new stdClass;
-    $b = $b ?? new stdClass;
-    
-    if(isset($h->footer)) {
-      $b = $h->footer;
-    }
-
-    // Do getPageTop and getPageFooter
-
-    $top = $this->getPageTop($h);
-    $footer = $this->getPageFooter($b);
-    // return the array which we usually get via list($top, $footer)
-    return array($top, $footer);
-  }
-
-  // BLP 2021-10-13 -- New code
-  /**
-   * getPageTop()
-   * Get Page Top
-   * Gets both the page <head> section and the banner
-   * @param object $h assoc 
-   * @return string with the <head> section and the banner.
-   */
-  
-  public function getPageTop(?object $h=null) {
-    //$h->doctype = $h->doctype ?? $this->doctype; BLP 2021-12-08 -- removed
-
-    $h = $h ?? new stdClass;
-    
-    // from getPageTopBottom($h.. or from mysitemap.json
-    // BLP 2022-01-29 -- $h->banner or $this-mainTitle or $h->title in <h1>s or blank.
-
-    $banner = $h->banner ?? ($this->mainTitle ?? ($h->title ? "<h1>$h->title</h1>" : '')); // BLP 2022-01-29 -- if nothing then blank
-    
-    // Get the page <head> section
-
-    $head = $this->getPageHead($h);
-
-    // Get the page's banner section
-
-    $banner = $this->getPageBanner($banner, $h->bodytag);
-
-    return "$head\n$banner";
-  }
-
-  /**
    * getDoctype()
    * Returns the CURRENT DocType used by this program
    */
@@ -389,15 +310,70 @@ class SiteClass extends dbAbstract {
   }
 
   /**
+   * getPageTopBottom()
+   * Get Page Top (<head> and <header> ie banner) and Footer
+   * @param ?object $h top stuff
+   * @param ?object $b bottom stuff
+   * @return array top, footer
+   * BLP 2014-12-31 -- Add footer to $h parameter to have the $b array etc.
+   */
+
+  public function getPageTopBottom(?object $h=null, ?object $b=null) {
+    $h = $h ?? new stdClass;
+
+    // If $b is null use $h->footer which could also be null
+
+    $b = $b ?? $h->footer ?? new stdClass;
+
+    // Do getPageTop and getPageFooter
+
+    $top = $this->getPageTop($h);
+    $footer = $this->getPageFooter($b);
+    // return the array which we usually get via '[$top, $footer] = $S->getPageTopBottom($h, $b)'
+    return array($top, $footer);
+  }
+
+  /**
+   * getPageTop()
+   * Get Page Top
+   * Gets both the page <head> and <header> sections
+   * @param ?object $h
+   * @return string with the <head>  and <header> (ie banner) sections
+   */
+  
+  public function getPageTop(?object $h=null) {
+    $h = $h ?? new stdClass;
+    
+    // from getPageTopBottom($h.. or from mysitemap.json
+    // BLP 2022-01-29 -- $h->banner or $this-mainTitle or $h->title in <h1>s or blank.
+
+    $h->banner = $h->banner ?? ($this->mainTitle ?? ($h->title ? "<h1>$h->title</h1>" : '')); // BLP 2022-01-29 -- if nothing then blank
+    
+    // Get the page <head> section
+
+    $head = $this->getPageHead($h);
+
+    // Get the page's banner section
+    // BLP 2022-01-30 -- we now pass $h instead of $banner and $h->bodytag
+    
+    $banner = $this->getPageBanner($h);
+    return "$head\n$banner";
+  }
+
+  /**
    * getPageHead()
    * Get the page <head></head> stuff including the doctype etc.
    * @param object $h
+   * @return string $pageHead
    */
 
   public function getPageHead(?object $h=null) {
     // BLP 2022-01-24 -- moved this from head.i.php to here
 
     $h = $h ?? new stdClass;
+
+    // Should we use tracker.js? If either noTrack or nodb are set in mysitemap.json then don't
+    
     if($this->noTrack === true || $this->nodb === true) {
       $trackerStr = '';
     } else {
@@ -408,12 +384,12 @@ EOF;
 
     // use either $h or $this values or a constant
 
-    $dtype = $h->doctype ?? $this->doctype; // note that $this->doctype could also be from mysitemap.json
+    $dtype = $h->doctype ?? $this->doctype; // note that $this->doctype (from the top) could also be from mysitemap.json see the constructor.
 
     $h->base = $h->base ?? $this->base; // BLP 2022-01-28 -- new
     $h->title = $h->title ?? $this->title ?? ltrim($this->self, '/'); // BLP 2022-01-04 -- change from siteName to self
-    $h->desc = $h->desc ?? $this->title ?? $h->title; // BLP 2021-12-08 -- add $this->title from mysitemap.json
-    $h->keywords = $h->keywords ?? $this->keywords ?? "Something Interesting";
+    $h->desc = $h->desc ?? $h->title ?? $this->title; // BLP 2021-12-08 -- add $this->title from mysitemap.json
+    $h->keywords = $h->keywords ?? $this->keywords ?? $h->desc ?? "Something Interesting";
     $h->favicon = $h->favicon ?? $this->favicon ?? 'https://bartonphillips.net/images/favicon.ico';
     $h->defaultCss = $h->defaultCss ?? $this->defaultCss ?? 'https://bartonphillips.net/css/blp.css';
     $h->preheadcomment = $h->preheadcomment ?? $this->preheadcomment;
@@ -427,11 +403,11 @@ EOF;
     if(!is_null($this->headFile)) {
       // BLP 2022-01-24 -- $trackerStr is available.
       // If the require returns -1 it is an error.
-      
+
       if(($p = require_once($this->headFile)) != 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
-        throw new Exception(__CLASS__ . " " . __LINE__ .": getPageHead() headFile returned 1");
+        throw new Exception(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1");
       }
     } else {
       // Make a default <head>
@@ -476,14 +452,22 @@ EOF;
   /**
    * getPageBanner()
    * Get Page Banner
-   * @param string $mainTitle
-   * @param string $bodytag
+   * BLP 2022-01-30 -- New logic
+   * @param ?object $h
    * @return string banner
    */
 
-  public function getPageBanner($mainTitle, $bodytag=null) {
-    $bodytag = $bodytag ?? "<body>"; // use null coalescing operator
+  public function getPageBanner(?object $h=null) {
+    $h = $h ?? new stdClass;
 
+    $bodytag = $h->bodytag ?? $this->bodytag ?? "<body>";
+    
+    $image1 = "<img id='logo' data-image='$this->trackerImg1' src=''></a>";
+    if($this->nodb !== true && $this->noTrack !== true) {
+      $image2 = "<img src='https://bartonphillips.net/tracker.php?page=normal&id=$this->LAST_ID&image=$this->trackerImg2' alt='linux counter image.'>";
+      $image3 = "<img src='https://bartonphillips.net/tracker.php?page=noscript&id=$this->LAST_ID'>";
+    }
+    
     if(!is_null($this->bannerFile)) {
       $pageBannerText = require($this->bannerFile);
     } else {
@@ -572,7 +556,7 @@ EOF;
       } elseif(isset($this->EMAILFROM)) {
         $mailtoName = $this->EMAILFROM;
       } else {
-        $mailtoName = "webmaster@$this->emailDomain";
+        $mailtoName = "webmaster@$this->siteDomain";
       }
 
       $pageFooterText .= <<<EOF

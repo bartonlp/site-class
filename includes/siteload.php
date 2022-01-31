@@ -10,7 +10,7 @@
 // /extra/weewx then if we did a chdir('..') we would get to /extra which is wrong.
 // What we want is /var/www/weewx to /var/wwww.
 
-namespace sitload;
+namespace siteload;
 
 // We are in 'vendor/bartonlp/site-class/includes' so we want to go back three directories to load
 // autoload.php
@@ -102,10 +102,10 @@ EOF;
       // We are not at the root so do $mydir = dirname($mydir). For example if $mydir is
       // '/var/www/weewx' it becomes '/var/www'
       //echo "mydir: $mydir\n";
-      $mydir = dirname($mydir);
+      $this->mydir = dirname($mydir);
       //chdir($mydir); // This will change the dir to something under the docroot
       // Recurse
-      return findsitemap($mydir);
+      return $this->findsitemap();
     }
   }
 

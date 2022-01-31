@@ -22,6 +22,8 @@ class Database extends dbAbstract {
    */
 
   public function __construct(object $args) {
+    ErrorClass::init(); // We should do this. If already done it just returns.
+
     foreach($args as $k=>$v) {
       $this->$k = $v;
     }
@@ -77,8 +79,8 @@ class Database extends dbAbstract {
     $this->db = $db;
 
     // BLP 2021-10-24 -- Check isSiteClass and if NOT set set the agent and ip
-    
-    if(!$this->isSiteClass) {
+
+    if($this->isSiteClass !== true) {
       $this->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- if CLI useragent is NULL so make it blank.
       $this->agent = $this->escape($this->agent);
       $this->ip = $_SERVER['REMOTE_ADDR'];
