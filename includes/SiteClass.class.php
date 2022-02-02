@@ -461,6 +461,7 @@ EOF;
     $h = $h ?? new stdClass;
 
     $bodytag = $h->bodytag ?? $this->bodytag ?? "<body>";
+    $mainTitle = $h->banner ?? $this->mainTitle;
     
     $image1 = "<img id='logo' data-image='$this->trackerImg1' src=''></a>";
     if($this->nodb !== true && $this->noTrack !== true) {

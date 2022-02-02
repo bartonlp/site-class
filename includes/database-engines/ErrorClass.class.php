@@ -162,6 +162,8 @@ function finalOutput($error, $from) {
   // Turn the error message into just plane text with LF at end of each line where a BR was.
   // and remove the "ERROR" header and any blank lines.
 
+//  echo "ERROR: $error<br>";
+
   $err = html_entity_decode(preg_replace("/<.*?>/", '', $error));
   $err = preg_replace("/^\s*$/", '', $err);
 

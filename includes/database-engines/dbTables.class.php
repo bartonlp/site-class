@@ -36,7 +36,7 @@ class dbTables {
     // <tr><td>fieldname</td>...</tr>
 
     // Depreciated Send webmaster an email
-    mail($this->EMAILADDRESS, "maketbodyrows Depreciated", "file: " . __FILE__ . " line: " . __LINE__ .
+    mail($this->EMAILADDRESS, "dbTables: maketbodyrows Depreciated, file: " . __FILE__ . " line: " . __LINE__ .
          "\n$query",
          $this->EMAILFROM, "-f " . $this->EMAILRETURN);
     
@@ -241,9 +241,9 @@ class dbTables {
       // Replace the key in the $desc with the value.
       
       foreach($row as $k=>$v) {
+        $v = $v ?? ''; // BLP 2022-02-02 -- for php 8.1. If null trows a depreciated error.
         if(preg_match("~\\\\0~i", $v, $m)) {
           $v = preg_replace("~\\\\0~i", '~~0', $v);
-          //echo "V: $v\n\n";
         }
         $desc = preg_replace("/{$sdelimlft}{$k}{$sdelimrit}/", "{$rdelimlft}{$v}{$rdelimrit}", $desc);
       }
