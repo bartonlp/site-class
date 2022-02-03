@@ -163,19 +163,17 @@ class SiteClass extends dbAbstract {
     // mysitemap.json file that has dbinfo->user as 'test'. It is in the
     // bartonphillips.com/exmples.js/user-test directory.
     // In general all databases that are going to do anything with counters etc. must have a user
-    // of 'barton' or set $this->noTrack to true. Still the program can NOT do any calls via masterdb!
+    // of 'barton' and $this->nodb false. Still the program can NOT do any calls via masterdb!
 
     if($this->dbinfo->user == "barton" && $this->nodb !== true) { // BLP 2021-12-31 -- make sure its the 'barton' user!
       $this->query("select count(*) from information_schema.tables ".
                    "where (table_schema = '$this->masterdb') and (table_name = 'myip')");
 
       if($this->fetchrow('num')[0]) {
-        if($this->dbinfo->user == 'barton' && $this->nodb !== true && $this->noTrack !== true) { // BLP 2021-09-24 -- add full list
-          $sql = "select myIp from $this->masterdb.myip";
-          $this->query($sql);
-          while([$ip] = $this->fetchrow('num')) {
-            $this->myIp[] = $ip;
-          }
+        $sql = "select myIp from $this->masterdb.myip";
+        $this->query($sql);
+        while($ip = $this->fetchrow('num')[0]) {
+          $this->myIp[] = $ip;
         }
       } else {
         $this->debug("$this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__);
