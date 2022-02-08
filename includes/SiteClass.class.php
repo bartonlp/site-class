@@ -72,7 +72,7 @@ define("SITE_CLASS_VERSION", "3.0.12"); // BLP 2022-01-28 --
  * @package SiteClass
  * @author Barton Phillips <barton@bartonphillips.com>
  * @link http://www.bartonphillips.com
- * @copyright Copyright (c) 2010, Barton Phillips
+ * @copyright Copyright (c) 2022, Barton Phillips
  * @license  MIT
  */
 
@@ -386,13 +386,13 @@ EOF;
 
     $h->base = $h->base ?? $this->base; // BLP 2022-01-28 -- new
     $h->title = $h->title ?? $this->title ?? ltrim($this->self, '/'); // BLP 2022-01-04 -- change from siteName to self
-    $h->desc = $h->desc ?? $h->title ?? $this->title; // BLP 2021-12-08 -- add $this->title from mysitemap.json
-    $h->keywords = $h->keywords ?? $this->keywords ?? $h->desc ?? "Something Interesting";
+    $h->desc = $h->desc ?? $this->desc ?? $h->title; // BLP 2022-02-07 -- $h or $this->desc or $h->title from above
+    $h->keywords = $h->keywords ?? $this->keywords ?? $h->desc; // BLP 2022-02-07 -- $h->desc will always be something
     $h->favicon = $h->favicon ?? $this->favicon ?? 'https://bartonphillips.net/images/favicon.ico';
     $h->defaultCss = $h->defaultCss ?? $this->defaultCss ?? 'https://bartonphillips.net/css/blp.css';
     $h->preheadcomment = $h->preheadcomment ?? $this->preheadcomment;
     $h->lang = $h->lang ?? $this->lang ?? 'en';
-    $h->htmlextra = $h->htmlextra ?? $this->htmlextra; // can also be from mysitemap.json
+    $h->htmlextra = $h->htmlextra ?? $this->htmlextra;
 
     $html = '<html lang="' . $h->lang . '" ' . $h->htmlextra . ">"; // stuff like manafest etc.
 
@@ -463,8 +463,8 @@ EOF;
     
     $image1 = "<img id='logo' data-image='$this->trackerImg1' src=''></a>";
     if($this->nodb !== true && $this->noTrack !== true) {
-      $image2 = "<img src='https://bartonphillips.net/tracker.php?page=normal&id=$this->LAST_ID&image=$this->trackerImg2' alt='linux counter image.'>";
-      $image3 = "<img src='https://bartonphillips.net/tracker.php?page=noscript&id=$this->LAST_ID'>";
+      $image2 = "<img id='headerImage2' src='https://bartonphillips.net/tracker.php?page=normal&id=$this->LAST_ID&image=$this->trackerImg2'>";
+      $image3 = "<img id='noscript' src='https://bartonphillips.net/tracker.php?page=noscript&id=$this->LAST_ID'>";
     }
     
     if(!is_null($this->bannerFile)) {

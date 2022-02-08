@@ -1,5 +1,6 @@
 <?php
 /* MAINTAINED and WELL TESTED */
+// BLP 2022-02-06 -- Add E_DEPRECATED
 // BLP 2021-03-15 -- see setDevelopment()
   
 // Contains the my_errorhandler, my_exceptionhandler, Error class.
@@ -186,9 +187,9 @@ function finalOutput($error, $from) {
     if(!$s || empty($s->EMAILADDRESS)) {
       $s->EMAILADDRESS = $s->EMAILRETURN = $s->EMAILFROM = "bartonphillips@gmail.com";
     }
-    mail("bartonphillips@gmail.com", 'TEST', "Some more", "From: newbern-nc.info\r\nBcc: bartonphillips@gmail.com");        
-    //mail($s->EMAILADDRESS, $from, "{$err}{$userId}",
-      //   "From: ". $s->EMAILFROM, "-f ". $s->EMAILRETURN);
+    //mail("bartonphillips@gmail.com", 'TEST From ErrorClass', "This is a test", "From: Barton\r\nBcc: bartonphillips@gmail.com");        
+    mail($s->EMAILADDRESS, $from, "{$err}{$userId}",
+         "From: ". $s->EMAILFROM, "-f ". $s->EMAILRETURN);
   }
 
   // Log the raw error info.
@@ -272,8 +273,9 @@ class ErrorClass {
     
     if(!isset($args->errType)) {
       if(is_null(self::$errType)) {
-        set_error_handler('my_errorhandler', E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
-        self::setErrorType(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
+        // BLP 2022-02-06 -- ADD E_DEPRECATED
+        set_error_handler('my_errorhandler', E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT | E_DEPRECATED));
+        self::setErrorType(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT | E_DEPRECATED));
       } // if self::$errType is set then the handler has already been set
     } else {
       // $args->errType is set
