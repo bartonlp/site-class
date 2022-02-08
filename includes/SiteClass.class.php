@@ -1,6 +1,6 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
-// BLP 2022-02-08 -- New version 3.1
+// BLP 2022-02-08 -- New version 3.1. Make getPageWigget() public.
 // BLP 2022-02-08 -- add return types to some functions
 // BLP 2022-01-24 -- getPageTop() use title if not banner
 // BLP 2022-01-04 -- getPageHead() $h->title. Change final default from siteName to self
@@ -588,16 +588,11 @@ EOF;
     return __CLASS__;
   }
 
-  // ********************************************************************************
-  // Private and protected methods
-  // protected methods can be overridden in child classes so most things that would be private
-  // should be protected in this base class
-
   /**
    * getCounterWigget()
    */
 
-  protected function getCounterWigget($msg="Page Hits"):string|null {
+  public function getCounterWigget(?string $msg="Page Hits"):string|null {
     if($this->nodb) return null;
 
     // Counter at bottom of page
@@ -623,6 +618,11 @@ $hits
 </div>
 EOF;
   }
+
+  // ********************************************************************************
+  // Private and protected methods
+  // protected methods can be overridden in child classes so most things that would be private
+  // should be protected in this base class
 
   /**
    * checkIfBot()
