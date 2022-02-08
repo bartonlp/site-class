@@ -1,5 +1,7 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2022-02-08 -- New version 3.1
+// BLP 2022-02-08 -- add return types to some functions
 // BLP 2022-01-24 -- getPageTop() use title if not banner
 // BLP 2022-01-04 -- getPageHead() $h->title. Change final default from siteName to self
 // BLP 2022-01-02 -- in getPageFooter() add/update use of nofooter, count, noLastmod and footerFile.
@@ -62,7 +64,7 @@
 // BLP 2016-11-27 -- changed the sense of $this->myIp and $this->myUri. Now $this->myUri can be an
 // object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "3.0.12"); // BLP 2022-01-28 -- 
+define("SITE_CLASS_VERSION", "3.1"); // BLP 2022-02-08 -- New Version
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -187,7 +189,7 @@ class SiteClass extends dbAbstract {
     // These all check $this->nodb first and return at once if it is true.
     
     if($this->noTrack !== true) {
-      // checkIfBots() must be done first
+      // checkIfBot() must be done first
       $this->checkIfBot(); // This set $this->isBot. Does a isMe() so I never get set as a bot!
       $this->trackbots();  // both 'bots' and 'bots2'. This also does a isMe() so never get put into the 'bots*' tables.
       $this->tracker();    // This logs Me and everybody else!
@@ -235,7 +237,7 @@ class SiteClass extends dbAbstract {
    * BLP 2021-10-25 -- added thedomain
    */
 
-  public function setSiteCookie($cookie, $value, $expire, $path="/", $thedomain=null, $secure=null, $httponly=null, $samesite=null) {
+  public function setSiteCookie($cookie, $value, $expire, $path="/", $thedomain=null, $secure=null, $httponly=null, $samesite=null):bool {
     $ref = $thedomain ?? "." . $this->siteDomain; // BLP 2021-10-16 -- added dot back to ref.
     $secure = $secure ?? true;
     $httponly = $httponly ?? false;
@@ -267,7 +269,7 @@ class SiteClass extends dbAbstract {
    * BLP 2021-12-31 -- Remove myUrl stuff. myIp is always an array and never a string!
    */
 
-  public function isMe() {
+  public function isMe():bool {
     return (array_intersect([$this->ip], $this->myIp)[0] === null) ? false : true;
   }
 
@@ -276,7 +278,7 @@ class SiteClass extends dbAbstract {
    * @return string version number
    */
 
-  public function getVersion() {
+  public function getVersion():string {
     return SITE_CLASS_VERSION;
   }
 
@@ -286,7 +288,7 @@ class SiteClass extends dbAbstract {
    * @return int ip address
    */
 
-  public function getIp() {
+  public function getIp():string {
     return $this->ip;
   }
 
@@ -294,7 +296,7 @@ class SiteClass extends dbAbstract {
    * getHitCount()
    */
 
-  public function getHitCount() {
+  public function getHitCount():int {
     return $this->hitCount;
   }
 
@@ -303,7 +305,7 @@ class SiteClass extends dbAbstract {
    * Returns the CURRENT DocType used by this program
    */
 
-  public function getDoctype() {
+  public function getDoctype():string {
     return $this->doctype;
   }
 
@@ -316,7 +318,7 @@ class SiteClass extends dbAbstract {
    * BLP 2014-12-31 -- Add footer to $h parameter to have the $b array etc.
    */
 
-  public function getPageTopBottom(?object $h=null, ?object $b=null) {
+  public function getPageTopBottom(?object $h, ?object $b):array {
     $h = $h ?? new stdClass;
 
     // If $b is null use $h->footer which could also be null
@@ -328,7 +330,7 @@ class SiteClass extends dbAbstract {
     $top = $this->getPageTop($h);
     $footer = $this->getPageFooter($b);
     // return the array which we usually get via '[$top, $footer] = $S->getPageTopBottom($h, $b)'
-    return array($top, $footer);
+    return [$top, $footer];
   }
 
   /**
@@ -339,7 +341,7 @@ class SiteClass extends dbAbstract {
    * @return string with the <head>  and <header> (ie banner) sections
    */
   
-  public function getPageTop(?object $h=null) {
+  public function getPageTop(?object $h):string {
     $h = $h ?? new stdClass;
     
     // from getPageTopBottom($h.. or from mysitemap.json
@@ -365,7 +367,7 @@ class SiteClass extends dbAbstract {
    * @return string $pageHead
    */
 
-  public function getPageHead(?object $h=null) {
+  public function getPageHead(?object $h):string {
     // BLP 2022-01-24 -- moved this from head.i.php to here
 
     $h = $h ?? new stdClass;
@@ -455,7 +457,7 @@ EOF;
    * @return string banner
    */
 
-  public function getPageBanner(?object $h=null) {
+  public function getPageBanner(?object $h):string {
     $h = $h ?? new stdClass;
 
     $bodytag = $h->bodytag ?? $this->bodytag ?? "<body>";
@@ -502,7 +504,7 @@ EOF;
    * @return string
    */
   
-  public function getPageFooter(?object $b=null) {
+  public function getPageFooter(?object $b):string {
     // BLP 2022-01-02 -- if nofooter is true just return an empty footer
 
     $b = $b ?? new stdClass;
@@ -595,7 +597,7 @@ EOF;
    * getCounterWigget()
    */
 
-  protected function getCounterWigget($msg="Page Hits") {
+  protected function getCounterWigget($msg="Page Hits"):string|null {
     if($this->nodb) return null;
 
     // Counter at bottom of page
@@ -619,9 +621,7 @@ $hits
 </tr>
 </table>
 </div>
-
 EOF;
-
   }
 
   /**
@@ -631,7 +631,7 @@ EOF;
    * return nothing.
    */
 
-  protected function checkIfBot() {
+  protected function checkIfBot():void {
     if($this->nodb) {
       return;
     }
@@ -671,7 +671,7 @@ EOF;
    * This sets $this->isBot unless the 'bots' table is not found.
    */
 
-  protected function trackbots() {
+  protected function trackbots():void {
     if($this->nodb) {
       return;
     }
@@ -744,7 +744,7 @@ EOF;
    * BLP 2016-12-20 -- added refid. This could be overwritten by tracker.php 'script' by the id of a previous item.
    */
 
-  protected function tracker() {
+  protected function tracker():void {
     if($this->nodb) {
       return;
     }
@@ -790,7 +790,7 @@ EOF;
    * This is NOT done if we are not using a database or isMe() is false. That is it is NOT me.
    */
 
-  protected function updatemyip() {
+  protected function updatemyip():void {
     if($this->nodb === true || $this->isMe() === false) {
       return;
     }
@@ -823,7 +823,7 @@ EOF;
    * counter() updates $this->hitCount
    */
 
-  protected function counter() {
+  protected function counter():void {
     if($this->nodb) {
       return;
     }
@@ -874,7 +874,7 @@ EOF;
    * BLP 2021-03-16 -- removed 'member' logic
    */
   
-  protected function counter2() {
+  protected function counter2():void {
     if($this->nodb) {
       return;
     }
@@ -903,7 +903,7 @@ EOF;
    * This updates the 'mytime' cookie.
    */
 
-  protected function daycount() {
+  protected function daycount():void {
     if($this->nodb) {
       return;
     }
@@ -965,7 +965,7 @@ EOF;
    * logagent is now used for 'analysis'
    */
   
-  protected function logagent() {
+  protected function logagent():void {
     if($this->nodb) {
       return;
     }
@@ -995,7 +995,7 @@ EOF;
    * If noErrorLog is set in mysitemap.json then don't do error_log()
    */
 
-  protected function debug($msg, $exit=false) {
+  protected function debug(string $msg, $exit=false):void {
     if($this->noErrorLog === true) {
       return;
     }
