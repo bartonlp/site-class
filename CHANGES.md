@@ -1,3 +1,5 @@
+# BLP 2022-02-08 -- New version 3.1. Added argument and return types for php 8.1
+
 # BLP 2021-10-28 -- Reworked Database.class.php
 
 It only use a single object. I no longer get password from the domain's mysitemap.json. I now get it from a secure location at
