@@ -318,9 +318,9 @@ class SiteClass extends dbAbstract {
    * BLP 2014-12-31 -- Add footer to $h parameter to have the $b array etc.
    */
 
-  public function getPageTopBottom(?object $h, ?object $b):array {
+  public function getPageTopBottom(?object $h, ?object $b=null):array {
     $h = $h ?? new stdClass;
-
+        
     // If $b is null use $h->footer which could also be null
 
     $b = $b ?? $h->footer ?? new stdClass;
