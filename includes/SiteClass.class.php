@@ -237,7 +237,8 @@ class SiteClass extends dbAbstract {
    * BLP 2021-10-25 -- added thedomain
    */
 
-  public function setSiteCookie($cookie, $value, $expire, $path="/", $thedomain=null, $secure=null, $httponly=null, $samesite=null):bool {
+  public function setSiteCookie(string $cookie, string $value, int $expire, string $path="/", ?string $thedomain=null,
+                                ?bool $secure=null, ?bool $httponly=null, ?string $samesite=null):bool {
     $ref = $thedomain ?? "." . $this->siteDomain; // BLP 2021-10-16 -- added dot back to ref.
     $secure = $secure ?? true;
     $httponly = $httponly ?? false;
@@ -257,6 +258,7 @@ class SiteClass extends dbAbstract {
                      );
 
     if(!setcookie($cookie, $value, $options)) {
+      $this->debug("$this->siteName: $this->self: setcookie failed ". __LINE__);
       return false;
     }
     return true;
@@ -314,21 +316,18 @@ class SiteClass extends dbAbstract {
    * Get Page Top (<head> and <header> ie banner) and Footer
    * @param ?object $h top stuff
    * @param ?object $b bottom stuff
+   *  if $h->footer then use it for the footer and do not call getPageFooter()
    * @return array top, footer
    * BLP 2014-12-31 -- Add footer to $h parameter to have the $b array etc.
    */
 
-  public function getPageTopBottom(?object $h, ?object $b=null):array {
+  public function getPageTopBottom(?object $h=null, ?object $b=null):array {
     $h = $h ?? new stdClass;
         
-    // If $b is null use $h->footer which could also be null
-
-    $b = $b ?? $h->footer ?? new stdClass;
-
     // Do getPageTop and getPageFooter
 
     $top = $this->getPageTop($h);
-    $footer = $this->getPageFooter($b);
+    $footer = $h->footer ?? $this->getPageFooter($b);
     // return the array which we usually get via '[$top, $footer] = $S->getPageTopBottom($h, $b)'
     return [$top, $footer];
   }
@@ -341,7 +340,7 @@ class SiteClass extends dbAbstract {
    * @return string with the <head>  and <header> (ie banner) sections
    */
   
-  public function getPageTop(?object $h):string {
+  public function getPageTop(?object $h=null):string {
     $h = $h ?? new stdClass;
     
     // from getPageTopBottom($h.. or from mysitemap.json
@@ -367,9 +366,7 @@ class SiteClass extends dbAbstract {
    * @return string $pageHead
    */
 
-  public function getPageHead(?object $h):string {
-    // BLP 2022-01-24 -- moved this from head.i.php to here
-
+  public function getPageHead(?object $h=null):string {
     $h = $h ?? new stdClass;
 
     // Should we use tracker.js? If either noTrack or nodb are set in mysitemap.json then don't
@@ -457,7 +454,7 @@ EOF;
    * @return string banner
    */
 
-  public function getPageBanner(?object $h):string {
+  public function getPageBanner(?object $h=null):string {
     $h = $h ?? new stdClass;
 
     $bodytag = $h->bodytag ?? $this->bodytag ?? "<body>";
@@ -504,7 +501,7 @@ EOF;
    * @return string
    */
   
-  public function getPageFooter(?object $b):string {
+  public function getPageFooter(?object $b=null):string {
     // BLP 2022-01-02 -- if nofooter is true just return an empty footer
 
     $b = $b ?? new stdClass;
