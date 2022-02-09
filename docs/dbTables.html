@@ -1,47 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="pandoc">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>dbTables</title>
-  <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
-div.sourceCode { overflow-x: auto; }
-table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
-  margin: 0; padding: 0; vertical-align: baseline; border: none; }
-table.sourceCode { width: 100%; line-height: 100%; }
-td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
-td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code > span.dt { color: #902000; } /* DataType */
-code > span.dv { color: #40a070; } /* DecVal */
-code > span.bn { color: #40a070; } /* BaseN */
-code > span.fl { color: #40a070; } /* Float */
-code > span.ch { color: #4070a0; } /* Char */
-code > span.st { color: #4070a0; } /* String */
-code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code > span.ot { color: #007020; } /* Other */
-code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code > span.fu { color: #06287e; } /* Function */
-code > span.er { color: #ff0000; font-weight: bold; } /* Error */
-code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-code > span.cn { color: #880000; } /* Constant */
-code > span.sc { color: #4070a0; } /* SpecialChar */
-code > span.vs { color: #4070a0; } /* VerbatimString */
-code > span.ss { color: #bb6688; } /* SpecialString */
-code > span.im { } /* Import */
-code > span.va { color: #19177c; } /* Variable */
-code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code > span.op { color: #666666; } /* Operator */
-code > span.bu { } /* BuiltIn */
-code > span.ex { } /* Extension */
-code > span.pp { color: #bc7a00; } /* Preprocessor */
-code > span.at { color: #7d9029; } /* Attribute */
-code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <style type="text/css">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
   
   <style>
@@ -54,119 +85,112 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
     background-color: #EEF3E2;
   }
   </style>
-  <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
-  <![endif]-->
 </head>
 <body>
 <h1 id="dbtables-documentation">dbTables Documentation</h1>
 <hr />
 <p>The <strong>dbTables</strong> makes creating tables simple.</p>
-<div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">&lt;?php</span>
-<span class="co">// example5.php</span>
-
-<span class="kw">$_site</span> = <span class="kw">require_once</span><span class="ot">(</span><span class="fu">getenv</span><span class="ot">(</span><span class="st">&quot;SITELOAD&quot;</span><span class="ot">)</span>.<span class="st">&quot;/siteload.php&quot;</span><span class="ot">);</span>
-
-ErrorClass::setNoEmailErrs<span class="ot">(</span><span class="kw">true</span><span class="ot">);</span>
-ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><span class="ot">);</span>
-
-<span class="kw">$S</span> = <span class="kw">new</span> <span class="kw">$_site</span>-&gt;className<span class="ot">(</span><span class="kw">$_site</span><span class="ot">);</span>
-<span class="kw">$T</span> = <span class="kw">new</span> dbTables<span class="ot">(</span><span class="kw">$S</span><span class="ot">);</span>
-
-<span class="co">// Pass some info to getPageTopBottom method</span>
-<span class="kw">$h</span>-&gt;title = <span class="st">&quot;Example 5&quot;</span><span class="ot">;</span> <span class="co">// Goes in the &lt;title&gt;&lt;/title&gt;</span>
-<span class="kw">$h</span>-&gt;banner = <span class="st">&quot;&lt;h1&gt;Example 5&lt;/h1&gt;&quot;</span><span class="ot">;</span> <span class="co">// becomes the &lt;header&gt; section</span>
-<span class="co">// Add some local css to but a border and padding on the table </span>
-<span class="kw">$h</span>-&gt;css = <span class="kw">&lt;&lt;&lt;EOF</span>
-<span class="st">  &lt;style&gt;</span>
-<span class="st">main table * {</span>
-<span class="st">  padding: .5em;</span>
-<span class="st">  border: 1px solid black;</span>
-<span class="st">}</span>
-<span class="st">  &lt;/style&gt;</span>
-<span class="kw">EOF;</span>
-
-<span class="fu">list</span><span class="ot">(</span><span class="kw">$top</span><span class="ot">,</span> <span class="kw">$footer</span><span class="ot">)</span> = <span class="kw">$S</span>-&gt;getPageTopBottom<span class="ot">(</span><span class="kw">$h</span><span class="ot">);</span>
-
-<span class="co">// create a table from the memberTable</span>
-<span class="kw">$sql</span> = <span class="st">&quot;select * from </span><span class="kw">$S</span><span class="st">-&gt;memberTable&quot;</span><span class="ot">;</span>
-<span class="fu">list</span><span class="ot">(</span><span class="kw">$tbl</span><span class="ot">)</span> = <span class="kw">$T</span>-&gt;maketable<span class="ot">(</span><span class="kw">$sql</span><span class="ot">);</span>
-
-<span class="fu">echo</span> <span class="kw">&lt;&lt;&lt;EOF</span>
-<span class="kw">$top</span>
-<span class="st">&lt;main&gt;</span>
-<span class="st">&lt;h3&gt;Create a table from the members database table&lt;/h3&gt;</span>
-<span class="st">&lt;p&gt;The members table follows:&lt;/p&gt;</span>
-<span class="kw">$tbl</span>
-<span class="st">&lt;/main&gt;</span>
-<span class="st">&lt;hr&gt;</span>
-<span class="kw">$footer</span>
-<span class="kw">EOF;</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode php"><code class="sourceCode php"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">&lt;?php</span></a>
+<a class="sourceLine" id="cb1-2" title="2"><span class="co">// example5.php</span></a>
+<a class="sourceLine" id="cb1-3" title="3"></a>
+<a class="sourceLine" id="cb1-4" title="4"><span class="kw">$_site</span> = <span class="kw">require_once</span><span class="ot">(</span><span class="fu">getenv</span><span class="ot">(</span><span class="st">&quot;SITELOAD&quot;</span><span class="ot">)</span>.<span class="st">&quot;/siteload.php&quot;</span><span class="ot">);</span></a>
+<a class="sourceLine" id="cb1-5" title="5"></a>
+<a class="sourceLine" id="cb1-6" title="6">ErrorClass::setNoEmailErrs<span class="ot">(</span><span class="kw">true</span><span class="ot">);</span></a>
+<a class="sourceLine" id="cb1-7" title="7">ErrorClass::setDevelopment<span class="ot">(</span><span class="kw">true</span><span class="ot">);</span></a>
+<a class="sourceLine" id="cb1-8" title="8"></a>
+<a class="sourceLine" id="cb1-9" title="9"><span class="kw">$S</span> = <span class="kw">new</span> <span class="kw">$_site</span>-&gt;className<span class="ot">(</span><span class="kw">$_site</span><span class="ot">);</span></a>
+<a class="sourceLine" id="cb1-10" title="10"><span class="kw">$T</span> = <span class="kw">new</span> dbTables<span class="ot">(</span><span class="kw">$S</span><span class="ot">);</span></a>
+<a class="sourceLine" id="cb1-11" title="11"></a>
+<a class="sourceLine" id="cb1-12" title="12"><span class="co">// Pass some info to getPageTopBottom method</span></a>
+<a class="sourceLine" id="cb1-13" title="13"><span class="kw">$h</span>-&gt;title = <span class="st">&quot;Example 5&quot;</span><span class="ot">;</span> <span class="co">// Goes in the &lt;title&gt;&lt;/title&gt;</span></a>
+<a class="sourceLine" id="cb1-14" title="14"><span class="kw">$h</span>-&gt;banner = <span class="st">&quot;&lt;h1&gt;Example 5&lt;/h1&gt;&quot;</span><span class="ot">;</span> <span class="co">// becomes the &lt;header&gt; section</span></a>
+<a class="sourceLine" id="cb1-15" title="15"><span class="co">// Add some local css to but a border and padding on the table </span></a>
+<a class="sourceLine" id="cb1-16" title="16"><span class="kw">$h</span>-&gt;css = <span class="kw">&lt;&lt;&lt;EOF</span></a>
+<a class="sourceLine" id="cb1-17" title="17"><span class="st">  &lt;style&gt;</span></a>
+<a class="sourceLine" id="cb1-18" title="18"><span class="st">main table * {</span></a>
+<a class="sourceLine" id="cb1-19" title="19"><span class="st">  padding: .5em;</span></a>
+<a class="sourceLine" id="cb1-20" title="20"><span class="st">  border: 1px solid black;</span></a>
+<a class="sourceLine" id="cb1-21" title="21"><span class="st">}</span></a>
+<a class="sourceLine" id="cb1-22" title="22"><span class="st">  &lt;/style&gt;</span></a>
+<a class="sourceLine" id="cb1-23" title="23"><span class="kw">EOF;</span></a>
+<a class="sourceLine" id="cb1-24" title="24"></a>
+<a class="sourceLine" id="cb1-25" title="25"><span class="kw">list</span><span class="ot">(</span><span class="kw">$top</span><span class="ot">,</span> <span class="kw">$footer</span><span class="ot">)</span> = <span class="kw">$S</span>-&gt;getPageTopBottom<span class="ot">(</span><span class="kw">$h</span><span class="ot">);</span></a>
+<a class="sourceLine" id="cb1-26" title="26"></a>
+<a class="sourceLine" id="cb1-27" title="27"><span class="co">// create a table from the memberTable</span></a>
+<a class="sourceLine" id="cb1-28" title="28"><span class="kw">$sql</span> = <span class="st">&quot;select * from </span><span class="kw">$S</span><span class="st">-&gt;memberTable&quot;</span><span class="ot">;</span></a>
+<a class="sourceLine" id="cb1-29" title="29"><span class="kw">list</span><span class="ot">(</span><span class="kw">$tbl</span><span class="ot">)</span> = <span class="kw">$T</span>-&gt;maketable<span class="ot">(</span><span class="kw">$sql</span><span class="ot">);</span></a>
+<a class="sourceLine" id="cb1-30" title="30"></a>
+<a class="sourceLine" id="cb1-31" title="31"><span class="kw">echo</span> <span class="kw">&lt;&lt;&lt;EOF</span></a>
+<a class="sourceLine" id="cb1-32" title="32"><span class="kw">$top</span></a>
+<a class="sourceLine" id="cb1-33" title="33"><span class="st">&lt;main&gt;</span></a>
+<a class="sourceLine" id="cb1-34" title="34"><span class="st">&lt;h3&gt;Create a table from the members database table&lt;/h3&gt;</span></a>
+<a class="sourceLine" id="cb1-35" title="35"><span class="st">&lt;p&gt;The members table follows:&lt;/p&gt;</span></a>
+<a class="sourceLine" id="cb1-36" title="36"><span class="kw">$tbl</span></a>
+<a class="sourceLine" id="cb1-37" title="37"><span class="st">&lt;/main&gt;</span></a>
+<a class="sourceLine" id="cb1-38" title="38"><span class="st">&lt;hr&gt;</span></a>
+<a class="sourceLine" id="cb1-39" title="39"><span class="kw">$footer</span></a>
+<a class="sourceLine" id="cb1-40" title="40"><span class="st">EOF;</span></a></code></pre></div>
 <p>The 'maketable' method takes several optional arguments to help setup the table. Using the options you can give your table an id or class or set any other attributes. You can also pass a 'callback' function which can modify the rows as they are selected (see the 'example-insert-update.php' file in the 'examples' directory for more information).</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">  <span class="kw">/**</span>
-   <span class="kw">*</span> maketable()
-   <span class="kw">*</span> Make a full table
-   <span class="kw">*</span>
-   <span class="kw">*</span> @param string <span class="ot">$query</span> : the table query
-   <span class="kw">*</span> @param array <span class="ot">$extra</span> : optional. 
-   <span class="kw">*</span>   <span class="ot">$extra</span> is an optional assoc array: <span class="ot">$extra[</span><span class="st">&#39;callback&#39;</span><span class="ot">]</span>, <span class="ot">$extra[</span><span class="st">&#39;callback2&#39;</span><span class="ot">]</span>, <span class="ot">$extra[</span><span class="st">&#39;footer&#39;</span><span class="ot">]</span> and <span class="ot">$extra[</span><span class="st">&#39;attr&#39;</span><span class="ot">]</span>.
-   <span class="kw">*</span>   <span class="ot">$extra[</span><span class="st">&#39;attr&#39;</span><span class="ot">]</span> is an assoc array that can have attributes for the <span class="kw">&lt;</span>table<span class="kw">&gt;</span> tag, like <span class="st">&#39;id&#39;</span>, <span class="st">&#39;title&#39;</span>, <span class="st">&#39;class&#39;</span>, <span class="st">&#39;style&#39;</span> etc.
-   <span class="kw">*</span>   <span class="ot">$extra[</span><span class="st">&#39;callback&#39;</span><span class="ot">]</span> function that can modify the header after it is filled in.
-   <span class="kw">*</span>   <span class="ot">$extra[callback2]</span> callback after <span class="ot">$desc</span> has the fields replaced with <span class="ot">$row</span> values.
-   <span class="kw">*</span>   <span class="ot">$extra[</span><span class="st">&#39;footer&#39;</span><span class="ot">]</span> a footer string 
-   <span class="kw">*</span> @return array [{string table}, <span class="dt">{result}</span>, <span class="dt">{num}</span>, <span class="dt">{hdr}</span>, <span class="ot">table=</span><span class="kw">&gt;</span><span class="dt">{string}</span>, <span class="ot">result=</span><span class="kw">&gt;</span><span class="dt">{result}</span>, <span class="ot">num=</span><span class="kw">&gt;</span>{<span class="kw">num</span> rows}, <span class="ot">header=</span><span class="kw">&gt;</span><span class="dt">{hdr}</span>]
-   <span class="kw">*</span> or === false
-   <span class="kw">*/</span>
-
-  <span class="kw">public</span> function maketable(<span class="ot">$query</span>, array <span class="ot">$extra</span>=null) <span class="dt">{...}</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" title="1">  <span class="ex">/**</span></a>
+<a class="sourceLine" id="cb2-2" title="2">   <span class="ex">*</span> maketable()</a>
+<a class="sourceLine" id="cb2-3" title="3">   <span class="ex">*</span> Make a full table</a>
+<a class="sourceLine" id="cb2-4" title="4">   <span class="ex">*</span></a>
+<a class="sourceLine" id="cb2-5" title="5">   <span class="ex">*</span> @param string <span class="va">$query</span> : the table query</a>
+<a class="sourceLine" id="cb2-6" title="6">   <span class="ex">*</span> @param array <span class="va">$extra</span> : optional. </a>
+<a class="sourceLine" id="cb2-7" title="7">   <span class="ex">*</span>   <span class="va">$extra</span> is an optional assoc array: <span class="va">$extra[</span><span class="st">&#39;callback&#39;</span><span class="va">]</span>, <span class="va">$extra[</span><span class="st">&#39;callback2&#39;</span><span class="va">]</span>, <span class="va">$extra[</span><span class="st">&#39;footer&#39;</span><span class="va">]</span> and <span class="va">$extra[</span><span class="st">&#39;attr&#39;</span><span class="va">]</span>.</a>
+<a class="sourceLine" id="cb2-8" title="8">   <span class="ex">*</span>   <span class="va">$extra[</span><span class="st">&#39;attr&#39;</span><span class="va">]</span> is an assoc array that can have attributes for the <span class="op">&lt;</span>table<span class="op">&gt;</span> tag, like <span class="st">&#39;id&#39;</span>, <span class="st">&#39;title&#39;</span>, <span class="st">&#39;class&#39;</span>, <span class="st">&#39;style&#39;</span> etc.</a>
+<a class="sourceLine" id="cb2-9" title="9">   <span class="ex">*</span>   <span class="va">$extra[</span><span class="st">&#39;callback&#39;</span><span class="va">]</span> function that can modify the header after it is filled in.</a>
+<a class="sourceLine" id="cb2-10" title="10">   <span class="ex">*</span>   <span class="va">$extra[callback2]</span> callback after <span class="va">$desc</span> has the fields replaced with <span class="va">$row</span> values.</a>
+<a class="sourceLine" id="cb2-11" title="11">   <span class="ex">*</span>   <span class="va">$extra[</span><span class="st">&#39;footer&#39;</span><span class="va">]</span> a footer string </a>
+<a class="sourceLine" id="cb2-12" title="12">   <span class="ex">*</span> @return array [{string table}, <span class="dt">{result}</span>, <span class="dt">{num}</span>, <span class="dt">{hdr}</span>, <span class="va">table=</span><span class="op">&gt;</span><span class="dt">{string}</span>, <span class="va">result=</span><span class="op">&gt;</span><span class="dt">{result}</span>, <span class="va">num=</span><span class="op">&gt;</span>{<span class="ex">num</span> rows}, <span class="va">header=</span><span class="op">&gt;</span><span class="dt">{hdr}</span>]</a>
+<a class="sourceLine" id="cb2-13" title="13">   <span class="ex">*</span> or === false</a>
+<a class="sourceLine" id="cb2-14" title="14">   <span class="ex">*/</span></a>
+<a class="sourceLine" id="cb2-15" title="15"></a>
+<a class="sourceLine" id="cb2-16" title="16">  <span class="ex">public</span> function maketable(<span class="va">$query</span>, array <span class="va">$extra</span>=null) <span class="dt">{...}</span></a></code></pre></div>
 <p>The '$extra' argument is an associative array with the following items:</p>
 <ul>
-<li><p>'callback': this contains a function to call. The function receives two reference arguments:<br />
-&amp;$row and &amp;$desc.<br />
+<li><p>'callback': this contains a function to call. The function receives two reference arguments: &amp;$row and &amp;$desc.<br />
 <code>function callbackfunction(&amp;$row, &amp;$desc) {}</code><br />
 The $row has the row from the table. The '$desc' looks like<br />
 <code>&lt;tr&gt;&lt;td&gt;*&lt;/td&gt;&lt;/tr&gt;</code><br />
 For example if your sql query looked like this:<br />
-<code>$sql = &quot;select test as Test from sometable&quot;;</code><br />
-Then $row['Test'] would have the item 'test' from the table. This value can be modified in the<br />
-callback function. For example:<br />
-<code>$row['Test'] = &quot;&lt;span class='odd'&gt;{$row['Test']}&lt;/span&gt;&quot;;</code><br />
+<code>$sql = "select test as Test from sometable";</code><br />
+Then $row['Test'] would have the item 'test' from the table. This value can be modified in the callback function. For example:<br />
+<code>$row['Test'] = "&lt;span class='odd'&gt;{$row['Test']}&lt;/span&gt;";</code><br />
 This code would change the referenced value.<br />
 '$desc' can be changed also:<br />
-<code>$desc = preg_replace('~&lt;tr&gt;~', &quot;&lt;tr class='oddtr'&gt;&quot;, $desc);</code></p></li>
-<li><p>'callback2': this is done after 'callback'. The callback2 function takes a single '&amp;$desc'<br />
-field. This argument is the final row description with all of the HTML in place.</p></li>
+<code>$desc = preg_replace('~&lt;tr&gt;~', "&lt;tr class='oddtr'&gt;", $desc);</code></p></li>
+<li><p>'callback2': this is done after 'callback'. The callback2 function takes a single '&amp;$desc' field. This argument is the final row description with all of the HTML in place.</p></li>
 <li><p>'footer': has the information to be placed at the bottom of the table.</p></li>
-<li><p>'attr': are the attributes for the table. For example if you wanted to add a 'border', an<br />
-'id' or a 'class'.</p></li>
+<li><p>'attr': are the attributes for the table. For example if you wanted to add a 'border', an 'id' or a 'class'.</p></li>
 </ul>
 <p>Here is an example with all of the items:</p>
-<div class="sourceCode"><pre class="sourceCode php"><code class="sourceCode php"><span class="kw">$info</span> = <span class="kw">$T</span>-&gt;maketable<span class="ot">(</span><span class="kw">$sql</span><span class="ot">,</span> <span class="fu">array</span><span class="ot">(</span><span class="st">&#39;callback&#39;</span>=&gt;callback1<span class="ot">,</span> <span class="st">&#39;callback2&#39;</span>=&gt;callback2<span class="ot">,</span>  
-        <span class="st">&#39;footer&#39;</span>=&gt;<span class="kw">$footer</span><span class="ot">,</span> <span class="st">&#39;attr&#39;</span>=&gt;<span class="fu">array</span><span class="ot">(</span><span class="st">&#39;border&#39;</span>=&gt;<span class="st">&#39;1&#39;</span><span class="ot">,</span> <span class="st">&#39;class&#39;</span>=&gt;<span class="st">&#39;something&#39;</span><span class="ot">)));</span>
-<span class="co">// $info[0] or $info[&#39;table&#39;] is the table html.</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode php"><code class="sourceCode php"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">$info</span> = <span class="kw">$T</span>-&gt;maketable<span class="ot">(</span><span class="kw">$sql</span><span class="ot">,</span> <span class="kw">array</span><span class="ot">(</span><span class="st">&#39;callback&#39;</span>=&gt;callback1<span class="ot">,</span> <span class="st">&#39;callback2&#39;</span>=&gt;callback2<span class="ot">,</span>  </a>
+<a class="sourceLine" id="cb3-2" title="2">        <span class="st">&#39;footer&#39;</span>=&gt;<span class="kw">$footer</span><span class="ot">,</span> <span class="st">&#39;attr&#39;</span>=&gt;<span class="kw">array</span><span class="ot">(</span><span class="st">&#39;border&#39;</span>=&gt;<span class="st">&#39;1&#39;</span><span class="ot">,</span> <span class="st">&#39;class&#39;</span>=&gt;<span class="st">&#39;something&#39;</span><span class="ot">)));</span></a>
+<a class="sourceLine" id="cb3-3" title="3"><span class="co">// $info[0] or $info[&#39;table&#39;] is the table html.</span></a></code></pre></div>
 <p>There is a second <strong>dbTables</strong> method which is not used directly as much. This method is called by 'maketable'. It creates only the result rows.</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash">  <span class="kw">/**</span>
-   <span class="kw">*</span> makeresultrows
-   <span class="kw">*</span> The <span class="ot">$rowdesc</span> can have a wild card like this: <span class="st">&#39;&lt;tr&gt;&lt;td&gt;*&lt;/td&gt;&lt;/tr&gt;&#39;</span>. Then make the <span class="ot">$extra[delim]</span> be
-   <span class="kw">*</span>   array(<span class="st">&quot;&lt;td&gt;&quot;</span>, <span class="st">&quot;&lt;/td&gt;&quot;</span>);
-   <span class="kw">*</span> Can also have a header like <span class="st">&#39;&lt;table&gt;&lt;thead&gt;%&lt;th&gt;*&lt;/th&gt;%&lt;/thead&gt;&#39;</span>. The header delimiter is always %.
-   <span class="kw">*</span> In both cases the fields from the query will replace the <span class="st">&#39;*&#39;</span>.
-   <span class="kw">*</span> Make the query fields what you want in the header using the <span class="st">&#39;as&#39;</span> keywork.
-   <span class="kw">*</span> @param string <span class="ot">$query</span>
-   <span class="kw">*</span> @param string <span class="ot">$rowdesc</span>
-   <span class="kw">*</span> @param array <span class="ot">$extra</span> : <span class="ot">$extra[delim]</span> is an array<span class="kw">|string</span> with the delimiter,
-   <span class="kw">*</span>                       <span class="ot">$extra[return]</span> if true the return value is an ARRAY else just a string with the rows
-   <span class="kw">*</span>                       <span class="ot">$extra[callback]</span> is a callback function: calback(<span class="kw">&amp;</span><span class="ot">$row</span>, <span class="kw">&amp;</span><span class="ot">$desc</span>);
-   <span class="kw">*</span>                       <span class="ot">$extra[callback2]</span> callback after <span class="ot">$desc</span> has the fields replaced with <span class="ot">$row</span> values.
-   <span class="kw">*</span>                       <span class="ot">$extra[header]</span> a header template. Delimiter is % around for example <span class="st">&#39;%&lt;th&gt;*&lt;/th&gt;%&#39;</span>
-   <span class="kw">*</span> @return string<span class="kw">|array</span>
-   <span class="kw">*</span>         if <span class="ot">$extra[return]</span> === true then returned is an
-   <span class="kw">*</span>            array({the row string}, <span class="dt">{result}</span>, <span class="dt">{num}</span>, <span class="dt">{header}</span>,
-   <span class="kw">*</span>                   rows=<span class="kw">&gt;</span>{row string}, <span class="ot">result=</span><span class="kw">&gt;</span><span class="dt">{result}</span>, <span class="ot">num=</span><span class="kw">&gt;</span>{<span class="kw">number</span> of rows}, <span class="ot">header=</span><span class="kw">&gt;</span><span class="dt">{header}</span>)
-   <span class="kw">*</span>         else a string with the rows
-   <span class="kw">*/</span>
-  
-  <span class="kw">public</span> function makeresultrows(<span class="ot">$query</span>, <span class="ot">$rowdesc</span>, array <span class="ot">$extra</span>=array()) <span class="dt">{...}</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb4-1" title="1">  <span class="ex">/**</span></a>
+<a class="sourceLine" id="cb4-2" title="2">   <span class="ex">*</span> makeresultrows</a>
+<a class="sourceLine" id="cb4-3" title="3">   <span class="ex">*</span> The <span class="va">$rowdesc</span> can have a wild card like this: <span class="st">&#39;&lt;tr&gt;&lt;td&gt;*&lt;/td&gt;&lt;/tr&gt;&#39;</span>. Then make the <span class="va">$extra[delim]</span> be</a>
+<a class="sourceLine" id="cb4-4" title="4">   <span class="ex">*</span>   array(<span class="st">&quot;&lt;td&gt;&quot;</span>, <span class="st">&quot;&lt;/td&gt;&quot;</span>);</a>
+<a class="sourceLine" id="cb4-5" title="5">   <span class="ex">*</span> Can also have a header like <span class="st">&#39;&lt;table&gt;&lt;thead&gt;%&lt;th&gt;*&lt;/th&gt;%&lt;/thead&gt;&#39;</span>. The header delimiter is always %.</a>
+<a class="sourceLine" id="cb4-6" title="6">   <span class="ex">*</span> In both cases the fields from the query will replace the <span class="st">&#39;*&#39;</span>.</a>
+<a class="sourceLine" id="cb4-7" title="7">   <span class="ex">*</span> Make the query fields what you want in the header using the <span class="st">&#39;as&#39;</span> keywork.</a>
+<a class="sourceLine" id="cb4-8" title="8">   <span class="ex">*</span> @param string <span class="va">$query</span></a>
+<a class="sourceLine" id="cb4-9" title="9">   <span class="ex">*</span> @param string <span class="va">$rowdesc</span></a>
+<a class="sourceLine" id="cb4-10" title="10">   <span class="ex">*</span> @param array <span class="va">$extra</span> : <span class="va">$extra[delim]</span> is an array<span class="kw">|</span><span class="ex">string</span> with the delimiter,</a>
+<a class="sourceLine" id="cb4-11" title="11">   <span class="ex">*</span>                       <span class="va">$extra[return]</span> if true the return value is an ARRAY else just a string with the rows</a>
+<a class="sourceLine" id="cb4-12" title="12">   <span class="ex">*</span>                       <span class="va">$extra[callback]</span> is a callback function: calback(<span class="kw">&amp;</span><span class="va">$row</span>, <span class="kw">&amp;</span><span class="va">$desc</span>);</a>
+<a class="sourceLine" id="cb4-13" title="13">   <span class="ex">*</span>                       <span class="va">$extra[callback2]</span> callback after <span class="va">$desc</span> has the fields replaced with <span class="va">$row</span> values.</a>
+<a class="sourceLine" id="cb4-14" title="14">   <span class="ex">*</span>                       <span class="va">$extra[header]</span> a header template. Delimiter is % around for example <span class="st">&#39;%&lt;th&gt;*&lt;/th&gt;%&#39;</span></a>
+<a class="sourceLine" id="cb4-15" title="15">   <span class="ex">*</span> @return string<span class="kw">|</span><span class="ex">array</span></a>
+<a class="sourceLine" id="cb4-16" title="16">   <span class="ex">*</span>         if <span class="va">$extra[return]</span> === true then returned is an</a>
+<a class="sourceLine" id="cb4-17" title="17">   <span class="ex">*</span>            array({the row string}, <span class="dt">{result}</span>, <span class="dt">{num}</span>, <span class="dt">{header}</span>,</a>
+<a class="sourceLine" id="cb4-18" title="18">   <span class="ex">*</span>                   rows=<span class="op">&gt;</span>{row string}, <span class="va">result=</span><span class="op">&gt;</span><span class="dt">{result}</span>, <span class="va">num=</span><span class="op">&gt;</span>{<span class="ex">number</span> of rows}, <span class="va">header=</span><span class="op">&gt;</span><span class="dt">{header}</span>)</a>
+<a class="sourceLine" id="cb4-19" title="19">   <span class="ex">*</span>         else a string with the rows</a>
+<a class="sourceLine" id="cb4-20" title="20">   <span class="ex">*/</span></a>
+<a class="sourceLine" id="cb4-21" title="21">  </a>
+<a class="sourceLine" id="cb4-22" title="22">  <span class="ex">public</span> function makeresultrows(<span class="va">$query</span>, <span class="va">$rowdesc</span>, array <span class="va">$extra</span>=array()) <span class="dt">{...}</span></a></code></pre></div>
 <h2 id="dbtables-methods">dbTables Methods</h2>
 <ul>
 <li>constructor</li>
@@ -179,20 +203,9 @@ $extra['footer'] a footer string<br />
 @return array [{string table}, {result}, {num}, {hdr}, table=&gt;{string}, result=&gt;{result}, num=&gt;{num rows}, header=&gt;{hdr}] or === false</li>
 </ul>
 <hr />
-<p><a href="examples.html">Examples</a><br />
-<a href="dbTables.html">dbTables</a><br />
-<a href="siteclass.html">SiteClass Methods</a><br />
-<a href="files.html">Additional Files</a><br />
-<a href="analysis.html">Analysis and Tracking</a><br />
-<a href="testing.html">Testing</a><br />
-<a href="index.html">Index</a></p>
+<p><a href="examples.html">Examples</a> <a href="dbTables.html">dbTables</a> <a href="siteclass.html">SiteClass Methods</a> <a href="files.html">Additional Files</a> <a href="analysis.html">Analysis and Tracking</a> <a href="testing.html">Testing</a> <a href="index.html">Index</a></p>
 <h2 id="contact-me">Contact Me</h2>
-<p>Barton Phillips : <script type="text/javascript">
-<!--
-h='&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#x2f;&#x2f;&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;';e=n+a+h;
-document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;'+'<\/'+'a'+'>');
-// -->
-</script><noscript>&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#64;&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;&#32;&#40;&#x2f;&#x2f;&#98;&#x61;&#114;&#116;&#x6f;&#110;&#112;&#104;&#x69;&#108;&#108;&#x69;&#112;&#x73;&#32;&#x61;&#116;&#32;&#x67;&#x6d;&#x61;&#x69;&#108;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;&#x29;</noscript><br />
+<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a><br />
 Copyright © 2022 Barton Phillips<br />
 Project maintained by <a href="https://github.com/bartonlp">bartonlp</a></p>
 </body>

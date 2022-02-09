@@ -242,5 +242,5 @@ Using the above *css* you can create almost any type of counter you want.
 ## Contact Me
 
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
-Copyright &copy; 2017 Barton Phillips  
+Copyright &copy; 2022 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)
