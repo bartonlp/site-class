@@ -12,7 +12,7 @@ abstract class dbAbstract {
 
   abstract public function __toString();
 
-  public function getDbName() {
+  public function getDbName():string {
     $database = $this->db->database;
     if($database) {
       return $database;
@@ -29,7 +29,7 @@ abstract class dbAbstract {
   }
   
   // The following methods either execute or if the method is not defined throw an Exception
-
+  
   public function query($query) {
     if(method_exists($this->db, 'query')) {
       return $this->db->query($query);

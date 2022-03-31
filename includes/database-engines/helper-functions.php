@@ -18,7 +18,7 @@ if(!function_exists('vardump')) {
     for($i=0; $i < count($args); ++$i) {
       $v .= escapeltgt(print_r($args[$i], true));
     }
-    echo "<pre class='vardump' style='font-size: .7rem; font-family: \"Monospace\"'>$msg$v</pre>";
+    echo "<pre class='vardump'>$msg$v</pre>";
   }
 } 
 

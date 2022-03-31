@@ -4,5 +4,6 @@
 LOGFILE
 composer.lock
 .cache_ggshield
+*#
 
 

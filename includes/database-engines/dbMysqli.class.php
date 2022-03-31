@@ -269,11 +269,11 @@ class dbMysqli extends dbAbstract {
    * Get the Database Resource Link Identifier
    * @return resource link identifier
    */
-  
-  public function getDb() {
+/*  
+  public function getDb():Database {
     return $this->db;
   }
-
+*/
   public function getResult() {
     return $this->result;
   }
