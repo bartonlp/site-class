@@ -1,5 +1,6 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2022-02-23 -- Added several $b items to getPageFooter(). See comment at location.
 // BLP 2022-02-08 -- New version 3.1. Make getPageWigget() public.
 // BLP 2022-02-08 -- add return types to some functions
 // BLP 2022-01-24 -- getPageTop() use title if not banner
@@ -178,7 +179,7 @@ class SiteClass extends dbAbstract {
           $this->myIp[] = $ip;
         }
       } else {
-        $this->debug("$this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__);
+        $this->debug("SiteClass $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__);
       }
     }
     
@@ -258,7 +259,7 @@ class SiteClass extends dbAbstract {
                      );
 
     if(!setcookie($cookie, $value, $options)) {
-      $this->debug("$this->siteName: $this->self: setcookie failed ". __LINE__);
+      $this->debug("SiteClass $this->siteName: $this->self: setcookie failed ". __LINE__);
       return false;
     }
     return true;
@@ -369,16 +370,6 @@ class SiteClass extends dbAbstract {
   public function getPageHead(?object $h=null):string {
     $h = $h ?? new stdClass;
 
-    // Should we use tracker.js? If either noTrack or nodb are set in mysitemap.json then don't
-    
-    if($this->noTrack === true || $this->nodb === true) {
-      $trackerStr = '';
-    } else {
-      $trackerStr =<<<EOF
-<script data-lastid="$this->LAST_ID" src="https://bartonphillips.net/js/tracker.js"></script>
-EOF;
-    } 
-
     // use either $h or $this values or a constant
 
     $dtype = $h->doctype ?? $this->doctype; // note that $this->doctype (from the top) could also be from mysitemap.json see the constructor.
@@ -393,12 +384,39 @@ EOF;
     $h->lang = $h->lang ?? $this->lang ?? 'en';
     $h->htmlextra = $h->htmlextra ?? $this->htmlextra;
 
+    $h->nojquery = $h->nojquery ?? $this->nojquery; // new logic
+
+    // If nojquery is true then don't add $trackerStr
+    
+    if($h->nojquery !== true) {
+      $jQuery = <<<EOF
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-migrate-3.3.2.min.js"
+    integrity="sha256-Ap4KLoCf1rXb52q+i3p0k2vjBsmownyBTE1EqlRiMwA=" crossorigin="anonymous"></script>
+  <script>jQuery.migrateMute = false; jQuery.migrateTrace = false;</script>
+EOF;
+      // Should we use tracker.js? If either noTrack or nodb are set in mysitemap.json then don't
+
+      $h->noTrack = $h->noTrack ?? $this->noTrack;
+      $h->nodb = $h->nodb ?? $this->nodb;
+
+      if($h->noTrack === true || $h->nodb === true) {
+        $trackerStr = '';
+      } else {
+        $trackerStr =<<<EOF
+  <script data-lastid="$this->LAST_ID" src="https://bartonphillips.net/js/tracker.js"></script>
+EOF;
+      } 
+    }
+    
     $html = '<html lang="' . $h->lang . '" ' . $h->htmlextra . ">"; // stuff like manafest etc.
 
     // What if headFile is null?
 
     if(!is_null($this->headFile)) {
-      // BLP 2022-01-24 -- $trackerStr is available.
+      // BLP 2022-03-31 - $jQuery and $trackerStr are available.
+
       // If the require returns -1 it is an error.
 
       if(($p = require_once($this->headFile)) != 1) {
@@ -420,10 +438,7 @@ $html
   <meta name="description" content="{$h->desc}"/>
   <!-- local link -->
 {$h->link}
-  <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://code.jquery.com/jquery-migrate-3.3.2.min.js"></script>
-  <script>jQuery.migrateMute = false; jQuery.migrateTrace = false;</script>
+$jQuery
 $trackerStr
   <!-- extra -->
 {$h->extra}
@@ -432,7 +447,6 @@ $trackerStr
   <!-- local css -->
 {$h->css}
 </head>
-
 EOF;
     }
 
@@ -440,7 +454,6 @@ EOF;
     $pageHead = <<<EOF
 {$h->preheadcomment}{$dtype}
 $pageHeadText
-
 EOF;
 
     return $pageHead;
@@ -459,11 +472,13 @@ EOF;
 
     $bodytag = $h->bodytag ?? $this->bodytag ?? "<body>";
     $mainTitle = $h->banner ?? $this->mainTitle;
+
+    // BLP 2022-03-24 -- Add alt and add src='blank.gif'
     
-    $image1 = "<img id='logo' data-image='$this->trackerImg1' src=''></a>";
+    $image1 = "<img id='logo' data-image='$this->trackerImg1' alt='logo' src='https://bartonphillips.net/images/blank.gif'>";
     if($this->nodb !== true && $this->noTrack !== true) {
-      $image2 = "<img id='headerImage2' src='https://bartonphillips.net/tracker.php?page=normal&id=$this->LAST_ID&image=$this->trackerImg2'>";
-      $image3 = "<img id='noscript' src='https://bartonphillips.net/tracker.php?page=noscript&id=$this->LAST_ID'>";
+      $image2 = "<img id='headerImage2' alt='headerImage2' src='https://bartonphillips.net/tracker.php?page=normal&amp;id=$this->LAST_ID&amp;image=$this->trackerImg2'>";
+      $image3 = "<img id='noscript' alt='noscriptImage' src='https://bartonphillips.net/tracker.php?page=noscript&amp;id=$this->LAST_ID'>";
     }
     
     if(!is_null($this->bannerFile)) {
@@ -517,12 +532,17 @@ EOF;
     
     // Make the bottom of the page counter
 
+    // BLP 2022-02-23 -- added the following.
     $b->ctrmsg = $b->ctrmsg ?? $this->ctrmsg;
-
+    $b->msg = $b->msg ?? $this->msg;
+    $b->msg1 = $b->msg1 ?? $this->msg1;
+    $b->msg2 = $b->msg2 ?? $this->msg2;
+    $b->address = $b->address ?? $this->address;
+    
     // counterWigget is available to the footerFile to use if wanted.
     // BLP 2022-01-02 -- if count is set then use the counter
     
-    if(($b->count ?? $this->count) !== false) {
+    if(($b->noCounter ?? $this->noCounter) !== true) {
       $counterWigget = $this->getCounterWigget($b->ctrmsg); // ctrmsg may be null which is OK
     }
     
@@ -544,29 +564,8 @@ EOF;
       $pageFooterText = <<<EOF
 <!-- Default Footer -->
 <footer>
-EOF;
-      if($b->msg || $b->msg1) { // Only set via $b
-        $pageFooterText .= "<div id='footerMsg'>{$b->msg}{$b->msg1}</div>\n";
-      }
-
-      if(defined('EMAILFROM')) {
-        $mailtoName = EMAILFROM;
-      } elseif(isset($this->EMAILFROM)) {
-        $mailtoName = $this->EMAILFROM;
-      } else {
-        $mailtoName = "webmaster@$this->siteDomain";
-      }
-
-      $pageFooterText .= <<<EOF
 $counterWigget
 $lastmod
-EOF;
-      if(!empty($b->msg2)) { // Only set via $b
-        $pageFooterText .=  $b->msg2;
-      }
-      // BLP 2021-12-28 -- Add $b->script after everything
-      
-      $pageFooterText .= <<<EOF
 {$b->script}
 </footer>
 </body>
@@ -589,7 +588,7 @@ EOF;
    * getCounterWigget()
    */
 
-  public function getCounterWigget(?string $msg="Page Hits"):string|null {
+  public function getCounterWigget(?string $msg="Page Hits"):?string {
     if($this->nodb) return null;
 
     // Counter at bottom of page
@@ -654,7 +653,7 @@ EOF;
         $this->isBot = true;
       }
     } else {
-      $this->debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__);
+      $this->debug("SiteClass $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__);
     }
   }
 
@@ -730,7 +729,7 @@ EOF;
                      "values('$this->ip', '$agent', now(), '$this->siteName', 8, 1, now())".
                      "on duplicate key update count=count+1, lasttime=now()");
       } else {
-        $this->debug("$this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database: ". __LINE__);
+        $this->debug("SiteClass $this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database: ". __LINE__);
       }
     }
   }
@@ -770,15 +769,18 @@ EOF;
       if($refid !== null) {
         $refid = $this->escape($this->refid); // if CLI this is blank not null.
       }
-      
-      //$this->debug("SiteClass: tracker, $this->siteName, $this->ip, $agent, $this->self");
+
+      // Temp remove when done
+      if(empty($this->self)) {
+        $this->debug("SiteClass: tracker NO page, $this->siteName, $this->ip, $agent, self=$this->self, java=$java, " . __LINE__);
+      }
 
       $this->query("insert into $this->masterdb.tracker (site, page, ip, agent, refid, starttime, isJavaScript, lasttime) ".
                    "values('$this->siteName', '$this->self', '$this->ip','$agent', '$refid', now(), $java, now())");
 
       $this->LAST_ID = $this->getLastInsertId();
     } else {
-      $this->debug("$this->siteName: $this->self: table tracker does not exist in the $this->masterdb database: ". __LINE__);
+      $this->debug("SiteClass $this->siteName: $this->self: table tracker does not exist in the $this->masterdb database: ". __LINE__);
     }
   }
 
@@ -798,7 +800,7 @@ EOF;
                  "where (table_schema = '$this->masterdb') and (table_name = 'myip')");
 
     if($this->fetchrow('num')[0] == 0) {
-      $this->debug("$this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__);
+      $this->debug("SiteClass $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__);
       return;
     }
 
@@ -808,7 +810,7 @@ EOF;
     $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
 
     if(!$this->query($sql)) {
-      $this->debug(__LINE__. ", update of myip failed, ip: $this->ip"); // this should not happen
+      $this->debug("SiteClass $this->siteName: update of myip failed, ip: $this->ip, " .__LINE__); // this should not happen
     }
   }
 
@@ -860,7 +862,7 @@ EOF;
       $cnt = $this->fetchrow('num')[0];
       $this->hitCount = $cnt ?? 0; // This is the number of REAL (non BOT) accesses.
     } else {
-      $this->debug("$this->siteName: $this->self: table counter does not exist in the $this->masterdb database: ". __LINE__);
+      $this->debug("SiteClass $this->siteName: $this->self: table counter does not exist in the $this->masterdb database: ". __LINE__);
     }      
   }
 
@@ -890,7 +892,7 @@ EOF;
       
       $this->query($sql);
     } else {
-      $this->debug("$this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__);
+      $this->debug("SiteClass $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__);
     }
   }
   
@@ -909,7 +911,7 @@ EOF;
                  "where (table_schema = '$this->masterdb') and (table_name = 'daycounts')");
 
     if($this->fetchrow('num')[0] == 0) {
-      $this->debug("$this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database: ". __LINE__);
+      $this->debug("SiteClass $this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database: ". __LINE__);
       return;
     }
 
@@ -929,7 +931,7 @@ EOF;
       $cookietime = time() + (60*10);
       
       if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
-        $this->debug("$this->siteName: Can't setSiteCookie() at ".__LINE__);
+        $this->debug("SiteClass $this->siteName: Can't setSiteCookie() at ".__LINE__);
       }
     } catch(Exception $e) {
       if($e->getCode() != 1062) { // 1062 is dup key error
@@ -945,7 +947,7 @@ EOF;
         // set cookie to expire in 10 minutes
         $cookietime = time() + (60*10);
         if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
-          $this->debug("$this->siteName: Can't setSiteCookie() at ".__LINE__);
+          $this->debug("SiteClass $this->siteName: Can't setSiteCookie() at ".__LINE__);
         }
 
         $sql = "update $this->masterdb.daycounts set `real`=`real`+$real, bots=bots+$bots, visits=visits+1, ".
@@ -979,7 +981,7 @@ EOF;
         
       $this->query($sql);
     } else {
-      $this->debug("$this->siteName: $this->self: table logagent does not exist in the $this->masterdb database: " . __LINE__);
+      $this->debug("SiteClass $this->siteName: $this->self: table logagent does not exist in the $this->masterdb database: " . __LINE__);
     }
   }
 
