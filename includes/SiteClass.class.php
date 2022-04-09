@@ -1,5 +1,9 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2022-04-09 - add these three and then use $h instead of $this
+//  $h->headFile = $h->headFile ?? $this->headFile;
+//  $h->bannerFile = $h->bannerFile ?? $this->bannerFile;
+//  $h->footerFile = $h->footerFile ?? $this->footerFile;
 // BLP 2022-02-23 -- Added several $b items to getPageFooter(). See comment at location.
 // BLP 2022-02-08 -- New version 3.1. Make getPageWigget() public.
 // BLP 2022-02-08 -- add return types to some functions
@@ -383,11 +387,15 @@ class SiteClass extends dbAbstract {
     $h->preheadcomment = $h->preheadcomment ?? $this->preheadcomment;
     $h->lang = $h->lang ?? $this->lang ?? 'en';
     $h->htmlextra = $h->htmlextra ?? $this->htmlextra;
-
+    // BLP 2022-04-09 - add these three and then use $h instead of $this below
+    $h->headFile = $h->headFile ?? $this->headFile;
+    $h->bannerFile = $h->bannerFile ?? $this->bannerFile;
+    $h->footerFile = $h->footerFile ?? $this->footerFile;
+    
     $h->nojquery = $h->nojquery ?? $this->nojquery; // new logic
 
     // If nojquery is true then don't add $trackerStr
-    
+
     if($h->nojquery !== true) {
       $jQuery = <<<EOF
   <!-- jQuery -->
@@ -412,14 +420,14 @@ EOF;
     
     $html = '<html lang="' . $h->lang . '" ' . $h->htmlextra . ">"; // stuff like manafest etc.
 
-    // What if headFile is null?
+    // What if headFile is null? Use the Default Head.
 
-    if(!is_null($this->headFile)) {
+    if(!is_null($h->headFile)) {
       // BLP 2022-03-31 - $jQuery and $trackerStr are available.
 
       // If the require returns -1 it is an error.
 
-      if(($p = require_once($this->headFile)) != 1) {
+      if(($p = require_once($h->headFile)) != 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
         throw new Exception(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1");
