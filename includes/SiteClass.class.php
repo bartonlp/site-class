@@ -1,75 +1,10 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
-// BLP 2022-04-09 - add these three and then use $h instead of $this
-//  $h->headFile = $h->headFile ?? $this->headFile;
-//  $h->bannerFile = $h->bannerFile ?? $this->bannerFile;
-//  $h->footerFile = $h->footerFile ?? $this->footerFile;
-// BLP 2022-02-23 -- Added several $b items to getPageFooter(). See comment at location.
-// BLP 2022-02-08 -- New version 3.1. Make getPageWigget() public.
-// BLP 2022-02-08 -- add return types to some functions
-// BLP 2022-01-24 -- getPageTop() use title if not banner
-// BLP 2022-01-04 -- getPageHead() $h->title. Change final default from siteName to self
-// BLP 2022-01-02 -- in getPageFooter() add/update use of nofooter, count, noLastmod and footerFile.
-// BLP 2021-12-31 -- Before checking table 'myip' make sure that the database user is 'barton'.
-// Add __LINE__ to all throw().
-// Rename setmyip() to updatemyip().
-// Change counter2 table to `real` from 'count' and make changes to counter2().
-// BLP 2021-12-30 -- Removed depreciated myUrl logic. I no longer use myUrl.json in
-// bartonphillipsnet any more. Updated SITE_CLASS_VERSION.
-// Changed $this->requestUri from $this->self to $_SERVER['REQUEST_URI'] and changed all the places
-// where $this->requestUri was used to $this->self.
-// BLP 2021-12-28 -- Added $b->script in default footer in getPageFooter(). Put not $this->count in side not $this->noTrack
-// Add explanation of how zero gets into isJavaScript in tracker.
-// Also remove $ok and use fetchrow('num')[0] instead in table checks.
-// Also added __LINE__ to all debug messages.
-// BLP 2021-12-23 -- add just plain 'bot', 'spider' and "HeadlessChrome" to list.
-// BLP 2021-12-20 -- tracker() makes isJavaScript = 0x8000 if it is isMe() true.
-// BLP 2021-12-20 -- setSiteCookie() add defaults for $secure, $httponly and $samesite
-// BLP 2021-12-16 -- changed bots2 which to 8.
-// BLP 2021-12-13 -- add $S->refid
-// BLP 2021-10-24 -- Database checks for isSiteClass and if NOT set it sets ip and agent.
-// BLP 2021-10-24 -- move $this->agent up with $this-ip and make a not by $this->escape() that it
-// is only available after Datebase is loaded. Removed escape() $agent because if nodb is set it is already escaped
-// BLP 2021-10-24 -- add $lastmod to getPageFooter().
-// BLP 2021-10-13 -- Major rework of getPage*(). Only pass $h in. It has everything along with
-// $this from mysitemap.json. Logic determins what to use.
-// BLP 2021-10-06 -- in setSiteCookie() changed httponly to false. Use $this->siteDomain for ref.
-// see comment
-// BLP 2021-09-24 -- guard myip below from other users. See the 'test' database and 'test' user.
-// I added a check for $this->dbinfo->user equal 'barton' and $this->noTrack not true.
-// Also added $this->noTrack to the check for $this->count before doing the counter().
-// BLP 2021-09-24 -- add if($this->nodb !== true) to BLP 2021-09-15
-// BLP 2021-09-15 -- use 'myip' table to extend what might be in myUri. We could stop using myUri
-// in mysitemap.json if we want to. I have actually commented myUri out of all the mysitemap.json
-// files.
-// BLP 2021-09-02 -- Using PHP_MAJOR_VERSION looked like a good idea but it just does not work. If
-// I use the null coalesing oporator I get a parser error because the code is parsed before wht
-// Version can be checked. I am removing the PHP_MAJOR_VERSION code.
-// BLP 2021-09-02 -- add PHP_MAJOR_VERSION to deferentiate between PHP 5 and PHP 7 (search for
-// PHP_MAJOR_VERION)
-// BLP 2021-03-22 -- add 'options' to setSiteCookie().
-// BLP 2021-03-22 -- remove daycountwhat from constructor values amd $inc from daycount().
-// BLP 2021-03-16 -- removed 'member' logic from counter2(). Remove 'member' logic from daycount().
-// Remove $this-id from all functions. ErrorClass::setDevelopment(true) now sets
-// $noEmailErrs also to true. This can be overriden by settin ErrorClass::setNoEmailErrs(false)
-// after setting development.
-// BLP 2021-03-11 -- add escape for agent.
-// BLP 2021-03-09 -- removed logagent2 logic.
-// BLP 2021-03-09 -- added nodb flag to updatemyip(). 
-// BLP 2021-02-28 -- use $_SERVER['SERVER_NAME'] instead of $this->siteDomain.
-// BLP 2018-07-02 -- Change 'isMe()' logic to use array_intersect() and then use 'isMe()' instead of old logic.
-// BLP 2018-07-01 -- Added logic to look at bartonphillips.net if myUri is a string and starts with
-// http. Also add logic to add a date to copyright.
-// BLP 2018-06-10 -- If our ip is in myIp then WE ARE NOT A BOT!
-// BLP 2018-06-08 -- fix $agent in trackbots()
-// BLP 2018-04-20 -- move the init section
-// BLP 2017-11-01 -- counter2 left() for filename
-// BLP 2016-12-20 -- in tracker() add refid=$_SERVER['HTTP_REFERER'] and alter table tracker change
-// refid to varchar(255).
-// BLP 2016-11-27 -- changed the sense of $this->myIp and $this->myUri. Now $this->myUri can be an
-// object and $this->myIp can be an array.
 
-define("SITE_CLASS_VERSION", "3.1"); // BLP 2022-02-08 -- New Version
+// BLP 2022-04-09 - majer rework of getPageTopBottom(), getPageTop(), getPageHead(),
+// getPageBanner() and getPageFooter().
+
+define("SITE_CLASS_VERSION", "3.2"); // BLP 2022-04-09 - 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -332,8 +267,13 @@ class SiteClass extends dbAbstract {
     // Do getPageTop and getPageFooter
 
     $top = $this->getPageTop($h);
+
+    // BLP 2022-04-09 - We can pass in a footer via $h.
+    
     $footer = $h->footer ?? $this->getPageFooter($b);
+
     // return the array which we usually get via '[$top, $footer] = $S->getPageTopBottom($h, $b)'
+
     return [$top, $footer];
   }
 
@@ -361,6 +301,7 @@ class SiteClass extends dbAbstract {
     // BLP 2022-01-30 -- we now pass $h instead of $banner and $h->bodytag
     
     $banner = $this->getPageBanner($h);
+
     return "$head\n$banner";
   }
 
@@ -389,10 +330,9 @@ class SiteClass extends dbAbstract {
     $h->htmlextra = $h->htmlextra ?? $this->htmlextra;
     // BLP 2022-04-09 - add these three and then use $h instead of $this below
     $h->headFile = $h->headFile ?? $this->headFile;
-    $h->bannerFile = $h->bannerFile ?? $this->bannerFile;
-    $h->footerFile = $h->footerFile ?? $this->footerFile;
-    
-    $h->nojquery = $h->nojquery ?? $this->nojquery; // new logic
+    $h->copyright = $h->copyright ?? $this->copyright; // BLP 2022-04-09 - new
+    $h->author = $h->author ?? $this->author; // BLP 2022-04-09 - new
+    $h->nojquery = $h->nojquery ?? $this->nojquery; // BLP 2022-04-09 - new
 
     // If nojquery is true then don't add $trackerStr
 
@@ -478,19 +418,29 @@ EOF;
   public function getPageBanner(?object $h=null):string {
     $h = $h ?? new stdClass;
 
+    // BLP 2022-04-09 - These need to be checked here.
+    
+    $h->nodb = $h->nodb ?? $this->nodb;
+    $h->noTrack = $h->noTrack ?? $this->noTrack;
+    $h->bannerFile = $h->bannerFile ?? $this->bannerFile;
+    
     $bodytag = $h->bodytag ?? $this->bodytag ?? "<body>";
     $mainTitle = $h->banner ?? $this->mainTitle;
 
-    // BLP 2022-03-24 -- Add alt and add src='blank.gif'
+    // BLP 2022-04-09 - if we have nodb or noTrack then there will be no tracker.js or tracker.php
+    // so we can't set the images at all.
     
-    $image1 = "<img id='logo' data-image='$this->trackerImg1' alt='logo' src='https://bartonphillips.net/images/blank.gif'>";
-    if($this->nodb !== true && $this->noTrack !== true) {
+    if($h->nodb !== true && $h->noTrack !== true) {
+      // BLP 2022-03-24 -- Add alt and add src='blank.gif'
+      // BLP 2022-04-09 - for now I am leaving trackerImg1 and trackerImg2 only on $this.
+    
+      $image1 = "<img id='logo' data-image='$this->trackerImg1' alt='logo' src='https://bartonphillips.net/images/blank.gif'>";
       $image2 = "<img id='headerImage2' alt='headerImage2' src='https://bartonphillips.net/tracker.php?page=normal&amp;id=$this->LAST_ID&amp;image=$this->trackerImg2'>";
       $image3 = "<img id='noscript' alt='noscriptImage' src='https://bartonphillips.net/tracker.php?page=noscript&amp;id=$this->LAST_ID'>";
     }
     
     if(!is_null($this->bannerFile)) {
-      $pageBannerText = require($this->bannerFile);
+      $pageBannerText = require($h->bannerFile);
     } else {
       // a default banner
       $pageBannerText =<<<EOF
@@ -538,15 +488,23 @@ EOF;
 EOF;
     }
     
-    // Make the bottom of the page counter
-
     // BLP 2022-02-23 -- added the following.
+    
     $b->ctrmsg = $b->ctrmsg ?? $this->ctrmsg;
     $b->msg = $b->msg ?? $this->msg;
     $b->msg1 = $b->msg1 ?? $this->msg1;
     $b->msg2 = $b->msg2 ?? $this->msg2;
-    $b->address = $b->address ?? $this->address;
     
+    $b->address = (($b->noAddress ?? $this->noAddress) ? null : ($b->address ?? $this->address)) . "<br>";
+    $b->noCopyright = $b->noCopyright ?? $this->noCopyright;
+    $b->copyright = $b->noCopyright ? null : ($b->copyright ?? $this->copyright) . "<br>";
+    if(preg_match("~^\d{4}~", $b->copyright) === 1) {
+      $b->copyright = "Copyright &copy; $b->copyright";
+    }
+    $b->aboutwebsite = ($b->aboutwebsite ?? $this->aboutwebsite) ?? (file_exists('aboutwebsite.php') ? "<h2><a target='_blank' href='aboutwebsite.php'>About This Site</a></h2>" : null);
+    $b->emailAddress = ($b->noEmailAddress ?? $this->noEmailAddress) ? null : ($b->emailAddress ?? $this->EMAILADDRESS);
+    $b->emailAddress = $b->emailAddress ? "<a href='mailto:$b->emailAddress'>$b->emailAddress</a>" : null;
+
     // counterWigget is available to the footerFile to use if wanted.
     // BLP 2022-01-02 -- if count is set then use the counter
     
@@ -565,6 +523,10 @@ EOF;
     if(($b->noGeo ?? $this->noGeo) !== true) {
       $geo = "<script src='https://bartonphillips.net/js/geo.js'></script>";
     }
+
+    // BLP 2022-04-09 - We can put the footerFile into $b or use it from mysitemap.json
+    // If either is set to 'false' then use the default footer, else use $this->footerFile unless
+    // it is false.
     
     if(($b->footerFile ?? $this->footerFile) !== false && $this->footerFile !== null) {
       $pageFooterText = require($this->footerFile);
@@ -572,6 +534,7 @@ EOF;
       $pageFooterText = <<<EOF
 <!-- Default Footer -->
 <footer>
+$b->aboutwebsite
 $counterWigget
 $lastmod
 {$b->script}
