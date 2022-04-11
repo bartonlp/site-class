@@ -1,4 +1,6 @@
-# BLP 2022-02-08 -- New version 3.1. Added argument and return types for php 8.1
+# BLP 2022-04-10 - New version 3.2. Added argument and return types for php 8.1
+Big changes to getPageTopBottom(), getPageTop(), getPageHead(), getPageBanner() and getPageFooter().
+I added a lot more $h, $b, and $this items. I need to further document this in the 'docs' section.
 
 # BLP 2021-10-28 -- Reworked Database.class.php
 

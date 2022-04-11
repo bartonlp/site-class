@@ -4,7 +4,7 @@
 // BLP 2022-04-09 - majer rework of getPageTopBottom(), getPageTop(), getPageHead(),
 // getPageBanner() and getPageFooter().
 
-define("SITE_CLASS_VERSION", "3.2"); // BLP 2022-04-09 - 
+define("SITE_CLASS_VERSION", "3.2.2"); // BLP 2022-04-09 - 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -258,7 +258,6 @@ class SiteClass extends dbAbstract {
    * @param ?object $b bottom stuff
    *  if $h->footer then use it for the footer and do not call getPageFooter()
    * @return array top, footer
-   * BLP 2014-12-31 -- Add footer to $h parameter to have the $b array etc.
    */
 
   public function getPageTopBottom(?object $h=null, ?object $b=null):array {
@@ -288,17 +287,11 @@ class SiteClass extends dbAbstract {
   public function getPageTop(?object $h=null):string {
     $h = $h ?? new stdClass;
     
-    // from getPageTopBottom($h.. or from mysitemap.json
-    // BLP 2022-01-29 -- $h->banner or $this-mainTitle or $h->title in <h1>s or blank.
-
-    $h->banner = $h->banner ?? ($this->mainTitle ?? ($h->title ? "<h1>$h->title</h1>" : '')); // BLP 2022-01-29 -- if nothing then blank
-    
     // Get the page <head> section
 
     $head = $this->getPageHead($h);
 
-    // Get the page's banner section
-    // BLP 2022-01-30 -- we now pass $h instead of $banner and $h->bodytag
+    // Get the page's banner section (<header>...</header>)
     
     $banner = $this->getPageBanner($h);
 
@@ -317,21 +310,47 @@ class SiteClass extends dbAbstract {
 
     // use either $h or $this values or a constant
 
-    $dtype = $h->doctype ?? $this->doctype; // note that $this->doctype (from the top) could also be from mysitemap.json see the constructor.
+    $dtype = $h->doctype ?? $this->doctype; // note that $this->doctype could also be from mysitemap.json see the constructor.
 
-    $h->base = $h->base ?? $this->base; // BLP 2022-01-28 -- new
-    $h->title = $h->title ?? $this->title ?? ltrim($this->self, '/'); // BLP 2022-01-04 -- change from siteName to self
-    $h->desc = $h->desc ?? $this->desc ?? $h->title; // BLP 2022-02-07 -- $h or $this->desc or $h->title from above
-    $h->keywords = $h->keywords ?? $this->keywords ?? $h->desc; // BLP 2022-02-07 -- $h->desc will always be something
-    $h->favicon = $h->favicon ?? $this->favicon ?? 'https://bartonphillips.net/images/favicon.ico';
-    $h->defaultCss = $h->defaultCss ?? $this->defaultCss ?? 'https://bartonphillips.net/css/blp.css';
-    $h->preheadcomment = $h->preheadcomment ?? $this->preheadcomment;
+    // BLP 2022-04-10 - make favicon, defaultCss, title, desc and css have full text.
+
+    $h->base = ($h->base = ($h->base ?? $this->base)) ? "<base src='$h->base'>" : null;
+
+    // All meta tags
+
+    $h->title = ($h->title = ($h->title ?? $this->title)) ? "<title>$h->title</title>" : null;
+    $h->desc = ($h->desc = ($h->desc ?? $this->desc)) ? "<meta name='description' content='$h->desc'>" : null;
+    $h->keywords = ($h->keywords = ($h->keywords ?? $this->keywords)) ? "<meta name='keywords' content='$h->keywords'>" : null;
+    $h->copyright = ($h->copyright = ($h->copyright ?? $this->copyright)) ? "<meta name='copyright' content='$h->copyright'>" : null;
+    $h->author = ($h->author = ($h->author ?? $this->author)) ? "<meta name='author' content='$h->author'>" : null;
+    $h->charset = ($h->charset = ($h->charset ?? $this->charset)) ? "<meta charset='$h->charset'>" : "<meta charset='utf-8'>";
+    $h->viewport = ($h->viewport = ($h->viewport ?? $this->viewport)) ?
+                   "<meta name='viewport' content='$h->viewport'>" : "<meta name='viewport' content='width=device-width, initial-scale=1'>";
+    $h->canonical = ($h->canonical = ($h->canonical ?? $this->canonical)) ? "<link rel='canonical' href='$h->canonical'>" : null;
+
+    // link tags
+    
+    $h->favicon = ($h->favicon = ($h->favicon ?? $this->favicon ?? 'https://bartonphillips.net/images/favicon.ico')) ?
+                  "<link rel='shortcut icon' href='$h->favicon'>" : null;
+    $h->defaultCss = ($h->defaultCss = ($h->defaultCss ?? $this->defaultCss)) ? "<link rel='stylesheet' href='$h->defaultCss' title='default'>" : null;
+
+    // $h->css is a special case. If the style is not already there incase the text in <style> tags.
+
+    if($h->css && preg_match("~<style~", $h->css) == 0) {
+      $h->css = "<style>$h->css</style>";
+    }
+
+    // $h->inlineScript is new. Incase it in script tags
+
+    $h->inlineScript = $h->inlineScript ? "<script>$h->inlineScript</script>" : null;
+    
+    // The rest, $h->link, $h->script and $h->extra need the full '<link' or '<script' text.
+    
+    $h->preheadcomment = $h->preheadcomment ?? $this->preheadcomment; // Must be a real html comment ie <!-- ... -->
     $h->lang = $h->lang ?? $this->lang ?? 'en';
-    $h->htmlextra = $h->htmlextra ?? $this->htmlextra;
-    // BLP 2022-04-09 - add these three and then use $h instead of $this below
+    $h->htmlextra = $h->htmlextra ?? $this->htmlextra; // Must be full html
+    
     $h->headFile = $h->headFile ?? $this->headFile;
-    $h->copyright = $h->copyright ?? $this->copyright; // BLP 2022-04-09 - new
-    $h->author = $h->author ?? $this->author; // BLP 2022-04-09 - new
     $h->nojquery = $h->nojquery ?? $this->nojquery; // BLP 2022-04-09 - new
 
     // If nojquery is true then don't add $trackerStr
@@ -363,10 +382,6 @@ EOF;
     // What if headFile is null? Use the Default Head.
 
     if(!is_null($h->headFile)) {
-      // BLP 2022-03-31 - $jQuery and $trackerStr are available.
-
-      // If the require returns -1 it is an error.
-
       if(($p = require_once($h->headFile)) != 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
@@ -374,26 +389,27 @@ EOF;
       }
     } else {
       // Make a default <head>
-      // BLP 2022-01-24 -- added jquery to default along with $trackerStr
       
       $pageHeadText =<<<EOF
 $html
 <!-- Default Head -->
 <head>
-  <title>{$h->title}</title>
+$h->title
   <!-- METAs -->
   <meta charset="utf-8"/>
   <meta name="description" content="{$h->desc}"/>
   <!-- local link -->
-{$h->link}
+$h->link
 $jQuery
 $trackerStr
   <!-- extra -->
-{$h->extra}
-  <!-- local script -->
-{$h->script}
+$h->extra
+  <!-- remote script -->
+$h->script
+  <!-- inline script -->
+$h->inlineScript
   <!-- local css -->
-{$h->css}
+$h->css
 </head>
 EOF;
     }
@@ -422,8 +438,8 @@ EOF;
     
     $h->nodb = $h->nodb ?? $this->nodb;
     $h->noTrack = $h->noTrack ?? $this->noTrack;
+
     $h->bannerFile = $h->bannerFile ?? $this->bannerFile;
-    
     $bodytag = $h->bodytag ?? $this->bodytag ?? "<body>";
     $mainTitle = $h->banner ?? $this->mainTitle;
 
@@ -504,7 +520,8 @@ EOF;
     $b->aboutwebsite = ($b->aboutwebsite ?? $this->aboutwebsite) ?? (file_exists('aboutwebsite.php') ? "<h2><a target='_blank' href='aboutwebsite.php'>About This Site</a></h2>" : null);
     $b->emailAddress = ($b->noEmailAddress ?? $this->noEmailAddress) ? null : ($b->emailAddress ?? $this->EMAILADDRESS);
     $b->emailAddress = $b->emailAddress ? "<a href='mailto:$b->emailAddress'>$b->emailAddress</a>" : null;
-
+    $b->inlineScript = $b->inlineScript ? "<script>$b->inlineScript</script>" : null;
+    
     // counterWigget is available to the footerFile to use if wanted.
     // BLP 2022-01-02 -- if count is set then use the counter
     
@@ -537,7 +554,8 @@ EOF;
 $b->aboutwebsite
 $counterWigget
 $lastmod
-{$b->script}
+$b->script
+$b->inlineScript
 </footer>
 </body>
 </html>
