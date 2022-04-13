@@ -1,3 +1,4 @@
+# BLP 2022-04-12 - Removed if($this->nodb) in all of the protected functions.
 # BLP 2022-04-10 - New version 3.2. Added argument and return types for php 8.1
 Big changes to getPageTopBottom(), getPageTop(), getPageHead(), getPageBanner() and getPageFooter().
 I added a lot more $h, $b, and $this items. I need to further document this in the 'docs' section.

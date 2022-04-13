@@ -1,6 +1,8 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
-
+// BLP 2022-04-12 - If I subclass this I should do __construct($s) and then do
+// parent::__construct($s), that is pass the object from siteload.php. If I do that I can remove
+// all of the if($this->nodb) for protected functions, which I have done.
 // BLP 2022-04-09 - majer rework of getPageTopBottom(), getPageTop(), getPageHead(),
 // getPageBanner() and getPageFooter().
 
@@ -50,7 +52,7 @@ class SiteClass extends dbAbstract {
    */
   
   public function __construct(object $s) {
-    ErrorClass::init(); // BLP 2014-12-31 -- Make sure this is done
+    ErrorClass::init(); // Make sure this is done
 
     // Initialize a few items. NOTE they could be changed once $s is processed.
     
@@ -83,7 +85,7 @@ class SiteClass extends dbAbstract {
       // nodb === true so don't do any database stuff
       $this->nodb = true;
       $this->count = $this->countMe = false;
-      $this->noTrack = true; // BLP 2021-09-24 -- 
+      $this->noTrack = true; // If nodb then noTrack is true also.
     } else {
       // BLP 2021-03-11 -- add escape for HTTP_USER_AGENT to cope with ' etc.
       // If we have already instantiated a Database the $this->db will not be null so don't do the
@@ -107,7 +109,7 @@ class SiteClass extends dbAbstract {
     // In general all databases that are going to do anything with counters etc. must have a user
     // of 'barton' and $this->nodb false. Still the program can NOT do any calls via masterdb!
 
-    if($this->dbinfo->user == "barton" && $this->nodb !== true) { // BLP 2021-12-31 -- make sure its the 'barton' user!
+    if($this->dbinfo->user == "barton") { // BLP 2021-12-31 -- make sure its the 'barton' user!
       $this->query("select count(*) from information_schema.tables ".
                    "where (table_schema = '$this->masterdb') and (table_name = 'myip')");
 
@@ -122,11 +124,8 @@ class SiteClass extends dbAbstract {
       }
     }
     
-    //error_log("SiteClass: myIp: " . print_r($this->myIp, true));
-    
     // These all use database 'barton' ($this->masterdb)
     // and are always done regardless of 'count' and 'countMe'!
-    // These all check $this->nodb first and return at once if it is true.
     
     if($this->noTrack !== true) {
       // checkIfBot() must be done first
@@ -208,7 +207,6 @@ class SiteClass extends dbAbstract {
    * isMe()
    * Check if this access is from ME
    * @return true if $this->ip == $this->myIp else false!
-   * BLP 2021-12-31 -- Remove myUrl stuff. myIp is always an array and never a string!
    */
 
   public function isMe():bool {
@@ -578,8 +576,6 @@ EOF;
    */
 
   public function getCounterWigget(?string $msg="Page Hits"):?string {
-    if($this->nodb) return null;
-
     // Counter at bottom of page
     // hitCount is updated by 'counter()'
     if($this->hitCount) {
@@ -617,10 +613,6 @@ EOF;
    */
 
   protected function checkIfBot():void {
-    if($this->nodb) {
-      return;
-    }
-
     if($this->isMe()) {
       return; 
     }
@@ -657,10 +649,6 @@ EOF;
    */
 
   protected function trackbots():void {
-    if($this->nodb) {
-      return;
-    }
-
     if($this->isMe()) { // I can never be a bot!!!
       return;
     }
@@ -730,10 +718,6 @@ EOF;
    */
 
   protected function tracker():void {
-    if($this->nodb) {
-      return;
-    }
-
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'tracker')");
 
@@ -779,7 +763,7 @@ EOF;
    */
 
   protected function updatemyip():void {
-    if($this->nodb === true || $this->isMe() === false) {
+    if($this->isMe() === false) {
       return;
     }
 
@@ -812,10 +796,6 @@ EOF;
    */
 
   protected function counter():void {
-    if($this->nodb) {
-      return;
-    }
-
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'counter')");
 
@@ -863,10 +843,6 @@ EOF;
    */
   
   protected function counter2():void {
-    if($this->nodb) {
-      return;
-    }
-
     $this->query("select count(*) from information_schema.tables " .
                  "where (table_schema = '$this->masterdb') ".
                  "and (table_name = 'counter2')");
@@ -892,10 +868,6 @@ EOF;
    */
 
   protected function daycount():void {
-    if($this->nodb) {
-      return;
-    }
-
     $this->query("select count(*) from information_schema.tables ".
                  "where (table_schema = '$this->masterdb') and (table_name = 'daycounts')");
 
@@ -954,10 +926,6 @@ EOF;
    */
   
   protected function logagent():void {
-    if($this->nodb) {
-      return;
-    }
-
     $agent = $this->agent;
 
     $this->query("select count(*) from information_schema.tables ".
