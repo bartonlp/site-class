@@ -310,8 +310,6 @@ class SiteClass extends dbAbstract {
 
     $dtype = $h->doctype ?? $this->doctype; // note that $this->doctype could also be from mysitemap.json see the constructor.
 
-    // BLP 2022-04-10 - make favicon, defaultCss, title, desc and css have full text.
-
     $h->base = ($h->base = ($h->base ?? $this->base)) ? "<base src='$h->base'>" : null;
 
     // All meta tags
@@ -330,7 +328,10 @@ class SiteClass extends dbAbstract {
     
     $h->favicon = ($h->favicon = ($h->favicon ?? $this->favicon ?? 'https://bartonphillips.net/images/favicon.ico')) ?
                   "<link rel='shortcut icon' href='$h->favicon'>" : null;
-    $h->defaultCss = ($h->defaultCss = ($h->defaultCss ?? $this->defaultCss)) ? "<link rel='stylesheet' href='$h->defaultCss' title='default'>" : null;
+
+    $h->defaultCss = ($h->defaultCss = ($h->defaultCss ?? $this->defaultCss)) ?
+                     (($h->defaultCss !== true ) ? "<link rel='stylesheet' href='$h->defaultCss' title='default'>" : null)
+                      : "<link rel='stylesheet' href='https://bartonphillips.net/css/blp.css' title='default'>";
 
     // $h->css is a special case. If the style is not already there incase the text in <style> tags.
 
@@ -606,7 +607,7 @@ EOF;
   // should be protected in this base class
 
   /**
-   * checkIfBot()
+   * checkIfBot() before we do any of the other protected functions.
    * Checks if the user-agent looks like a bot or if the ip is in the bots table.
    * Set $this->isBot true/false.
    * return nothing.
@@ -630,7 +631,7 @@ EOF;
         $this->isBot = true;
       } elseif($x === false) {
         throw new Exceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false");
-      } elseif($this->query("select ip from $this->masterdb.bots where ip='$this->ip'")) {
+      } elseif($this->query("select count(*) from $this->masterdb.bots where ip='$this->ip' limit 1")) { // BLP 2022-04-12 - add count() and limit 1
         $this->isBot = true;
       }
     } else {
