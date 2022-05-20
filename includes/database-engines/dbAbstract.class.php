@@ -7,10 +7,23 @@
 // over again in each higher level class like SiteClass or Database.
 // The db engines (dbMysqli.class.php, etc.) have most of these methods implemented.
 
+require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
+
 abstract class dbAbstract {
   // Each child class needs to have a __toString() method
 
   abstract public function __toString();
+
+  public function __construct(object $s) {
+    //if($this->isSiteClass) return;
+
+    //error_log("dbAbstract __construct s: " . print_r($s, true));
+
+    foreach($s as $k=>$v) {
+      $this->$k = $v;
+    }
+    //error_log("dbAbstract __construct this: " . print_r($this, true));
+  }
 
   public function getDbName():string {
     $database = $this->db->database;
@@ -46,11 +59,6 @@ abstract class dbAbstract {
     }
   }
 
-  /**
-   * finalize()
-   * ONLY for Sqlite3 database.
-   */
-  
   public function finalize($result) {
     if(method_exists($this->db, 'finalize')) {
       return $this->db->finalize($result);
@@ -60,6 +68,7 @@ abstract class dbAbstract {
   }
 
   // BLP 2022-01-02 -- add type which was missing.
+
   public function queryfetch($query, $type=null, $retarray=false) {
     if(method_exists($this->db, 'queryfetch')) {
       return $this->db->queryfetch($query, $type, $retarray);
@@ -145,6 +154,26 @@ abstract class dbAbstract {
       return $this->db->getErrorInfo();
     } else {
       throw new Exception(__METHOD__ . " not implemented");
+    }
+  }
+
+  /*
+   * debug()
+   * If noErrorLog is set in mysitemap.json then don't do error_log()
+   */
+
+  protected function debug(string $msg, $exit=false):void {
+    if($this->noErrorLog === true) {
+      if($exit === true) {
+        exit();
+      }
+      return;
+    }
+
+    error_log("debug:: $msg");
+
+    if($exit === true) {
+      exit();
     }
   }
 }

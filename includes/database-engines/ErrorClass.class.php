@@ -94,6 +94,7 @@ function my_errorhandler($errno, $errstr, $errfile, $errline) { //, array $errco
 // ErrorClass::$noEmailErrs
 
 function my_exceptionhandler($e) {
+  //error_log("Top of my_exceptionhandler");
   $cl =  get_class($e);
 
   $error = $e; // get the full error message
@@ -163,8 +164,6 @@ function finalOutput($error, $from) {
   // Turn the error message into just plane text with LF at end of each line where a BR was.
   // and remove the "ERROR" header and any blank lines.
 
-//  echo "ERROR: $error<br>";
-
   $err = html_entity_decode(preg_replace("/<.*?>/", '', $error));
   $err = preg_replace("/^\s*$/", '', $err);
 
@@ -196,8 +195,10 @@ function finalOutput($error, $from) {
   // BLP 2021-03-06 -- New server is in New York
   date_default_timezone_set('America/New_York');
 
-  //error_log("ErrorClass, finalOutput: $from\n$err{$userId}");
-
+  // This error_log should always stay in!! *****************
+  error_log("ErrorClass, finalOutput: $from\n$err{$userId}");
+  // ********************************************************
+  
   if(ErrorClass::getDevelopment() !== true) {
     // Minimal error message
     $error = <<<EOF
@@ -252,7 +253,7 @@ class ErrorClass {
     if(is_null(self::$instance)) {
       self::$instance = new ErrorClass($args);
     }
-    return self::$instance;
+    return self::$instance; // BLP 2022-05-10 - It doesn't seem like anyone cares about the return value?
   }
 
   /**

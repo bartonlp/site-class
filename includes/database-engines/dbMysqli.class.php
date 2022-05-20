@@ -1,7 +1,5 @@
 <?php
 /* MAINTAINED and WELL TESTED. This is the default Database and has received extensive testing */
-// BLP 2022-01-17 -- fix fetchrow() change get_debug_type() (only in PHP8) to get_class().
-// BLP 2021-12-11 -- add fetch_obj() to fetchrow();
 /**
  * Database Class
  *
@@ -58,10 +56,6 @@ class dbMysqli extends dbAbstract {
     $this->database = $database;
     $this->port = $port;
     $this->opendb();
-
-    // make warning show up as exceptions
-//    $driver = new mysqli_driver;
-//    $driver->report_mode = MYSQLI_REPORT_STRICT;
   }
   
   /**
@@ -109,7 +103,7 @@ class dbMysqli extends dbAbstract {
     $db = $this->opendb();
 
     self::$lastQuery = $query; // for debugging
-    
+
     $result = $db->query($query);
 
     // If $result is false then exit

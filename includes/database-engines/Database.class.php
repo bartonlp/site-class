@@ -21,28 +21,27 @@ class Database extends dbAbstract {
    * where $ar is an assocative array with ["host"=>"localhost",...]
    */
 
-  public function __construct(object $args) {
+  public function __construct(object $s) {
     ErrorClass::init(); // We should do this. If already done it just returns.
 
-    foreach($args as $k=>$v) {
-      $this->$k = $v;
-    }
+    $s->ip = $_SERVER['REMOTE_ADDR'];
+    $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- CLI agent is NULL so make it blank ''
+    $s->self = htmlentities($_SERVER['PHP_SELF']); // BLP 2021-12-20 -- add htmlentities to protect against hacks.
+    $s->requestUri = $_SERVER['REQUEST_URI']; // BLP 2021-12-30 -- change from $this->self
+
+    parent::__construct($s);
+
+    date_default_timezone_set("America/New_York");
 
     if($this->nodb) {
       return;
     }
 
     $db = null;
-    $err = null;
     $arg = $this->dbinfo;
 
-    //vardump("dbinfo", $arg);
-    //vardump("this", $this);
-    //$arg->engine = null;
-
-    // BLP BLP 2022-01-14 -- The Database password is now in /home/barton/database-password on
-    // bartonlp.com et all (157.245.129.4), bartonphillips.org (HP) and
-    // http://bartonphillips.dynnds.org (RPI).
+    // BLP BLP 2022-01-14 -- The Database password is now in /home/barton/database-password
+    // on bartonlp.org
 
     $password = ($this->dbinfo->password) ?? require("/home/barton/database-password");
     
@@ -73,18 +72,78 @@ class Database extends dbAbstract {
       default:
         throw new SqlException(__METHOD__ . ": Engine $arg->engine not valid", $this);
     }
+
     if(is_null($db) || $db === false) {
       throw new SqlException(__METHOD__ . ": Connect failed", $this);
     }
+    
     $this->db = $db;
 
-    // BLP 2021-10-24 -- Check isSiteClass and if NOT set set the agent and ip
-
-    if($this->isSiteClass !== true) {
-      $this->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- if CLI useragent is NULL so make it blank.
-      $this->agent = $this->escape($this->agent);
-      $this->ip = $_SERVER['REMOTE_ADDR'];
+    if($this->dbinfo->user == 'barton') {
+      $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
     }
+    
+    //error_log("Database after CheckIfTablesExist this: " . print_r($this, true));
+  }
+
+  /*
+   * Check it the required tables are presssent.
+   * Returns myIp.
+   */
+  
+  private function CheckIfTablesExist():array|null {
+    // Do all of the table checks once here.
+
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots')")) {
+      $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots2')"))  {
+      $this->debug("Database $this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'tracker')")) {
+      $this->debug("Database $this->siteName: $this->self: table tracker does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
+      $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter')")) {
+      $this->debug("Database $this->siteName: $this->self: table counter does not exist in the $this->masterdb database: ". __LINE__, true);
+    }      
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter2')")) {
+      $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'daycounts')")) {
+      $this->debug("Database $this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'logagent')")) {
+      $this->debug("Database $this->siteName: $this->self: table logagent does not exist in the $this->masterdb database: " . __LINE__, true);
+    }
+
+    // The masterdb must be owned by 'barton'. That is the dbinfo->user must be
+    // 'barton'. There is one database where this is not true. The 'test' database has a
+    // mysitemap.json file that has dbinfo->user as 'test'. It is in the
+    // bartonphillips.com/exmples.js/user-test directory.
+    // In general all databases that are going to do anything with counters etc. must have a user
+    // of 'barton' and $this->nodb false. The program without 'barton' can NOT do any calls via masterdb!
+
+    //error_log("Database user: " . $this->user);
+    //error_log("Database dbinfo->user: " . $this->dbinfo->user);
+    
+    if($this->dbinfo->user == "barton" || $this->user == "barton") { // make sure its the 'barton' user!
+      if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
+        $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
+      }
+
+      $this->query("select myIp from $this->masterdb.myip");
+
+      while($ip = $this->fetchrow('num')[0]) {
+        $myIp[] = $ip;
+      }
+      $myIp[] = DO_SERVER; // BLP 2022-04-30 - Add my server.
+    }
+    //error_log("Database after myIp set, this: " . print_r($this, true));
+
+    return $myIp;
   }
   
   public function __toString() {

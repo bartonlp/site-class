@@ -16,7 +16,7 @@ class SqlException extends Exception {
   public function __construct($message, $self=null) {
     // If the caller was a database class then $this->db should be the database resorce.
     
-    list($html, $errno) = $this->SqlError($message, $self); // private helper method
+    [$html, $errno] = $this->SqlError($message, $self); // private helper method
 
     parent::__construct($html, $errno);
   }
@@ -149,7 +149,6 @@ class SqlException extends Exception {
 error=&quot;<i>$Error</i>&quot;, \$Errno=&quot;<i>$Errno</i>&quot;<br>
 cwd=$cwd<br>
 called from <strong>{$caller['file']}</strong><br> on line <strong>{$caller['line']}</strong><br>
-
 EOF;
 
     if(isset($firstcaller)) {

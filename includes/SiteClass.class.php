@@ -1,12 +1,12 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2022-05-12 - remove countMe.
+// BLP 2022-04-24 - Added defines.php and modified siteload.php to set the define SITECLASS_DIR.
 // BLP 2022-04-12 - If I subclass this I should do __construct($s) and then do
 // parent::__construct($s), that is pass the object from siteload.php. If I do that I can remove
 // all of the if($this->nodb) for protected functions, which I have done.
-// BLP 2022-04-09 - majer rework of getPageTopBottom(), getPageTop(), getPageHead(),
-// getPageBanner() and getPageFooter().
 
-define("SITE_CLASS_VERSION", "3.2.2"); // BLP 2022-04-09 - 
+define("SITE_CLASS_VERSION", "3.3.0"); // BLP 2022-05-16 - 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -25,7 +25,9 @@ define("SITE_CLASS_VERSION", "3.2.2"); // BLP 2022-04-09 -
  * This class can be extended to handle special issues and add methods.
  */
 
-class SiteClass extends dbAbstract {
+require_once(__DIR__ . "/defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
+
+class SiteClass extends Database {
   private $hitCount = null;
 
   public $isSiteClass = true; // True if we instantiated SiteClass so Database knows that we have.
@@ -34,7 +36,6 @@ class SiteClass extends dbAbstract {
   // Note they could still be null from mysitemap.json!
   
   public $count = true;
-  public $countMe = false;
   
   // Current Doc Type
   public $doctype = "<!DOCTYPE html>";
@@ -45,7 +46,7 @@ class SiteClass extends dbAbstract {
    * @param object $s. If this is not an object we get an error!
    *  The $s is almost always from mysitemap.json.
    *  Once in a while they can be changed by the program instantiating the class.
-   *  'count' is default true and 'countMe' is default false (above).
+   *  'count' is default true.
    *  The rest of the values are 'null' if not specifically set by $s (mysitemap.json).
    *  $s has the values from $_site = require_once(getenv("SITELOADNAME"));
    *  which uses siteload.php to gets values from mysitemap.json.
@@ -54,24 +55,19 @@ class SiteClass extends dbAbstract {
   public function __construct(object $s) {
     ErrorClass::init(); // Make sure this is done
 
-    // Initialize a few items. NOTE they could be changed once $s is processed.
+    $s->ip = $_SERVER['REMOTE_ADDR'];
+    $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- CLI agent is NULL so make it blank ''
+    $s->self = htmlentities($_SERVER['PHP_SELF']); // BLP 2021-12-20 -- add htmlentities to protect against hacks.
+    $s->requestUri = $_SERVER['REQUEST_URI']; // BLP 2021-12-30 -- change from $this->self
     
-    $this->ip = $_SERVER['REMOTE_ADDR'];
-    $this->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- CLI agent is NULL so make it blank ''
-    $this->self = htmlentities($_SERVER['PHP_SELF']); // BLP 2021-12-20 -- add htmlentities to protect against hacks.
-    $this->refid = $_SERVER['HTTP_REFERER'] ?? ''; // BLP 2022-01-28 -- CLI refid is NULL so make it blank ''
-    $this->requestUri = $_SERVER['REQUEST_URI']; // BLP 2021-12-30 -- change from $this->self
+    parent::__construct($s);
     
-    // BLP 2021-03-06 -- our server 'bartonlp.org' is in New York.
-    
-    date_default_timezone_set("America/New_York");
-
     // Put the stuff from $s into $this
     
-    foreach($s as $k=>$v) {
-      $this->$k = $v;
-    }
-        
+//    foreach($s as $k=>$v) {
+//      $this->$k = $v;
+//    }
+
     // BLP 2018-07-01 -- Add the date to the copyright notice if one exists
 
     if($this->copyright) {
@@ -79,12 +75,11 @@ class SiteClass extends dbAbstract {
     }
 
     // If no database in mysitemap.json set everything so the database is not loaded.
-    // BLP 2021-10-24 -- combine with else.
     
     if($this->nodb === true || is_null($this->dbinfo)) {
       // nodb === true so don't do any database stuff
       $this->nodb = true;
-      $this->count = $this->countMe = false;
+      $this->count = false;
       $this->noTrack = true; // If nodb then noTrack is true also.
     } else {
       // BLP 2021-03-11 -- add escape for HTTP_USER_AGENT to cope with ' etc.
@@ -92,73 +87,39 @@ class SiteClass extends dbAbstract {
       // Database again!
       // instantiate the Database. Pass Everything on to Database
 
-      $this->db = new Database($this);
+      //$this->db = new Database($this);
+      new Database($this);
       // BLP 2021-10-24 -- NOTE escape is part of mysqli which is only instantiated after Database.
       // if CLI then it is '' blank not null from above.
       $this->agent = $this->escape($this->agent);
     }
     
-    // BLP 2021-09-15 -- add items to myIp from the myip table.
-    // See the bartonphillips.com/ index.php, index.i.php and register.php files
-    // for how the myip table is updated.
-
-    // BLP 2021-09-24 -- The masterdb must be owned by 'barton'. That is the dbinfo->user must be
-    // 'barton'. There is one database where this is not true. The 'test' database has a
-    // mysitemap.json file that has dbinfo->user as 'test'. It is in the
-    // bartonphillips.com/exmples.js/user-test directory.
-    // In general all databases that are going to do anything with counters etc. must have a user
-    // of 'barton' and $this->nodb false. Still the program can NOT do any calls via masterdb!
-
-    if($this->dbinfo->user == "barton") { // BLP 2021-12-31 -- make sure its the 'barton' user!
-      $this->query("select count(*) from information_schema.tables ".
-                   "where (table_schema = '$this->masterdb') and (table_name = 'myip')");
-
-      if($this->fetchrow('num')[0]) {
-        $sql = "select myIp from $this->masterdb.myip";
-        $this->query($sql);
-        while($ip = $this->fetchrow('num')[0]) {
-          $this->myIp[] = $ip;
-        }
-      } else {
-        $this->debug("SiteClass $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__);
-      }
-    }
-    
     // These all use database 'barton' ($this->masterdb)
-    // and are always done regardless of 'count' and 'countMe'!
+    // and are always done regardless of 'count'!
+    // If $this->nodb or there is no $this->dbinfo we have made $this->noTrack true and
+    // $this->count false
     
     if($this->noTrack !== true) {
       // checkIfBot() must be done first
+
       $this->checkIfBot(); // This set $this->isBot. Does a isMe() so I never get set as a bot!
+
+      // Now do all of the rest.
+
       $this->trackbots();  // both 'bots' and 'bots2'. This also does a isMe() so never get put into the 'bots*' tables.
-      $this->tracker();    // This logs Me and everybody else!
+      $this->tracker();    // This logs Me and everybody else! Note this is done before daycount()
       $this->logagent();   // This logs Me and everybody else!
       $this->updatemyip(); // Update myip if it is ME
 
       // If 'count' is false we don't do these counters
 
       if($this->count) {
-        // Get the count for hitCount. This is done even if countMe is false. The hitCount is always
+        // Get the count for hitCount. The hitCount is always
         // updated (unless the counter file does not exist).
-        // That is why it is here rather than after the countMe test below!
-
-        // BLP 2021-03-27 -- NOTE: counter() checks for not isMe() and countMe is false.
-        // So it does NOT count Me but it still gets the 'realcnt' even if the count was NOT done.
-        // The 'realcnt' is placed in '$this->hitCount'.
 
         $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
 
-        // BLP 2021-08-20 -- Change countMe to not true because countMe could be null.
-        // If this is me and $countMe is false (default is false) then don't count.
-        //     isMe() && countMe!==true
-        // not (true  && false)  == true, it is me and countMe=true 
-        // not (true  && true)   == false,  it is me and countMe=false (or null)
-        // not (false && false)  == true,  it isn't me and countMe=true
-        // not (false && true)   == true,  it isn't me and countMe=false (or null)
-        // So basically I only want to NOT do the counter2 and daycount if it is Me and countMe is
-        // false.
-
-        if(!(($this->isMe()) && ($this->countMe !== true))) {
+        if(!$this->isMe()) { //If it is NOT ME do counter2 and daycount
           // These are all checked for existance in the database in the functions and also the nodb
           // is checked and if true we return at once.
 
@@ -167,6 +128,7 @@ class SiteClass extends dbAbstract {
         }
       }
     }
+    //error_log("SiteClass this: " . print_r($this, true));
   }
 
   /**
@@ -197,7 +159,7 @@ class SiteClass extends dbAbstract {
                      );
 
     if(!setcookie($cookie, $value, $options)) {
-      $this->debug("SiteClass $this->siteName: $this->self: setcookie failed ". __LINE__);
+      error_log("SiteClass $this->siteName: $this->self: setcookie failed ". __LINE__);
       return false;
     }
     return true;
@@ -371,7 +333,8 @@ EOF;
         $trackerStr = '';
       } else {
         $trackerStr =<<<EOF
-  <script data-lastid="$this->LAST_ID" src="https://bartonphillips.net/js/tracker.js"></script>
+<script data-lastid="$this->LAST_ID" src="https://bartonphillips.net/js/tracker.js"></script>
+<script>var thesite = "$this->siteName", theip = "$this->ip";</script>
 EOF;
       } 
     }
@@ -516,7 +479,10 @@ EOF;
     if(preg_match("~^\d{4}~", $b->copyright) === 1) {
       $b->copyright = "Copyright &copy; $b->copyright";
     }
-    $b->aboutwebsite = ($b->aboutwebsite ?? $this->aboutwebsite) ?? (file_exists('aboutwebsite.php') ? "<h2><a target='_blank' href='aboutwebsite.php'>About This Site</a></h2>" : null);
+    $b->aboutwebsite = $b->aboutwebsite ??
+                       $this->aboutwebsite ??
+                       "<h2><a target='_blank' href='https://bartonphillips.net/aboutwebsite.php?site=$this->siteName&domain=$this->siteDomain'>About This Site</a></h2>";
+    
     $b->emailAddress = ($b->noEmailAddress ?? $this->noEmailAddress) ? null : ($b->emailAddress ?? $this->EMAILADDRESS);
     $b->emailAddress = $b->emailAddress ? "<a href='mailto:$b->emailAddress'>$b->emailAddress</a>" : null;
     $b->inlineScript = $b->inlineScript ? "<script>$b->inlineScript</script>" : null;
@@ -602,41 +568,73 @@ EOF;
   }
 
   // ********************************************************************************
-  // Private and protected methods
-  // protected methods can be overridden in child classes so most things that would be private
+  // Private and protected methods.
+  // Protected methods can be overridden in child classes so most things that would be private
   // should be protected in this base class
 
   /**
    * checkIfBot() before we do any of the other protected functions.
-   * Checks if the user-agent looks like a bot or if the ip is in the bots table.
+   * Checks if the user-agent looks like a bot or if the ip is in the bots table
+   * or previous tracker records had something other than zero or 0x2000.
    * Set $this->isBot true/false.
    * return nothing.
+   * SEE defines.php for the values for TRACKER_BOT, BOTS_SITECLASS
+   * $this-isBot is false or there is no entry in the bots table
    */
 
   protected function checkIfBot():void {
+    $this->isBot = false;
+    
     if($this->isMe()) {
       return; 
     }
 
-    $this->query("select count(*) from information_schema.tables ".
-                 "where (table_schema = '$this->masterdb') and (table_name = 'bots')");
-
-    // BLP 2021-12-23 -- add just plain 'bot', 'spider' and 'HeadlessChrome' to list.
-    // NOTE our check of 'bots' happens before we would have added this client.
-    
-    if($this->fetchrow('num')[0]) {
-      if(($x = preg_match("~\+*https?://|bot|spider|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
-                          "GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
-                          "http client|PECL::HTTP~i", $this->agent)) === 1) {
-        $this->isBot = true;
-      } elseif($x === false) {
-        throw new Exceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false");
-      } elseif($this->query("select count(*) from $this->masterdb.bots where ip='$this->ip' limit 1")) { // BLP 2022-04-12 - add count() and limit 1
-        $this->isBot = true;
-      }
-    } else {
-      $this->debug("SiteClass $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__);
+    if(($x = preg_match("~\+*https?://|@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
+                        "GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
+                        "http client|PECL::HTTP~i", $this->agent)) === 1) { // 1 means a match
+      $this->isBot = true;
+      $this->foundBotAs = BOTAS_MATCH; // "preg_match";
+      return;
+    } elseif($x === false) { // false is error
+      // This is an unexplained ERROR
+      throw new Exceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false");
     }
+
+    // If $x was 1 or false we have returned with true and BOTAS_MATCH or we threw an exception.
+    // $x is zero so there was NO match.
+
+    if($this->query("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Is it in the bots table?
+      // Yes it is in the bots table.
+
+      $tmp = '';
+
+      while($robots = $this->fetchrow('num')[0]) {
+        if($robots & BOTS_ROBOTS) {
+          $tmp = "," . BOTAS_ROBOT;
+        }
+        if($robots & BOTS_SITEMAP) {
+          $tmp .= "," . BOTAS_SITEMAP;
+        }
+        if($robots & BOTS_CRON_ZERO) {
+          $tmp .= "," . BOTAS_ZERO;
+        }
+        if($tmp != '') break;
+      }
+      if($tmp != '') {
+        $this->foundBotAs = BOTAS_TABLE . $tmp; //'bots table' plus $tmp;
+        $this->isBot = true; // BOTAS_TABLE plus robot and/or sitemap
+      } else {
+        $this->foundBotAs = BOTAS_NOT;
+        $this->isBot = false;
+      }
+      //error_log("SiteClass checkIfBot: foundBotAs=$this->foundBotAs, ip=$this->ip, agent=$this->agent, " . __LINE__);
+      return;
+    }
+
+    // The ip was NOT in the bots table either.
+
+    $this->foundBotAs = BOTAS_NOT; // not a bot
+    $this->isBot = false;
   }
 
   // **************
@@ -647,115 +645,148 @@ EOF;
    * trackbots()
    * Track both bots and bots2
    * This sets $this->isBot unless the 'bots' table is not found.
+   * SEE defines.php for the values for isJavaScript.
+     CREATE TABLE `bots` (
+       `ip` varchar(40) NOT NULL DEFAULT '',
+       `agent` text NOT NULL,
+       `count` int DEFAULT NULL,
+       `robots` int DEFAULT '0',
+       `site` varchar(255) DEFAULT NULL,
+       `creation_time` datetime DEFAULT NULL,
+       `lasttime` datetime DEFAULT NULL,
+       PRIMARY KEY (`ip`,`agent`(254))
+     ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+     CREATE TABLE `bots2` (
+       `ip` varchar(40) NOT NULL DEFAULT '',
+       `agent` text NOT NULL,
+       `page` text,
+       `date` date NOT NULL,
+       `site` varchar(50) NOT NULL DEFAULT '',
+       `which` int NOT NULL DEFAULT '0',
+       `count` int DEFAULT NULL,
+       `lasttime` datetime DEFAULT NULL,
+       PRIMARY KEY (`ip`,`agent`(254),`date`,`site`,`which`)
+     ) ENGINE=InnoDB DEFAULT CHARSET=latin1
+     Things enter the bots table from 'robots.txt', 'Sitemap.xml' and BOTS_CRON_ZERO from checktracker2.php.
+     Also if we have found BOTS_MATCH or BOTS_TABLE plus one of the others (robots, sitemap, zero) we enter it here.
    */
 
   protected function trackbots():void {
-    if($this->isMe()) { // I can never be a bot!!!
-      return;
-    }
+    if($this->foundBotAs == BOTAS_MATCH || (strpos($this->foundBotAs, BOTAS_TABLE) !== false)) { // This has been set by checkIfBot()
+      //error_log("SiteClass trackbots: $this->foundBotAs, $this->ip, $this->agent, $this->siteName");
 
-    // This has been set by checkIfBot()
+      $agent = $this->agent;
 
-    if($this->isBot) {
-      $this->query("select count(*) from information_schema.tables ".
-                   "where (table_schema = '$this->masterdb') and (table_name = 'bots')");
+      try {
+        // The first three values are for the first time and second or more.
+        // bots values are: robots.txt=1 or 2, SiteClass=4 or 8, Sitemap.xml=16 or 32.
+        // CRON found tracker zero=256.
 
+        $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
+                     "values('$this->ip', '$agent', 1, " . BOTS_SITECLASS . ", '$this->siteName', now(), now())");
+      } catch(Exception $e) {
+        if($e->getCode() == 1062) { // duplicate key
+          // We need the site info first. This can be one or multiple sites seperated by commas.
 
-      if($this->fetchrow('num')[0]) {
-        // BLP 2018-06-08 -- $agent set
-        $agent = $this->agent;
+          $this->query("select site from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
 
-        try {
-          // BLP 2021-11-12 -- first time robots=4.
-          
-          $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
-                       "values('$this->ip', '$agent', 1, 4, '$this->siteName', now(), now())");
-        } catch(Exception $e) {
-          if($e->getCode() == 1062) { // duplicate key
-            $this->query("select site from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
+          $who = $this->fetchrow('num')[0]; // who is the site name. There can be only 1
 
-            list($who) = $this->fetchrow('num');
-
-            if(!$who) {
-              $who = $this->siteName;
-            }
-
-            if(strpos($who, $this->siteName) === false) {
-              $who .= ", $this->siteName";
-            }
-
-            // BLP 2021-11-12 -- on update we or in an 8 (0xa).
-            $this->query("update $this->masterdb.bots set robots=robots | 8, site='$who', count=count+1, lasttime=now() ".
-                         "where ip='$this->ip' and agent='$agent'");
-          } else {
-            throw new Exception(__CLASS__ . " " . __LINE__ . ":$e");
+          if(!$who) {
+            $who = $this->siteName; // There is no who so make siteName who.
           }
+
+          // Look at who (the haystack) and see if siteName is there. If it is not there this
+          // returns false.
+
+          if(strpos($who, $this->siteName) === false) {
+            $who .= ", $this->siteName";
+          }
+
+          $this->query("update $this->masterdb.bots set robots=robots | " . BOTS_SITECLASS . ", site='$who', count=count+1, lasttime=now() ".
+                       "where ip='$this->ip' and agent='$agent'");
+        } else {
+          throw new Exception(__CLASS__ . " " . __LINE__ . ":$e");
         }
       }
 
       // Now do bots2
 
-      $this->query("select count(*) from information_schema.tables ".
-                   "where (table_schema = '$this->masterdb') and (table_name = 'bots2')");
-
-      if($this->fetchrow('num')) {
-        // BLP 2021-10-27 -- Primary key is (ip, agent, date, site, which). There is only one of
-        // these with the which value. On update just inc count and set lasttime.
-        // BLP 2021-12-16 -- changed from 2 to 8 (robots=2, sitemap=4, cron=16)
-        
-        $this->query("insert into $this->masterdb.bots2 (ip, agent, date, site, which, count, lasttime) ".
-                     "values('$this->ip', '$agent', now(), '$this->siteName', 8, 1, now())".
-                     "on duplicate key update count=count+1, lasttime=now()");
-      } else {
-        $this->debug("SiteClass $this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database: ". __LINE__);
-      }
+      $this->query("insert into $this->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
+                   "values('$this->ip', '$agent', '$this->self', now(), '$this->siteName', " . BOTS_SITECLASS . ", 1, now())".
+                   "on duplicate key update count=count+1, lasttime=now()");
     }
   }
-
+   
   /**
    * tracker()
    * track if java script or not.
-   * BLP 2016-12-20 -- added refid. This could be overwritten by tracker.php 'script' by the id of a previous item.
+   * CREATE TABLE `tracker` (
+   *  `id` int NOT NULL AUTO_INCREMENT,
+   *  `botAs` varchar(30) DEFAULT NULL,
+   *  `site` varchar(25) DEFAULT NULL,
+   *  `page` varchar(255) NOT NULL DEFAULT '',
+   *  `finger` varchar(50) DEFAULT NULL,
+   *  `nogeo` tinyint(1) DEFAULT NULL,
+   *  `ip` varchar(40) DEFAULT NULL,
+   *  `agent` text,
+   *  `starttime` datetime DEFAULT NULL,
+   *  `endtime` datetime DEFAULT NULL,
+   *  `difftime` varchar(20) DEFAULT NULL,
+   *  `refid` int DEFAULT NULL,
+   *  `isJavaScript` int DEFAULT '0',
+   *  `lasttime` datetime DEFAULT NULL,
+   *  PRIMARY KEY (`id`),
+   *  KEY `site` (`site`),
+   *  KEY `ip` (`ip`),
+   *  KEY `lasttime` (`lasttime`),
+   *  KEY `starttime` (`starttime`)
+   * ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3
    */
 
   protected function tracker():void {
-    $this->query("select count(*) from information_schema.tables ".
-                 "where (table_schema = '$this->masterdb') and (table_name = 'tracker')");
+    $agent = $this->agent;
 
-    if($this->fetchrow('num')[0]) {
-      $agent = $this->agent;
+    // BLP 2021-12-28 -- Explanation.
+    // Here we set $java (isJavaScript) to 0x8000 or zero.
+    // We then look at isBot and if nothing was found in the bots table and the regex did not
+    // match something in the list then isJavaScript will be zero.
+    // The visitor was probably a bot and will be added to the bots table as a 0x100 by the cron
+    // job checktracker2.php and to the bots2 table as 16. The bot was more than likely curl,
+    // wget, python or the like that sets its user-agent to something that would not trigger my
+    // regex. Such visitor leave very little footprint.
 
-      // BLP 2021-12-28 -- Explanation.
-      // Here we set $java (isJavaScript) to 0x8000 or zero.
-      // We then look at isBot and if nothing was found in the bots table and the regex did not
-      // match something in the list then isJavaScript will be zero.
-      // The visitor was probably a bot and will be added to the bots table as a 0x100 by the cron
-      // job checktracker2.php and to the bots2 table as 16. The bot was more than likely curl,
-      // wget, python or the like that sets its user-agent to something that would not trigger my
-      // regex. Such visitor leave very little footprint.
-      
-      $java = $this->isMe() ? 0x8000 : 0; // BLP 2021-12-20 -- if isMe() then make $java 0x8000
+    $java = $this->isMe() ? TRACKER_ME : TRACKER_ZERO;
 
-      if($this->isBot) { // can NEVER be me!
-        $java = 0x2000; // This is the robots tag
-      }
+    if($this->isBot) { // can NEVER be me!
+      // NOTE: this is added here and in tracker.php at 'script', 'normal', 'noscript' and
+      // 'csstest'. It is also added in goto.php. In all of these 'refid' is the id of the
+      // original entry. This seems to only be with Bartonphillipsnet.
+      // $this->isBot is true if: 1) BOTAS_MATCH, 2) in bots table and robot and/or sitmap.
+      // If BOTAS_TABLE only then $this->isBot is false and $java is ZERO.
 
-      if($refid !== null) {
-        $refid = $this->escape($this->refid); // if CLI this is blank not null.
-      }
+      $java = TRACKER_BOT; // This is the robots tag
+    } 
 
-      // Temp remove when done
-      if(empty($this->self)) {
-        $this->debug("SiteClass: tracker NO page, $this->siteName, $this->ip, $agent, self=$this->self, java=$java, " . __LINE__);
-      }
+    // The primary key is id which is auto incrementing so every time we come here we create a
+    // new record.
 
-      $this->query("insert into $this->masterdb.tracker (site, page, ip, agent, refid, starttime, isJavaScript, lasttime) ".
-                   "values('$this->siteName', '$this->self', '$this->ip','$agent', '$refid', now(), $java, now())");
+    // Add foundBotAs to end of agent.
 
-      $this->LAST_ID = $this->getLastInsertId();
-    } else {
-      $this->debug("SiteClass $this->siteName: $this->self: table tracker does not exist in the $this->masterdb database: ". __LINE__);
+    if($this->foundBotAs != '') {
+      $tmp = rtrim($this->foundBotAs, ',');
+      $tmp = preg_replace("~,~", "<br>", $tmp);
+      //error_log("SiteClass tracker: $this->siteName, ip=$this->ip, foundBotAs=$this->foundBotAs, java=" . dechex($java) . ", " . __LINE__);
+
+      $agent .= $this->foundBotAs ? '<br><span class="botas">' . $tmp . '</span>' : '';
     }
+    $agent = $this->escape($agent);
+
+    $this->query("insert into $this->masterdb.tracker (botAs, site, page, ip, agent, starttime, isJavaScript, lasttime) ".
+                 "values('$this->foundBotAs', '$this->siteName', '$this->self', '$this->ip','$agent', now(), $java, now())");
+
+    $this->LAST_ID = $this->getLastInsertId();
   }
 
   /**
@@ -764,18 +795,9 @@ EOF;
    */
 
   protected function updatemyip():void {
-    if($this->isMe() === false) {
-      return;
-    }
-
-    // This IS ME so make sure the myip table exists and then insert/update the myip table.
-    
-    $this->query("select count(*) from information_schema.tables ".
-                 "where (table_schema = '$this->masterdb') and (table_name = 'myip')");
-
-    if($this->fetchrow('num')[0] == 0) {
-      $this->debug("SiteClass $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__);
-      return;
+    if($this->ip == DO_SERVER || $this->isMe() === false) {
+      // If it is my server or it is not ME. If it is my server we don't look at the OR.
+      return; // This is not me.
     }
 
     // BLP 2022-01-16 -- NOTE there are only two places where the ip address is added:
@@ -784,7 +806,7 @@ EOF;
     $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
 
     if(!$this->query($sql)) {
-      $this->debug("SiteClass $this->siteName: update of myip failed, ip: $this->ip, " .__LINE__); // this should not happen
+      $this->db->debug("SiteClass $this->siteName: update of myip failed, ip: $this->ip, " .__LINE__, true); // this should not happen
     }
   }
 
@@ -797,94 +819,67 @@ EOF;
    */
 
   protected function counter():void {
-    $this->query("select count(*) from information_schema.tables ".
-                 "where (table_schema = '$this->masterdb') and (table_name = 'counter')");
+    $filename = $this->self; // get the name of the file
 
-    if($this->fetchrow('num')[0]) {
-      $filename = $this->self; // get the name of the file
+    if(!$this->isMe()) {
+      // realcnt is ONLY NON BOTS
 
-      // BLP 2021-08-20 -- The only time I don't want to do this is if isMe===true and
-      // countMe===false.
-      
-      if(!(($this->isMe()) && ($this->countMe !== true))) {
-        // realcnt is ONLY NON BOTS
-        
-        $realcnt = $this->isBot ? 0 : 1;
+      $realcnt = $this->isBot ? 0 : 1;
 
-        // count is total of ALL hits!
+      // count is total of ALL hits!
 
-        $sql = "insert into $this->masterdb.counter (site, filename, count, realcnt, lasttime) ".
-               "values('$this->siteName', '$filename', '1', '$realcnt', now()) ".
-               "on duplicate key update count=count+1, realcnt=realcnt+$realcnt, lasttime=now()";
+      $sql = "insert into $this->masterdb.counter (site, filename, count, realcnt, lasttime) ".
+             "values('$this->siteName', '$filename', '1', '$realcnt', now()) ".
+             "on duplicate key update count=count+1, realcnt=realcnt+$realcnt, lasttime=now()";
 
-        $this->query($sql);
-      }
-
-      // Now retreive the hit count value after it may have been incremented above.
-      // It will only not be incremented if isMe===true and countMe===false.
-      // In otherwords it is ME but countMe is false, so even though it is me DON'T count ME!
-      
-      $sql = "select realcnt ".
-             "from $this->masterdb.counter ".
-             "where site='$this->siteName' and filename='$filename'";
-      
       $this->query($sql);
-      $cnt = $this->fetchrow('num')[0];
-      $this->hitCount = $cnt ?? 0; // This is the number of REAL (non BOT) accesses.
-    } else {
-      $this->debug("SiteClass $this->siteName: $this->self: table counter does not exist in the $this->masterdb database: ". __LINE__);
-    }      
+    }
+
+    // Now retreive the hit count value after it may have been incremented above.
+
+    $sql = "select realcnt from $this->masterdb.counter ".
+           "where site='$this->siteName' and filename='$filename'";
+
+    $this->query($sql);
+    $cnt = $this->fetchrow('num')[0];
+    $this->hitCount = $cnt ?? 0; // This is the number of REAL (non BOT) accesses.
   }
 
   /**
    * counter2
    * count files accessed per day
-   * WARNING this may be overriden in a child class
-   * BLP 2021-03-16 -- removed 'member' logic
    */
   
   protected function counter2():void {
-    $this->query("select count(*) from information_schema.tables " .
-                 "where (table_schema = '$this->masterdb') ".
-                 "and (table_name = 'counter2')");
+    [$real, $bot] = $this->isBot ? [0,1] : [1,0];
 
-    if($this->fetchrow('num')[0]) {
-      [$real, $bot] = $this->isBot ? [0,1] : [1,0];
-      
-      // BLP 2021-12-31 -- change count to real here and in counter2 table.
-      $sql = "insert into $this->masterdb.counter2 (site, date, filename, `real`, bots, lasttime) ".
-             "values('$this->siteName', now(), left('$this->self', 254), $real , $bot, now()) ".
-             "on duplicate key update `real`=`real`+$real, bots=bots+$bot, lasttime=now()";
-      
-      $this->query($sql);
-    } else {
-      $this->debug("SiteClass $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__);
-    }
+    $sql = "insert into $this->masterdb.counter2 (site, date, filename, `real`, bots, lasttime) ".
+           "values('$this->siteName', now(), left('$this->self', 254), $real , $bot, now()) ".
+           "on duplicate key update `real`=`real`+$real, bots=bots+$bot, lasttime=now()";
+
+    $this->query($sql);
   }
   
   /**
    * daycount()
    * Day Counts
    * This updates the 'mytime' cookie.
+   * At this point if $this->isBot is true then this is a bot.
+   * But I don't know if this is real or not. The client must determin that.
+   * So we only update daycount if it is a BOT.
    */
 
   protected function daycount():void {
-    $this->query("select count(*) from information_schema.tables ".
-                 "where (table_schema = '$this->masterdb') and (table_name = 'daycounts')");
-
-    if($this->fetchrow('num')[0] == 0) {
-      $this->debug("SiteClass $this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database: ". __LINE__);
-      return;
-    }
-
+    // Table does exist so continue.
+    
     $ip = $this->ip;
 
-    [$real, $bots] = $this->isBot ? [0,1] : [1,0];
-        
+    $bots = $this->isBot ? 1 : 0; // If isBot is true then this is a bot
+
     try {
       // BLP 2021-02-20 -- note date and real must be escaped with `
-      $sql = "insert into $this->masterdb.daycounts (site, `date`, `real`, bots, visits, lasttime) " .
-             "values('$this->siteName', current_date(), $real, $bots, 1, now())";
+      $sql = "insert into $this->masterdb.daycounts (site, `date`, bots, visits, lasttime) " .
+             "values('$this->siteName', current_date(), $bots, 1, now())";
 
       $this->query($sql);
 
@@ -893,7 +888,7 @@ EOF;
       $cookietime = time() + (60*10);
       
       if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
-        $this->debug("SiteClass $this->siteName: Can't setSiteCookie() at ".__LINE__);
+        $this->db->debug("SiteClass $this->siteName: Can't setSiteCookie() at ".__LINE__, true);
       }
     } catch(Exception $e) {
       if($e->getCode() != 1062) { // 1062 is dup key error
@@ -902,17 +897,23 @@ EOF;
 
       // This is the 10 minute time delay for visitors vs hits
 
-      if($_COOKIE['mytime']) {        
-        $sql = "update $this->masterdb.daycounts set `real`=`real`+$real, bots=bots+$bots, lasttime=now() ".
+      if($_COOKIE['mytime']) {
+        // The cookie is set so we just update real or bots and lasttime.
+        
+        $sql = "update $this->masterdb.daycounts set bots=bots+$bots, lasttime=now() ".
                "where site='$this->siteName' and date=current_date()";
       } else {
+        // The cookie was not set so
         // set cookie to expire in 10 minutes
+        
         $cookietime = time() + (60*10);
         if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
-          $this->debug("SiteClass $this->siteName: Can't setSiteCookie() at ".__LINE__);
+          $this->db->debug("SiteClass $this->siteName: Can't setSiteCookie() at ".__LINE__, true);
         }
 
-        $sql = "update $this->masterdb.daycounts set `real`=`real`+$real, bots=bots+$bots, visits=visits+1, ".
+        // Now update visits, and real or bots and lasttime.
+        
+        $sql = "update $this->masterdb.daycounts set bots=bots+$bots, visits=visits+1, ".
                "lasttime=now() ".
                "where site='$this->siteName' and date=current_date()";
       }
@@ -929,38 +930,16 @@ EOF;
   protected function logagent():void {
     $agent = $this->agent;
 
-    $this->query("select count(*) from information_schema.tables ".
-                 "where (table_schema = '$this->masterdb') and (table_name = 'logagent')");
+    // site, ip and agent are the primary key.
 
-    if($this->fetchrow('num')[0]) {
-      $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime) " .
-             "values('$this->siteName', '$this->ip', '$agent', '1', now(), now()) ".
-             "on duplicate key update count=count+1, lasttime=now()";
-        
-      $this->query($sql);
-    } else {
-      $this->debug("SiteClass $this->siteName: $this->self: table logagent does not exist in the $this->masterdb database: " . __LINE__);
-    }
+    $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime) " .
+           "values('$this->siteName', '$this->ip', '$agent', '1', now(), now()) ".
+           "on duplicate key update count=count+1, lasttime=now()";
+
+    $this->query($sql);
   }
 
   // ************
   // End Counters
   // ************
-
-  /*
-   * debug()
-   * If noErrorLog is set in mysitemap.json then don't do error_log()
-   */
-
-  protected function debug(string $msg, $exit=false):void {
-    if($this->noErrorLog === true) {
-      return;
-    }
-
-    error_log("SiteClass:: $msg");
-
-    if($exit === true) {
-      exit();
-    }
-  }
 } // End of Class

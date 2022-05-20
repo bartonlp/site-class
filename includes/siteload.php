@@ -15,6 +15,8 @@ namespace siteload;
 // We are in 'vendor/bartonlp/site-class/includes' so we want to go back three directories to load
 // autoload.php
 
+define("SITECLASS_DIR", __DIR__);
+
 require_once(__DIR__ ."/../../../autoload.php");
 
 class getinfo {
@@ -141,6 +143,5 @@ EOF;
 
 $h = new \stdClass;
 $b = new \stdClass;
-
 return $_site;
 
