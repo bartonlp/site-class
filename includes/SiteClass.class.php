@@ -1,12 +1,9 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
-// BLP 2022-05-12 - remove countMe.
-// BLP 2022-04-24 - Added defines.php and modified siteload.php to set the define SITECLASS_DIR.
-// BLP 2022-04-12 - If I subclass this I should do __construct($s) and then do
-// parent::__construct($s), that is pass the object from siteload.php. If I do that I can remove
-// all of the if($this->nodb) for protected functions, which I have done.
+// BLP 2022-05-26 - SiteClass now extends Database which extends dbAbstract.
+// daycount(), checkIfBot(), trackBots() and tracker have been completley reworked.
 
-define("SITE_CLASS_VERSION", "3.3.0"); // BLP 2022-05-16 - 
+define("SITE_CLASS_VERSION", "3.3.0"); // BLP 2022-05-26 - 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -30,8 +27,6 @@ require_once(__DIR__ . "/defines.php"); // This has the constants for TRACKER, B
 class SiteClass extends Database {
   private $hitCount = null;
 
-  public $isSiteClass = true; // True if we instantiated SiteClass so Database knows that we have.
-  
   // Give these default values incase they are not mentioned in mysitemap.json.
   // Note they could still be null from mysitemap.json!
   
@@ -47,9 +42,9 @@ class SiteClass extends Database {
    *  The $s is almost always from mysitemap.json.
    *  Once in a while they can be changed by the program instantiating the class.
    *  'count' is default true.
-   *  The rest of the values are 'null' if not specifically set by $s (mysitemap.json).
    *  $s has the values from $_site = require_once(getenv("SITELOADNAME"));
    *  which uses siteload.php to gets values from mysitemap.json.
+   * Some values are added to $s and then we call parent::__constructor with $s and true (isSiteClass).
    */
   
   public function __construct(object $s) {
@@ -57,17 +52,15 @@ class SiteClass extends Database {
 
     $s->ip = $_SERVER['REMOTE_ADDR'];
     $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- CLI agent is NULL so make it blank ''
+    // self is like '/tracker.php'
+    // requestUri is like '/tracker.php?page=script&id=6218713&image=/images/blp-image.png'
     $s->self = htmlentities($_SERVER['PHP_SELF']); // BLP 2021-12-20 -- add htmlentities to protect against hacks.
     $s->requestUri = $_SERVER['REQUEST_URI']; // BLP 2021-12-30 -- change from $this->self
-    
-    parent::__construct($s);
-    
-    // Put the stuff from $s into $this
-    
-//    foreach($s as $k=>$v) {
-//      $this->$k = $v;
-//    }
 
+    // Do the parent Database constructor which does the dbAbstract constructor.
+    
+    parent::__construct($s, true); // set true to tell Database that it has been called from here.
+    
     // BLP 2018-07-01 -- Add the date to the copyright notice if one exists
 
     if($this->copyright) {
@@ -81,17 +74,6 @@ class SiteClass extends Database {
       $this->nodb = true;
       $this->count = false;
       $this->noTrack = true; // If nodb then noTrack is true also.
-    } else {
-      // BLP 2021-03-11 -- add escape for HTTP_USER_AGENT to cope with ' etc.
-      // If we have already instantiated a Database the $this->db will not be null so don't do the
-      // Database again!
-      // instantiate the Database. Pass Everything on to Database
-
-      //$this->db = new Database($this);
-      new Database($this);
-      // BLP 2021-10-24 -- NOTE escape is part of mysqli which is only instantiated after Database.
-      // if CLI then it is '' blank not null from above.
-      $this->agent = $this->escape($this->agent);
     }
     
     // These all use database 'barton' ($this->masterdb)
@@ -134,28 +116,21 @@ class SiteClass extends Database {
   /**
    * setSiteCookie()
    * @return bool true if OK else false
-   * BLP 2021-12-20 -- add $secure, $httponly and $samesite as default to null. Then check them with ?? and set defaults.
-   * BLP 2021-10-25 -- added thedomain
+   * BLP 2021-12-20 -- add $secure, $httponly and $samesite as default
    */
 
   public function setSiteCookie(string $cookie, string $value, int $expire, string $path="/", ?string $thedomain=null,
-                                ?bool $secure=null, ?bool $httponly=null, ?string $samesite=null):bool {
+                                bool $secure=true, bool $httponly=false, string $samesite='Lax'):bool
+  {
     $ref = $thedomain ?? "." . $this->siteDomain; // BLP 2021-10-16 -- added dot back to ref.
-    $secure = $secure ?? true;
-    $httponly = $httponly ?? false;
-    $samesite = $samesite ?? 'Lax'; // BLP 2021-12-20 -- Make the default 'Lax' it was 'Strict'
-    
-    // BLP 2021-03-22 -- New. use $options to hold values. Set 'secure' true, 'httponly' true, and
-    // 'samesite' None. Samesite is a new feature.
-    // BLP 2021-10-16 -- as of PHP 7.3 an array can be used and samesite is added.
     
     $options =  array(
                       'expires' => $expire,
                       'path' => $path,
-                      'domain' => $ref, // leading dot for compatibility or use subdomain
-                      'secure' => $secure,      // or false
-                      'httponly' => $httponly,    // or true. If true javascript can't be used.
-                      'samesite' => $samesite    // None || Lax  || Strict // BLP 2021-12-20 -- changed to Lax
+                      'domain' => $ref, // (defaults to $this->siteDomain with leading period.
+                      'secure' => $secure,
+                      'httponly' => $httponly,    // If true javascript can't be used (defaults to false.
+                      'samesite' => $samesite    // None || Lax  || Strict (defaults to Lax)
                      );
 
     if(!setcookie($cookie, $value, $options)) {
@@ -651,7 +626,7 @@ EOF;
        `agent` text NOT NULL,
        `count` int DEFAULT NULL,
        `robots` int DEFAULT '0',
-       `site` varchar(255) DEFAULT NULL,
+       `site` varchar(255) DEFAULT NULL, // this is $who which can be multiple sites seperated by commas.
        `creation_time` datetime DEFAULT NULL,
        `lasttime` datetime DEFAULT NULL,
        PRIMARY KEY (`ip`,`agent`(254))
@@ -662,14 +637,14 @@ EOF;
        `agent` text NOT NULL,
        `page` text,
        `date` date NOT NULL,
-       `site` varchar(50) NOT NULL DEFAULT '',
+       `site` varchar(50) NOT NULL DEFAULT '', 
        `which` int NOT NULL DEFAULT '0',
        `count` int DEFAULT NULL,
        `lasttime` datetime DEFAULT NULL,
        PRIMARY KEY (`ip`,`agent`(254),`date`,`site`,`which`)
      ) ENGINE=InnoDB DEFAULT CHARSET=latin1
      Things enter the bots table from 'robots.txt', 'Sitemap.xml' and BOTS_CRON_ZERO from checktracker2.php.
-     Also if we have found BOTS_MATCH or BOTS_TABLE plus one of the others (robots, sitemap, zero) we enter it here.
+     Also if we have found BOTS_MATCH or BOTS_TABLE we enter it here.
    */
 
   protected function trackbots():void {
@@ -679,10 +654,6 @@ EOF;
       $agent = $this->agent;
 
       try {
-        // The first three values are for the first time and second or more.
-        // bots values are: robots.txt=1 or 2, SiteClass=4 or 8, Sitemap.xml=16 or 32.
-        // CRON found tracker zero=256.
-
         $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
                      "values('$this->ip', '$agent', 1, " . BOTS_SITECLASS . ", '$this->siteName', now(), now())");
       } catch(Exception $e) {
@@ -691,11 +662,7 @@ EOF;
 
           $this->query("select site from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
 
-          $who = $this->fetchrow('num')[0]; // who is the site name. There can be only 1
-
-          if(!$who) {
-            $who = $this->siteName; // There is no who so make siteName who.
-          }
+          $who = $this->fetchrow('num')[0]; // get the site which could have multiple sites seperated by commas.
 
           // Look at who (the haystack) and see if siteName is there. If it is not there this
           // returns false.
@@ -841,8 +808,8 @@ EOF;
            "where site='$this->siteName' and filename='$filename'";
 
     $this->query($sql);
-    $cnt = $this->fetchrow('num')[0];
-    $this->hitCount = $cnt ?? 0; // This is the number of REAL (non BOT) accesses.
+
+    $this->hitCount = ($this->fetchrow('num')[0]) ?? 0; // This is the number of REAL (non BOT) accesses.
   }
 
   /**
@@ -859,66 +826,38 @@ EOF;
 
     $this->query($sql);
   }
-  
-  /**
+
+  /*
    * daycount()
-   * Day Counts
-   * This updates the 'mytime' cookie.
-   * At this point if $this->isBot is true then this is a bot.
-   * But I don't know if this is real or not. The client must determin that.
-   * So we only update daycount if it is a BOT.
+   * New: This only updates bots and lasttime.
+   * If isBot is false meaning this is not a bot we return.
+   * We only count robots here. Reals are counted via the AJAX from tracker.js
+     CREATE TABLE `daycounts` (
+      `site` varchar(50) NOT NULL DEFAULT '',
+      `date` date NOT NULL,
+      `real` int DEFAULT '0',
+      `bots` int DEFAULT '0',
+      `visits` int DEFAULT '0',
+      `lasttime` datetime DEFAULT NULL,
+      PRIMARY KEY (`site`,`date`)
+    ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
    */
-
+  
   protected function daycount():void {
-    // Table does exist so continue.
-    
-    $ip = $this->ip;
-
-    $bots = $this->isBot ? 1 : 0; // If isBot is true then this is a bot
+    if($this->isBot === false) return;
 
     try {
-      // BLP 2021-02-20 -- note date and real must be escaped with `
-      $sql = "insert into $this->masterdb.daycounts (site, `date`, bots, visits, lasttime) " .
-             "values('$this->siteName', current_date(), $bots, 1, now())";
+      $sql = "insert into $this->masterdb.daycounts (site, `date`, bots, lasttime) " .
+             "values('$this->siteName', current_date(), 1, now())";
 
       $this->query($sql);
-
-      // Set $cookietime expires in 10 minutes
-      
-      $cookietime = time() + (60*10);
-      
-      if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
-        $this->db->debug("SiteClass $this->siteName: Can't setSiteCookie() at ".__LINE__, true);
-      }
     } catch(Exception $e) {
-      if($e->getCode() != 1062) { // 1062 is dup key error
-        throw new Exception(__CLASS__ . " " . __LINE__ .": daycount() error=$e");
+      if($e->getCode() != 1062) {
+        throw new Excception(__CLASS__ . " " . __LINE__ . ": daycount() error=$e");
+        exit();
       }
-
-      // This is the 10 minute time delay for visitors vs hits
-
-      if($_COOKIE['mytime']) {
-        // The cookie is set so we just update real or bots and lasttime.
-        
-        $sql = "update $this->masterdb.daycounts set bots=bots+$bots, lasttime=now() ".
-               "where site='$this->siteName' and date=current_date()";
-      } else {
-        // The cookie was not set so
-        // set cookie to expire in 10 minutes
-        
-        $cookietime = time() + (60*10);
-        if(!$this->setSiteCookie("mytime", time(), $cookietime)) {
-          $this->db->debug("SiteClass $this->siteName: Can't setSiteCookie() at ".__LINE__, true);
-        }
-
-        // Now update visits, and real or bots and lasttime.
-        
-        $sql = "update $this->masterdb.daycounts set bots=bots+$bots, visits=visits+1, ".
-               "lasttime=now() ".
-               "where site='$this->siteName' and date=current_date()";
-      }
-      $this->query($sql);
     }
+    $this->query("update $this->masterdb.daycounts set bots=bots+1, lasttime=now() where site='$this->siteName' and date=current_date()");
   }
   
   /**

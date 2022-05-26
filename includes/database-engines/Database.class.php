@@ -1,9 +1,8 @@
 <?php
 /* Well tested and maintained */
-// BLP 2022-01-14 -- Now we get the password from /home/barton/database-password
-// BLP 2021-11-11 -- For RPI let us use the $this->dbinfo->password if it exists
-// BLP 2021-10-28 -- see comment below.
-// BLP 2021-10-24 -- Added agent and ip if not isSiteClass.
+// BLP 2022-05-26 - now I do a parent::_construct to get everything.
+// SiteClass has a new version number.
+// Added CheckIfTablesExist().
 
 /**
  * Database wrapper class
@@ -15,25 +14,32 @@ class Database extends dbAbstract {
    * There is no program that uses anything but $_site from mysitemap.json.
    *
    * constructor
-   * @param $args object.
-   * $args should have all of the $this from SiteClass or $_site from mysitemap.json
-   * To just pass in the required database options set $args->dbinfo = (object) $ar
+   * @param $s object. $isSiteClass bool.
+   * $s should have all of the $this from SiteClass or $_site from mysitemap.json
+   * To just pass in the required database options set $s->dbinfo = (object) $ar
    * where $ar is an assocative array with ["host"=>"localhost",...]
+   * $isSiteClass is true if this is from SiteClass.
    */
 
-  public function __construct(object $s) {
+  public function __construct(object $s, ?bool $isSiteClass=null) {
     ErrorClass::init(); // We should do this. If already done it just returns.
 
-    $s->ip = $_SERVER['REMOTE_ADDR'];
-    $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- CLI agent is NULL so make it blank ''
-    $s->self = htmlentities($_SERVER['PHP_SELF']); // BLP 2021-12-20 -- add htmlentities to protect against hacks.
-    $s->requestUri = $_SERVER['REQUEST_URI']; // BLP 2021-12-30 -- change from $this->self
-
+    // If this is NOT from SiteClass then add these variable.
+    
+    if(!$isSiteClass) {
+      $s->ip = $_SERVER['REMOTE_ADDR'];
+      $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- CLI agent is NULL so make it blank ''
+      $s->self = htmlentities($_SERVER['PHP_SELF']); // BLP 2021-12-20 -- add htmlentities to protect against hacks.
+      $s->requestUri = $_SERVER['REQUEST_URI']; // BLP 2021-12-30 -- change from $this->self
+    }
+    
+    // Do the parent dbAbstract constructor
+    
     parent::__construct($s);
 
     date_default_timezone_set("America/New_York");
 
-    if($this->nodb) {
+    if($this->nodb || !$this->dbinfo) {
       return;
     }
 
@@ -82,6 +88,10 @@ class Database extends dbAbstract {
     if($this->dbinfo->user == 'barton') {
       $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
     }
+
+    // Escapte the agent in case it has something like an apostraphy in it.
+    
+    $this->agent = $this->escape($this->agent);
     
     //error_log("Database after CheckIfTablesExist this: " . print_r($this, true));
   }

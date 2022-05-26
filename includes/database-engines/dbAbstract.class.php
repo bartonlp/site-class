@@ -1,6 +1,6 @@
 <?php
 /* MAINTAINED and WELL TESTED */
-// BLP 2022-01-02 -- add $type to queryfetch($q, $type, $returnarray).
+// BLP 2022-05-26 - 
 
 // Abstract database class
 // Most of this class is implemented here. This keeps us from having to duplicate this over and
@@ -15,14 +15,9 @@ abstract class dbAbstract {
   abstract public function __toString();
 
   public function __construct(object $s) {
-    //if($this->isSiteClass) return;
-
-    //error_log("dbAbstract __construct s: " . print_r($s, true));
-
     foreach($s as $k=>$v) {
       $this->$k = $v;
     }
-    //error_log("dbAbstract __construct this: " . print_r($this, true));
   }
 
   public function getDbName():string {
