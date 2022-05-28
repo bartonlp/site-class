@@ -82,15 +82,16 @@ class SiteClass extends Database {
     // $this->count false
     
     if($this->noTrack !== true) {
-      // checkIfBot() must be done first
+      $this->logagent();   // This logs Me and everybody else! This is done regardless of $this->isBot or $this->isMe().
+
+      // checkIfBot() must be done before the rest because everyone uses $this->isBot.
 
       $this->checkIfBot(); // This set $this->isBot. Does a isMe() so I never get set as a bot!
 
       // Now do all of the rest.
 
       $this->trackbots();  // both 'bots' and 'bots2'. This also does a isMe() so never get put into the 'bots*' tables.
-      $this->tracker();    // This logs Me and everybody else! Note this is done before daycount()
-      $this->logagent();   // This logs Me and everybody else!
+      $this->tracker();    // This logs Me and everybody else but uses the $this->isBot! Note this is done before daycount()
       $this->updatemyip(); // Update myip if it is ME
 
       // If 'count' is false we don't do these counters
@@ -701,7 +702,6 @@ EOF;
    *  `starttime` datetime DEFAULT NULL,
    *  `endtime` datetime DEFAULT NULL,
    *  `difftime` varchar(20) DEFAULT NULL,
-   *  `refid` int DEFAULT NULL,
    *  `isJavaScript` int DEFAULT '0',
    *  `lasttime` datetime DEFAULT NULL,
    *  PRIMARY KEY (`id`),
@@ -727,12 +727,6 @@ EOF;
     $java = $this->isMe() ? TRACKER_ME : TRACKER_ZERO;
 
     if($this->isBot) { // can NEVER be me!
-      // NOTE: this is added here and in tracker.php at 'script', 'normal', 'noscript' and
-      // 'csstest'. It is also added in goto.php. In all of these 'refid' is the id of the
-      // original entry. This seems to only be with Bartonphillipsnet.
-      // $this->isBot is true if: 1) BOTAS_MATCH, 2) in bots table and robot and/or sitmap.
-      // If BOTAS_TABLE only then $this->isBot is false and $java is ZERO.
-
       $java = TRACKER_BOT; // This is the robots tag
     } 
 
@@ -788,12 +782,14 @@ EOF;
   protected function counter():void {
     $filename = $this->self; // get the name of the file
 
-    if(!$this->isMe()) {
+    // Is it me?
+    
+    if(!$this->isMe()) { // No it is NOT me.
       // realcnt is ONLY NON BOTS
 
       $realcnt = $this->isBot ? 0 : 1;
 
-      // count is total of ALL hits!
+      // count is total of ALL hits that are NOT ME!
 
       $sql = "insert into $this->masterdb.counter (site, filename, count, realcnt, lasttime) ".
              "values('$this->siteName', '$filename', '1', '$realcnt', now()) ".
@@ -802,19 +798,20 @@ EOF;
       $this->query($sql);
     }
 
-    // Now retreive the hit count value after it may have been incremented above.
+    // Now retreive the hit count value after it may have been incremented above. NOTE, I am NOT
+    // included here.
 
-    $sql = "select realcnt from $this->masterdb.counter ".
-           "where site='$this->siteName' and filename='$filename'";
+    $sql = "select realcnt from $this->masterdb.counter where site='$this->siteName' and filename='$filename'";
 
     $this->query($sql);
 
-    $this->hitCount = ($this->fetchrow('num')[0]) ?? 0; // This is the number of REAL (non BOT) accesses.
+    $this->hitCount = ($this->fetchrow('num')[0]) ?? 0; // This is the number of REAL (non BOT) accesses and NON Me.
   }
 
   /**
    * counter2
    * count files accessed per day
+   * Primary key is 'site', 'date', 'filename'.
    */
   
   protected function counter2():void {
@@ -829,9 +826,8 @@ EOF;
 
   /*
    * daycount()
-   * New: This only updates bots and lasttime.
-   * If isBot is false meaning this is not a bot we return.
-   * We only count robots here. Reals are counted via the AJAX from tracker.js
+   * This creates the very first record then if this is a BOT it updates 'bots' and 'lasttime'.
+   * We only count robots here. Reals are counted via the AJAX from tracker.js by tracker.php and beacon.php
      CREATE TABLE `daycounts` (
       `site` varchar(50) NOT NULL DEFAULT '',
       `date` date NOT NULL,
@@ -844,35 +840,36 @@ EOF;
    */
   
   protected function daycount():void {
-    if($this->isBot === false) return;
-
     try {
-      $sql = "insert into $this->masterdb.daycounts (site, `date`, bots, lasttime) " .
-             "values('$this->siteName', current_date(), 1, now())";
-
-      $this->query($sql);
+      // This will create the very first daycounts entry for the day.
+      
+      $this->query("insert into $this->masterdb.daycounts (site, `date`, lasttime) values('$this->siteName', current_date(), now())");
     } catch(Exception $e) {
       if($e->getCode() != 1062) {
-        throw new Excception(__CLASS__ . " " . __LINE__ . ": daycount() error=$e");
-        exit();
+        throw new Exception(__CLASS__ . "$e");
       }
     }
-    $this->query("update $this->masterdb.daycounts set bots=bots+1, lasttime=now() where site='$this->siteName' and date=current_date()");
+    
+    if($this->isBot === false) return; // If NOT a bot return.
+
+    // Only count bots here.
+    
+    $this->query("update $this->masterdb.daycounts set bots=bots+1, lasttime=now() where date=current_date() and site='$this->siteName'");
   }
   
   /**
    * logagent()
    * Log logagent
-   * logagent is now used for 'analysis'
+   * This counts everyone!
+   * logagent is used by 'analysis.php'
    */
   
   protected function logagent():void {
-    $agent = $this->agent;
-
-    // site, ip and agent are the primary key.
+    // site, ip and agent(256) are the primary key. Note, agent is a text field so we look at the
+    // first 256 characters here (I don't think this will make any difference).
 
     $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime) " .
-           "values('$this->siteName', '$this->ip', '$agent', '1', now(), now()) ".
+           "values('$this->siteName', '$this->ip', '$this->agent', '1', now(), now()) ".
            "on duplicate key update count=count+1, lasttime=now()";
 
     $this->query($sql);
