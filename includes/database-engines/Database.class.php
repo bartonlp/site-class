@@ -85,7 +85,7 @@ class Database extends dbAbstract {
     
     $this->db = $db;
 
-    if($this->dbinfo->user == 'barton') {
+    if($this->dbinfo->user == "barton" || $this->user == "barton") { // make sure its the 'barton' user!
       $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
     }
 
@@ -101,7 +101,7 @@ class Database extends dbAbstract {
    * Returns myIp.
    */
   
-  private function CheckIfTablesExist():array|null {
+  private function CheckIfTablesExist():array {
     // Do all of the table checks once here.
 
     if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots')")) {
@@ -139,18 +139,17 @@ class Database extends dbAbstract {
     //error_log("Database user: " . $this->user);
     //error_log("Database dbinfo->user: " . $this->dbinfo->user);
     
-    if($this->dbinfo->user == "barton" || $this->user == "barton") { // make sure its the 'barton' user!
-      if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
-        $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
-      }
-
-      $this->query("select myIp from $this->masterdb.myip");
-
-      while($ip = $this->fetchrow('num')[0]) {
-        $myIp[] = $ip;
-      }
-      $myIp[] = DO_SERVER; // BLP 2022-04-30 - Add my server.
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
+      $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
     }
+
+    $this->query("select myIp from $this->masterdb.myip");
+
+    while($ip = $this->fetchrow('num')[0]) {
+      $myIp[] = $ip;
+    }
+    $myIp[] = DO_SERVER; // BLP 2022-04-30 - Add my server.
+
     //error_log("Database after myIp set, this: " . print_r($this, true));
 
     return $myIp;
