@@ -1,9 +1,10 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2022-06-14 - Moved setSiteCookie() to Database.
 // BLP 2022-05-26 - SiteClass now extends Database which extends dbAbstract.
 // daycount(), checkIfBot(), trackBots() and tracker have been completley reworked.
 
-define("SITE_CLASS_VERSION", "3.3.0"); // BLP 2022-05-26 - 
+define("SITE_CLASS_VERSION", "3.3.1"); // BLP 2022-06-14 - 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -112,33 +113,6 @@ class SiteClass extends Database {
       }
     }
     //error_log("SiteClass this: " . print_r($this, true));
-  }
-
-  /**
-   * setSiteCookie()
-   * @return bool true if OK else false
-   * BLP 2021-12-20 -- add $secure, $httponly and $samesite as default
-   */
-
-  public function setSiteCookie(string $cookie, string $value, int $expire, string $path="/", ?string $thedomain=null,
-                                bool $secure=true, bool $httponly=false, string $samesite='Lax'):bool
-  {
-    $ref = $thedomain ?? "." . $this->siteDomain; // BLP 2021-10-16 -- added dot back to ref.
-    
-    $options =  array(
-                      'expires' => $expire,
-                      'path' => $path,
-                      'domain' => $ref, // (defaults to $this->siteDomain with leading period.
-                      'secure' => $secure,
-                      'httponly' => $httponly,    // If true javascript can't be used (defaults to false.
-                      'samesite' => $samesite    // None || Lax  || Strict (defaults to Lax)
-                     );
-
-    if(!setcookie($cookie, $value, $options)) {
-      error_log("SiteClass $this->siteName: $this->self: setcookie failed ". __LINE__);
-      return false;
-    }
-    return true;
   }
 
   /**

@@ -1,5 +1,6 @@
 <?php
 /* Well tested and maintained */
+// BLP 2022-06-14 - moved setSiteCookie() from SiteClass to here (SiteClass extends Database).
 // BLP 2022-05-26 - now I do a parent::_construct to get everything.
 // SiteClass has a new version number.
 // Added CheckIfTablesExist().
@@ -94,6 +95,35 @@ class Database extends dbAbstract {
     $this->agent = $this->escape($this->agent);
     
     //error_log("Database after CheckIfTablesExist this: " . print_r($this, true));
+  }
+
+  /**
+   * setSiteCookie()
+   * @return bool true if OK else false
+   * BLP 2021-12-20 -- add $secure, $httponly and $samesite as default
+   */
+
+  public function setSiteCookie(string $cookie, string $value, int $expire, string $path="/", ?string $thedomain=null,
+                                bool $secure=true, bool $httponly=false, string $samesite='Lax'):bool
+  {
+    $ref = $thedomain ?? "." . $this->siteDomain; // BLP 2021-10-16 -- added dot back to ref.
+    
+    $options =  array(
+                      'expires' => $expire,
+                      'path' => $path,
+                      'domain' => $ref, // (defaults to $this->siteDomain with leading period.
+                      'secure' => $secure,
+                      'httponly' => $httponly,    // If true javascript can't be used (defaults to false.
+                      'samesite' => $samesite    // None || Lax  || Strict (defaults to Lax)
+                     );
+
+    if(!setcookie($cookie, $value, $options)) {
+      error_log("SiteClass $this->siteName: $this->self: setcookie failed ". __LINE__);
+      return false;
+    }
+
+    error_log("cookie: $cookie, value: $value, options: " . print_r($options, true));
+    return true;
   }
 
   /*
