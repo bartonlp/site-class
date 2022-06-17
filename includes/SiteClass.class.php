@@ -540,7 +540,7 @@ EOF;
     }
 
     if(($x = preg_match("~\+*https?://|@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
-                        "GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
+                        "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
                         "http client|PECL::HTTP~i", $this->agent)) === 1) { // 1 means a match
       $this->isBot = true;
       $this->foundBotAs = BOTAS_MATCH; // "preg_match";

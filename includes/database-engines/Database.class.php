@@ -122,7 +122,7 @@ class Database extends dbAbstract {
       return false;
     }
 
-    error_log("cookie: $cookie, value: $value, options: " . print_r($options, true));
+    //error_log("cookie: $cookie, value: $value, options: " . print_r($options, true));
     return true;
   }
 
