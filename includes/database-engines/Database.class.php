@@ -5,6 +5,8 @@
 // SiteClass has a new version number.
 // Added CheckIfTablesExist().
 
+define("DATABASE_CLASS_VERSION", "2.0.0");
+
 /**
  * Database wrapper class
  */
@@ -93,9 +95,7 @@ class Database extends dbAbstract {
     // Escapte the agent in case it has something like an apostraphy in it.
     
     $this->agent = $this->escape($this->agent);
-    
-    //error_log("Database after CheckIfTablesExist this: " . print_r($this, true));
-  }
+  } // END Construct
 
   /**
    * setSiteCookie()
@@ -126,9 +126,151 @@ class Database extends dbAbstract {
     return true;
   }
 
+  /**
+   * isMyIp($ip):bool
+   * Given an IP address check if this is me.
+   */
+
+  public function isMyIp(string $ip):bool {
+    if($this->isMeFalse === true) return false;
+    return (array_intersect([$ip], $this->myIp)[0] === null) ? false : true;
+  }
+  
+  /**
+   * isMe()
+   * Check if this access is from ME
+   * @return true if $this->ip == $this->myIp else false!
+   */
+
+  public function isMe():bool {
+    return $this->isMyIp($this->ip);
+  }
+
+  /**
+   * getVersion()
+   * @return string version number
+   */
+
+  public function getVersion():string {
+    return DATABASE_CLASS_VERSION;
+  }
+
+  /**
+   * getIp()
+   * Get the ip address
+   * @return int ip address
+   */
+
+  public function getIp():string {
+    return $this->ip;
+  }
+
   /*
-   * Check it the required tables are presssent.
-   * Returns myIp.
+   * isBot(string $agent):bool
+   * Determines if an agent is a bot or not.
+   * @return bool
+   * Side effects:
+   *  it sets $this->isBot
+   *  it sets $this->foundBotAs
+   * These side effects are used by checkIfBot():void see below.
+   */
+  
+  public function isBot(string $agent):bool {
+    $this->isBot = false;
+
+    if($this->isMe()) {
+      return $this->isBot; 
+    }
+
+    if(($x = preg_match("~\+*https?://|@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
+                        "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
+                        "http client|PECL::HTTP~i", $agent)) === 1) { // 1 means a match
+      $this->isBot = true;
+      $this->foundBotAs = BOTAS_MATCH; // "preg_match";
+      return $this->isBot;
+    } elseif($x === false) { // false is error
+      // This is an unexplained ERROR
+      throw new Exceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false");
+    }
+
+    // If $x was 1 or false we have returned with true and BOTAS_MATCH or we threw an exception.
+    // $x is zero so there was NO match.
+
+    if($this->query("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Is it in the bots table?
+      // Yes it is in the bots table.
+
+      $tmp = '';
+
+      while($robots = $this->fetchrow('num')[0]) {
+        if($robots & BOTS_ROBOTS) {
+          $tmp = "," . BOTAS_ROBOT;
+        }
+        if($robots & BOTS_SITEMAP) {
+          $tmp .= "," . BOTAS_SITEMAP;
+        }
+        if($robots & BOTS_CRON_ZERO) {
+          $tmp .= "," . BOTAS_ZERO;
+        }
+        if($tmp != '') break;
+      }
+      if($tmp != '') {
+        $tmp = ltrim($tmp, ','); // remove the leading comma
+        $this->foundBotAs = $tmp; //'bots table' plus $tmp;
+        $this->isBot = true; // BOTAS_TABLE plus robot and/or sitemap
+      } else {
+        $this->foundBotAs = BOTAS_NOT;
+        $this->isBot = false;
+      }
+      //error_log("SiteClass checkIfBot: foundBotAs=$this->foundBotAs, ip=$this->ip, agent=$this->agent, " . __LINE__);
+      return $this->isBot;
+    }
+
+    // The ip was NOT in the bots table either.
+
+    $this->foundBotAs = BOTAS_NOT; // not a bot
+    $this->isBot = false;
+    return $this->isBot;
+  }
+  
+  /**
+   * checkIfBot() before we do any of the other protected functions in SiteClass.
+   * Calls the public isBot().
+   * Checks if the user-agent looks like a bot or if the ip is in the bots table
+   * or previous tracker records had something other than zero or 0x2000.
+   * Set $this->isBot true/false.
+   * return nothing.
+   * SEE defines.php for the values for TRACKER_BOT, BOTS_SITECLASS
+   * $this-isBot is false or there is no entry in the bots table
+   */
+
+  protected function checkIfBot():void {
+    $this->isBot($this->agent);
+  }
+
+  /**
+   * updatemyip()
+   * This is NOT done if we are not using a database or isMe() is false. That is it is NOT me.
+   */
+
+  protected function updatemyip():void {
+    if($this->ip == DO_SERVER || $this->isMe() === false) {
+      // If it is my server or it is not ME. If it is my server we don't look at the OR.
+      return; // This is not me.
+    }
+
+    // BLP 2022-01-16 -- NOTE there are only two places where the ip address is added:
+    // bartonphillips.com/register.php and bonnieburch.com/addcookie.com.
+    
+    $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
+
+    if(!$this->query($sql)) {
+      $this->db->debug("SiteClass $this->siteName: update of myip failed, ip: $this->ip, " .__LINE__, true); // this should not happen
+    }
+  }
+
+  /*
+   * Check if the required tables are presssent.
+   * Returns myIp array.
    */
   
   private function CheckIfTablesExist():array {

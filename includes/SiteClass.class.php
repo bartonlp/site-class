@@ -1,10 +1,12 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2022-07-31 - moved several function to Database.
+// BLP 2022-06-20 - Add thepage to javascript in getPageHead().
 // BLP 2022-06-14 - Moved setSiteCookie() to Database.
 // BLP 2022-05-26 - SiteClass now extends Database which extends dbAbstract.
 // daycount(), checkIfBot(), trackBots() and tracker have been completley reworked.
 
-define("SITE_CLASS_VERSION", "3.3.1"); // BLP 2022-06-14 - 
+define("SITE_CLASS_VERSION", "3.4.0"); // BLP 2022-07-31 - 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -26,7 +28,7 @@ define("SITE_CLASS_VERSION", "3.3.1"); // BLP 2022-06-14 -
 require_once(__DIR__ . "/defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 class SiteClass extends Database {
-  private $hitCount = null;
+  private $hitCount = 0;
 
   // Give these default values incase they are not mentioned in mysitemap.json.
   // Note they could still be null from mysitemap.json!
@@ -112,18 +114,7 @@ class SiteClass extends Database {
         }
       }
     }
-    //error_log("SiteClass this: " . print_r($this, true));
-  }
-
-  /**
-   * isMe()
-   * Check if this access is from ME
-   * @return true if $this->ip == $this->myIp else false!
-   */
-
-  public function isMe():bool {
-    return (array_intersect([$this->ip], $this->myIp)[0] === null) ? false : true;
-  }
+  } // End of constructor.
 
   /**
    * getVersion()
@@ -132,16 +123,6 @@ class SiteClass extends Database {
 
   public function getVersion():string {
     return SITE_CLASS_VERSION;
-  }
-
-  /**
-   * getIp()
-   * Get the ip address
-   * @return int ip address
-   */
-
-  public function getIp():string {
-    return $this->ip;
   }
 
   /**
@@ -235,7 +216,8 @@ class SiteClass extends Database {
     $h->viewport = ($h->viewport = ($h->viewport ?? $this->viewport)) ?
                    "<meta name='viewport' content='$h->viewport'>" : "<meta name='viewport' content='width=device-width, initial-scale=1'>";
     $h->canonical = ($h->canonical = ($h->canonical ?? $this->canonical)) ? "<link rel='canonical' href='$h->canonical'>" : null;
-
+    $h->meta = $h->meta ?? $this->meta;
+    
     // link tags
     
     $h->favicon = ($h->favicon = ($h->favicon ?? $this->favicon ?? 'https://bartonphillips.net/images/favicon.ico')) ?
@@ -253,7 +235,7 @@ class SiteClass extends Database {
 
     // $h->inlineScript is new. Incase it in script tags
 
-    $h->inlineScript = $h->inlineScript ? "<script>$h->inlineScript</script>" : null;
+    $h->inlineScript = $h->inlineScript ? "<script>\n$h->inlineScript\n</script>" : null;
     
     // The rest, $h->link, $h->script and $h->extra need the full '<link' or '<script' text.
     
@@ -284,7 +266,7 @@ EOF;
       } else {
         $trackerStr =<<<EOF
 <script data-lastid="$this->LAST_ID" src="https://bartonphillips.net/js/tracker.js"></script>
-<script>var thesite = "$this->siteName", theip = "$this->ip";</script>
+  <script>var thesite = "$this->siteName", theip = "$this->ip", thepage = "$this->self";</script>
 EOF;
       } 
     }
@@ -435,7 +417,7 @@ EOF;
     
     $b->emailAddress = ($b->noEmailAddress ?? $this->noEmailAddress) ? null : ($b->emailAddress ?? $this->EMAILADDRESS);
     $b->emailAddress = $b->emailAddress ? "<a href='mailto:$b->emailAddress'>$b->emailAddress</a>" : null;
-    $b->inlineScript = $b->inlineScript ? "<script>$b->inlineScript</script>" : null;
+    $b->inlineScript = $b->inlineScript ? "<script>\n$b->inlineScript\n</script>" : null;
     
     // counterWigget is available to the footerFile to use if wanted.
     // BLP 2022-01-02 -- if count is set then use the counter
@@ -443,7 +425,7 @@ EOF;
     if(($b->noCounter ?? $this->noCounter) !== true) {
       $counterWigget = $this->getCounterWigget($b->ctrmsg); // ctrmsg may be null which is OK
     }
-    
+
     // BLP 2021-10-24 -- lastmod is also available to footerFile to use if wanted.
 
     if(($b->noLastmod ?? $this->noLastmod) !== true) {
@@ -495,10 +477,9 @@ EOF;
   public function getCounterWigget(?string $msg="Page Hits"):?string {
     // Counter at bottom of page
     // hitCount is updated by 'counter()'
-    if($this->hitCount) {
-      $hits = number_format($this->hitCount);
-    }
 
+    $hits = number_format($this->hitCount);
+        
     // Let the redered appearance be up to the pages css!
     // #F5DEB3==rgb(245,222,179) is 'wheat' for the background
     // rgb(123, 16, 66) is a burgundy for the number
@@ -521,71 +502,6 @@ EOF;
   // Private and protected methods.
   // Protected methods can be overridden in child classes so most things that would be private
   // should be protected in this base class
-
-  /**
-   * checkIfBot() before we do any of the other protected functions.
-   * Checks if the user-agent looks like a bot or if the ip is in the bots table
-   * or previous tracker records had something other than zero or 0x2000.
-   * Set $this->isBot true/false.
-   * return nothing.
-   * SEE defines.php for the values for TRACKER_BOT, BOTS_SITECLASS
-   * $this-isBot is false or there is no entry in the bots table
-   */
-
-  protected function checkIfBot():void {
-    $this->isBot = false;
-    
-    if($this->isMe()) {
-      return; 
-    }
-
-    if(($x = preg_match("~\+*https?://|@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
-                        "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
-                        "http client|PECL::HTTP~i", $this->agent)) === 1) { // 1 means a match
-      $this->isBot = true;
-      $this->foundBotAs = BOTAS_MATCH; // "preg_match";
-      return;
-    } elseif($x === false) { // false is error
-      // This is an unexplained ERROR
-      throw new Exceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false");
-    }
-
-    // If $x was 1 or false we have returned with true and BOTAS_MATCH or we threw an exception.
-    // $x is zero so there was NO match.
-
-    if($this->query("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Is it in the bots table?
-      // Yes it is in the bots table.
-
-      $tmp = '';
-
-      while($robots = $this->fetchrow('num')[0]) {
-        if($robots & BOTS_ROBOTS) {
-          $tmp = "," . BOTAS_ROBOT;
-        }
-        if($robots & BOTS_SITEMAP) {
-          $tmp .= "," . BOTAS_SITEMAP;
-        }
-        if($robots & BOTS_CRON_ZERO) {
-          $tmp .= "," . BOTAS_ZERO;
-        }
-        if($tmp != '') break;
-      }
-      if($tmp != '') {
-        $this->foundBotAs = BOTAS_TABLE . $tmp; //'bots table' plus $tmp;
-        $this->isBot = true; // BOTAS_TABLE plus robot and/or sitemap
-      } else {
-        $this->foundBotAs = BOTAS_NOT;
-        $this->isBot = false;
-      }
-      //error_log("SiteClass checkIfBot: foundBotAs=$this->foundBotAs, ip=$this->ip, agent=$this->agent, " . __LINE__);
-      return;
-    }
-
-    // The ip was NOT in the bots table either.
-
-    $this->foundBotAs = BOTAS_NOT; // not a bot
-    $this->isBot = false;
-  }
 
   // **************
   // Start Counters
@@ -623,7 +539,9 @@ EOF;
    */
 
   protected function trackbots():void {
-    if($this->foundBotAs == BOTAS_MATCH || (strpos($this->foundBotAs, BOTAS_TABLE) !== false)) { // This has been set by checkIfBot()
+    //if($this->foundBotAs == BOTAS_MATCH || (strpos($this->foundBotAs, BOTAS_TABLE) !== false)) {
+    //// This has been set by checkIfBot()
+    if($this->foundBotAs) {
       //error_log("SiteClass trackbots: $this->foundBotAs, $this->ip, $this->agent, $this->siteName");
 
       $agent = $this->agent;
@@ -702,7 +620,7 @@ EOF;
 
     if($this->isBot) { // can NEVER be me!
       $java = TRACKER_BOT; // This is the robots tag
-    } 
+    }
 
     // The primary key is id which is auto incrementing so every time we come here we create a
     // new record.
@@ -710,8 +628,7 @@ EOF;
     // Add foundBotAs to end of agent.
 
     if($this->foundBotAs != '') {
-      $tmp = rtrim($this->foundBotAs, ',');
-      $tmp = preg_replace("~,~", "<br>", $tmp);
+      $tmp = preg_replace("~,~", "<br>", $this->foundBotAs);
       //error_log("SiteClass tracker: $this->siteName, ip=$this->ip, foundBotAs=$this->foundBotAs, java=" . dechex($java) . ", " . __LINE__);
 
       $agent .= $this->foundBotAs ? '<br><span class="botas">' . $tmp . '</span>' : '';
@@ -725,27 +642,6 @@ EOF;
   }
 
   /**
-   * updatemyip()
-   * This is NOT done if we are not using a database or isMe() is false. That is it is NOT me.
-   */
-
-  protected function updatemyip():void {
-    if($this->ip == DO_SERVER || $this->isMe() === false) {
-      // If it is my server or it is not ME. If it is my server we don't look at the OR.
-      return; // This is not me.
-    }
-
-    // BLP 2022-01-16 -- NOTE there are only two places where the ip address is added:
-    // bartonphillips.com/register.php and bonnieburch.com/addcookie.com.
-    
-    $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
-
-    if(!$this->query($sql)) {
-      $this->db->debug("SiteClass $this->siteName: update of myip failed, ip: $this->ip, " .__LINE__, true); // this should not happen
-    }
-  }
-
-  /**
    * counter()
    * This is the page counter feature in the footer
    * By default this uses a table 'counter' with 'filename', 'count', and 'lasttime'.
@@ -756,6 +652,14 @@ EOF;
   protected function counter():void {
     $filename = $this->self; // get the name of the file
 
+    try {
+      $this->query("insert into $this->masterdb.counter (site, filename, count, lasttime) values('$this->siteName', '$filename', 1, now())");
+    } catch(Exception $e) {
+      if($e->getCode() != 1062) {
+        throw new Exception(__CLASS__ . " " . __LINE__ . ":$e");
+      }
+    }
+    
     // Is it me?
     
     if(!$this->isMe()) { // No it is NOT me.
@@ -765,9 +669,8 @@ EOF;
 
       // count is total of ALL hits that are NOT ME!
 
-      $sql = "insert into $this->masterdb.counter (site, filename, count, realcnt, lasttime) ".
-             "values('$this->siteName', '$filename', '1', '$realcnt', now()) ".
-             "on duplicate key update count=count+1, realcnt=realcnt+$realcnt, lasttime=now()";
+      $sql = "update $this->masterdb.counter set count=count+1, realcnt=realcnt+$realcnt, lasttime=now() ".
+             "where site='$this->siteName' and filename='$filename'";
 
       $this->query($sql);
     }
