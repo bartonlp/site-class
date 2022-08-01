@@ -17,8 +17,6 @@ code {
 # Make .html files from .md files
 pagetitle="dbTables";
 /usr/bin/pandoc -f gfm -t html5 -Vpagetitle="$pagetitle" -Vmath="$css" -s dbTables.md -o dbTables.html
-pagetitle="Examples";
-/usr/bin/pandoc -f gfm -t html5 -Vpagetitle="$pagetitle" -Vmath="$css" -s examples.md -o examples.html
 pagetitle="SiteClass Methods";
 /usr/bin/pandoc -f gfm -t html5 -Vpagetitle="$pagetitle" -Vmath="$css" -s siteclass.md -o siteclass.html
 pagetitle="Additional Files";
