@@ -3,8 +3,8 @@
 **SiteClass** version 3.4.0 is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. 
 For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
 
-Updated BLP 2022-07-31 - Moved functins from SiteClass to Database. Added versions to all classes
-Updated BLP 2022-04-30 - Work on daycounts, tracker and checkIfBot. I may remove some error_log() messages later.
+Updated BLP 2022-07-31 - Moved functins from SiteClass to Database. Added versions to all classes  
+Updated BLP 2022-04-30 - Work on daycounts, tracker and checkIfBot. I may remove some error_log() messages later.  
 Updated BLP 2022-04-24 - added defines.php with the tracker, bots and beacon constants.
 
 This project has several parts that can function standalone or combined.
