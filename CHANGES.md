@@ -1,3 +1,5 @@
+# BLP 2022-07-31 - removed the examples directory and deleted all of the database engines except
+# dbMysqli.class.php. We no longer support sqlite3, pod etc.
 # BLP 2022-04-30 - tracker() and daycount() and checkIfBot(). 
 Logic changer to try to better identify zero entries in tracker etc.
 # BLP 2022-04-24 - Added defines.php and added SITECLASS_DIR as a constant in siteload.php.

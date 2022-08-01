@@ -60,7 +60,6 @@ I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are
 
 ---
 
-[Examples](examples.html)
 [dbTables](dbTables.html)
 [SiteClass Methods](siteclass.html)
 [Additional Files](files.html)

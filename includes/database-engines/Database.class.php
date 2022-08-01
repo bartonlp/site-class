@@ -60,26 +60,11 @@ class Database extends dbAbstract {
       throw new SqlException(__METHOD__, $this);
     }
 
-    switch($arg->engine) {
-      case "mysqli":
-        $class = "db" . ucfirst(strtolower($arg->engine));
-        if(class_exists($class)) {
-          $db = @new $class($arg->host, $arg->user, $password, $arg->database, $arg->port);
-        } else {
-          throw new SqlException(__METHOD__ .": Class Not Found : $class<br>");
-        }
-        break;
-      case "sqlite3":
-        // This is native sqlite not via pdo.
-        $class = "dbSqlite";
-        if(class_exists($class)) {
-          $db = @new $class($arg->host, $arg->user, $password, $arg->database);
-        } else {
-          throw new SqlException(__METHOD__ .": Class Not Found : $class<br>");
-        }      
-        break;
-      default:
-        throw new SqlException(__METHOD__ . ": Engine $arg->engine not valid", $this);
+    $class = "db" . ucfirst(strtolower($arg->engine));
+    if(class_exists($class)) {
+      $db = @new $class($arg->host, $arg->user, $password, $arg->database, $arg->port);
+    } else {
+      throw new SqlException(__METHOD__ .": Class Not Found : $class<br>");
     }
 
     if(is_null($db) || $db === false) {
