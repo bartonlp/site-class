@@ -1,9 +1,18 @@
 <?php
 /* HELPER FUNCTIONS. Well tested and maintained */
 
+define("HELPER_FUNCTION_VERSION", "1.0.0");
 /**
  * Helper Functions
  */
+
+// Return the helper version
+
+if(!function_exists("getVersion")) {
+  function getVersion() {
+    return HELPER_FUNCTION_VERSION;
+  }
+}
 
 // vardump makes value readable
 

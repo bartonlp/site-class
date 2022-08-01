@@ -12,6 +12,8 @@
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
  */
 
+define("MYSQL_CLASS_VERSION", "2.0.0");
+
 /**
  * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.
  * The mysqli extension allows you to access the functionality provided by MySQL 4.1 and above.
@@ -56,6 +58,10 @@ class dbMysqli extends dbAbstract {
     $this->database = $database;
     $this->port = $port;
     $this->opendb();
+  }
+
+  public function getVersion() {
+    return MYSQL_CLASS_VERSION;
   }
   
   /**

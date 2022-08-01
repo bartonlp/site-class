@@ -6,6 +6,8 @@
  * The Error class provides the following properties to control output:
  */
 
+define("SQLEXCEPTION_CLASS_VERSION", "2.0.0");
+
 class SqlException extends Exception {
   /**
    * Constructor
@@ -15,7 +17,7 @@ class SqlException extends Exception {
   
   public function __construct($message, $self=null) {
     // If the caller was a database class then $this->db should be the database resorce.
-    
+
     [$html, $errno] = $this->SqlError($message, $self); // private helper method
 
     parent::__construct($html, $errno);
@@ -156,5 +158,9 @@ EOF;
     }
 
     return array($error, $Errno);
+  }
+
+  public function getVersion() {
+    return SQLEXCEPTION_CLASS_VERSION;
   }
 } // End SqlException Class

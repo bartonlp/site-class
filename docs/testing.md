@@ -9,7 +9,6 @@ You will need to insure that 'phpunit' is installed. 'phpunit' is on [GitHub](ht
 Once you have 'phpunit' installed you can run the following test:
 
 * topBottom.php
-* withSqlite3.php
 * withMysql.php
 
 From 'tests' directory enter: 
@@ -51,15 +50,6 @@ Now you can run the 'withMysql.php' with:
 
 ```bash
 HOME=/var/www phpunit --stderr withMysql.php
-```
-
-## Using Sqlite3
-
-There is already a Sqlite3 database in the 'tests' directory. It is called just 'siteclass'. You can run the 'withSqlite3.php' 
-with:
-
-```bash
-HOME=/var/www phpunit --stderr withSqlite3.php
 ```
 
 ## Top Bottom Test

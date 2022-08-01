@@ -1,6 +1,8 @@
 <?php
 /* WELL TESTED and MAINTAINED */
 
+define("DBTABLE_CLASS_VERSION", "1.0.0");
+
 // Make database tables given either a SiteClass or Database class object.
 
 class dbTables {
@@ -14,84 +16,10 @@ class dbTables {
     $this->db = $db;
   }
 
-  /**
-   ********************************************
-   * DEPRECIATED use makeresultrow() instead!!!
-   ********************************************
-   * Make Tbody Row
-   *
-   * Make a table row given the query and a template of the row
-   * Call back function looks like: callback(&$row, &$rowdesc) it can modify $row and $rowdesc and
-   * returns true if we should skip (continue) or false to process.
-   * @param string $query the mysql query 
-   * @param string $rowdesc the tbody row description
-   * @param function $callback an optional callback function like callback(&$row, &$rowdesc)
-   * @param resouce &$retresult an optional return of resource id if $retresult === true
-   * @param string|array $delimiter
-   * @return string tbody or false if mysqli_num_rows() == 0. Should check return === false for no rows.
-   */
-
-  public function maketbodyrows($query, $rowdesc, $callback=null, &$retresult=false, $delim=false) {
-    // $rowdesc is the <tr>...</tr> for this row
-    // <tr><td>fieldname</td>...</tr>
-
-    // Depreciated Send webmaster an email
-    mail($this->EMAILADDRESS, "dbTables: maketbodyrows Depreciated, file: " . __FILE__ . " line: " . __LINE__ .
-         "\n$query",
-         $this->EMAILFROM, "-f " . $this->EMAILRETURN);
-    
-    $num = $this->db->query($query);
-    if(!$num) {
-      return false;
-    }
-
-    // A call back could do a select so we need to keep this local!!
-    
-    $result = $this->db->getResult();
-
-    if($retresult !== false) $retresult = $result;
-
-    // Set up delimiters
-
-    $rdelimlft = $rdelimrit = "";
-    
-    if(!$delim) {
-      $sdelimlft = $rdelimlft = ">";
-      $sdelimrit = $rdelimrit = "<";
-    } else {
-      if(is_array($delim)) {
-        $sdelimlft = $delim[0];
-        $sdelimrit = $delim[1];
-      } else {
-        $sdelimlft = $sdelimrit = $delim;
-      }
-    }
-
-    $table = ""; // return tbody
-    
-    while($row = $this->db->fetchrow($result, 'assoc')) {
-      // If $callback then do the callback function. If the callback function returns true (continue) skip row.
-
-      $desc = $rowdesc;
-      
-      if($callback) {
-        // Callback function can modify $row and/or $desc if the callback function has them passed by reference
-        // NOTE that $desc does not have the keys replaced with the values yet!!
-        if($callback($row, $desc)) {
-          continue;
-        }
-      }
-
-      // Replace the key in the $desc with the value.
-      
-      foreach($row as $k=>$v) {
-        $desc = preg_replace("/{$sdelimlft}{$k}{$sdelimrit}/", "{$rdelimlft}{$v}{$rdelimrit}", $desc);
-      }
-      $table .= "$desc\n";
-    }
-    return $table; // on success return the tbody rows
+  public function getVersion() {
+    return DBTABLE_CLASS_VERSION;
   }
-
+  
   /**
    * makeresultrows
    * Like maketbodyrows() but with different argument symantics. USE THIS INSTEAD of maketbodyrows()
@@ -114,7 +42,7 @@ class dbTables {
    *         else a string with the rows
    */
   
-  public function makeresultrows($query, $rowdesc, array $extra=array()) {
+  public function makeresultrows(string $query, string $rowdesc, array $extra=array()):mixed {
     $num = $this->db->query($query); // $num is mysql_num_rows() result
 
     if($this->db->dbinfo->engine == 'mysqli' && !$num) {
@@ -283,7 +211,7 @@ class dbTables {
    * or === false
    */
 
-  public function maketable($query, array $extra=null) {
+  public function maketable(string $query, array $extra=null):array|bool {
     $table = "<table";
     if($extra['attr']) {
       $attr = $extra['attr'];
@@ -298,8 +226,8 @@ class dbTables {
     $callback2 = $extra['callback2']; // After
 
     $tbl = $this->makeresultrows($query, $rowdesc,
-                                 array('return'=>true, 'callback'=>$callback,
-                                       'callback2'=>$callback2, 'header'=>$table, 'delim'=>$delim));
+                                 ['return'=>true, 'callback'=>$callback,
+                                  'callback2'=>$callback2, 'header'=>$table, 'delim'=>$delim]);
 
     if($tbl === false) {
       return false;
@@ -317,7 +245,8 @@ $rows$ftr</tbody>
 
 EOF;
 
-    return array($ret, $result, $num, $header, 'table'=>$ret,
-                 'result'=>$result, 'num'=>$num, 'header'=>$header);
+    // return both a numeric and assoc array.
+    // if all you want is the table you can do $T->maketable(...)[0];
+    return [$ret, $result, $num, $header, 'table'=>$ret, 'result'=>$result, 'num'=>$num, 'header'=>$header];
   }
 }

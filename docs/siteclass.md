@@ -1,4 +1,4 @@
-# SiteClass and Database Methods (version 3.1)
+# SiteClass and Database Methods (version 3.4.0 and 2.0.0)
 
 ---
 

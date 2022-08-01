@@ -2,6 +2,8 @@
 /* MAINTAINED and WELL TESTED */
 // BLP 2022-05-26 - 
 
+define("ABSTRACT_CLASS_VERSION", "2.0.0");
+
 // Abstract database class
 // Most of this class is implemented here. This keeps us from having to duplicate this over and
 // over again in each higher level class like SiteClass or Database.
@@ -14,12 +16,17 @@ abstract class dbAbstract {
 
   abstract public function __toString();
 
-  public function __construct(object $s) {
+  protected function __construct(object $s) {
     foreach($s as $k=>$v) {
       $this->$k = $v;
     }
   }
 
+  /**
+   * getDbName()
+   * This is the name of the database, like 'bartonphillips' or 'barton'
+   */
+  
   public function getDbName():string {
     $database = $this->db->database;
     if($database) {
@@ -170,5 +177,9 @@ abstract class dbAbstract {
     if($exit === true) {
       exit();
     }
+  }
+
+  static public function getAbstractVersion() {
+    return ABSTRACT_CLASS_VERSION;
   }
 }

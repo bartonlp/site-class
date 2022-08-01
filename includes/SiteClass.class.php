@@ -51,8 +51,6 @@ class SiteClass extends Database {
    */
   
   public function __construct(object $s) {
-    ErrorClass::init(); // Make sure this is done
-
     $s->ip = $_SERVER['REMOTE_ADDR'];
     $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- CLI agent is NULL so make it blank ''
     // self is like '/tracker.php'

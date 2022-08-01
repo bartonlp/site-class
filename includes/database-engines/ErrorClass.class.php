@@ -2,7 +2,9 @@
 /* MAINTAINED and WELL TESTED */
 // BLP 2022-02-06 -- Add E_DEPRECATED
 // BLP 2021-03-15 -- see setDevelopment()
-  
+
+define("ERROR_CLASS_VERSION", "2.0.0");
+
 // Contains the my_errorhandler, my_exceptionhandler, Error class.
 // set_exception_handler to my_exceptionhandler
 // The Error class constructor does set_error_handler to my_errorhandler.
@@ -151,7 +153,7 @@ $traceback
 EOF;
   }
 
-  finalOutput($error, "$cl");
+  finalOutput($error, $cl);
   exit();
 }
 
@@ -246,27 +248,19 @@ class ErrorClass {
   
   // args can be array|object. noEmailErrs, development, noHtml, noOutput, errType
   
-  public static function init($args=null) {
-    // BLP 2022-01-31 -- Only do this once. It is called from SiteClass and then again from
-    // Database if SiteClass is instantiated. Or just once if only Database is instantiated.
-    
-    if(is_null(self::$instance)) {
-      self::$instance = new ErrorClass($args);
-    }
-    return self::$instance; // BLP 2022-05-10 - It doesn't seem like anyone cares about the return value?
-  }
-
   /**
-   *  Private Constructor
+   *  public Constructor
    */
 
-  private function __construct($args) {
+  public function __construct($args=null) {
+    if(self::$instance) return;
+    
     if(is_array($args)) {
       $args = (object)$args;
     }
 
     if(isset($args->noEmailErrs)) self::$noEmailErrs = $args->noEmailErrs; //$args['noEmailErrs'];
-    if(isset($args->development))self::$development = $args->development;
+    if(isset($args->development)) self::$development = $args->development;
     if(isset($args->nohtml)) self::$noHtml = $args->noHtml;
     if(isset($args->noOutput)) self::$noOutput = $args->noOutput;
 
@@ -300,7 +294,7 @@ class ErrorClass {
   
   static public function setDevelopment($b) {
     self::$development = $b;
-    self::$noEmailErrs = true;
+    self::$noEmailErrs = $b;
   }
 
   static public function getDevelopment() {
@@ -329,6 +323,10 @@ class ErrorClass {
 
   static public function getNoOutput() {
     return self::$noOutput;
+  }
+
+  static public function getVersion() {
+    return ERROR_CLASS_VERSION;
   }
   
   public function __toString() {

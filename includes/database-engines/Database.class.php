@@ -25,8 +25,8 @@ class Database extends dbAbstract {
    */
 
   public function __construct(object $s, ?bool $isSiteClass=null) {
-    ErrorClass::init(); // We should do this. If already done it just returns.
-
+    $this->errorClass = new ErrorClass();
+    
     // If this is NOT from SiteClass then add these variable.
     
     if(!$isSiteClass) {
@@ -320,10 +320,11 @@ class Database extends dbAbstract {
     while($ip = $this->fetchrow('num')[0]) {
       $myIp[] = $ip;
     }
+    
     $myIp[] = DO_SERVER; // BLP 2022-04-30 - Add my server.
 
     //error_log("Database after myIp set, this: " . print_r($this, true));
-
+   
     return $myIp;
   }
   
