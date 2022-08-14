@@ -145,7 +145,6 @@ $extra['footer'] a footer string
 [SiteClass Methods](siteclass.html)
 [Additional Files](files.html)
 [Analysis and Tracking](analysis.html)
-[Testing](testing.html)
 [Index](index.html)
 
 ## Contact Me
@@ -153,3 +152,4 @@ $extra['footer'] a footer string
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
 Copyright &copy; 2022 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)
+Last Modified Aug 14, 2022

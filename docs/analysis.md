@@ -236,7 +236,6 @@ Using the above *css* you can create almost any type of counter you want.
 [SiteClass Methods](siteclass.html)
 [Additional Files](files.html)
 [Analysis and Tracking](analysis.html)
-[Testing](testing.html)
 [Index](index.html)
 
 ## Contact Me
@@ -244,3 +243,4 @@ Using the above *css* you can create almost any type of counter you want.
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
 Copyright &copy; 2022 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)
+Last Modified Aug 14, 2022

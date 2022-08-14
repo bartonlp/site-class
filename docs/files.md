@@ -114,7 +114,6 @@ Creating the special files make the tedious boiler plate simple and yet configur
 [SiteClass Methods](siteclass.html)
 [Additional Files](files.html)
 [Analysis and Tracking](analysis.html)
-[Testing](testing.html)
 [Index](index.html)
 
 ## Contact Me
@@ -122,3 +121,4 @@ Creating the special files make the tedious boiler plate simple and yet configur
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
 Copyright &copy; 2022 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)
+Last Modified Aug 14, 2022
