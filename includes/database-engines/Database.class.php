@@ -26,7 +26,7 @@ class Database extends dbAbstract {
 
   public function __construct(object $s, ?bool $isSiteClass=null) {
     $this->errorClass = new ErrorClass();
-    
+
     // If this is NOT from SiteClass then add these variable.
     
     if(!$isSiteClass) {
@@ -163,10 +163,6 @@ class Database extends dbAbstract {
   public function isBot(string $agent):bool {
     $this->isBot = false;
 
-    if($this->isMe()) {
-      return $this->isBot; 
-    }
-
     if(($x = preg_match("~\+*https?://|@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
                         "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
                         "http client|PECL::HTTP~i", $agent)) === 1) { // 1 means a match
@@ -228,8 +224,12 @@ class Database extends dbAbstract {
    * $this-isBot is false or there is no entry in the bots table
    */
 
-  protected function checkIfBot():void {
-    $this->isBot($this->agent);
+  protected function checkIfBot():bool {
+    if($this->isMe()) {
+      return false; 
+    }
+
+    return $this->isBot($this->agent);
   }
 
   /**

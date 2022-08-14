@@ -274,15 +274,28 @@ class dbMysqli extends dbAbstract {
     return $this->db;
   }
 */
+
+  /**
+   * getResult()
+   * This is the result of the most current query. This can be passed to
+   * fetchrow() as the first parameter.
+   */
+  
   public function getResult() {
     return $this->result;
   }
 
+  /**
+   * getErrorInfo()
+   * get the error info from the most recent query
+   */
+  
   public function getErrorInfo() {
-    $error = $this->db->error;
-    $errno = $this->db->errno;
-    $err = array('errno'=>$errno, 'error'=>$error);
-    return $err;
+    //$error = $this->db->error;
+    //$errno = $this->db->errno;
+    //$err = ['errno'=>$errno, 'error'=>$error];
+    // return $err;
+    return ['errno'=>$this->db->errno, 'error'=>$this->db->error];
   }
   
   // real_escape_string

@@ -48,8 +48,8 @@ class SqlException extends Exception {
     $Errno = -1;
 
     // BLP 2021-12-31 -- remove $errDb
-    
-    if(is_null($self) || is_null($self->getDb()) || $self->getDb() === 0) {
+
+    if(is_null($self) || !method_exists($self, 'getDb')) {
       if(isset($self->errno) && isset($self->error)) {
         $Errno = $self->errno;
         $Error = $self->error;
@@ -59,6 +59,7 @@ class SqlException extends Exception {
       }
     } else {
       if(method_exists($self, 'getErrorInfo')) {
+        echo "getErrorInfo<br>";
         $err = $self->getErrorInfo(); // from the database engine, like mysqli etc.
         $Error = $err['error'];
         $Errno = $err['errno'];
@@ -80,6 +81,7 @@ class SqlException extends Exception {
     $firstcaller = '';
 
     // Helper callback function
+    
     if(!function_exists('array_deep')) {
       // If it does not already exist define it here
       function array_deep($a) {
