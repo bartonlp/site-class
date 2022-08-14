@@ -1,8 +1,10 @@
-# SiteClass Verion 3.4.0, Database Version 2.0.0, dbMysqli Version 2.0.0
+# SiteClass Verion 3.4.1, Database Version 2.0.0, dbMysqli Version 2.0.0
 
-**SiteClass** version 3.4.0 is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. 
+**SiteClass** version 3.4.1 is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. 
 For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
 
+Updated BLP 2022-08-14 - Change had coded references to bartonphillips.net to $h, $b, $this (from mysitemap.json)  
+Also moved tracker.php, tracker.js and beacon.php to the includes directory. They are now symlinked to https://bartonphillips.net.
 Updated BLP 2022-07-31 - Moved functins from SiteClass to Database. Added versions to all classes  
 Updated BLP 2022-04-30 - Work on daycounts, tracker and checkIfBot. I may remove some error_log() messages later.  
 Updated BLP 2022-04-24 - added defines.php with the tracker, bots and beacon constants.

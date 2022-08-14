@@ -1,12 +1,14 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2022-08-14 - change the had coded references to bartonphillips.net to $h, $b, $this (from
+// mysitemap.json)
 // BLP 2022-07-31 - moved several function to Database.
 // BLP 2022-06-20 - Add thepage to javascript in getPageHead().
 // BLP 2022-06-14 - Moved setSiteCookie() to Database.
 // BLP 2022-05-26 - SiteClass now extends Database which extends dbAbstract.
 // daycount(), checkIfBot(), trackBots() and tracker have been completley reworked.
 
-define("SITE_CLASS_VERSION", "3.4.0"); // BLP 2022-07-31 - 
+define("SITE_CLASS_VERSION", "3.4.1"); // BLP 2022-07-31 - 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -259,12 +261,22 @@ EOF;
       $h->noTrack = $h->noTrack ?? $this->noTrack;
       $h->nodb = $h->nodb ?? $this->nodb;
 
+      $h->trackerLocationJs = $h->trackerLocationJs ?? $this->trackerLocationJs ?? "https://bartonphillips.net/js/tracker.js";
+      $h->trackerLocation = $h->trackerLocation ?? $this->trackerLocation ?? "https://bartonphillips.net/tracker.php";
+      $h->beaconLocation = $h->beaconLocation ?? $this->beaconLocation ?? "https://bartonphillips.net/beacon.php";
+      
       if($h->noTrack === true || $h->nodb === true) {
         $trackerStr = '';
       } else {
         $trackerStr =<<<EOF
-<script data-lastid="$this->LAST_ID" src="https://bartonphillips.net/js/tracker.js"></script>
-  <script>var thesite = "$this->siteName", theip = "$this->ip", thepage = "$this->self";</script>
+  <script data-lastid="$this->LAST_ID" src="$h->trackerLocationJs"></script>
+  <script>
+    var thesite = "$this->siteName",
+    theip = "$this->ip",
+    thepage = "$this->self",
+    trackerUrl = "$h->trackerLocation",
+    beaconUrl = "$h->beaconLocation";
+  </script>
 EOF;
       } 
     }
@@ -337,14 +349,17 @@ EOF;
 
     // BLP 2022-04-09 - if we have nodb or noTrack then there will be no tracker.js or tracker.php
     // so we can't set the images at all.
+
+    $h->image1Src = $h->image1Src ?? $this->image1Src ?? "https://bartonphillips.net/images/blank.gif";
+    $h->trackerLocation = $h->trackerLocation ?? $this->trackerLocation ?? "https://bartonphillips.net/tracker.php";
     
     if($h->nodb !== true && $h->noTrack !== true) {
       // BLP 2022-03-24 -- Add alt and add src='blank.gif'
       // BLP 2022-04-09 - for now I am leaving trackerImg1 and trackerImg2 only on $this.
     
-      $image1 = "<img id='logo' data-image='$this->trackerImg1' alt='logo' src='https://bartonphillips.net/images/blank.gif'>";
-      $image2 = "<img id='headerImage2' alt='headerImage2' src='https://bartonphillips.net/tracker.php?page=normal&amp;id=$this->LAST_ID&amp;image=$this->trackerImg2'>";
-      $image3 = "<img id='noscript' alt='noscriptImage' src='https://bartonphillips.net/tracker.php?page=noscript&amp;id=$this->LAST_ID'>";
+      $image1 = "<img id='logo' data-image='$this->trackerImg1' alt='logo' src='$h->imag1Src'>";
+      $image2 = "<img id='headerImage2' alt='headerImage2' src='$h->trackerLocation?page=normal&amp;id=$this->LAST_ID&amp;image=$this->trackerImg2'>";
+      $image3 = "<img id='noscript' alt='noscriptImage' src='$h->trackerLocation?page=noscript&amp;id=$this->LAST_ID'>";
     }
     
     if(!is_null($this->bannerFile)) {
@@ -431,9 +446,11 @@ EOF;
     }
 
     // BLP 2022-01-28 -- add noGeo
-    
+
     if(($b->noGeo ?? $this->noGeo) !== true) {
-      $geo = "<script src='https://bartonphillips.net/js/geo.js'></script>";
+      $geo = $b->gioLocation ?? $this->gioLocation ?? "https://bartonphillips.net/js/";
+      
+      $geo = "<script src='$geo/geo.js'></script>";
     }
 
     // BLP 2022-04-09 - We can put the footerFile into $b or use it from mysitemap.json
