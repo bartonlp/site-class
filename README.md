@@ -4,7 +4,7 @@
 For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
 
 Updated BLP 2022-08-14 - Change had coded references to bartonphillips.net to $h, $b, $this (from mysitemap.json)  
-Also moved tracker.php, tracker.js and beacon.php to the includes directory. They are now symlinked to https://bartonphillips.net.
+Also moved tracker.php, tracker.js and beacon.php to the includes directory. They are now symlinked to https://bartonphillips.net.  
 Updated BLP 2022-07-31 - Moved functins from SiteClass to Database. Added versions to all classes  
 Updated BLP 2022-04-30 - Work on daycounts, tracker and checkIfBot. I may remove some error_log() messages later.  
 Updated BLP 2022-04-24 - added defines.php with the tracker, bots and beacon constants.
