@@ -59,7 +59,7 @@ if(($java & TRACKER_MASK) == 0) {
       $beacon = BEACON_VISIBILITYCHANGE;
       break;
     default:
-      error_log("beacon: $id, $ipdata, $site, $thepage, SWITCH_ERROR_{$type}, botAs=$botAs, java=$js, visits=$visits -- \$S->ip=$S->ip, \$S->agent=$S->agent");
+      error_log("beacon: $id, $ip, $site, $thepage, SWITCH_ERROR_{$type}, botAs=$botAs, java=$js, visits=$visits -- \$S->ip=$S->ip, \$S->agent=$S->agent");
       exit();
   }
 
@@ -67,7 +67,7 @@ if(($java & TRACKER_MASK) == 0) {
   $js2 = strtoupper(dechex($java));
 
   if($ip != $S->ip) {
-    error_log("beacon:  $id, $site, $thepage, IP_MISMATCH_{$msg}, \$ip != \$S->ip -- \$S->ip=$S->ip, botAs=$botAs, jsin=$js, jsout=$js2, visits=$visits");
+    error_log("beacon:  $id, $ip, $site, $thepage, IP_MISMATCH_{$msg}, \$ip != \$S->ip -- \$S->ip=$S->ip, botAs=$botAs, jsin=$js, jsout=$js2, visits=$visits");
   }
 
   // Is this a bot?
@@ -77,7 +77,7 @@ if(($java & TRACKER_MASK) == 0) {
     exit(); // If this is a bot don't bother
   }
 
-  if((str_contains($botAs, BOTAS_COUNTED) === false) && $botAs) { // Has not been counted yet but $botAs has a value.
+  if(!str_contains($botAs, BOTAS_COUNTED) && !empty($botAs)) { // Has not been counted yet but $botAs has a value.
     // If $botAs has a value other than BOTAS_COUNTED then it must be robot, sitemap, zero or table.
     // I think this is a bot.
     error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
@@ -86,7 +86,8 @@ if(($java & TRACKER_MASK) == 0) {
 
   // At this point $botAs can only be blank or have BOTAS_COUNTED
   
-  if(!$S->isMyIp($ip) && $botAs != BOTAS_COUNTED) { // it is not ME and it has not been counted yet. If $botAs had anything else it would have been returned above.
+  if(!$S->isMyIp($ip) && empty($botAs)) { // it is not ME and it has not been counted yet. If $botAs had anything else it would have been returned above.
+    $botAs = BOTAS_COUNTED; // In either case set BOTAS_COUNTED in case $botAs is blank.
     $S->query("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
     [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
     $dayreal++;
@@ -94,25 +95,23 @@ if(($java & TRACKER_MASK) == 0) {
     
     $S->query("update $S->masterdb.daycounts set `real`=$dayreal, visits=$dayvisits where date=current_date() and site='$site'");
 
-    if($DEBUG1) error_log("beacon:  $id, $ip, $site, $thepage, COUNTED_{$msg}, real+1, botAs=$botAs, state=$state, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, visits: $visits, time=" . (new DateTime)->format('H:i:s:v'));
+    if($DEBUG1) error_log("beacon:  $id, $ip, $site, $thepage, COUNTED_{$msg}, real+1, state=$state, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, visits: $visits, time=" . (new DateTime)->format('H:i:s:v'));
 
     $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, daybots, dayvisits, visits, lasttime) ".
            "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', $dayreal, $daybots, $dayvisits, $visits, now()) ".
            "on duplicate key update finger='$finger', dayreal=$dayreal, daybots=$daybots, dayvisits=$dayvisits, visits=$visits, lasttime=now()";
 
     $S->query($sql);
-
-    $botAs = BOTAS_COUNTED;
   }
 
   $S->query("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
             "isJavaScript=$java, lasttime=now() where id=$id");
 
   if(!$S->isMyIp($ip) && $DEBUG2)
-    error_log("beacon:  $id, $ip, $site, $thepage, {$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+    error_log("beacon:  $id, $ip, $site, $thepage, {$msg}1, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
 
   if(!$S->isMyIp($ip) && $DEBUG3 && $type == 'visibilitychange')
-    error_log("beacon:  $id, $ip, $site, $thepage, {$msg}3, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+    error_log("beacon:  $id, $ip, $site, $thepage, {$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
 } else {
   // There is ways for this to happen:
   // If the client suddenly decides it will support beacon (and I can't imagin

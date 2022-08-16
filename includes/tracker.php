@@ -241,14 +241,15 @@ if($_POST['page'] == 'timer') {
   $java |= TRACKER_TIMER; // Or in TIMER
   $js2 = strtoupper(dechex($java));
 
-  if((str_contains($botAs, BOTAS_COUNTED) === false) && $botAs) { // Has not been counted yet but $botAs has a value.
+  if(!str_contains($botAs, BOTAS_COUNTED) && !empty($botAs)) { // Has not been counted yet but $botAs has a value.
     // If $botAs has a value other than BOTAS_COUNTED then it must be robot, sitemap, zero or table.
     // I think this is a bot.
     error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
     exit();
   }
 
-  if(!$S->isMyIp($ip) && $botAs != BOTAS_COUNTED) {
+  if(!$S->isMyIp($ip) && empty($botAs)) {
+    $botAs = BOTAS_COUNTED;
     $S->query("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
     [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
     $dayreal++;
@@ -263,7 +264,6 @@ if($_POST['page'] == 'timer') {
            "on duplicate key update finger='$finger', dayreal=$dayreal, daybots=$daybots, dayvisits=$dayvisits, visits=$visits, lasttime=now()";
 
     $S->query($sql);
-    $botAs = BOTAS_COUNTED;
   }
 
   $sql = "update $S->masterdb.tracker set botAs='$botAs', isJavaScript=$java, endtime=now(), ".
