@@ -350,14 +350,13 @@ EOF;
     // BLP 2022-04-09 - if we have nodb or noTrack then there will be no tracker.js or tracker.php
     // so we can't set the images at all.
 
-    $h->image1Src = $h->image1Src ?? $this->image1Src ?? "https://bartonphillips.net/images/blank.gif";
     $h->trackerLocation = $h->trackerLocation ?? $this->trackerLocation ?? "https://bartonphillips.net/tracker.php";
-    
+
     if($h->nodb !== true && $h->noTrack !== true) {
       // BLP 2022-03-24 -- Add alt and add src='blank.gif'
       // BLP 2022-04-09 - for now I am leaving trackerImg1 and trackerImg2 only on $this.
     
-      $image1 = "<img id='logo' data-image='$this->trackerImg1' alt='logo' src='$h->imag1Src'>";
+      $image1 = "<img id='logo' data-image='$this->trackerImg1' alt='logo' src=''>";
       $image2 = "<img id='headerImage2' alt='headerImage2' src='$h->trackerLocation?page=normal&amp;id=$this->LAST_ID&amp;image=$this->trackerImg2'>";
       $image3 = "<img id='noscript' alt='noscriptImage' src='$h->trackerLocation?page=noscript&amp;id=$this->LAST_ID'>";
     }
@@ -431,7 +430,7 @@ EOF;
     $b->emailAddress = ($b->noEmailAddress ?? $this->noEmailAddress) ? null : ($b->emailAddress ?? $this->EMAILADDRESS);
     $b->emailAddress = $b->emailAddress ? "<a href='mailto:$b->emailAddress'>$b->emailAddress</a>" : null;
     $b->inlineScript = $b->inlineScript ? "<script>\n$b->inlineScript\n</script>" : null;
-    
+
     // counterWigget is available to the footerFile to use if wanted.
     // BLP 2022-01-02 -- if count is set then use the counter
     

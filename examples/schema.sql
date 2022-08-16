@@ -92,7 +92,7 @@ CREATE TABLE `contact_emails` (
   `created` date DEFAULT NULL,
   `lasttime` date DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2736 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -323,7 +323,7 @@ CREATE TABLE `tracker` (
   KEY `ip` (`ip`),
   KEY `lasttime` (`lasttime`),
   KEY `starttime` (`starttime`)
-) ENGINE=MyISAM AUTO_INCREMENT=6308328 DEFAULT CHARSET=utf8mb3;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

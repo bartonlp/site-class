@@ -12,7 +12,7 @@
 
 namespace siteload;
 
-define("SITELOAD_VERSION", "1.0.0");
+define("SITELOAD_VERSION", "1.0.09");
 
 // We are in 'vendor/bartonlp/site-class/includes' so we want to go back three directories to load
 // autoload.php

@@ -49,7 +49,7 @@ jQuery(document).ready(function($) {
   $("script[data-lastid]").before('<link rel="stylesheet" href="/csstest-' + lastId + '.css" title="blp test">');
   
   let image = $("#logo").attr("data-image");
-  $("#logo").attr('src', "https://bartonphillips.net/tracker.php?page=script&id="+lastId+"&image="+image);
+  $("#logo").attr('src', trackerUrl + "?page=script&id="+lastId+"&image="+image);
 
   // The rest of this is for everybody!
 

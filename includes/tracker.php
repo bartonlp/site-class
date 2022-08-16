@@ -4,11 +4,24 @@
 // NOTE: the $_site info is from a mysitemap.json that is where the tracker.php
 // is located (or a directory above it) not necessarily from the mysitemap.json that lives with the
 // target program.
-// BLP 2022-07-15 - added referer to the tracker table and add the referrer 'start'
-// BLP 2022-06-19 - added time to error_log messages. Also added $DEBUG_IMAGE, $DEBUG_CSSTEST and
-// the ability to force me to false.
+// BLP 2022-08-15 - I have moved tracker.php, tracker.js and beacon.php into the SiteClass
+// directory. I use symlinks to let them continue to live in my CookieLess server.
 
-$_site = require_once(getenv("SITELOADNAME")); // mysitemap.json has count false.
+// BLP 2022-08-15 - Check for the examples directory. If we find it then get siteload.php form the
+// location where tracker.php is. siteload.php will look for a mysitemap.json file up from where it
+// lives. NOTE the mysitemap.json for the examples lives at 'site-class' because examples and
+// includes are at the same level and a mysitemap.json in the examples directory would never be
+// found!
+
+$ref = $_SERVER['HTTP_REFERER'];
+
+if(str_contains($ref, '/vendor/bartonlp/site-class/examples/')) {
+  $_site = require_once(__DIR__ . "/siteload.php");
+} else {
+  $_site = require_once(getenv("SITELOADNAME"));
+}
+$_site->count = false; // Don't count this.
+
 $S = new Database($_site);
 
 require_once(SITECLASS_DIR . "/defines.php"); // constants for TRACKER, BOTS, BEACON.
@@ -30,8 +43,8 @@ $DEBUG11 = true; // Timer real+1
 // ****************************************************************
 
 if($_POST) {
-  // Here isMeFalse is a string.
-  if($_POST['isMeFalse'] === 'true') $S->isMeFalse = true;
+  // Here isMeFalse is a string '1'.
+  if($_POST['isMeFalse']) $S->isMeFalse = true;
 }
 
 // Post an ajax error message
@@ -81,7 +94,7 @@ if($_POST['page'] == 'start') {
 
   $java |= TRACKER_START; 
   $js2 = strtoupper(dechex($java));
-  
+
   if(!$S->isMyIp($ip) && $DEBUG_START) error_log("tracker: $id, $ip, $site, $thepage, START1, botAs=$botAs, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
   
   $S->query("update $S->masterdb.tracker set isJavaScript=$java, lasttime=now() where id='$id'");
@@ -170,7 +183,7 @@ if($_POST['page'] == 'onexit') {
     // Is this a bot?
 
     if($agent && $S->isBot($agent)) {
-      error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+      error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
       exit(); // If this is a bot don't bother
     }
 
@@ -181,21 +194,21 @@ if($_POST['page'] == 'onexit') {
       exit();
     }
 
-    if(!$S->isMyIp($ip) && $botAs != BOTAS_COUNTED) {
+    $botAs = BOTAS_COUNTED; // $botAs is either empty or has BOTAS_COUNTED. Force it to counted in case it is empty.
+
+    if(!$S->isMyIp($ip)) {
       $S->query("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
       [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
       $dayreal++;
       $dayvisits += $visits;
 
-      if($DEBUG7) error_log("tracker: $id, $ip, $site, $thepage, {$msg}1, botAs=$botAs, state=$state, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, real+1, visits: $visits, time=" . (new DateTime)->format('H:i:s:v'));
+      if($DEBUG7) error_log("tracker: $id, $ip, $site, $thepage, COUNTED_{$msg}, state=$state, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, real+1, visits: $visits, time=" . (new DateTime)->format('H:i:s:v'));
 
       $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, daybots, dayvisits, visits, lasttime) ".
              "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', $dayreal, $daybots, $dayvisits, $visits, now()) ".
              "on duplicate key update page='$thepage', finger='$finger', dayreal=$dayreal, daybots=$daybots, dayvisits=$dayvisits, visits=$visits, lasttime=now()";
 
       $S->query($sql);
-
-      $botAs = BOTAS_COUNTED;
     }
 
     $S->query("update $S->masterdb.tracker set page='$thepage', botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
@@ -235,6 +248,7 @@ if($_POST['page'] == 'timer') {
 
   if($agent && $S->isBot($agent)) {
     error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits: $visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+    echo "Timer1 This is a BOT, $id, $ip, $site, $thepage";
     exit(); // If this is a bot don't bother
   }
 
@@ -245,6 +259,7 @@ if($_POST['page'] == 'timer') {
     // If $botAs has a value other than BOTAS_COUNTED then it must be robot, sitemap, zero or table.
     // I think this is a bot.
     error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+    echo "Timer2 This is a BOT, $id, $ip, $site, $thepage";
     exit();
   }
 
@@ -257,7 +272,7 @@ if($_POST['page'] == 'timer') {
 
     $S->query("update $S->masterdb.daycounts set `real`=$dayreal, bots=$daybots, visits=$dayvisits where date=current_date() and site='$site'");
 
-    if($DEBUG11) error_log("tracker: $id, $ip, $site, $thepage, COUNTED_TIMER, real+1, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, time=" . (new DateTime)->format('H:i:s:v'));
+    if($DEBUG11) error_log("tracker: $id, $ip, $site, $thepage, COUNTED_TIMER, real+1, visits=$visits, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, time=" . (new DateTime)->format('H:i:s:v'));
 
     $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, daybots, dayvisits, visits, lasttime) ".
            "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', $dayreal, $daybots, $dayvisits, $visits, now()) ".
@@ -267,7 +282,7 @@ if($_POST['page'] == 'timer') {
   }
 
   $sql = "update $S->masterdb.tracker set botAs='$botAs', isJavaScript=$java, endtime=now(), ".
-         "botAs='$botAs', difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id";
+         "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id";
 
   $S->query($sql);
 
@@ -305,11 +320,6 @@ if($_POST['page'] == 'timer') {
 // When tracker.php is called to get the image 'page' has the values script, normal or noscript.
 //
 // csstest happens via .htaccess REWRITERULE. See .htaccess for more details.
-
-
-$ref = $_SERVER['HTTP_REFERER']; // Get the referer
-
-// IMAGE
 
 if($type = $_GET['page']) {
   switch($type) {
@@ -365,9 +375,9 @@ if($type = $_GET['page']) {
     exit();
   }
 
-  // Get the default image.
+  // BLP 2022-08-15 - Get the default image. Use the $S->defaultImage if not null
   
-  $img = "https://bartonphillips.net/images/blank.png";
+  $img = $S->defaultImages ?? "https://bartonphillips.net/images/blank.png";
 
   // script and normal may have an image but
   // noscript has NO IMAGE
@@ -377,7 +387,8 @@ if($type = $_GET['page']) {
     if($pos !== false && $pos == 0) {
       $img = $image; // $image has the full url starting with http (could be https)
     } else {
-      $img = "https://bartonphillips.net" . $image;
+      // BLP 2022-08-15 - Use $S->imageLocation if not null.
+      $img = ($S->imagesLocation ?? "https://bartonphillips.net") . $image;
     }
   }
 

@@ -1,7 +1,11 @@
 <?php
 // Beacon from tracker.js
 
-$_site = require_once(getenv("SITELOADNAME"));
+if(str_contains($_SERVER['HTTP_REFERER'], '/vendor/bartonlp/site-class/examples/')) {
+  $_site = require_once(__DIR__ . "/siteload.php");
+} else {
+  $_site = require_once(getenv("SITELOADNAME")); // mysitemap.json has count false.
+}
 $S = new Database($_site);
 
 require_once(SITECLASS_DIR . "/defines.php");
@@ -85,9 +89,9 @@ if(($java & TRACKER_MASK) == 0) {
   }
 
   // At this point $botAs can only be blank or have BOTAS_COUNTED
-  
+
   if(!$S->isMyIp($ip) && empty($botAs)) { // it is not ME and it has not been counted yet. If $botAs had anything else it would have been returned above.
-    $botAs = BOTAS_COUNTED; // In either case set BOTAS_COUNTED in case $botAs is blank.
+    $botAs = BOTAS_COUNTED;
     $S->query("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
     [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
     $dayreal++;
@@ -95,7 +99,7 @@ if(($java & TRACKER_MASK) == 0) {
     
     $S->query("update $S->masterdb.daycounts set `real`=$dayreal, visits=$dayvisits where date=current_date() and site='$site'");
 
-    if($DEBUG1) error_log("beacon:  $id, $ip, $site, $thepage, COUNTED_{$msg}, real+1, state=$state, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, visits: $visits, time=" . (new DateTime)->format('H:i:s:v'));
+    if($DEBUG1) error_log("beacon:  $id, $ip, $site, $thepage, COUNTED_{$msg}, real+1, botAs=$botAs, state=$state, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, visits: $visits, time=" . (new DateTime)->format('H:i:s:v'));
 
     $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, daybots, dayvisits, visits, lasttime) ".
            "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', $dayreal, $daybots, $dayvisits, $visits, now()) ".
@@ -108,10 +112,10 @@ if(($java & TRACKER_MASK) == 0) {
             "isJavaScript=$java, lasttime=now() where id=$id");
 
   if(!$S->isMyIp($ip) && $DEBUG2)
-    error_log("beacon:  $id, $ip, $site, $thepage, {$msg}1, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+    error_log("beacon:  $id, $ip, $site, $thepage, {$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
 
   if(!$S->isMyIp($ip) && $DEBUG3 && $type == 'visibilitychange')
-    error_log("beacon:  $id, $ip, $site, $thepage, {$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+    error_log("beacon:  $id, $ip, $site, $thepage, {$msg}3, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
 } else {
   // There is ways for this to happen:
   // If the client suddenly decides it will support beacon (and I can't imagin
