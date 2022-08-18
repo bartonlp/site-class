@@ -1,9 +1,4 @@
-/vendor/
-/vendor
-/examples/vendor
-LOGFILE
 composer.lock
 .cache_ggshield
-*#
 
 

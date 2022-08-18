@@ -351,18 +351,37 @@ if($type = $_GET['page']) {
     exit();
   }
 
-  if($S->query("select site, hex(isJavaScript), agent from $S->masterdb.tracker where id=$id")) {
-    [$site, $js, $agent] = $S->fetchrow('num');
+  // I get people that call tracker 'exit' functions directly with nufarious stuff.
+  
+  $botAs = '';
+  
+  try {
+    if($S->query("select site, ip, page, hex(isJavaScript), agent, botAs from $S->masterdb.tracker where id=$id")) {
+      [$site, $ip, $thepage, $js, $agent, $botAs] = $S->fetchrow('num');
+    }
+  } catch(Exception $e) {
+    if(empty($botAs)) {
+      $errno = $e->getCode();
+      $errmsg = $e->getMessage();
+      error_log("tracker: $id, $ip, $site, $thepage, SQL_ERROR_$msg, err=$errno, errmsg=$errmsg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
+      $botAs |= BOTAS_COUNTED;
+      try {
+        $S->query("indert into $S->masterdb.tracker (id, botAs, lasttime) values($id, '$botAs', now()) on duplicte key update botAs='$botAs', lasttime=now()");
+      } catch(Exception $e) {
+        error_log("tracker: insert/update Failed. What a bugger: $S->ip, $S->agent");
+        throw new Exception("Go Away Please");
+      }
+    }
   }
-
-  if($DEBUG_GET1) error_log("tracker: $id, $S->ip, $site, $msg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
+  
+  if($DEBUG_GET1) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
 
   if($agent && $S->isBot($agent)) {
-    error_log("tracker: $id, $S->ip, $site, $S->self, ISABOT_{$msg}, image=$image, time=" . (new DateTime)->format('H:i:s:v')); 
+    error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, image=$image, time=" . (new DateTime)->format('H:i:s:v')); 
     exit(); // If this is a bot don't bother
   }
   
-  if($DEBUG_GET2) error_log("tracker: $id, $S->ip, $site, $S->self, $msg -- referer=$ref");
+  if($DEBUG_GET2) error_log("tracker: $id, $ip, $site, $thepage, $msg -- referer=$ref");
   
   $sql = "update $S->masterdb.tracker set isJavaScript=isJavaScript|$or, lasttime=now() where id=$id";
   $S->query($sql);
