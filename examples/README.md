@@ -19,6 +19,9 @@ images and fonts.
 
 Now that the database is set up you can run the examples.
 
+If you are just trying this out you can use the PHP server: <code>PHP -S localhost:8080</code>. You can change the port to what you want.   
+Then use your browser to go to: <code>localhost:8080/<an example></code>. See the example programs in the examples directory.
+
 Any questions can be directed to bartonphillips@gmail.com
 
 Have fun
