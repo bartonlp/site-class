@@ -76,9 +76,12 @@
       <p><strong>OR</strong> you can just run</p>
       <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">composer</span> require bartonlp/site-class:dev-master</code></pre></div>
       <p>which will create the 'composer.json' for you and load the package like 'composer install' above.</p>
-      <p>In your PHP file add <code>require_once($PATH_TO_VENDOR . '/vendor/autoload.php');</code>
+      <p>In your PHP file add <code>$_site = require_once($PATH_TO_VENDOR .
+        '/vendor/bartonlp/site-class/includes/siteload.php');</code>
         where '$PATH_TO_VENDOR' is the path to the 'vendor' directory like './' or '../' etc.</p>
-      <p>There are some example files in the 'examples' directory at '$PATH_TO_VENDOR/vendor/bartonlp/site-class/examples'.</p>
+      <p>There are some example files in the 'examples' directory at
+        '$PATH_TO_VENDOR/vendor/bartonlp/site-class/examples'. There is more documentation in the
+        /docs directory.</p>
 
       <h2>Further Documentation</h2>
       <ul>

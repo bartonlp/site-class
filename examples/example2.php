@@ -2,12 +2,9 @@
 /*
   This file will run all the database functions. It will not see you.
 */
-
-error_log("Example2");
-
 // This gets the siteload.php from the includes directory.
 
-$_site = require_once(__DIR__ . "/../includes/siteload.php");
+$_site = require_once(getenv("SITELOADNAME"));
 
 // Get the information from the mysitemap.json in the directory above this one.
 
@@ -51,6 +48,12 @@ $top
 <pre>myIp: $myip</pre>
 <pre>\$_site: $SITE</pre>
 <pre>\$S: $CLASS</pre>
+<hr>
+<a href="example1.php">Example1</a><br>
+<a href="example2.php">Example2</a><br>
+<a href="example3.php">Example3</a><br>
+<a href="example4.php">Example4</a><br>
+<a href="hi.php">Hi</a><br>
 <a href="phpinfo.php">PHPINFO</a>
 $footer
 EOF;

@@ -182,7 +182,7 @@ class Database extends dbAbstract {
 
       $tmp = '';
 
-      while($robots = $this->fetchrow('num')[0]) {
+      while([$robots] = $this->fetchrow('num')) {
         if($robots & BOTS_ROBOTS) {
           $tmp = "," . BOTAS_ROBOT;
         }
@@ -302,7 +302,7 @@ class Database extends dbAbstract {
 
     $this->query("select myIp from $this->masterdb.myip");
 
-    while($ip = $this->fetchrow('num')[0]) {
+    while([$ip] = $this->fetchrow('num')) {
       $myIp[] = $ip;
     }
     

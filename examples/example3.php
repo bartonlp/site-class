@@ -2,12 +2,9 @@
 /*
   This file will run all the database functions. It will not see you.
 */
-
-error_log("Example3");
-
 // This gets the siteload.php from the includes directory.
 
-$_site = require_once(__DIR__ . "/../includes/siteload.php");
+$_site = require_once(getenv("SITELOADNAME"));
 
 $S = new $_site->className($_site);
 
@@ -60,6 +57,12 @@ $rows
 
 <p>Same table but with dbTables</p>
 $tbl
+<hr>
+<a href="example1.php">Example1</a><br>
+<a href="example2.php">Example2</a><br>
+<a href="example3.php">Example3</a><br>
+<a href="example4.php">Example4</a><br>
+<a href="hi.php">Hi</a><br>
 <a href="phpinfo.php">PHPINFO</a>
 $footer
 EOF;

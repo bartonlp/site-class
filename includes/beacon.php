@@ -1,18 +1,23 @@
 <?php
 // Beacon from tracker.js
-
+/*
 if(str_contains($_SERVER['HTTP_REFERER'], '/vendor/bartonlp/site-class/examples/')) {
   $_site = require_once(__DIR__ . "/siteload.php");
 } else {
   $_site = require_once(getenv("SITELOADNAME")); // mysitemap.json has count false.
 }
+*/
+
+$_site = require_once(getenv("SITELOADNAME")); // mysitemap.json has count false.
 $S = new Database($_site);
 
 require_once(SITECLASS_DIR . "/defines.php");
 
-$DEBUG1 = true; // COUNTED real+1 bots-1
+//$DEBUG1 = true; // COUNTED real+1 bots-1
 //$DEBUG2 = true; // After update tracker table
 //$DEBUG3 = true; // visablechange
+//$DEBUG_IPS = true; // show ip mismatches.
+//$DEBUG_ISABOT = true;
 
 // The input comes via php as json data not $_GET or $_POST
 
@@ -40,8 +45,11 @@ if(!$id || $visits === null) {
 
 // Now get botAs and isJavaScrip etc.
 
-$S->query("select botAs, isJavaScript, hex(isJavaScript), difftime, referer, finger, agent from $S->masterdb.tracker where id=$id");
-[$botAs, $java, $js, $difftime, $referer, $finger, $agent] = $S->fetchrow('num');
+if($S->query("select botAs, isJavaScript, hex(isJavaScript), difftime, referer, finger, agent from $S->masterdb.tracker where id=$id")) {
+  [$botAs, $java, $js, $difftime, $referer, $finger, $agent] = $S->fetchrow('num');
+} else {
+  error_log("tracker: NO record for $id, line=" . __LINE__);
+}
 
 // Check if this has been done by tracker.
 // NOTE: this will be the case almost all of the time because the client has looked to see if
@@ -70,21 +78,21 @@ if(($java & TRACKER_MASK) == 0) {
   $java |= $beacon;
   $js2 = strtoupper(dechex($java));
 
-  if($ip != $S->ip) {
+  if($DEBUG_IPS && ($ip != $S->ip)) {
     error_log("beacon:  $id, $ip, $site, $thepage, IP_MISMATCH_{$msg}, \$ip != \$S->ip -- \$S->ip=$S->ip, botAs=$botAs, jsin=$js, jsout=$js2, visits=$visits");
   }
 
   // Is this a bot?
 
   if($agent && $S->isBot($agent)) {
-    error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}1, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+    if($DEBUG_ISABOT) error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}1, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
     exit(); // If this is a bot don't bother
   }
 
   if(!str_contains($botAs, BOTAS_COUNTED) && !empty($botAs)) { // Has not been counted yet but $botAs has a value.
     // If $botAs has a value other than BOTAS_COUNTED then it must be robot, sitemap, zero or table.
     // I think this is a bot.
-    error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+    if($DEBUG_ISABOT) error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
     exit();
   }
 

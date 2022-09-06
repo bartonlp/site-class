@@ -60,7 +60,7 @@
   "noGeo": true, // Don't do geo location logic. You could set the following to provide a location for geo.js
   //"geoLocation": "Your location", // you can find geo.js and
   //geoAjax.php at github.com/bartonlp/bartonphillips.net
-  "imagesLocation": "https://bartonphillips.org/vendor/bartonlp/site-class/examples",
+  //"imagesLocation": "https://bartonphillips.org/vendor/bartonlp/site-class/examples",
   "defaultImage": "./images/146624.png",
   "trackerLocation": "../includes/tracker.php",
   "trackerLocationJs": "../includes/tracker.js",

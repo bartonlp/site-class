@@ -1,6 +1,6 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
-// BLP 2022-08-14 - change the had coded references to bartonphillips.net to $h, $b, $this (from
+// BLP 2022-08-14 - change the hard coded references to bartonphillips.net to $h, $b, $this (from
 // mysitemap.json)
 // BLP 2022-07-31 - moved several function to Database.
 // BLP 2022-06-20 - Add thepage to javascript in getPageHead().
@@ -447,7 +447,7 @@ EOF;
     // BLP 2022-01-28 -- add noGeo
 
     if(($b->noGeo ?? $this->noGeo) !== true) {
-      $geo = $b->gioLocation ?? $this->gioLocation ?? "https://bartonphillips.net/js/";
+      $geo = $b->gioLocation ?? $this->gioLocation ?? "https://bartonphillips.net/js";
       
       $geo = "<script src='$geo/geo.js'></script>";
     }
