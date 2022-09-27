@@ -53,7 +53,7 @@ class Database extends dbAbstract {
     // on bartonlp.org
 
     $password = ($this->dbinfo->password) ?? require("/home/barton/database-password");
-    
+
     if(isset($arg->engine) === false) {
       $this->errno = -2;
       $this->error = "'engine' not defined";

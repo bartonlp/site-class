@@ -1,14 +1,8 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
-// BLP 2022-08-14 - change the hard coded references to bartonphillips.net to $h, $b, $this (from
-// mysitemap.json)
-// BLP 2022-07-31 - moved several function to Database.
-// BLP 2022-06-20 - Add thepage to javascript in getPageHead().
-// BLP 2022-06-14 - Moved setSiteCookie() to Database.
-// BLP 2022-05-26 - SiteClass now extends Database which extends dbAbstract.
-// daycount(), checkIfBot(), trackBots() and tracker have been completley reworked.
+// BLP 2022-09-26 - that were to bartonphillips.net are now to bartonlp.com/otherpages/
 
-define("SITE_CLASS_VERSION", "3.4.1"); // BLP 2022-07-31 - 
+define("SITE_CLASS_VERSION", "3.4.2"); // BLP 2022-07-31 - 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -261,9 +255,9 @@ EOF;
       $h->noTrack = $h->noTrack ?? $this->noTrack;
       $h->nodb = $h->nodb ?? $this->nodb;
 
-      $h->trackerLocationJs = $h->trackerLocationJs ?? $this->trackerLocationJs ?? "https://bartonphillips.net/js/tracker.js";
-      $h->trackerLocation = $h->trackerLocation ?? $this->trackerLocation ?? "https://bartonphillips.net/tracker.php";
-      $h->beaconLocation = $h->beaconLocation ?? $this->beaconLocation ?? "https://bartonphillips.net/beacon.php";
+      $h->trackerLocationJs = $h->trackerLocationJs ?? $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
+      $h->trackerLocation = $h->trackerLocation ?? $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
+      $h->beaconLocation = $h->beaconLocation ?? $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php";
       
       if($h->noTrack === true || $h->nodb === true) {
         $trackerStr = '';
@@ -350,7 +344,7 @@ EOF;
     // BLP 2022-04-09 - if we have nodb or noTrack then there will be no tracker.js or tracker.php
     // so we can't set the images at all.
 
-    $h->trackerLocation = $h->trackerLocation ?? $this->trackerLocation ?? "https://bartonphillips.net/tracker.php";
+    $h->trackerLocation = $h->trackerLocation ?? $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
 
     if($h->nodb !== true && $h->noTrack !== true) {
       // BLP 2022-03-24 -- Add alt and add src='blank.gif'
@@ -425,7 +419,7 @@ EOF;
     }
     $b->aboutwebsite = $b->aboutwebsite ??
                        $this->aboutwebsite ??
-                       "<h2><a target='_blank' href='https://bartonphillips.net/aboutwebsite.php?site=$this->siteName&domain=$this->siteDomain'>About This Site</a></h2>";
+                       "<h2><a target='_blank' href='https://bartonlp.com/otherpages/aboutwebsite.php?site=$this->siteName&domain=$this->siteDomain'>About This Site</a></h2>";
     
     $b->emailAddress = ($b->noEmailAddress ?? $this->noEmailAddress) ? null : ($b->emailAddress ?? $this->EMAILADDRESS);
     $b->emailAddress = $b->emailAddress ? "<a href='mailto:$b->emailAddress'>$b->emailAddress</a>" : null;

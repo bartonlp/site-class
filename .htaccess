@@ -7,4 +7,4 @@ Require all granted
 
 RewriteEngine on
 # rewrite the address of csstest.css to tracker.php?csstest
-RewriteRule ^csstest-(.*)\.css$ ../includes/tracker.php?id=$1&page=csstest [L,QSA]
+RewriteRule ^csstest-(.*)\.css$ includes/tracker.php?id=$1&page=csstest [L,QSA]

@@ -9,12 +9,7 @@ let lastId;  // set by SiteClass via tracker.js
 var isMeFalse;
 //isMeFalse = true; // For Debugging
 var doState; // for debugging. It can be set by the caller.
-//
 
-//doState = true; // For debugging
-
-//const trackerUrl = "https://bartonphillips.net/tracker.php";
-//const beaconUrl =  "https://bartonphillips.net/beacon.php";
 var trackerUrl;
 var beaconUrl;
 
@@ -46,7 +41,7 @@ jQuery(document).ready(function($) {
   // logo is in banner.i.php and it is now fully instantiated. 
 
   lastId = $("script[data-lastid]").attr("data-lastid"); // this happens before the 'ready' above!
-  $("script[data-lastid]").before('<link rel="stylesheet" href="/csstest-' + lastId + '.css" title="blp test">');
+  $("script[data-lastid]").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
   
   let image = $("#logo").attr("data-image");
   $("#logo").attr('src', trackerUrl + "?page=script&id="+lastId+"&image="+image);

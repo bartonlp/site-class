@@ -38,7 +38,7 @@ $S->isMeFalse = $data['isMeFalse'];
 $msg = strtoupper($type);
 
 if(!$id || $visits === null) {
-  error_log("beacon:  NO ID, $ip, $site, $msg -- \$S->id=$S->ip, \$S->agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
+  error_log("beacon:  NO ID, $ip, $site, $msg -- visits=$visits, \$S->ip=$S->ip, \$S->agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
   echo "<h1>GO AWAY</h1>";
   exit();
 }

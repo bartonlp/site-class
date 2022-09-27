@@ -19,7 +19,7 @@ CREATE TABLE `badplayer` (
   `type` varchar(50) NOT NULL,
   `count` int DEFAULT NULL,
   `errno` int DEFAULT NULL,
-  `errmsg` int DEFAULT NULL,
+  `errmsg` varchar(255) DEFAULT NULL,
   `agent` varchar(255) DEFAULT NULL,
   `lasttime` datetime DEFAULT NULL,
   PRIMARY KEY (`ip`,`type`)
@@ -357,60 +357,85 @@ if($type = $_GET['page']) {
   
   $id = $_GET['id'];
   $image = $_GET['image'];
-
+  
   if(!$id) {
     error_log("tracker $type: NO ID, $S->ip, $S->agent");
     exit();
   }
 
+  if(!is_numeric($id)) {
+    $errno = -99;
+    $errmsg = "ID is not numeric";
+    $botAs = BOTAS_COUNTED;
+    
+    $sql = "insert into $S->masterdb.badplayer (ip, botAs, type, count, errno, errmsg, agent, created, lasttime) ".
+           "values('$S->ip', $botAs, '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+           "on duplicate key update botAs='ID_IS_A_STRING', count=count+1, lasttime=now()";
+
+    error_log("tracker ID_IS_A_STRING: ip=$S->ip, id(value)=$id, agent=$S->agent");
+
+    $S->query($sql);
+    goto GOAWAYNOW;
+  }
+  
   // I get people that call tracker 'exit' functions directly with nufarious stuff.
   
   $botAs = '';
   
   try {
-    if($S->query("select site, ip, page, hex(isJavaScript), agent, botAs from $S->masterdb.tracker where id=$id")) {
+    $sql = "select site, ip, page, hex(isJavaScript), agent, botAs from $S->masterdb.tracker where id=$id";
+    
+    if($S->query($sql)) {
       [$site, $ip, $thepage, $js, $agent, $botAs] = $S->fetchrow('num');
     } else {
-      throw new Exception("NO RECORD for id=$id", -111);
+      throw new Exception("NO RECORD for id=$id", -100); // This will be caught below.
     }
-  } catch(Exception $e) {
+  } catch(Exception $e) { // catches the throw above.
     $errno = $e->getCode();
     $errmsg = $e->getMessage();
 
+    /* for debug error_log("tracker: TEST1, $errno, $errmsg"); */
+    
     $tmpBotAs = $botAs;
     $botAs = BOTAS_COUNTED;
 
     // try to insert into the id that was passed in.
     try {
-      $S->query("insert into $S->masterdb.tracker (id, botAs, lasttime) values($id, '$botAs', now()) on duplicte key update botAs='$botAs', lasttime=now()");
+      $ip = "NONE";
+
+      $sql = "insert into $S->masterdb.tracker (id, ip, botAs, starttime, lasttime) values($id, '$ip', '$botAs', now(), now()) ".
+             "on duplicate key update botAs='$botAs', lasttime=now()";
+      
+      $S->query($sql);
+
       error_log("tracker: $id, $ip, $site, $thepage, SELECT_FAILED_INSERT_OK_{$msg}, err=$errno, errmsg=$errmsg, time=" . (new DateTime)->format('H:i:s:v'));
     } catch(Exception $e) {
-      // The insert failed so see if there is already an entry in badplayer for this ip and type?
-        
-      if(!$S->query("select ip from $S->masterdb.badplayer where ip='$S->ip' and type='$msg'")) {
-        // No entry yet
+      $errno = $e->getCode();
+      $errmsg .= "::" . $e->getMessage();
 
-        error_log("tracker: $id, $S->ip select from badplayer Failed. errno=$errno, errmsg=$errmsg, $S->agent");
-      }
-
-      // Now ADD an entry and mark it with BOTAS_COUNTED.
+      /* for debug error_log("tracker: TEST2, $errno, $errmsg"); */
+      
+      // ADD an entry to badplayer and mark it with BOTAS_COUNTED.
       // The primary key is ip and type
 
       try {
-        if(!$S->query("insert into $S->masterdb.badplayer (ip, botAs, type, count, agent, created, lasttime) ".
-                      "values('$S->ip', '$botAs', '$msg', 1, '$S->agent', now(), now()) ".
-                      "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()")) {
-          error_log("tracker: $S->ip, Could not do insert/update");
+        $sql = "insert into $S->masterdb.badplayer (ip, botAs, type, count, errno, errmsg, agent, created, lasttime) ".
+               "values('$S->ip', '$botAs', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+               "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()";
+        
+        if(!$S->query($sql)) {
+
+          error_log("tracker: $S->ip, badplayer - could not do insert/update");
         } else {
-          if(!str_contains($tmpBotAs, BOTAS_COUNTED)) error_log("tracker: $id, $S->ip, insert into badplayer OK: $botAs, $msg");
+          if(!str_contains($tmpBotAs, BOTAS_COUNTED)) error_log("tracker: $id, $S->ip, insert into badplayer OK: $botAs, $msg, errno=$errno, errmsg=$errmsg, sql=$sql");
         }
       } catch(Exception $e) {
         $errno = $e->getCode();
-        $errmsg = $e->getMessage();
-        error_log("tracker: ip=$S->ip, insert/update badplayer failed: errno=$errno, errmsg=$errmsg");
+        $errmsg .= "::" . $e->getMessage();
+        error_log("tracker: ip=$S->ip, insert/update badplayer failed: errno=$errno, errmsg=$errmsg, sql=$sql");
       }
 
-      $bigpile = file_get_contents("bigfile.txt");
+GOAWAYNOW: // label for goto
       
       echo <<<EOF
 <!doctype html>
@@ -457,8 +482,8 @@ font-size: 100px; color: red;
 </style>
 </head>
 <body>
-<h1 class='goaway blink'>Please, please just Go Away!<h1>
-$bigpile
+<h1>NOT AUTHORIZED</h1>
+<h2 class='goaway blink'>Please, please just Go Away!<h2>
 </body>
 </html>
 EOF;
@@ -486,18 +511,23 @@ EOF;
       if(!$S->query("update $S->masterdb.tracker set botAs='$botAs', lasttime=now() where id=$id")) {
         // We did not find a record. Create a record
 
-        error_log("tracker: $id, $S->ip, $S->siteName, $S->self, NO_UPDATE_{$msg}1, id not valid no update posible, time" . (new DateTime)->format('H:i:s:v'));
+        error_log("tracker: $id, $S->ip, $S->siteName, $S->self, ISABOT_NO_UPDATE_{$msg}, id not valid no update posible, time" . (new DateTime)->format('H:i:s:v'));
 
         try {
           $S->query("insert into $S->masterdb.tracker (id, ip, site, page, agent, botAs, isJavaScript, finger, starttime, lasttime) ".
-                    "values($id, '$S->ip', '$S->siteName', '$S->self', '$S->agent', '$S->botAs', $java, 'NO_UPDATE_{$msg}', now(), now())");
-          error_log("tracker: $id, $S->ip, '$S->siteName', '$S->self', INSERT_AFTER_NO_UPDATE_{$msg}, time" . (new DateTime)->format('H:i:s:v'));
+                    "values($id, '$S->ip', '$S->siteName', '$S->self', '$S->agent', '$botAs', $java, 'ISABOT_NO_UPDATE_{$msg}', now(), now())");
+
+          error_log("tracker: $id, $S->ip, '$S->siteName', '$S->self', ISABOT_INSERT_AFTER_NO_UPDATE_{$msg}, time" . (new DateTime)->format('H:i:s:v'));
         } catch (Exception $e) {
           $errno = $e->getCode();
           $errmsg = $e->getMessage();
-          error_log("tracker: $id, $S->ip $S->siteName, $S->self, INSERT_FAILED{$msg}, unable to do insert, try badplayer, errno=$errno, errmsg=$errmsg");
+
+          /* for debug */error_log("tracker: TEST3, $errno, $errmsg");
+          
+          error_log("tracker: $id, $S->ip $S->siteName, $S->self, ISABOT_INSERT_FAILED_{$msg}, unable to do insert, try badplayer, errno=$errno, errmsg=$errmsg");
+
           $S->query("insert into $S->masterdb.badplayer (ip, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
-                    "values('$S->ip', '$botAs', '$msg', 1, $errno, '$errmsg', '$S->agent', now(), now()) ".
+                    "values('$S->ip', '$botAs', 'ISABOT_INSERT_FAILED_{$msg}', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
                     "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()");
         }
       }
@@ -509,10 +539,18 @@ EOF;
   
   if(!$S->query("update $S->masterdb.tracker set isJavaScript=isJavaScript|$or, lasttime=now() where id=$id")) {
     $S->query("insert into $S->masterdb.tracker (id, ip, site, page, agent, botAs, isJavaScript, finger, starttime, lasttime) ".
-              "values($id, '$S->ip', '$S->siteName', '$S->self', '$S->agent', '$S->botAs', $java, 'NO_UPDATE_{$msg}', now(), now()) ".
+              "values($id, '$S->ip', '$S->siteName', '$S->self', '$S->agent', '$botAs', $java, 'NO_UPDATE_{$msg}', now(), now()) ".
               "on duplicate key update lasttime=now()");
 
-    error_log("tracker: $id, $S->ip, $S->siteName, $S->self, NO_UPDATE_{$msg}2, id not valid no update posible, time=" . (new DateTime)->format('H:i:s:v'));
+    error_log("tracker: $id, $S->ip, $S->siteName, $S->self, NO_UPDATE_INSERT_{$msg}, id not valid did insert instead of update, time=" . (new DateTime)->format('H:i:s:v'));
+
+    $errno = -101;
+    $errmsg = "No Updata but insert OK";
+    
+    $S->query("insert into $S->masterdb.badplayer (ip, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
+              "values('$S->ip', '$botAs', 'NO_UPDATE_INSERT_{$msg}', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+              "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()");
+    
     exit();
   }
 
@@ -525,18 +563,20 @@ EOF;
   }
 
   // BLP 2022-08-15 - Get the default image. Use the $S->defaultImage if not null
+  // The defaultImage can be set in mysitemap.json or via $_site only.
   
-  $img = $S->defaultImages ?? "https://bartonphillips.net/images/blank.png";
+  $img = $S->defaultImage ?? "https://bartonphillips.net/images/blank.png";
 
   // script and normal may have an image but
   // noscript has NO IMAGE
   
   if($image) {
-    $pos = strpos($image, "http");
-    if($pos !== false && $pos == 0) {
+    $pos = strpos($image, "http"); // does $image start with http?
+    if($pos !== false && $pos == 0) { 
       $img = $image; // $image has the full url starting with http (could be https)
     } else {
       // BLP 2022-08-15 - Use $S->imageLocation if not null.
+      // This can be set in mysitemap.json or via $_site only.
       $img = ($S->imagesLocation ?? "https://bartonphillips.net") . $image;
     }
   }
@@ -561,8 +601,8 @@ if(!$id) {
 } else {
   // If this ID is not in the table add it with TRACKER_GOAWAY.
   
-  $S->query("insert into $S->masterdb.tracker (id, site, ip, agent, isJavaScript, lasttime) ".
-            "values($id, '$S->siteName', '$S->ip', '$S->agent', " . TRACKER_GOAWAY . ", now()) ".
+  $S->query("insert into $S->masterdb.tracker (id, site, ip, agent, isJavaScript, starttime, lasttime) ".
+            "values($id, '$S->siteName', '$S->ip', '$S->agent', " . TRACKER_GOAWAY . ", now(), now()) ".
             "on duplicate key update isJavaScript=isJavaScript|" . TRACKER_GOAWAY . ", lasttime=now()");
 }
 
@@ -575,7 +615,7 @@ if($id) {
 }
 $request = $_REQUEST ? ", \$_REQUEST: " . print_r($_REQUEST, true) : '';
 $id = $id ?? "NO ID  ";
-error_log("tracker: $id, $S->ip, $S->siteName, $S->self, GOAWAY, $S->agent, finger=$finger, $id{$request}");
+error_log("tracker: $id, $S->ip, $S->siteName, $S->self, GOAWAY, $S->agent, finger=$finger{$request}");
 
 echo <<<EOF
 <!DOCTYPE html>
