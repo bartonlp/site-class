@@ -15,12 +15,16 @@
 /*
 CREATE TABLE `badplayer` (
   `ip` varchar(20) NOT NULL,
+  `id` int DEFAULT NULL,
+  `site` varchar(50) DEFAULT NULL,
+  `page` varchar(255) DEFAULT NULL,
   `botAs` varchar(50) DEFAULT NULL,
   `type` varchar(50) NOT NULL,
   `count` int DEFAULT NULL,
   `errno` int DEFAULT NULL,
   `errmsg` varchar(255) DEFAULT NULL,
   `agent` varchar(255) DEFAULT NULL,
+  `created` datetime DEFAULT NULL,
   `lasttime` datetime DEFAULT NULL,
   PRIMARY KEY (`ip`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -359,7 +363,7 @@ if($type = $_GET['page']) {
   $image = $_GET['image'];
   
   if(!$id) {
-    error_log("tracker $type: NO ID, $S->ip, $S->agent");
+    error_log("tracker: type=$msg, NO ID, $S->ip, $S->agent");
     exit();
   }
 
@@ -367,9 +371,11 @@ if($type = $_GET['page']) {
     $errno = -99;
     $errmsg = "ID is not numeric";
     $botAs = BOTAS_COUNTED;
+
+    // No id.
     
-    $sql = "insert into $S->masterdb.badplayer (ip, botAs, type, count, errno, errmsg, agent, created, lasttime) ".
-           "values('$S->ip', $botAs, '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+    $sql = "insert into $S->masterdb.badplayer (ip, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) ".
+           "values('$S->ip', '$S->siteName', '$S->self', $botAs, '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
            "on duplicate key update botAs='ID_IS_A_STRING', count=count+1, lasttime=now()";
 
     error_log("tracker ID_IS_A_STRING: ip=$S->ip, id(value)=$id, agent=$S->agent");
@@ -419,8 +425,8 @@ if($type = $_GET['page']) {
       // The primary key is ip and type
 
       try {
-        $sql = "insert into $S->masterdb.badplayer (ip, botAs, type, count, errno, errmsg, agent, created, lasttime) ".
-               "values('$S->ip', '$botAs', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+        $sql = "insert into $S->masterdb.badplayer (ip, id, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) ".
+               "values('$S->ip', $id, '$S->siteName', '$S->self', '$botAs', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
                "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()";
         
         if(!$S->query($sql)) {
@@ -526,8 +532,8 @@ EOF;
           
           error_log("tracker: $id, $S->ip $S->siteName, $S->self, ISABOT_INSERT_FAILED_{$msg}, unable to do insert, try badplayer, errno=$errno, errmsg=$errmsg");
 
-          $S->query("insert into $S->masterdb.badplayer (ip, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
-                    "values('$S->ip', '$botAs', 'ISABOT_INSERT_FAILED_{$msg}', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+          $S->query("insert into $S->masterdb.badplayer (ip, id, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
+                    "values('$S->ip', $id, '$S->siteName', '$S->self', '$botAs', 'ISABOT_INSERT_FAILED_{$msg}', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
                     "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()");
         }
       }
@@ -547,8 +553,8 @@ EOF;
     $errno = -101;
     $errmsg = "No Updata but insert OK";
     
-    $S->query("insert into $S->masterdb.badplayer (ip, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
-              "values('$S->ip', '$botAs', 'NO_UPDATE_INSERT_{$msg}', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+    $S->query("insert into $S->masterdb.badplayer (ip, id, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
+              "values('$S->ip', $id, '$S->siteName', '$S->self', '$botAs', 'NO_UPDATE_INSERT_{$msg}', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
               "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()");
     
     exit();
@@ -598,12 +604,29 @@ $id = $_GET['id'] ?? $_POST['id'];
 
 if(!$id) {
   error_log("tracker $S->siteName, $S->ip: GOAWAY NO ID");
+  $errno = -102;
+  $errmsg = "No tracker logic triggered";
+  $botAs = BOTAS_COUNTED;
+  
+  // No id
+  
+  $S->query("insert into $S->masterdb.badplayer (ip, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
+            "values('$S->ip', '$S->siteName', '$S->self', '$botAs', 'GOAWAY NO ID', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+            "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()");
 } else {
   // If this ID is not in the table add it with TRACKER_GOAWAY.
   
   $S->query("insert into $S->masterdb.tracker (id, site, ip, agent, isJavaScript, starttime, lasttime) ".
             "values($id, '$S->siteName', '$S->ip', '$S->agent', " . TRACKER_GOAWAY . ", now(), now()) ".
             "on duplicate key update isJavaScript=isJavaScript|" . TRACKER_GOAWAY . ", lasttime=now()");
+
+  $errno = -103;
+  $errmsg = "No tracker logic triggered";
+  $botAs = BOTAS_COUNTED;
+  
+  $S->query("insert into $S->masterdb.badplayer (ip, id, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
+            "values('$S->ip', $id, '$S->siteName', '$S->self', '$botAs', 'GOAWAY', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+            "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()");
 }
 
 // otherwise just go away!

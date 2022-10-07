@@ -1,12 +1,5 @@
 <?php
 // Beacon from tracker.js
-/*
-if(str_contains($_SERVER['HTTP_REFERER'], '/vendor/bartonlp/site-class/examples/')) {
-  $_site = require_once(__DIR__ . "/siteload.php");
-} else {
-  $_site = require_once(getenv("SITELOADNAME")); // mysitemap.json has count false.
-}
-*/
 
 $_site = require_once(getenv("SITELOADNAME")); // mysitemap.json has count false.
 $S = new Database($_site);
@@ -109,11 +102,18 @@ if(($java & TRACKER_MASK) == 0) {
 
     if($DEBUG1) error_log("beacon:  $id, $ip, $site, $thepage, COUNTED_{$msg}, real+1, botAs=$botAs, state=$state, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, visits: $visits, time=" . (new DateTime)->format('H:i:s:v'));
 
-    $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, daybots, dayvisits, visits, lasttime) ".
-           "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', $dayreal, $daybots, $dayvisits, $visits, now()) ".
-           "on duplicate key update finger='$finger', dayreal=$dayreal, daybots=$daybots, dayvisits=$dayvisits, visits=$visits, lasttime=now()";
+    try {
+      $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, daybots, dayvisits, visits, lasttime) ".
+             "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', $dayreal, $daybots, $dayvisits, $visits, now()) ".
+             "on duplicate key update finger='$finger', dayreal=$dayreal, daybots=$daybots, dayvisits=$dayvisits, visits=$visits, lasttime=now()";
 
-    $S->query($sql);
+      $S->query($sql);
+    } catch(Exception $e) {
+      $errno = $e->getCode();
+      $errmsg = $e->getMessage();
+      
+      error_log("beacon: $id, $ip, $site, $thepage, 'INSERT_DAYRECORDS_FAIL_{$msg}, errno=$errno, errmsg=$errmsg, dayreal=$dayreal, daybots=$daybots, dayvisits=$dayvisits, visits=$visits");
+    }
   }
 
   $S->query("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".

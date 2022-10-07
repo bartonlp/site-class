@@ -2,7 +2,7 @@
 /* MAINTAINED and WELL TESTED */
 // BLP 2022-05-26 - 
 
-define("ABSTRACT_CLASS_VERSION", "2.0.0");
+define("ABSTRACT_CLASS_VERSION", "2.1.0");
 
 // Abstract database class
 // Most of this class is implemented here. This keeps us from having to duplicate this over and
@@ -12,14 +12,22 @@ define("ABSTRACT_CLASS_VERSION", "2.0.0");
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 abstract class dbAbstract {
-  // Each child class needs to have a __toString() method
-
-  abstract public function __toString();
-
   protected function __construct(object $s) {
     foreach($s as $k=>$v) {
       $this->$k = $v;
     }
+  }
+
+  // Each child class needs to have a __toString() method
+
+  abstract public function __toString() ;
+    
+  static public function getAbstractName() {
+    return __CLASS__;
+  }
+  
+  static public function getAbstractVersion() {
+    return ABSTRACT_CLASS_VERSION;
   }
 
   /**
@@ -177,9 +185,5 @@ abstract class dbAbstract {
     if($exit === true) {
       exit();
     }
-  }
-
-  static public function getAbstractVersion() {
-    return ABSTRACT_CLASS_VERSION;
   }
 }
