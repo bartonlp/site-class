@@ -1,11 +1,12 @@
 <?php
 /* Well tested and maintained */
+// BLP 2022-10-31 - Add noTrack to CheckIfTablesExist.  
 // BLP 2022-06-14 - moved setSiteCookie() from SiteClass to here (SiteClass extends Database).
 // BLP 2022-05-26 - now I do a parent::_construct to get everything.
 // SiteClass has a new version number.
 // Added CheckIfTablesExist().
 
-define("DATABASE_CLASS_VERSION", "2.0.0");
+define("DATABASE_CLASS_VERSION", "2.0.0database");
 
 /**
  * Database wrapper class
@@ -72,8 +73,8 @@ class Database extends dbAbstract {
     }
     
     $this->db = $db;
-
-    if($this->dbinfo->user == "barton" || $this->user == "barton") { // make sure its the 'barton' user!
+    // BLP 2022-10-31 - Add noTrack
+    if($this->noTrack !== false && ($this->dbinfo->user == "barton" || $this->user == "barton")) { // make sure its the 'barton' user!
       $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
     }
 
@@ -219,9 +220,9 @@ class Database extends dbAbstract {
    * Checks if the user-agent looks like a bot or if the ip is in the bots table
    * or previous tracker records had something other than zero or 0x2000.
    * Set $this->isBot true/false.
-   * return nothing.
+   * return bool.
    * SEE defines.php for the values for TRACKER_BOT, BOTS_SITECLASS
-   * $this-isBot is false or there is no entry in the bots table
+   * $this-isBot() is false or there is no entry in the bots table
    */
 
   protected function checkIfBot():bool {

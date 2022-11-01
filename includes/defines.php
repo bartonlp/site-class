@@ -8,7 +8,7 @@
   From CRON indicates a Zero (curl type) in the 'tracker' table: 258(x100)
 */
 
-define("DEFINES_VERSION", "1.0.0");
+define("DEFINES_VERSION", "1.0.0defines");
 
 // Bots and bots2 Tables.
 // These are all done via SiteClass trackbots() which does both the bots and bots2 tables.

@@ -1,7 +1,7 @@
 <?php
 /* HELPER FUNCTIONS. Well tested and maintained */
 
-define("HELPER_FUNCTION_VERSION", "1.0.0");
+define("HELPER_FUNCTION_VERSION", "1.0.0helper");
 /**
  * Helper Functions
  */

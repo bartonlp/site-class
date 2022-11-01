@@ -2,7 +2,7 @@
 /* MAINTAINED and WELL TESTED */
 // BLP 2022-05-26 - 
 
-define("ABSTRACT_CLASS_VERSION", "2.1.0");
+define("ABSTRACT_CLASS_VERSION", "2.1.0ab");
 
 // Abstract database class
 // Most of this class is implemented here. This keeps us from having to duplicate this over and

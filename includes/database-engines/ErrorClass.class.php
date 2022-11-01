@@ -3,7 +3,7 @@
 // BLP 2022-02-06 -- Add E_DEPRECATED
 // BLP 2021-03-15 -- see setDevelopment()
 
-define("ERROR_CLASS_VERSION", "2.0.0");
+define("ERROR_CLASS_VERSION", "2.0.0error");
 
 // Contains the my_errorhandler, my_exceptionhandler, Error class.
 // set_exception_handler to my_exceptionhandler

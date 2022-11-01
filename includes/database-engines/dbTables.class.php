@@ -1,7 +1,7 @@
 <?php
 /* WELL TESTED and MAINTAINED */
 
-define("DBTABLE_CLASS_VERSION", "1.0.0");
+define("DBTABLE_CLASS_VERSION", "1.0.0dbTables");
 
 // Make database tables given either a SiteClass or Database class object.
 

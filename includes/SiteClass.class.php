@@ -549,12 +549,18 @@ EOF;
   protected function trackbots():void {
     //if($this->foundBotAs == BOTAS_MATCH || (strpos($this->foundBotAs, BOTAS_TABLE) !== false)) {
     //// This has been set by checkIfBot()
-    if($this->foundBotAs) {
-      //error_log("SiteClass trackbots: $this->foundBotAs, $this->ip, $this->agent, $this->siteName");
+
+    //error_log("SiteClass trackbots: $this->foundBotAs, $this->ip, $this->self");
+    
+    if(!empty($this->foundBotAs)) {
+      //error_log("SiteClass trackbots: $this->foundBotAs, $this->ip, $this->siteName, $this->agent");
 
       $agent = $this->agent;
 
       try {
+        //error_log("SiteClass trackbots: $this->foundBotAs, $this->ip, $this->self, Before
+        //Insert");
+        
         $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
                      "values('$this->ip', '$agent', 1, " . BOTS_SITECLASS . ", '$this->siteName', now(), now())");
       } catch(Exception $e) {
@@ -581,6 +587,8 @@ EOF;
 
       // Now do bots2
 
+      //error_log("SiteClass: insert into bots2 $this->ip");
+      
       $this->query("insert into $this->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
                    "values('$this->ip', '$agent', '$this->self', now(), '$this->siteName', " . BOTS_SITECLASS . ", 1, now())".
                    "on duplicate key update count=count+1, lasttime=now()");

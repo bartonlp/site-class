@@ -30,6 +30,14 @@ CREATE TABLE `badplayer` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
+// If you want the version defined ONLY and no other information.
+
+define("TRACKER_VERSION", "3.0.0tracker");
+
+if($VERSION_ONLY === true) {
+  return;
+}
+
 $_site = require_once(getenv("SITELOADNAME"));
 
 $_site->count = false; // Don't count this.
@@ -137,7 +145,8 @@ if($_POST['page'] == 'load') {
   $java |= TRACKER_LOAD;
   $js2 = strtoupper(dechex($java));
 
-  if(!$S->isMyIp($ip) && $DEBUG_LOAD && strpos($botAs, BOTAS_COUNTED) === false) error_log("tracker: $id, $ip, $site, $thepage, LOAD2, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+  if(!$S->isMyIp($ip) && $DEBUG_LOAD && strpos($botAs, BOTAS_COUNTED) === false)
+    error_log("tracker: $id, $ip, $site, $thepage, LOAD2, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
 
   $S->query("update $S->masterdb.tracker set isJavaScript=$java, lasttime=now() where id='$id'");
   echo "Load OK, visits: $visits, java=$js";
@@ -147,6 +156,8 @@ if($_POST['page'] == 'load') {
 // ON EXIT FUNCTION
 // NOTE: There will be very few clients that do not support beacon. Only very old versions of
 // browsers and of course MS-Ie. Therefore these should not happen often.
+// BLP 2022-10-27 - I have not seen one in several months so I am removing this logic and replacing
+// it with an error message!
 
 if($_POST['page'] == 'onexit') {
   $id = $_POST['id'];
@@ -156,7 +167,14 @@ if($_POST['page'] == 'onexit') {
   $thepage = $_POST['thepage'];
   $type = $_POST['type'];
   $state = $_POST['state'];
+
+  $msg = strtoupper($type);
   
+  error_log("tracker onexit: $id, $site, $ip, $thepage, $msg, These Should Never Happen");
+  exit();
+}
+
+/*  
   if(!$id) {
     error_log("tracker $site, $ip: $type NO ID");
     exit();
@@ -165,8 +183,6 @@ if($_POST['page'] == 'onexit') {
   $S->query("select botAs, isJavaScript, hex(isJavaScript), difftime, referer, finger from $S->masterdb.tracker where id=$id");
   [$botAs, $java, $js, $difftime, $referer, $finger] = $S->fetchrow('num');
 
-  $msg = strtoupper($type);
-  
   // NOTE: this check is really not necessary because if the client's browser supports beacon it is
   // unlikey (really imposible) that the browser would change its mind.
   
@@ -238,6 +254,7 @@ if($_POST['page'] == 'onexit') {
   }
   exit();
 }
+*/
 // END OF EXIT FUNCTIONS
 
 // timer is an ajax call from tracker.js
@@ -260,7 +277,7 @@ if($_POST['page'] == 'timer') {
   $S->query("select botAs, isJavaScript, hex(isJavaScript), finger, agent from $S->masterdb.tracker where id=$id");
   [$botAs, $java, $js, $finger, $agent] = $S->fetchrow('num');
 
-  if($agent && $S->isBot($agent)) {
+  if(empty($agent) || ($agent && $S->isBot($agent))) {
     if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits: $visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
     echo "Timer1 This is a BOT, $id, $ip, $site, $thepage";
     exit(); // If this is a bot don't bother
@@ -277,7 +294,7 @@ if($_POST['page'] == 'timer') {
     exit();
   }
 
-  if(!$S->isMyIp($ip) && empty($botAs)) {
+  if(!$S->isMyIp($ip)) { // BLP 2022-10-27 - removed '&& empty($botAs)'
     $botAs = BOTAS_COUNTED;
     $S->query("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
     [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
@@ -441,59 +458,7 @@ if($type = $_GET['page']) {
         error_log("tracker: ip=$S->ip, insert/update badplayer failed: errno=$errno, errmsg=$errmsg, sql=$sql");
       }
 
-GOAWAYNOW: // label for goto
-      
-      echo <<<EOF
-<!doctype html>
-<html>
-<head>
-<title>Go Away</title>
-<style>
-.blink {
- animation: blink 1s linear infinite;
-}
-@-webkit-keyframes blink {
- 0% { opacity: 1; }
- 50% { opacity: 1; }
- 50.01% { opacity: 0; }
- 100% { opacity: 0; }
-}
-@-moz-keyframes blink {
- 0% { opacity: 1; }
- 50% { opacity: 1; }
- 50.01% { opacity: 0; }
- 100% { opacity: 0; }
-}
-@-ms-keyframes blink {
- 0% { opacity: 1; }
- 50% { opacity: 1; }
- 50.01% { opacity: 0; }
- 100% { opacity: 0; }
-}
-@-o-keyframes blink {
- 0% { opacity: 1; }
- 50% { opacity: 1; }
- 50.01% { opacity: 0; }
- 100% { opacity: 0; }
-}
-@keyframes blink {
- 0% { opacity: 1; }
- 50% { opacity: 1; }
- 50.01% { opacity: 0; }
- 100% { opacity: 0; }
-}
-.goaway {
-font-size: 100px; color: red;
-}
-</style>
-</head>
-<body>
-<h1>NOT AUTHORIZED</h1>
-<h2 class='goaway blink'>Please, please just Go Away!<h2>
-</body>
-</html>
-EOF;
-      exit();
+      goto GOAWAYNOW;
     }
   }
     
@@ -501,7 +466,7 @@ EOF;
 
   $java = hexdec($js);
 
-  if($agent && $S->isBot($agent)) {
+  if(empty($agent) || ($agent && $S->isBot($agent))) {
     if(!str_contains($botAs, BOTAS_COUNTED)) {
       if($botAs) {
         $botAs = BOTAS_COUNTED . ",$botAs";
@@ -548,7 +513,7 @@ EOF;
               "values($id, '$S->ip', '$S->siteName', '$S->self', '$S->agent', '$botAs', $java, 'NO_UPDATE_{$msg}', now(), now()) ".
               "on duplicate key update lasttime=now()");
 
-    error_log("tracker: $id, $S->ip, $S->siteName, $S->self, NO_UPDATE_INSERT_{$msg}, id not valid did insert instead of update, time=" . (new DateTime)->format('H:i:s:v'));
+    error_log("tracker: $id, $S->ip, $S->siteName, $S->self, NO_UPDATE_INSERT_{$msg}, id not valid did insert instead of update, agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
 
     $errno = -101;
     $errmsg = "No Updata but insert OK";
@@ -603,7 +568,7 @@ GOAWAY: // Label for goto.
 $id = $_GET['id'] ?? $_POST['id'];
 
 if(!$id) {
-  error_log("tracker $S->siteName, $S->ip: GOAWAY NO ID");
+  //error_log("tracker $S->siteName, $S->ip: GOAWAY NO ID");
   $errno = -102;
   $errmsg = "No tracker logic triggered";
   $botAs = BOTAS_COUNTED;
@@ -640,13 +605,22 @@ $request = $_REQUEST ? ", \$_REQUEST: " . print_r($_REQUEST, true) : '';
 $id = $id ?? "NO ID  ";
 error_log("tracker: $id, $S->ip, $S->siteName, $S->self, GOAWAY, $S->agent, finger=$finger{$request}");
 
+GOAWAYNOW:
+
+$version = TRACKER_VERSION;
+
 echo <<<EOF
 <!DOCTYPE html>
 <html>
 <head>
+<title>Go Away</title>
+<meta name='robots' content='noindex'>
 </head>
 <body>
-<h1>Go Away!</h1>
+<h1>NOT AUTHORIZED</h1>
+<h2>Please Do Not Index</h2>
+<p>Please look at the <i>robots.txt</i> or the <i>Sitemap.xml</i> files.</p>
+<p>$version</p>
 </body>
 </html>
 EOF;

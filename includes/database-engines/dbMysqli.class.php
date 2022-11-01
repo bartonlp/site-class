@@ -12,7 +12,7 @@
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
  */
 
-define("MYSQL_CLASS_VERSION", "2.0.0");
+define("MYSQL_CLASS_VERSION", "2.0.0mysqli");
 
 /**
  * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.

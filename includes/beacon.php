@@ -1,6 +1,14 @@
 <?php
 // Beacon from tracker.js
 
+// If you want the version defined ONLY and no other information.
+
+define("BEACON_VERSION", "3.0.0beacon");
+
+if($VERSION_ONLY === true) {
+  return;
+}
+
 $_site = require_once(getenv("SITELOADNAME")); // mysitemap.json has count false.
 $S = new Database($_site);
 
@@ -31,8 +39,13 @@ $S->isMeFalse = $data['isMeFalse'];
 $msg = strtoupper($type);
 
 if(!$id || $visits === null) {
-  error_log("beacon:  NO ID, $ip, $site, $msg -- visits=$visits, \$S->ip=$S->ip, \$S->agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
-  echo "<h1>GO AWAY</h1>";
+  error_log("beacon:  NO ID, $ip, $site, $msg -- visits=$visits, \$S->ip=$S->ip, \$S->self=$S->self, \$S->agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
+  
+  $S->query("insert into $S->masterdb.badplayer (ip, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
+            "values('$S->ip', '$site', '$S->self', 'counted', '{$msg}_GOAWAY', 1, '-104', 'NO ID Go away', '$S->agent', now(), now()) ".
+            "on duplicate key update count=count+1, lasttime=now()");
+
+  echo "<h1>GO AWAY</h1><p>" . BEACON_VERSION . "</p>";
   exit();
 }
 
@@ -131,5 +144,10 @@ if(($java & TRACKER_MASK) == 0) {
   // If the this is called directly.
   
   error_log("beacon: Unexpected -- \$date $id,$ip, $site, $thepage, java=$js, type=$type -- \$S->siteName=$S->siteName, \$S->ip=$S->ip, time=" . (new DateTime)->format('H:i:s:v'));
-  echo "<h1>GO AWAY</h1>";
+
+  $S->query("insert into $S->masterdb.badplayer (ip, id, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
+            "values('$S->ip', $id, '$site', '$S->self', 'counted', '{$msg}_GOAWAY', 1, '-105', 'Unexpected Go away', '$S->agent', now(), now()) ".
+            "on duplicate key update count=count+1, lasttime=now()");
+
+  echo "<h1>GO AWAY</h1><p>" . BEACON_VERSION . "</p>";
 }

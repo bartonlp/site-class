@@ -6,7 +6,7 @@
  * The Error class provides the following properties to control output:
  */
 
-define("SQLEXCEPTION_CLASS_VERSION", "2.0.0");
+define("SQLEXCEPTION_CLASS_VERSION", "2.0.0exception");
 
 class SqlException extends Exception {
   /**
