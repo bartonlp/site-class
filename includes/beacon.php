@@ -3,7 +3,7 @@
 
 // If you want the version defined ONLY and no other information.
 
-define("BEACON_VERSION", "3.0.0beacon");
+define("BEACON_VERSION", "3.0.1beacon");
 
 if($VERSION_ONLY === true) {
   return;
@@ -116,9 +116,12 @@ if(($java & TRACKER_MASK) == 0) {
     if($DEBUG1) error_log("beacon:  $id, $ip, $site, $thepage, COUNTED_{$msg}, real+1, botAs=$botAs, state=$state, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, visits: $visits, time=" . (new DateTime)->format('H:i:s:v'));
 
     try {
-      $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, daybots, dayvisits, visits, lasttime) ".
-             "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', $dayreal, $daybots, $dayvisits, $visits, now()) ".
-             "on duplicate key update finger='$finger', dayreal=$dayreal, daybots=$daybots, dayvisits=$dayvisits, visits=$visits, lasttime=now()";
+      // BLP 2022-12-06 - Added rcount and bcount.
+      
+      $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, bcount, dayvisits, visits, lasttime) ".
+             "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', $dayreal, 1, $daybots, 1, $dayvisits, $visits, now()) ".
+             "on duplicate key update finger='$finger', dayreal=$dayreal, rcount=rcount+1, daybots=$daybots, bcount=bcount+1, ".
+             "dayvisits=$dayvisits, visits=$visits, lasttime=now()";
 
       $S->query($sql);
     } catch(Exception $e) {
