@@ -201,8 +201,6 @@ if($_POST['page'] == 'timer') {
     exit();
   }
 
-  // If we have a TIMER then this is probably NOT a bot. So remove BOT if it's there.
-
   $S->query("select botAs, isJavaScript, hex(isJavaScript), finger, agent from $S->masterdb.tracker where id=$id");
   [$botAs, $java, $js, $finger, $agent] = $S->fetchrow('num');
 
@@ -215,19 +213,22 @@ if($_POST['page'] == 'timer') {
   $java |= TRACKER_TIMER; // Or in TIMER
   $js2 = strtoupper(dechex($java));
 
-  if(!str_contains($botAs, BOTAS_COUNTED) && !empty($botAs)) { // Has not been counted yet but $botAs has a value.
-    // If $botAs has a value other than BOTAS_COUNTED then it must be robot, sitemap, zero or table.
-    // I think this is a bot.
-    if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
-    echo "Timer2 This is a BOT, $id, $ip, $site, $thepage";
-    exit();
+  $tmpBotAs = $botAs;
+
+  if(!str_contains($botAs, BOTAS_COUNTED)) {
+    // Does not contain BOTAS_COUNTED
+    if(!empty($botAs)) {
+      // This must have robot, sitemap, or zero
+      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+      echo "Timer2 This is a BOT, $id, $ip, $site, $thepage";
+      exit();
+    }
+    $botAs = BOTAS_COUNTED;
   }
 
-  // At this point $botAs must be empty.
-  
-  $botAs = BOTAS_COUNTED; // BLP 2022-12-06 - Set it to counted
+  //error_log("tracker TIMER: $id, $ip, $site, botAs: $botAs, tmp: $tmpBotAs");
 
-  if(!$S->isMyIp($ip)) {
+  if(!$S->isMyIp($ip) && !str_contains($tmpBotAs, BOTAS_COUNTED)) {
     try {
       $sql = "select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'";
       $S->query($sql);
@@ -242,8 +243,8 @@ if($_POST['page'] == 'timer') {
       // BLP 2022-12-06 - Added rcount and bcount
       
       $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, bcount, dayvisits, visits, lasttime) ".
-             "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', '$dayreal', 1, '$daybots', 1, '$dayvisits', '$visits', now()) ".
-             "on duplicate key update finger='$finger', dayreal='$dayreal', rcount=rcount+1, daybots='$daybots', bcount=bcount+1, ".
+             "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', '$dayreal', 1, '$daybots', 0, '$dayvisits', '$visits', now()) ".
+             "on duplicate key update finger='$finger', dayreal='$dayreal', rcount=rcount+1, daybots='$daybots', ".
              "dayvisits='$dayvisits', visits='$visits', lasttime=now()";
 
       $S->query($sql);
@@ -253,7 +254,7 @@ if($_POST['page'] == 'timer') {
     }      
   }
 
-  // BLP 2022-12-06 - now $botAs will have counted.
+  // BLP 2022-12-06 - now $botAs will have counted and maybe robot or sitemap or zero.
   
   $sql = "update $S->masterdb.tracker set botAs='$botAs', isJavaScript='$java', endtime=now(), ".
          "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id";
@@ -332,7 +333,7 @@ if($type = $_GET['page']) {
     $errmsg = "ID is not numeric";
     $botAs = BOTAS_COUNTED;
 
-    // No id.
+    // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
     
     $sql = "insert into $S->masterdb.badplayer (ip, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) ".
            "values('$S->ip', '$S->siteName', '$S->self', $botAs, '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
@@ -349,14 +350,16 @@ if($type = $_GET['page']) {
   $botAs = '';
   
   try {
-    $sql = "select site, ip, page, hex(isJavaScript), agent, botAs from $S->masterdb.tracker where id=$id";
+    $sql = "select site, ip, page, finger, hex(isJavaScript), agent, botAs from $S->masterdb.tracker where id=$id";
     
     if($S->query($sql)) {
-      [$site, $ip, $thepage, $js, $agent, $botAs] = $S->fetchrow('num');
+      [$site, $ip, $thepage, $finger, $js, $agent, $botAs] = $S->fetchrow('num');
     } else {
-      throw new Exception("NO RECORD for id=$id", -100); // This will be caught below.
+      throw new Exception("tracker: NO RECORD for id=$id, type=$msg", -100); // This will be caught below.
     }
   } catch(Exception $e) { // catches the throw above.
+    // At this point $site, $ip, $thepage and $agent are NOT VALID.
+    
     $errno = $e->getCode();
     $errmsg = $e->getMessage();
 
@@ -364,15 +367,18 @@ if($type = $_GET['page']) {
     $botAs = BOTAS_COUNTED;
 
     // try to insert into the id that was passed in.
+
     try {
       $ip = "NONE";
 
-      $sql = "insert into $S->masterdb.tracker (id, ip, botAs, starttime, lasttime) values($id, '$ip', '$botAs', now(), now()) ".
+      $sql = "insert into $S->masterdb.tracker (id, ip, botAs, starttime, lasttime) ".
+             "values($id, '$ip', '$botAs', now(), now()) ".
              "on duplicate key update botAs='$botAs', lasttime=now()";
       
       $S->query($sql);
 
-      error_log("tracker: $id, $ip, $site, $thepage, SELECT_FAILED_INSERT_OK_{$msg}, err=$errno, errmsg=$errmsg, time=" . (new DateTime)->format('H:i:s:v'));
+      error_log("tracker: $id, $ip, $S->siteName, $S->self, SELECT_FAILED_INSERT_OK_{$msg}, ".
+                "err=$errno, errmsg=$errmsg, time=" . (new DateTime)->format('H:i:s:v'));
     } catch(Exception $e) {
       $errno = $e->getCode();
       $errmsg .= "::" . $e->getMessage();
@@ -401,14 +407,11 @@ if($type = $_GET['page']) {
     }
   }
 
-  //error_log("TEST1: $S->ip, $S->siteName, $type, ip=$ip, site=$site, page=$thepage, image=$image, agent=$agent, empty=" . empty($agent));
+  // If we get here the $ip, $site, $thepage and $agent are all valid.
 
   if($DEBUG_GET1) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
 
   $java = hexdec($js);
-
-  //error_log("agent: " . (is_null($agent) ? "NULL" : "not null"));
-  //error_log("agent: " . (is_string($agent) ? "STRING" : "not string"));
   
   if($S->isBot($agent)) {
     if(!str_contains($botAs, BOTAS_COUNTED)) {
@@ -426,25 +429,25 @@ if($type = $_GET['page']) {
       if(!$S->query("update $S->masterdb.tracker set botAs='$botAs', lasttime=now() where id=$id")) {
         // We did not find a record. Create a record
 
-        error_log("tracker: $id, $S->ip, $S->siteName, $S->self, ISABOT_NO_UPDATE_{$msg}, id not valid no update posible, time" . (new DateTime)->format('H:i:s:v'));
+        error_log("tracker: $id, $ip, $sit, $thispage, ISABOT_NO_UPDATE_{$msg}, id not valid no update posible, time" . (new DateTime)->format('H:i:s:v'));
 
         try {
           $S->query("insert into $S->masterdb.tracker (id, ip, site, page, agent, botAs, isJavaScript, finger, starttime, lasttime) ".
-                    "values($id, '$S->ip', '$S->siteName', '$S->self', '$S->agent', '$botAs', '$java', 'ISABOT_NO_UPDATE_{$msg}', now(), now())");
+                    "values($id, '$ip', '$site', '$thepage', '$agent', '$botAs', '$java', 'ISABOT_NO_UPDATE_{$msg}', now(), now())");
 
-          error_log("tracker: $id, $S->ip, '$S->siteName', '$S->self', ISABOT_INSERT_AFTER_NO_UPDATE_{$msg}, time" . (new DateTime)->format('H:i:s:v'));
+          error_log("tracker: $id, $ip, '$site', '$thepage', ISABOT_INSERT_AFTER_NO_UPDATE_{$msg}, time" . (new DateTime)->format('H:i:s:v'));
         } catch (Exception $e) {
           $errno = $e->getCode();
           $errmsg = $e->getMessage();
 
-          error_log("tracker: $id, $S->ip $S->siteName, $S->self, ISABOT_INSERT_FAILED_{$msg}, unable to do insert, try badplayer, errno=$errno, errmsg=$errmsg");
+          error_log("tracker: $id, $ip $site, $thepage, ISABOT_INSERT_FAILED_{$msg}, unable to do insert, try badplayer, errno=$errno, errmsg=$errmsg");
 
           $S->query("insert into $S->masterdb.badplayer (ip, id, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
-                    "values('$S->ip', $id, '$S->siteName', '$S->self', '$botAs', 'ISABOT_INSERT_FAILED_{$msg}', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+                    "values('$ip', $id, '$site', '$thepage', '$botAs', 'ISABOT_INSERT_FAILED_{$msg}', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
                     "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()");
         }
       }
-      //error_log("TEST2: bot don't bother");
+      //error_log("tracker $msg: $ip, $site, bot don't bother");
 
       exit(); // If this is a bot don't bother
     }
@@ -454,19 +457,20 @@ if($type = $_GET['page']) {
   
   if(!$S->query("update $S->masterdb.tracker set isJavaScript=isJavaScript|$or, lasttime=now() where id=$id")) {
     $S->query("insert into $S->masterdb.tracker (id, ip, site, page, agent, botAs, isJavaScript, finger, starttime, lasttime) ".
-              "values($id, '$S->ip', '$S->siteName', '$S->self', '$S->agent', '$botAs', '$java', 'NO_UPDATE_{$msg}', now(), now()) ".
+              "values($id, '$ip', '$site', '$thepage', '$agent', '$botAs', '$java', 'NO_UPDATE_{$msg}', now(), now()) ".
               "on duplicate key update lasttime=now()");
 
-    error_log("tracker: $id, $S->ip, $S->siteName, $S->self, NO_UPDATE_INSERT_{$msg}, id not valid did insert instead of update, agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
-
+    error_log("tracker: $id, $ip, $site, $thepage, NO_UPDATE_INSERT_{$msg}, id not valid did insert instead of update, agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
+    error_log("tracker $msg: finger=$finger, image=$image");
+    
     $errno = -101;
     $errmsg = "No Updata but insert OK";
     
     $S->query("insert into $S->masterdb.badplayer (ip, id, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
-              "values('$S->ip', $id, '$S->siteName', '$S->self', '$botAs', 'NO_UPDATE_INSERT_{$msg}', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+              "values('$ip', $id, '$site', '$thepage', '$botAs', 'NO_UPDATE_INSERT_{$msg}', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
               "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()");
     
-    exit();
+    //exit();
   }
 
   // If this is csstest we are done.
@@ -500,7 +504,7 @@ if($type = $_GET['page']) {
 
   $imageType = preg_replace("~.*\.(.*)$~", "$1", $img);
 
-  //error_log("TEST FINAL: site=$site, image=$img, imageType=$imageType");
+  //if($site == "Bartonphillips") error_log("tracker {$msg} 2: ip=$ip, finger=$finger img=$img");
 
   $imgFinal = file_get_contents($img);
   header("Content-type: image/$imageType");

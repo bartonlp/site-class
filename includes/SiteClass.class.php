@@ -1,8 +1,9 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2022-12-21 - update jQuery to newest version.
 // BLP 2022-09-26 - that were to bartonphillips.net are now to bartonlp.com/otherpages/
 
-define("SITE_CLASS_VERSION", "3.4.2"); // BLP 2022-07-31 - 
+define("SITE_CLASS_VERSION", "3.4.3"); // BLP 2022-07-31 - 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -244,10 +245,9 @@ class SiteClass extends Database {
 
     if($h->nojquery !== true) {
       $jQuery = <<<EOF
-  <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-  <script src="https://code.jquery.com/jquery-migrate-3.3.2.min.js"
-    integrity="sha256-Ap4KLoCf1rXb52q+i3p0k2vjBsmownyBTE1EqlRiMwA=" crossorigin="anonymous"></script>
+  <!-- jQuery BLP 2022-12-21 - Latest version -->
+  <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-migrate-3.4.0.min.js" integrity="sha256-mBCu5+bVfYzOqpYyK4jm30ZxAZRomuErKEFJFIyrwvM=" crossorigin="anonymous"></script>
   <script>jQuery.migrateMute = false; jQuery.migrateTrace = false;</script>
 EOF;
       // Should we use tracker.js? If either noTrack or nodb are set in mysitemap.json then don't
@@ -547,20 +547,10 @@ EOF;
    */
 
   protected function trackbots():void {
-    //if($this->foundBotAs == BOTAS_MATCH || (strpos($this->foundBotAs, BOTAS_TABLE) !== false)) {
-    //// This has been set by checkIfBot()
-
-    //error_log("SiteClass trackbots: $this->foundBotAs, $this->ip, $this->self");
-    
     if(!empty($this->foundBotAs)) {
-      //error_log("SiteClass trackbots: $this->foundBotAs, $this->ip, $this->siteName, $this->agent");
-
       $agent = $this->agent;
 
       try {
-        //error_log("SiteClass trackbots: $this->foundBotAs, $this->ip, $this->self, Before
-        //Insert");
-        
         $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
                      "values('$this->ip', '$agent', 1, " . BOTS_SITECLASS . ", '$this->siteName', now(), now())");
       } catch(Exception $e) {
@@ -587,8 +577,6 @@ EOF;
 
       // Now do bots2
 
-      //error_log("SiteClass: insert into bots2 $this->ip");
-      
       $this->query("insert into $this->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
                    "values('$this->ip', '$agent', '$this->self', now(), '$this->siteName', " . BOTS_SITECLASS . ", 1, now())".
                    "on duplicate key update count=count+1, lasttime=now()");
@@ -645,8 +633,6 @@ EOF;
 
     if($this->foundBotAs != '') {
       $tmp = preg_replace("~,~", "<br>", $this->foundBotAs);
-      //error_log("SiteClass tracker: $this->siteName, ip=$this->ip, foundBotAs=$this->foundBotAs, java=" . dechex($java) . ", " . __LINE__);
-
       $agent .= $this->foundBotAs ? '<br><span class="botas">' . $tmp . '</span>' : '';
     }
     $agent = $this->escape($agent);

@@ -211,7 +211,7 @@ jQuery(document).ready(function($) {
     }
 
     // After 10 seconds we should probably have a 'finger'.
-    
+
     $.ajax({
       url: trackerUrl,
       data: {page: 'timer', id: lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse},

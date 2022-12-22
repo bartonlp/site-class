@@ -83,7 +83,8 @@ if(($java & TRACKER_MASK) == 0) {
 
   $java |= $beacon;
   $js2 = strtoupper(dechex($java));
-
+  $tmpBotAs = $botAs;
+  
   if($DEBUG_IPS && ($ip != $S->ip)) {
     error_log("beacon:  $id, $ip, $site, $thepage, IP_MISMATCH_{$msg}, \$ip != \$S->ip -- \$S->ip=$S->ip, botAs=$botAs, jsin=$js, jsout=$js2, visits=$visits");
   }
@@ -94,18 +95,23 @@ if(($java & TRACKER_MASK) == 0) {
     if($DEBUG_ISABOT) error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}1, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
     exit(); // If this is a bot don't bother
   }
-
-  if(!str_contains($botAs, BOTAS_COUNTED) && !empty($botAs)) { // Has not been counted yet but $botAs has a value.
-    // If $botAs has a value other than BOTAS_COUNTED then it must be robot, sitemap, zero or table.
-    // I think this is a bot.
-    if($DEBUG_ISABOT) error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
-    exit();
+  
+  if(!str_contains($botAs, BOTAS_COUNTED)) {
+    // Does not contain BOTAS_COUNTED
+    if(!empty($botAs)) {
+      // This must have robot, sitemap, or zero
+      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+      echo "Timer2 This is a BOT, $id, $ip, $site, $thepage";
+      exit();
+    }
+    $botAs = BOTAS_COUNTED;
   }
 
-  // At this point $botAs can only be blank or have BOTAS_COUNTED
+  //error_log("beacon $msg: $id, $ip, $site, botAs: $botAs, tmp: $tmpBotAs");
 
-  if(!$S->isMyIp($ip) && empty($botAs)) { // it is not ME and it has not been counted yet. If $botAs had anything else it would have been returned above.
-    $botAs = BOTAS_COUNTED;
+  // At this point $botAs can have BOTAS_COUNTED and robot, sitemap or zero.
+
+  if(!$S->isMyIp($ip) && !str_contains($tmpBotAs, BOTAS_COUNTED)) { // it is not ME and it has not been counted yet.
     $S->query("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
     [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
     $dayreal++;
@@ -119,9 +125,9 @@ if(($java & TRACKER_MASK) == 0) {
       // BLP 2022-12-06 - Added rcount and bcount.
       
       $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, bcount, dayvisits, visits, lasttime) ".
-             "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', $dayreal, 1, $daybots, 1, $dayvisits, $visits, now()) ".
-             "on duplicate key update finger='$finger', dayreal=$dayreal, rcount=rcount+1, daybots=$daybots, bcount=bcount+1, ".
-             "dayvisits=$dayvisits, visits=$visits, lasttime=now()";
+             "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', '$dayreal', '1', '$daybots', '0', '$dayvisits', '$visits', now()) ".
+             "on duplicate key update finger='$finger', dayreal='$dayreal', rcount=rcount+1, daybots='$daybots', ".
+             "dayvisits='$dayvisits', visits='$visits', lasttime=now()";
 
       $S->query($sql);
     } catch(Exception $e) {
@@ -133,7 +139,7 @@ if(($java & TRACKER_MASK) == 0) {
   }
 
   $S->query("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
-            "isJavaScript=$java, lasttime=now() where id=$id");
+            "isJavaScript='$java', lasttime=now() where id=$id");
 
   if(!$S->isMyIp($ip) && $DEBUG2)
     error_log("beacon:  $id, $ip, $site, $thepage, {$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
