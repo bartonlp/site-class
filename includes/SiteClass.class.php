@@ -272,7 +272,7 @@ EOF;
     beaconUrl = "$h->beaconLocation";
   </script>
 EOF;
-      } 
+      }
     }
     
     $html = '<html lang="' . $h->lang . '" ' . $h->htmlextra . ">"; // stuff like manafest etc.

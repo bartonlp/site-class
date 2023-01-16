@@ -124,8 +124,8 @@ if(($java & TRACKER_MASK) == 0) {
     try {
       // BLP 2022-12-06 - Added rcount and bcount.
       
-      $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, bcount, dayvisits, visits, lasttime) ".
-             "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', '$dayreal', '1', '$daybots', '0', '$dayvisits', '$visits', now()) ".
+      $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, dayvisits, visits, lasttime) ".
+             "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', '$dayreal', '1', '$daybots', '$dayvisits', '$visits', now()) ".
              "on duplicate key update finger='$finger', dayreal='$dayreal', rcount=rcount+1, daybots='$daybots', ".
              "dayvisits='$dayvisits', visits='$visits', lasttime=now()";
 

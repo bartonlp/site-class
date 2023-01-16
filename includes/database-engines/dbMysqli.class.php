@@ -11,8 +11,11 @@
  * @copyright Copyright (c) 2010, Barton Phillips
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
  */
+// BLP 2023-01-15 - Added '$driver = new mysqli_driver(); $driver->report_mode = MYSQLI_REPORT_OFF;'
+// to handal PHP 8.1
+// Updated Version to '2.1.0mysqli'
 
-define("MYSQL_CLASS_VERSION", "2.0.0mysqli");
+define("MYSQL_CLASS_VERSION", "2.1.0mysqli");
 
 /**
  * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.
@@ -77,16 +80,27 @@ class dbMysqli extends dbAbstract {
       return $this->db;
     }
 
+    // BLP 2023-01-15 - START. For PHP 8 and above.
+    $driver = new mysqli_driver();
+    $driver->report_mode = MYSQLI_REPORT_OFF;
+    // BLP 2023-01-15 - END
+
+    // If we use the 4th param to the constructor we don't need to do a $db->select_db()!
+    // public mysqli::__construct(
+    //   string $hostname = ini_get("mysqli.default_host"),
+    //   string $username = ini_get("mysqli.default_user"),
+    //   string $password = ini_get("mysqli.default_pw"),
+    //   string $database = "",
+    //   int $port = ini_get("mysqli.default_port"),
+    //   string $socket = ini_get("mysqli.default_socket")
+    // )
+    
     $db = new mysqli($this->host, $this->user, $this->password, $this->database, $this->port);
 
     if($db->connect_errno) {
       $this->errno = $db->connect_errno;
       $this->error = $db->connect_error;
       throw new SqlException(__METHOD__ . ": Can't connect to database", $this);
-    }
-    
-    if(!@$db->select_db($this->database)) {
-      throw new SqlException(__METHOD__ . " Can't select database", $this);
     }
 
     // BLP 2021-12-31 -- EST/EDT New York
@@ -115,6 +129,7 @@ class dbMysqli extends dbAbstract {
     // If $result is false then exit
     
     if($result === false) {
+      //echo "Throw<br>"; // BLP 2023-01-15 - to test PHP 8.1
       throw new SqlException($query, $this);
     }
 

@@ -34,7 +34,6 @@ CREATE TABLE `dayrecords` (
   `dayreal` int DEFAULT NULL,
   `rcount` int DEFAULT '0',
   `daybots` int DEFAULT NULL,
-  `bcount` int DEFAULT '0',
   `dayvisits` int DEFAULT NULL,
   `visits` smallint DEFAULT '0',
   `lasttime` datetime DEFAULT NULL
@@ -235,15 +234,16 @@ if($_POST['page'] == 'timer') {
       [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
       $dayreal++;
       $dayvisits += $visits;
-
+      $daybots = empty($datbots) ? 0 : $daybots; // BLP 2023-01-07 -
+      
       $sql = "update $S->masterdb.daycounts set `real`='$dayreal', bots='$daybots', visits='$dayvisits' where date=current_date() and site='$site'";
       $S->query($sql);
       if($DEBUG11) error_log("tracker: $id, $ip, $site, $thepage, COUNTED_TIMER, real+1, visits=$visits, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, time=" . (new DateTime)->format('H:i:s:v'));
 
       // BLP 2022-12-06 - Added rcount and bcount
       
-      $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, bcount, dayvisits, visits, lasttime) ".
-             "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', '$dayreal', 1, '$daybots', 0, '$dayvisits', '$visits', now()) ".
+      $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, dayvisits, visits, lasttime) ".
+             "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', '$dayreal', 1, '$daybots', '$dayvisits', '$visits', now()) ".
              "on duplicate key update finger='$finger', dayreal='$dayreal', rcount=rcount+1, daybots='$daybots', ".
              "dayvisits='$dayvisits', visits='$visits', lasttime=now()";
 
@@ -299,25 +299,6 @@ if($_POST['page'] == 'timer') {
 //error_log("tracker: site=$S->siteName, \$_GET: " . print_r($_GET, true));
 
 if($type = $_GET['page']) {
-  switch($type) {
-    case "normal":
-      $or = TRACKER_NORMAL;
-      break;
-    case "script":
-      $or = TRACKER_SCRIPT;
-      break;
-    case "noscript":
-      $or = TRACKER_NOSCRIPT;
-      break;
-    case "csstest":
-      $or = TRACKER_CSS;
-      $image = $image ?? "NONE";
-      break;
-    default:
-      error_log("tracker Switch Error: $type, time=" . (new DateTime)->format('H:i:s:v'));
-      goto GOAWAY;
-  }
-    
   $msg = strtoupper($type);
   
   $id = $_GET['id'];
@@ -345,6 +326,25 @@ if($type = $_GET['page']) {
     goto GOAWAYNOW;
   }
   
+  switch($type) {
+    case "normal":
+      $or = TRACKER_NORMAL;
+      break;
+    case "script":
+      $or = TRACKER_SCRIPT;
+      break;
+    case "noscript":
+      $or = TRACKER_NOSCRIPT;
+      break;
+    case "csstest":
+      $or = TRACKER_CSS;
+      $image = $image ?? "NONE";
+      break;
+    default:
+      error_log("tracker Switch Error: $S->ip, $type, time=" . (new DateTime)->format('H:i:s:v'));
+      goto GOAWAY;
+  }
+    
   // I get people that call tracker 'exit' functions directly with nufarious stuff.
   
   $botAs = '';
@@ -460,8 +460,8 @@ if($type = $_GET['page']) {
               "values($id, '$ip', '$site', '$thepage', '$agent', '$botAs', '$java', 'NO_UPDATE_{$msg}', now(), now()) ".
               "on duplicate key update lasttime=now()");
 
-    error_log("tracker: $id, $ip, $site, $thepage, NO_UPDATE_INSERT_{$msg}, id not valid did insert instead of update, agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
-    error_log("tracker $msg: finger=$finger, image=$image");
+    error_log("tracker: $id, $ip, $site, $thepage, NO_UPDATE_INSERT_{$msg}, id not valid did insert instead of update,\n".
+              "agent=$S->agent, finger=$finger, image=$image, time=" . (new DateTime)->format('H:i:s:v'));
     
     $errno = -101;
     $errmsg = "No Updata but insert OK";

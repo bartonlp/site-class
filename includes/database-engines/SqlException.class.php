@@ -5,8 +5,9 @@
  *   message, code, file and line are members of Exception
  * The Error class provides the following properties to control output:
  */
+// BLP 2023-01-15 - Reworked the start of SqlError().
 
-define("SQLEXCEPTION_CLASS_VERSION", "2.0.0exception");
+define("SQLEXCEPTION_CLASS_VERSION", "2.1.0exception");
 
 class SqlException extends Exception {
   /**
@@ -39,35 +40,21 @@ class SqlException extends Exception {
    * Private
    * @param string $msg error message (mysql_error($db))
    * @param object $self is the $this where the error occured
-   * @param bool $echo if true we do an echo else return string
    * @return array([html error text], [error number]);
    */
 
   private function SqlError($msg="NO MESSAGE PROVIDED", $self) {
-    $Error = "NO ERROR MESSAGE FOUND";
-    $Errno = -1;
-
-    // BLP 2021-12-31 -- remove $errDb
-
-    if(is_null($self) || !method_exists($self, 'getDb')) {
-      if(isset($self->errno) && isset($self->error)) {
-        $Errno = $self->errno;
-        $Error = $self->error;
-      } else {
-        $Errno = -9999;
-        $Error = "No valid \$self->errno or \$self->error.";
-      }
+    // BLP 2023-01-15 - START. Reworked this section
+    if(is_null($self)) {
+      $Errno = -9999;
+      $Error = "No valid \$self->errno or \$self->error.";
     } else {
-      if(method_exists($self, 'getErrorInfo')) {
-        echo "getErrorInfo<br>";
-        $err = $self->getErrorInfo(); // from the database engine, like mysqli etc.
-        $Error = $err['error'];
-        $Errno = $err['errno'];
-      } else {
-        throw new Exception("SqlException ".__LINE__. ": method getErrorInfo missing");
-      }
+      //echo "self: " . print_r($self, true). "<br>";
+      $Error = $self->db->error ?? $self->error;
+      $Errno = $self->db->errno ?? $self->errno;
     }
-
+    // BLP 2023-01-15 - END.
+    
     if(($size = strlen($msg)) > 500) $msg = "Message Too Long: $size";
     if(($size = strlen($Error)) > 500) $Error = "Error Too Long: $size";
 
