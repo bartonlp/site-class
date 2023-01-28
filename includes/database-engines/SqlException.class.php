@@ -16,12 +16,14 @@ class SqlException extends Exception {
    * @param object $self: this is the '$this' of the caller.
    */
   
-  public function __construct($message, $self=null) {
+  public function __construct($msg, $self=null) {
     // If the caller was a database class then $this->db should be the database resorce.
 
-    [$html, $errno] = $this->SqlError($message, $self); // private helper method
+    [$message, $code] = $this->SqlError($msg, $self); // private helper method.
 
-    parent::__construct($html, $errno);
+    // Do the Exception constructor which has $message and $code as arguments.
+    
+    parent::__construct($message, $code);
   }
 
   /**
@@ -146,10 +148,12 @@ EOF;
       $error .= "Back Trace:<br>\n$firstcaller";
     }
 
+    // this is the message and code to pass to Exception.
+    
     return array($error, $Errno);
   }
 
-  public function getVersion() {
+  public static function getVersion() {
     return SQLEXCEPTION_CLASS_VERSION;
   }
 } // End SqlException Class

@@ -22,11 +22,11 @@ abstract class dbAbstract {
 
   abstract public function __toString() ;
     
-  static public function getAbstractName() {
+  public static function getAbstractName() {
     return __CLASS__;
   }
   
-  static public function getAbstractVersion() {
+  public static function getVersion() {
     return ABSTRACT_CLASS_VERSION;
   }
 
@@ -169,13 +169,14 @@ abstract class dbAbstract {
 
   /*
    * debug()
+   * @param $exit. If true throw and exception. Else just output via error_log().
    * If noErrorLog is set in mysitemap.json then don't do error_log()
    */
 
   protected function debug(string $msg, $exit=false):void {
     if($this->noErrorLog === true) {
       if($exit === true) {
-        exit();
+        throw new SqlException($msg, $this);
       }
       return;
     }
@@ -183,7 +184,7 @@ abstract class dbAbstract {
     error_log("debug:: $msg");
 
     if($exit === true) {
-      exit();
+      throw new SqlException($msg, $this);
     }
   }
 }

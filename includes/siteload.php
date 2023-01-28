@@ -12,7 +12,7 @@
 
 namespace siteload;
 
-define("SITELOAD_VERSION", "1.0.09siteload");
+define("SITELOAD_VERSION", "1.0.10siteload");
 
 // We are in 'vendor/bartonlp/site-class/includes' so we want to go back three directories to load
 // autoload.php
@@ -59,8 +59,15 @@ class getinfo {
       $this->docroot = $_SERVER['DOCUMENT_ROOT'] ?? $S_SERVER['VIRTUALHOST_DOCUMENT_ROOT'];
     }
     $this->mydir = $mydir;
-    $this->$_site = json_decode($this->findsitemap());
-    if($mode = $this->$_site->errorMode) {
+
+    $this->_site = json_decode($this->findsitemap());
+
+    // Set the siteloadVersion and siteClassDir
+    
+    $this->_site->siteloadVersion = SITELOAD_VERSION;
+    $this->_site->siteClassDir = SITECLASS_DIR;
+    
+    if($mode = $this->_site->errorMode) {
       if($mode->development === true) { // true we are in development
         \ErrorClass::setDevelopment(true); // Do this first because it sets NoEmailErrs to true.
       }
@@ -84,7 +91,11 @@ class getinfo {
     
     error_reporting($old);
   }
-  
+
+  public static function getVersion() {
+    return SITELOAD_VERSION;
+  }
+
   private function findsitemap() {
     $mydir = $this->mydir;
     
@@ -121,7 +132,12 @@ EOF;
   }
 }
 
-$_site = (new getinfo())->$_site;
+//$info = new getinfo();
+//vardump("info", $info);
+//$_site = $info->_site;
+$_site = (new getinfo())->_site;
+
+//vardump("\$_site", $_site);
 
 // BLP 2022-01-12 -- If $_site is NULL that means the json_decode() failed.
 

@@ -1,7 +1,9 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
-// BLP 2022-12-21 - update jQuery to newest version.
-// BLP 2022-09-26 - that were to bartonphillips.net are now to bartonlp.com/otherpages/
+// BLP 2023-01-26 - changed Exception to SqlException and added $this to throws.
+// BLP 2023-01-24 - added $__info array for node programs in /examples/node-programs.
+// A node program that is using the 'php' module to be able to 'render()' a PHP file should use
+// $__info to pass the ip address and user agent. See /examples/node-programs/server.js for details.
 
 define("SITE_CLASS_VERSION", "3.4.3"); // BLP 2022-07-31 - 
 
@@ -48,12 +50,12 @@ class SiteClass extends Database {
    */
   
   public function __construct(object $s) {
-    $s->ip = $_SERVER['REMOTE_ADDR'];
-    $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- CLI agent is NULL so make it blank ''
-    // self is like '/tracker.php'
-    // requestUri is like '/tracker.php?page=script&id=6218713&image=/images/blp-image.png'
-    $s->self = htmlentities($_SERVER['PHP_SELF']); // BLP 2021-12-20 -- add htmlentities to protect against hacks.
-    $s->requestUri = $_SERVER['REQUEST_URI']; // BLP 2021-12-30 -- change from $this->self
+    global $__info; // BLP 2023-01-24 - Added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
+
+    $s->ip = $_SERVER['REMOTE_ADDR'] ?? "$__info[0]"; // BLP 2023-01-18 - Added for NODE with php view.
+    $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? "$__info[1]"; // BLP 2022-01-28 -- CLI agent is NULL and $__info[1] will be null also
+    $s->self = htmlentities($_SERVER['PHP_SELF']); 
+    $s->requestUri = $_SERVER['REQUEST_URI'];
 
     // Do the parent Database constructor which does the dbAbstract constructor.
     
@@ -96,7 +98,7 @@ class SiteClass extends Database {
 
       if($this->count) {
         // Get the count for hitCount. The hitCount is always
-        // updated (unless the counter file does not exist).
+        // updated (unless the counter table does not exist).
 
         $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
 
@@ -116,7 +118,7 @@ class SiteClass extends Database {
    * @return string version number
    */
 
-  public function getVersion():string {
+  public static function getVersion():string {
     return SITE_CLASS_VERSION;
   }
 
@@ -283,7 +285,7 @@ EOF;
       if(($p = require_once($h->headFile)) != 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
-        throw new Exception(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1");
+        throw new SqlException(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1", $this);
       }
     } else {
       // Make a default <head>
@@ -553,7 +555,7 @@ EOF;
       try {
         $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
                      "values('$this->ip', '$agent', 1, " . BOTS_SITECLASS . ", '$this->siteName', now(), now())");
-      } catch(Exception $e) {
+      } catch(SqlException $e) {
         if($e->getCode() == 1062) { // duplicate key
           // We need the site info first. This can be one or multiple sites seperated by commas.
 
@@ -571,7 +573,7 @@ EOF;
           $this->query("update $this->masterdb.bots set robots=robots | " . BOTS_SITECLASS . ", site='$who', count=count+1, lasttime=now() ".
                        "where ip='$this->ip' and agent='$agent'");
         } else {
-          throw new Exception(__CLASS__ . " " . __LINE__ . ":$e");
+          throw new SqlException(__CLASS__ . " " . __LINE__ . ":$e", $this);
         }
       }
 
@@ -656,9 +658,9 @@ EOF;
 
     try {
       $this->query("insert into $this->masterdb.counter (site, filename, count, lasttime) values('$this->siteName', '$filename', 1, now())");
-    } catch(Exception $e) {
+    } catch(SqlException $e) {
       if($e->getCode() != 1062) {
-        throw new Exception(__CLASS__ . " " . __LINE__ . ":$e");
+        throw new SqlException(__CLASS__ . " " . __LINE__ . ":$e", $this);
       }
     }
     
@@ -723,9 +725,9 @@ EOF;
       // This will create the very first daycounts entry for the day.
       
       $this->query("insert into $this->masterdb.daycounts (site, `date`, lasttime) values('$this->siteName', current_date(), now())");
-    } catch(Exception $e) {
+    } catch(SqlException $e) {
       if($e->getCode() != 1062) {
-        throw new Exception(__CLASS__ . "$e");
+        throw new SqlException(__CLASS__ . "$e", $this);
       }
     }
     

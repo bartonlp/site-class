@@ -447,9 +447,8 @@ if($type = $_GET['page']) {
                     "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()");
         }
       }
-      //error_log("tracker $msg: $ip, $site, bot don't bother");
-
-      exit(); // If this is a bot don't bother
+      // BLP 2023-01-18 - If this is a bot change the image.
+      $image = "/images/bot.jpg"; // Image of a bad bot!
     }
   }
   
@@ -486,8 +485,6 @@ if($type = $_GET['page']) {
   
   $img = $S->defaultImage ?? "https://bartonphillips.net/images/blank.png";
 
-  //error_log("TEST3: tracker site=$site, img=$img, image=$image");
-  
   // script and normal may have an image but
   // noscript has NO IMAGE
   
@@ -503,8 +500,6 @@ if($type = $_GET['page']) {
   }
 
   $imageType = preg_replace("~.*\.(.*)$~", "$1", $img);
-
-  //if($site == "Bartonphillips") error_log("tracker {$msg} 2: ip=$ip, finger=$finger img=$img");
 
   $imgFinal = file_get_contents($img);
   header("Content-type: image/$imageType");

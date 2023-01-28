@@ -16,7 +16,7 @@ class dbTables {
     $this->db = $db;
   }
 
-  public function getVersion() {
+  public static function getVersion() {
     return DBTABLE_CLASS_VERSION;
   }
   

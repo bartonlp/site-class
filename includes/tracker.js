@@ -1,5 +1,10 @@
 // Track user activity
 // Goes hand in hand with tracker.php
+// BLP 2023-01-19 - When run via the node server.js at
+// /var/www/bartonphillips.com/examples/node-programs/server.js the csstest-.*\.css
+// comes from the the app.get(name....) for example apt.get('test2'...)
+// the css would be from /test2/csstest-.*\.css. I hope this is clear
+// enough so if I look at this a year from now it all makes sense.
 
 'use strict';
 

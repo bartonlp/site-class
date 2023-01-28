@@ -1,6 +1,8 @@
 <?php
 /* HELPER FUNCTIONS. Well tested and maintained */
 
+//namespace helperfunctions; // NOT YET. I have to fix all my other programs first.
+
 define("HELPER_FUNCTION_VERSION", "1.0.0helper");
 /**
  * Helper Functions

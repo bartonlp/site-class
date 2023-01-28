@@ -63,7 +63,7 @@ class dbMysqli extends dbAbstract {
     $this->opendb();
   }
 
-  public function getVersion() {
+  public static function getVersion() {
     return MYSQL_CLASS_VERSION;
   }
   

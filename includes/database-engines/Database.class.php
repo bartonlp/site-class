@@ -1,10 +1,8 @@
 <?php
 /* Well tested and maintained */
-// BLP 2022-10-31 - Add noTrack to CheckIfTablesExist.  
-// BLP 2022-06-14 - moved setSiteCookie() from SiteClass to here (SiteClass extends Database).
-// BLP 2022-05-26 - now I do a parent::_construct to get everything.
-// SiteClass has a new version number.
-// Added CheckIfTablesExist().
+// BLP 2023-01-24 - added $__info array for node programs in /examples/node-programs.
+// A node program that is using the 'php' module to be able to 'render()' a PHP file should use
+// $__info to pass the ip address and user agent. See /examples/node-programs/server.js for details.
 
 define("DATABASE_CLASS_VERSION", "2.0.0database");
 
@@ -26,15 +24,17 @@ class Database extends dbAbstract {
    */
 
   public function __construct(object $s, ?bool $isSiteClass=null) {
+    global $__info; // BLP 2023-01-24 - added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
+
     $this->errorClass = new ErrorClass();
 
     // If this is NOT from SiteClass then add these variable.
     
     if(!$isSiteClass) {
-      $s->ip = $_SERVER['REMOTE_ADDR'];
-      $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- CLI agent is NULL so make it blank ''
-      $s->self = htmlentities($_SERVER['PHP_SELF']); // BLP 2021-12-20 -- add htmlentities to protect against hacks.
-      $s->requestUri = $_SERVER['REQUEST_URI']; // BLP 2021-12-30 -- change from $this->self
+      $s->ip = $_SERVER['REMOTE_ADDR'] ?? "$__info[0]"; // BLP 2023-01-18 - Added for NODE with php view.
+      $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? "$__info[1]"; // BLP 2022-01-28 -- CLI agent is NULL and $__info[1] wil be null
+      $s->self = htmlentities($_SERVER['PHP_SELF']);
+      $s->requestUri = $_SERVER['REQUEST_URI'];
     }
     
     // Do the parent dbAbstract constructor
@@ -50,8 +50,8 @@ class Database extends dbAbstract {
     $db = null;
     $arg = $this->dbinfo;
 
-    // BLP BLP 2022-01-14 -- The Database password is now in /home/barton/database-password
-    // on bartonlp.org
+    // BLP BLP 2022-01-14 -- In almost all cases the Database password is now in
+    // /home/barton/database-password on bartonlp.org
 
     $password = ($this->dbinfo->password) ?? require("/home/barton/database-password");
 
@@ -61,11 +61,14 @@ class Database extends dbAbstract {
       throw new SqlException(__METHOD__, $this);
     }
 
+    // BLP 2023-01-26 - currently there is only ONE viable engine and that is dbMysqli
+    
     $class = "db" . ucfirst(strtolower($arg->engine));
+    
     if(class_exists($class)) {
       $db = @new $class($arg->host, $arg->user, $password, $arg->database, $arg->port);
     } else {
-      throw new SqlException(__METHOD__ .": Class Not Found : $class<br>");
+      throw new SqlException(__METHOD__ .": Class Not Found : $class<br>", $this);
     }
 
     if(is_null($db) || $db === false) {
@@ -135,12 +138,14 @@ class Database extends dbAbstract {
   /**
    * getVersion()
    * @return string version number
+   * Because there is no $this in the function we can all it on $S->getVersion or Database::getVersion().
+   * When $S is SiteClass this is overloaded with the $S of SiteClass.
    */
 
-  public function getVersion():string {
+  public static function getVersion():string {
     return DATABASE_CLASS_VERSION;
   }
-
+  
   /**
    * getIp()
    * Get the ip address
@@ -168,11 +173,11 @@ class Database extends dbAbstract {
                         "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
                         "http client|PECL::HTTP~i", $agent)) === 1) { // 1 means a match
       $this->isBot = true;
-      $this->foundBotAs = BOTAS_MATCH; // "preg_match";
+      $this->foundBotAs = BOTAS_MATCH;
       return $this->isBot;
     } elseif($x === false) { // false is error
       // This is an unexplained ERROR
-      throw new Exceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false");
+      throw new SqlExceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", $this);
     }
 
     // If $x was 1 or false we have returned with true and BOTAS_MATCH or we threw an exception.
@@ -183,6 +188,9 @@ class Database extends dbAbstract {
 
       $tmp = '';
 
+      // Look at each posible entry in bots. The entries may be for different sites and have
+      // different values for $robots.
+      
       while([$robots] = $this->fetchrow('num')) {
         if($robots & BOTS_ROBOTS) {
           $tmp = "," . BOTAS_ROBOT;
@@ -195,6 +203,7 @@ class Database extends dbAbstract {
         }
         if($tmp != '') break;
       }
+      
       if($tmp != '') {
         $tmp = ltrim($tmp, ','); // remove the leading comma
         $this->foundBotAs = $tmp; //'bots table' plus $tmp;
@@ -203,7 +212,7 @@ class Database extends dbAbstract {
         $this->foundBotAs = BOTAS_NOT;
         $this->isBot = false;
       }
-      //error_log("SiteClass checkIfBot: foundBotAs=$this->foundBotAs, ip=$this->ip, agent=$this->agent, " . __LINE__);
+      
       return $this->isBot;
     }
 
@@ -226,7 +235,7 @@ class Database extends dbAbstract {
    */
 
   protected function checkIfBot():bool {
-    if($this->isMe()) {
+    if($this->isMe()) { // I am never a bot!
       return false; 
     }
 
@@ -240,7 +249,7 @@ class Database extends dbAbstract {
 
   protected function updatemyip():void {
     if($this->ip == DO_SERVER || $this->isMe() === false) {
-      // If it is my server or it is not ME. If it is my server we don't look at the OR.
+      // If it is my DigitalOcean server or it is not ME. If it is my server we don't look at the OR.
       return; // This is not me.
     }
 
@@ -250,7 +259,7 @@ class Database extends dbAbstract {
     $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
 
     if(!$this->query($sql)) {
-      $this->db->debug("SiteClass $this->siteName: update of myip failed, ip: $this->ip, " .__LINE__, true); // this should not happen
+      $this->debug("SiteClass $this->siteName: update of myip failed, ip: $this->ip, " .__LINE__, true); // this should not happen
     }
   }
 
@@ -261,7 +270,8 @@ class Database extends dbAbstract {
   
   private function CheckIfTablesExist():array {
     // Do all of the table checks once here.
-
+    // NOTE: $this->debug() function is declared in dbAbstract.class.php.
+    
     if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots')")) {
       $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
     }
