@@ -8,6 +8,8 @@
 
 'use strict';
 
+const TRACKERJS_VERSION = "3.0.1trackerjs";
+
 let visits = 0;
 let lastId;  // set by SiteClass via tracker.js
 // set by caller
