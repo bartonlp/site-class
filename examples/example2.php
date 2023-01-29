@@ -1,43 +1,59 @@
-<?php  
-// example2.php
+<?php
+/*
+  This file will run all the database functions. It will not see you.
+*/
+// This gets the siteload.php from the includes directory.
 
-require_once("../../../autoload.php");
+$_site = require_once(getenv("SITELOADNAME"));
 
-$_site = array(
-  'siteDomain' => "localhost",
-  'siteName' => "Example2",
-  'copyright' => "2016 Barton L. Phillips",
-  'memberTable' => "members",
-  'noTrack' => true, // do tracking logic in SiteClass
-  'dbinfo' => array(
-    'database' => 'test.sdb',
-    'engine' => 'sqlite3'
-  ),
-  'count' => false
-);
+// Get the information from the mysitemap.json in the directory above this one.
 
-ErrorClass::setNoEmailErrs(true);
-ErrorClass::setDevelopment(true);
+$SITE = print_r($_site, true);
 
-$_site = arraytoobjectdeep($_site);
+// Instantiate the SiteClass from the className in the json file.
 
-$S = new SiteClass($_site);
+$S = new $_site->className($_site);
 
-list($top, $footer) = $S->getPageTopBottom();
+// Get the info in $S
 
-// Do some database operations
-$S->query("select fname, lname from $S->memberTable");
+$CLASS = print_r($S, true);
 
-$names = '';
+// Try a bogus ip
+$ip = "123.123.123.123";
+$isme = $S->isMyIp($ip) ? 'true' : 'false'; // This should be false
+$me = $S->isMe() ? 'true' : 'false'; // This should be true if you have inserted your ip address into the myip table.
 
-while(list($fname, $lname) = $S->fetchrow('num')) {
-  $names .= "$fname $lname<br>";
-}
+// These are the value in the myip table (plus my server address).
+$myip = print_r($S->myIp, true);
+
+// The $h object has information that is passed to the getPageTopBottom() function.  
+$h->title = "Example2"; // The <title>
+$h->banner = "<h1>Example2</h1>"; // This is the banner.
+// Add some css.
+$h->css =<<<EOF
+pre { font-size: 8px; }
+EOF;
+
+$bot1 = $S->isBot('I am a bot') ? "true" : "false"; // This should be true
+$bot2 = $S->isBot($S->agent) ? "true" : "false"; // This should be false unless your are one.
+
+[$top, $footer] = $S->getPageTopBottom($h, $b);
 
 echo <<<EOF
 $top
-<h1>Example 2</h1>
-<p>$names</p>
+<h4>This example does not set \$_site->isMeFalse to true. Therefore not everything is counted or tracked.</h4>
+<p>\$S->isBot('I am a bot'): $bot1<br>
+\$S->isBot('$S->agent'): $bot2<br>
+\$S->isMyIp('$ip')=$isme<br>\$S->isMe()=$me</p>
+<pre>myIp: $myip</pre>
+<pre>\$_site: $SITE</pre>
+<pre>\$S: $CLASS</pre>
 <hr>
+<a href="example1.php">Example1</a><br>
+<a href="example2.php">Example2</a><br>
+<a href="example3.php">Example3</a><br>
+<a href="example4.php">Example4</a><br>
+<a href="hi.php">Hi</a><br>
+<a href="phpinfo.php">PHPINFO</a>
 $footer
 EOF;

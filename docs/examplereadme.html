@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>examplereadme</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  
+  <style>
+  div.sourceCode {
+    background-color: #EEF3E2;
+    border-left: 10px solid gray;
+    padding-left: 5px;
+  }
+  code {
+    background-color: #EEF3E2;
+  }
+  </style>
+</head>
+<body>
+<h1 id="examples">Examples</h1>
+<p>I have included a couple of examples to show how to use the SiteClass.</p>
+<p>First you will need to install mysql if you don't already have it. You will need to install the PHP extension for mysql. The SiteClass code runs with PHP 8 so it may not work with older versions of PHP.</p>
+<p>Once you have mysql and the PHP extension you can set up mysql. These examples use a database called 'barton' with user 'barton'. There is a file in this directory called schema.sql. You can run it in mysql and create the database and the tables.</p>
+<p>There is a <em>mysitemap.json</em> file in the directory above this. It has the setup information and is pretty well documented. Oh, it is really not a true <em>json</em> file as it can contain comments. After I remove the comments programatcally it is a true <em>json</em> file which I run throush json_decode() so it must be valid <em>json</em>.</p>
+<p>I have set up a .htaccess file which has a RewriteRule to redirect a css file to <em>tracker.php</em> for tracking.</p>
+<p>The 'examples' directory should have everything you will need to run the examples including header, banner and footer files as well as css, images and fonts.</p>
+<p>Now that the database is set up you can run the examples.</p>
+<p>If you are just trying this out you can use the PHP server: <code>PHP -S localhost:8080</code>. You can change the port to what you want.<br />
+Then use your browser to go to: <code>localhost:8080/&lt;AN_EXAMPLE_FILE&gt;</code>. See the example programs in the examples directory.</p>
+<p>Any questions can be directed to <a href="mailto:bartonphillips@gmail.com">bartonphillips@gmail.com</a></p>
+<p>Have fun</p>
+</body>
+</html>

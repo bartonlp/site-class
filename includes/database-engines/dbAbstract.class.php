@@ -1,18 +1,41 @@
 <?php
 /* MAINTAINED and WELL TESTED */
-// BLP 2022-01-02 -- add $type to queryfetch($q, $type, $returnarray).
+// BLP 2022-05-26 - 
+
+define("ABSTRACT_CLASS_VERSION", "2.1.0ab");
 
 // Abstract database class
 // Most of this class is implemented here. This keeps us from having to duplicate this over and
 // over again in each higher level class like SiteClass or Database.
 // The db engines (dbMysqli.class.php, etc.) have most of these methods implemented.
 
+require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
+
 abstract class dbAbstract {
+  protected function __construct(object $s) {
+    foreach($s as $k=>$v) {
+      $this->$k = $v;
+    }
+  }
+
   // Each child class needs to have a __toString() method
 
-  abstract public function __toString();
+  abstract public function __toString() ;
+    
+  public static function getAbstractName() {
+    return __CLASS__;
+  }
+  
+  public static function getVersion() {
+    return ABSTRACT_CLASS_VERSION;
+  }
 
-  public function getDbName() {
+  /**
+   * getDbName()
+   * This is the name of the database, like 'bartonphillips' or 'barton'
+   */
+  
+  public function getDbName():string {
     $database = $this->db->database;
     if($database) {
       return $database;
@@ -29,7 +52,7 @@ abstract class dbAbstract {
   }
   
   // The following methods either execute or if the method is not defined throw an Exception
-
+  
   public function query($query) {
     if(method_exists($this->db, 'query')) {
       return $this->db->query($query);
@@ -46,11 +69,6 @@ abstract class dbAbstract {
     }
   }
 
-  /**
-   * finalize()
-   * ONLY for Sqlite3 database.
-   */
-  
   public function finalize($result) {
     if(method_exists($this->db, 'finalize')) {
       return $this->db->finalize($result);
@@ -60,6 +78,7 @@ abstract class dbAbstract {
   }
 
   // BLP 2022-01-02 -- add type which was missing.
+
   public function queryfetch($query, $type=null, $retarray=false) {
     if(method_exists($this->db, 'queryfetch')) {
       return $this->db->queryfetch($query, $type, $retarray);
@@ -145,6 +164,27 @@ abstract class dbAbstract {
       return $this->db->getErrorInfo();
     } else {
       throw new Exception(__METHOD__ . " not implemented");
+    }
+  }
+
+  /*
+   * debug()
+   * @param $exit. If true throw and exception. Else just output via error_log().
+   * If noErrorLog is set in mysitemap.json then don't do error_log()
+   */
+
+  protected function debug(string $msg, $exit=false):void {
+    if($this->noErrorLog === true) {
+      if($exit === true) {
+        throw new SqlException($msg, $this);
+      }
+      return;
+    }
+
+    error_log("debug:: $msg");
+
+    if($exit === true) {
+      throw new SqlException($msg, $this);
     }
   }
 }

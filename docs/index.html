@@ -36,7 +36,7 @@
       <ul></ul>
     </nav>
     <section>
-      <h1 id="siteclass-verion-2.0">SiteClass Verion 2.0</h1>
+      <h1>SiteClass Verion 3.4.0</h1>
       <p><strong>SiteClass</strong> is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.</p>
       <p>This project has several parts that can function standalone or combined.</p>
       <ul>
@@ -45,12 +45,10 @@
         <li>ErrorClass.class.php : Error and Exception classes</li>
         <li>SiteClass.class.php : tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.</li>
       </ul>
-      <p>The following database engines are provided as the following classes:</p>
+      <p>The following database engine is provided as the following class:</p>
       <ol style="list-style-type: decimal">
         <li>dbMysqli.class.php : (rigorously tested) This is the latest PHP version of the MySql database engine.</li>
-        <li>dbSqlite.class.php : sqlite3 (used for the examples)</li>
       </ol>
-      <p>There are a couple of additional databases but they have not be rigouously tested.</p>
       <h2 id="disclamer">Disclamer</h2>
       <p>To start, this framework is meant for Linux not Windows. I don't use Windows, like it or have it, so nothing has been tried on Windows.</p>
       <p>I use Linux Mint which is an Ubuntu derivative which is a Debian derivative. I have not tried this package on any distributions that do not evolve from Debian.</p>
@@ -78,33 +76,28 @@
       <p><strong>OR</strong> you can just run</p>
       <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">composer</span> require bartonlp/site-class:dev-master</code></pre></div>
       <p>which will create the 'composer.json' for you and load the package like 'composer install' above.</p>
-      <p>In your PHP file add <code>require_once($PATH_TO_VENDOR . '/vendor/autoload.php');</code>
+      <p>In your PHP file add <code>$_site = require_once($PATH_TO_VENDOR .
+        '/vendor/bartonlp/site-class/includes/siteload.php');</code>
         where '$PATH_TO_VENDOR' is the path to the 'vendor' directory like './' or '../' etc.</p>
-      <p>There are some example files in the 'examples' directory at '$PATH_TO_VENDOR/vendor/bartonlp/site-class/examples'.</p>
-
-      <h2>Tests</h2>
-      <p>In the <a href="testing.html">tests directory</a> there are a series of mostly
-        database engine tests.  If you want to test MySql 
-        you will need to first install the packages (both OS and PHP5/PHP7)
-        and then configure each with a user and password etc. 
-        Setting up the databases is beyond the scope of this README. 
-        The tests are set up for an account with user 'siteclass' and password 'siteclass' with database 'siteclass' 
-        (no single quotes of course).</p>
+      <p>There are some example files in the 'examples' directory at
+        '$PATH_TO_VENDOR/vendor/bartonlp/site-class/examples'. There is more documentation in the
+        /docs directory.</p>
 
       <h2>Further Documentation</h2>
       <ul>
-        <li><a href="examples.html">How To/Examples/Tutorial</a></li>
         <li><a href="dbTables.html">dbTables Documentation</a></li>
         <li><a href="siteclass.html">SiteClass and Database Methods</a></li>
         <li><a href="files.html">Additional Files User by SiteClass</a></li>
         <li><a href="analysis.html">Page Counting, Analysis and Tracking</a></li>
-        <li><a href="testing.html">Testing</a></li>
+        <li><a href="examplereadme.html">Examples Readme</a></li>
       </ul>
 
       <h2>Contact me</h2>
       <p>Barton Phillips :
         <a href="mailto:bartonphillips@gmail.com">bartonphillips@gmail.com</a><br>
-        Copyright &copy; 2018 Barton Phillips</p>
+        Copyright &copy; 2022 Barton Phillips<br>
+        Last modified August 14, 2022
+      </p>
     </section>
     <footer>
       <p>Project maintained by <a href="https://github.com/bartonlp">bartonlp</a></p>

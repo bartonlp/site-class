@@ -1,9 +1,20 @@
 <?php
 /* HELPER FUNCTIONS. Well tested and maintained */
 
+//namespace helperfunctions; // NOT YET. I have to fix all my other programs first.
+
+define("HELPER_FUNCTION_VERSION", "1.0.0helper");
 /**
  * Helper Functions
  */
+
+// Return the helper version
+
+if(!function_exists("getVersion")) {
+  function getVersion() {
+    return HELPER_FUNCTION_VERSION;
+  }
+}
 
 // vardump makes value readable
 
@@ -18,7 +29,7 @@ if(!function_exists('vardump')) {
     for($i=0; $i < count($args); ++$i) {
       $v .= escapeltgt(print_r($args[$i], true));
     }
-    echo "<pre class='vardump' style='font-size: .7rem; font-family: \"Monospace\"'>$msg$v</pre>";
+    echo "<pre class='vardump'>$msg$v</pre>";
   }
 } 
 

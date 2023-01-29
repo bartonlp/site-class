@@ -1,0 +1,12 @@
+# For Examples
+Options +Indexes
+Require all granted
+# NOTE your apache must have mod_env, mod_headers and mod_rewrite
+Header set Access-Control-Allow-Origin "*"
+Header set Access-Control-Expose-Headers: Content-Length
+# Set the environment variable for the siteloader. 
+SetEnv SITELOADNAME /var/www/vendor/bartonlp/site-class/includes/siteload.php
+# Turn on rewrite 
+RewriteEngine on
+# and rewrite the address of csstest-nnn.css to tracker.php?id=nnn&page=csstest
+RewriteRule ^csstest-(.*)\.css$ ../includes/tracker.php?id=$1&page=csstest [L,QSA]

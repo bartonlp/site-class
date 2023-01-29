@@ -1,40 +1,34 @@
 <?php
-// example5.php
+// example using dbTables
 
-$_site = require_once(getenv("SITELOAD")."/siteload.php");
-
-ErrorClass::setNoEmailErrs(true);
-ErrorClass::setDevelopment(true);
+$_site = require_once(getenv("SITELOADNAME"));
 
 $S = new $_site->className($_site);
 $T = new dbTables($S);
 
 // Pass some info to getPageTopBottom method
-$h->title = "Example 5"; // Goes in the <title></title>
-$h->banner = "<h1>Example 5</h1>"; // becomes the <header> section
+$h->title = "Example"; // Goes in the <title></title>
+$h->banner = "<h1>Example</h1>"; // becomes the <header> section
 // Add some local css to but a border and padding on the table 
 $h->css = <<<EOF
-  <style>
 main table * {
   padding: .5em;
   border: 1px solid black;
 }
-  </style>
 EOF;
 
-list($top, $footer) = $S->getPageTopBottom($h);
+[$top, $footer] = $S->getPageTopBottom($h);
 
 // create a table from the memberTable
-
-$sql = "select * from $S->memberTable";
-
-list($tbl) = $T->maketable($sql);
+$sql = "select id, site, page, ip, lasttime from $S->masterdb.tracker where site='Examples' limit 5";
+$tbl = $T->maketable($sql)[0];
 
 echo <<<EOF
 $top
 <main>
-<h3>Create a table from the members database table</h3>
-<p>The members table follows:</p>
+<h3>Create a table from the tracker database table</h3>
+<p>$sql</p>
+<p>The tracker table follows:</p>
 $tbl
 </main>
 <hr>

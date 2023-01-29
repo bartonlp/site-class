@@ -5,6 +5,9 @@
  *   message, code, file and line are members of Exception
  * The Error class provides the following properties to control output:
  */
+// BLP 2023-01-15 - Reworked the start of SqlError().
+
+define("SQLEXCEPTION_CLASS_VERSION", "2.1.0exception");
 
 class SqlException extends Exception {
   /**
@@ -13,12 +16,14 @@ class SqlException extends Exception {
    * @param object $self: this is the '$this' of the caller.
    */
   
-  public function __construct($message, $self=null) {
+  public function __construct($msg, $self=null) {
     // If the caller was a database class then $this->db should be the database resorce.
-    
-    list($html, $errno) = $this->SqlError($message, $self); // private helper method
 
-    parent::__construct($html, $errno);
+    [$message, $code] = $this->SqlError($msg, $self); // private helper method.
+
+    // Do the Exception constructor which has $message and $code as arguments.
+    
+    parent::__construct($message, $code);
   }
 
   /**
@@ -37,34 +42,21 @@ class SqlException extends Exception {
    * Private
    * @param string $msg error message (mysql_error($db))
    * @param object $self is the $this where the error occured
-   * @param bool $echo if true we do an echo else return string
    * @return array([html error text], [error number]);
    */
 
   private function SqlError($msg="NO MESSAGE PROVIDED", $self) {
-    $Error = "NO ERROR MESSAGE FOUND";
-    $Errno = -1;
-
-    // BLP 2021-12-31 -- remove $errDb
-    
-    if(is_null($self) || is_null($self->getDb()) || $self->getDb() === 0) {
-      if(isset($self->errno) && isset($self->error)) {
-        $Errno = $self->errno;
-        $Error = $self->error;
-      } else {
-        $Errno = -9999;
-        $Error = "No valid \$self->errno or \$self->error.";
-      }
+    // BLP 2023-01-15 - START. Reworked this section
+    if(is_null($self)) {
+      $Errno = -9999;
+      $Error = "No valid \$self->errno or \$self->error.";
     } else {
-      if(method_exists($self, 'getErrorInfo')) {
-        $err = $self->getErrorInfo(); // from the database engine, like mysqli etc.
-        $Error = $err['error'];
-        $Errno = $err['errno'];
-      } else {
-        throw new Exception("SqlException ".__LINE__. ": method getErrorInfo missing");
-      }
+      //echo "self: " . print_r($self, true). "<br>";
+      $Error = $self->db->error ?? $self->error;
+      $Errno = $self->db->errno ?? $self->errno;
     }
-
+    // BLP 2023-01-15 - END.
+    
     if(($size = strlen($msg)) > 500) $msg = "Message Too Long: $size";
     if(($size = strlen($Error)) > 500) $Error = "Error Too Long: $size";
 
@@ -78,6 +70,7 @@ class SqlException extends Exception {
     $firstcaller = '';
 
     // Helper callback function
+    
     if(!function_exists('array_deep')) {
       // If it does not already exist define it here
       function array_deep($a) {
@@ -149,13 +142,18 @@ class SqlException extends Exception {
 error=&quot;<i>$Error</i>&quot;, \$Errno=&quot;<i>$Errno</i>&quot;<br>
 cwd=$cwd<br>
 called from <strong>{$caller['file']}</strong><br> on line <strong>{$caller['line']}</strong><br>
-
 EOF;
 
     if(isset($firstcaller)) {
       $error .= "Back Trace:<br>\n$firstcaller";
     }
 
+    // this is the message and code to pass to Exception.
+    
     return array($error, $Errno);
+  }
+
+  public static function getVersion() {
+    return SQLEXCEPTION_CLASS_VERSION;
   }
 } // End SqlException Class

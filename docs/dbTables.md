@@ -6,30 +6,25 @@ The **dbTables** makes creating tables simple.
 
 ```php
 <?php
-// example5.php
+// example using dbTables
 
-$_site = require_once(getenv("SITELOAD")."/siteload.php");
-
-ErrorClass::setNoEmailErrs(true);
-ErrorClass::setDevelopment(true);
+$_site = require_once(getenv("SITELOADNAME"));
 
 $S = new $_site->className($_site);
 $T = new dbTables($S);
 
 // Pass some info to getPageTopBottom method
-$h->title = "Example 5"; // Goes in the <title></title>
-$h->banner = "<h1>Example 5</h1>"; // becomes the <header> section
+$h->title = "Example"; // Goes in the <title></title>
+$h->banner = "<h1>Example</h1>"; // becomes the <header> section
 // Add some local css to but a border and padding on the table 
 $h->css = <<<EOF
-  <style>
 main table * {
   padding: .5em;
   border: 1px solid black;
 }
-  </style>
 EOF;
 
-list($top, $footer) = $S->getPageTopBottom($h);
+[$top, $footer] = $S->getPageTopBottom($h);
 
 // create a table from the memberTable
 $sql = "select * from $S->memberTable";
@@ -145,11 +140,11 @@ $extra['footer'] a footer string
 [SiteClass Methods](siteclass.html)
 [Additional Files](files.html)
 [Analysis and Tracking](analysis.html)
-[Testing](testing.html)
 [Index](index.html)
 
 ## Contact Me
 
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
-Copyright &copy; 2017 Barton Phillips  
+Copyright &copy; 2022 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)
+Last Modified Aug 14, 2022

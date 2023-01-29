@@ -1,9 +1,10 @@
 <?php
 /* Well tested and maintained */
-// BLP 2022-01-14 -- Now we get the password from /home/barton/database-password
-// BLP 2021-11-11 -- For RPI let us use the $this->dbinfo->password if it exists
-// BLP 2021-10-28 -- see comment below.
-// BLP 2021-10-24 -- Added agent and ip if not isSiteClass.
+// BLP 2023-01-24 - added $__info array for node programs in /examples/node-programs.
+// A node program that is using the 'php' module to be able to 'render()' a PHP file should use
+// $__info to pass the ip address and user agent. See /examples/node-programs/server.js for details.
+
+define("DATABASE_CLASS_VERSION", "2.0.0database");
 
 /**
  * Database wrapper class
@@ -15,76 +16,312 @@ class Database extends dbAbstract {
    * There is no program that uses anything but $_site from mysitemap.json.
    *
    * constructor
-   * @param $args object.
-   * $args should have all of the $this from SiteClass or $_site from mysitemap.json
-   * To just pass in the required database options set $args->dbinfo = (object) $ar
+   * @param $s object. $isSiteClass bool.
+   * $s should have all of the $this from SiteClass or $_site from mysitemap.json
+   * To just pass in the required database options set $s->dbinfo = (object) $ar
    * where $ar is an assocative array with ["host"=>"localhost",...]
+   * $isSiteClass is true if this is from SiteClass.
    */
 
-  public function __construct(object $args) {
-    ErrorClass::init(); // We should do this. If already done it just returns.
+  public function __construct(object $s, ?bool $isSiteClass=null) {
+    global $__info; // BLP 2023-01-24 - added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
 
-    foreach($args as $k=>$v) {
-      $this->$k = $v;
+    $this->errorClass = new ErrorClass();
+
+    // If this is NOT from SiteClass then add these variable.
+    
+    if(!$isSiteClass) {
+      $s->ip = $_SERVER['REMOTE_ADDR'] ?? "$__info[0]"; // BLP 2023-01-18 - Added for NODE with php view.
+      $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? "$__info[1]"; // BLP 2022-01-28 -- CLI agent is NULL and $__info[1] wil be null
+      $s->self = htmlentities($_SERVER['PHP_SELF']);
+      $s->requestUri = $_SERVER['REQUEST_URI'];
     }
+    
+    // Do the parent dbAbstract constructor
+    
+    parent::__construct($s);
 
-    if($this->nodb) {
+    date_default_timezone_set("America/New_York");
+
+    if($this->nodb || !$this->dbinfo) {
       return;
     }
 
     $db = null;
-    $err = null;
     $arg = $this->dbinfo;
 
-    //vardump("dbinfo", $arg);
-    //vardump("this", $this);
-    //$arg->engine = null;
-
-    // BLP BLP 2022-01-14 -- The Database password is now in /home/barton/database-password on
-    // bartonlp.com et all (157.245.129.4), bartonphillips.org (HP) and
-    // http://bartonphillips.dynnds.org (RPI).
+    // BLP BLP 2022-01-14 -- In almost all cases the Database password is now in
+    // /home/barton/database-password on bartonlp.org
 
     $password = ($this->dbinfo->password) ?? require("/home/barton/database-password");
-    
+
     if(isset($arg->engine) === false) {
       $this->errno = -2;
       $this->error = "'engine' not defined";
       throw new SqlException(__METHOD__, $this);
     }
 
-    switch($arg->engine) {
-      case "mysqli":
-        $class = "db" . ucfirst(strtolower($arg->engine));
-        if(class_exists($class)) {
-          $db = @new $class($arg->host, $arg->user, $password, $arg->database, $arg->port);
-        } else {
-          throw new SqlException(__METHOD__ .": Class Not Found : $class<br>");
-        }
-        break;
-      case "sqlite3":
-        // This is native sqlite not via pdo.
-        $class = "dbSqlite";
-        if(class_exists($class)) {
-          $db = @new $class($arg->host, $arg->user, $password, $arg->database);
-        } else {
-          throw new SqlException(__METHOD__ .": Class Not Found : $class<br>");
-        }      
-        break;
-      default:
-        throw new SqlException(__METHOD__ . ": Engine $arg->engine not valid", $this);
+    // BLP 2023-01-26 - currently there is only ONE viable engine and that is dbMysqli
+    
+    $class = "db" . ucfirst(strtolower($arg->engine));
+    
+    if(class_exists($class)) {
+      $db = @new $class($arg->host, $arg->user, $password, $arg->database, $arg->port);
+    } else {
+      throw new SqlException(__METHOD__ .": Class Not Found : $class<br>", $this);
     }
+
     if(is_null($db) || $db === false) {
       throw new SqlException(__METHOD__ . ": Connect failed", $this);
     }
+    
     $this->db = $db;
-
-    // BLP 2021-10-24 -- Check isSiteClass and if NOT set set the agent and ip
-
-    if($this->isSiteClass !== true) {
-      $this->agent = $_SERVER['HTTP_USER_AGENT'] ?? ''; // BLP 2022-01-28 -- if CLI useragent is NULL so make it blank.
-      $this->agent = $this->escape($this->agent);
-      $this->ip = $_SERVER['REMOTE_ADDR'];
+    // BLP 2022-10-31 - Add noTrack
+    if($this->noTrack !== false && ($this->dbinfo->user == "barton" || $this->user == "barton")) { // make sure its the 'barton' user!
+      $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
     }
+
+    // Escapte the agent in case it has something like an apostraphy in it.
+    
+    $this->agent = $this->escape($this->agent);
+  } // END Construct
+
+  /**
+   * setSiteCookie()
+   * @return bool true if OK else false
+   * BLP 2021-12-20 -- add $secure, $httponly and $samesite as default
+   */
+
+  public function setSiteCookie(string $cookie, string $value, int $expire, string $path="/", ?string $thedomain=null,
+                                bool $secure=true, bool $httponly=false, string $samesite='Lax'):bool
+  {
+    $ref = $thedomain ?? "." . $this->siteDomain; // BLP 2021-10-16 -- added dot back to ref.
+    
+    $options =  array(
+                      'expires' => $expire,
+                      'path' => $path,
+                      'domain' => $ref, // (defaults to $this->siteDomain with leading period.
+                      'secure' => $secure,
+                      'httponly' => $httponly,    // If true javascript can't be used (defaults to false.
+                      'samesite' => $samesite    // None || Lax  || Strict (defaults to Lax)
+                     );
+
+    if(!setcookie($cookie, $value, $options)) {
+      error_log("SiteClass $this->siteName: $this->self: setcookie failed ". __LINE__);
+      return false;
+    }
+
+    //error_log("cookie: $cookie, value: $value, options: " . print_r($options, true));
+    return true;
+  }
+
+  /**
+   * isMyIp($ip):bool
+   * Given an IP address check if this is me.
+   */
+
+  public function isMyIp(string $ip):bool {
+    if($this->isMeFalse === true) return false;
+    return (array_intersect([$ip], $this->myIp)[0] === null) ? false : true;
+  }
+  
+  /**
+   * isMe()
+   * Check if this access is from ME
+   * @return true if $this->ip == $this->myIp else false!
+   */
+
+  public function isMe():bool {
+    return $this->isMyIp($this->ip);
+  }
+
+  /**
+   * getVersion()
+   * @return string version number
+   * Because there is no $this in the function we can all it on $S->getVersion or Database::getVersion().
+   * When $S is SiteClass this is overloaded with the $S of SiteClass.
+   */
+
+  public static function getVersion():string {
+    return DATABASE_CLASS_VERSION;
+  }
+  
+  /**
+   * getIp()
+   * Get the ip address
+   * @return int ip address
+   */
+
+  public function getIp():string {
+    return $this->ip;
+  }
+
+  /*
+   * isBot(string $agent):bool
+   * Determines if an agent is a bot or not.
+   * @return bool
+   * Side effects:
+   *  it sets $this->isBot
+   *  it sets $this->foundBotAs
+   * These side effects are used by checkIfBot():void see below.
+   */
+  
+  public function isBot(string $agent):bool {
+    $this->isBot = false;
+
+    if(($x = preg_match("~\+*https?://|@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
+                        "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
+                        "http client|PECL::HTTP~i", $agent)) === 1) { // 1 means a match
+      $this->isBot = true;
+      $this->foundBotAs = BOTAS_MATCH;
+      return $this->isBot;
+    } elseif($x === false) { // false is error
+      // This is an unexplained ERROR
+      throw new SqlExceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", $this);
+    }
+
+    // If $x was 1 or false we have returned with true and BOTAS_MATCH or we threw an exception.
+    // $x is zero so there was NO match.
+
+    if($this->query("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Is it in the bots table?
+      // Yes it is in the bots table.
+
+      $tmp = '';
+
+      // Look at each posible entry in bots. The entries may be for different sites and have
+      // different values for $robots.
+      
+      while([$robots] = $this->fetchrow('num')) {
+        if($robots & BOTS_ROBOTS) {
+          $tmp = "," . BOTAS_ROBOT;
+        }
+        if($robots & BOTS_SITEMAP) {
+          $tmp .= "," . BOTAS_SITEMAP;
+        }
+        if($robots & BOTS_CRON_ZERO) {
+          $tmp .= "," . BOTAS_ZERO;
+        }
+        if($tmp != '') break;
+      }
+      
+      if($tmp != '') {
+        $tmp = ltrim($tmp, ','); // remove the leading comma
+        $this->foundBotAs = $tmp; //'bots table' plus $tmp;
+        $this->isBot = true; // BOTAS_TABLE plus robot and/or sitemap
+      } else {
+        $this->foundBotAs = BOTAS_NOT;
+        $this->isBot = false;
+      }
+      
+      return $this->isBot;
+    }
+
+    // The ip was NOT in the bots table either.
+
+    $this->foundBotAs = BOTAS_NOT; // not a bot
+    $this->isBot = false;
+    return $this->isBot;
+  }
+  
+  /**
+   * checkIfBot() before we do any of the other protected functions in SiteClass.
+   * Calls the public isBot().
+   * Checks if the user-agent looks like a bot or if the ip is in the bots table
+   * or previous tracker records had something other than zero or 0x2000.
+   * Set $this->isBot true/false.
+   * return bool.
+   * SEE defines.php for the values for TRACKER_BOT, BOTS_SITECLASS
+   * $this-isBot() is false or there is no entry in the bots table
+   */
+
+  protected function checkIfBot():bool {
+    if($this->isMe()) { // I am never a bot!
+      return false; 
+    }
+
+    return $this->isBot($this->agent);
+  }
+
+  /**
+   * updatemyip()
+   * This is NOT done if we are not using a database or isMe() is false. That is it is NOT me.
+   */
+
+  protected function updatemyip():void {
+    if($this->ip == DO_SERVER || $this->isMe() === false) {
+      // If it is my DigitalOcean server or it is not ME. If it is my server we don't look at the OR.
+      return; // This is not me.
+    }
+
+    // BLP 2022-01-16 -- NOTE there are only two places where the ip address is added:
+    // bartonphillips.com/register.php and bonnieburch.com/addcookie.com.
+    
+    $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
+
+    if(!$this->query($sql)) {
+      $this->debug("SiteClass $this->siteName: update of myip failed, ip: $this->ip, " .__LINE__, true); // this should not happen
+    }
+  }
+
+  /*
+   * Check if the required tables are presssent.
+   * Returns myIp array.
+   */
+  
+  private function CheckIfTablesExist():array {
+    // Do all of the table checks once here.
+    // NOTE: $this->debug() function is declared in dbAbstract.class.php.
+    
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots')")) {
+      $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots2')"))  {
+      $this->debug("Database $this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'tracker')")) {
+      $this->debug("Database $this->siteName: $this->self: table tracker does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
+      $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter')")) {
+      $this->debug("Database $this->siteName: $this->self: table counter does not exist in the $this->masterdb database: ". __LINE__, true);
+    }      
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter2')")) {
+      $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'daycounts')")) {
+      $this->debug("Database $this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'logagent')")) {
+      $this->debug("Database $this->siteName: $this->self: table logagent does not exist in the $this->masterdb database: " . __LINE__, true);
+    }
+
+    // The masterdb must be owned by 'barton'. That is the dbinfo->user must be
+    // 'barton'. There is one database where this is not true. The 'test' database has a
+    // mysitemap.json file that has dbinfo->user as 'test'. It is in the
+    // bartonphillips.com/exmples.js/user-test directory.
+    // In general all databases that are going to do anything with counters etc. must have a user
+    // of 'barton' and $this->nodb false. The program without 'barton' can NOT do any calls via masterdb!
+
+    //error_log("Database user: " . $this->user);
+    //error_log("Database dbinfo->user: " . $this->dbinfo->user);
+    
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
+      $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+
+    $this->query("select myIp from $this->masterdb.myip");
+
+    while([$ip] = $this->fetchrow('num')) {
+      $myIp[] = $ip;
+    }
+    
+    $myIp[] = DO_SERVER; // BLP 2022-04-30 - Add my server.
+
+    //error_log("Database after myIp set, this: " . print_r($this, true));
+   
+    return $myIp;
   }
   
   public function __toString() {

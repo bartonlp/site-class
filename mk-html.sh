@@ -16,7 +16,5 @@ code {
 
 # Make .html files from .md files
 pagetitle="Main Readme file";
-/usr/bin/pandoc -Vpagetitle="$pagetitle" -Vmath="$css" -s -f markdown_github -t html5 README.md -o README.html
-pagetitle="Examples Document";
-/usr/bin/pandoc -s -Vpagetitle="$pagetitle" -Vmath="$css" -o examples/EXAMPLES.html -f markdown_github -t html5 examples/EXAMPLES.md
+/usr/bin/pandoc -Vpagetitle="$pagetitle" -Vmath="$css" -s -f gfm -t html5 README.md -o README.html
 
