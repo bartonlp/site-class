@@ -13,7 +13,7 @@
 namespace siteload;
 
 define("SITELOAD_VERSION", "1.0.10siteload");
-
+//echo "version: " . SITELOAD_VERSION . "<br>";
 // We are in 'vendor/bartonlp/site-class/includes' so we want to go back three directories to load
 // autoload.php
 
@@ -132,7 +132,7 @@ EOF;
   }
 }
 
-//$info = new getinfo();
+//$info = new siteload\getinfo();
 //vardump("info", $info);
 //$_site = $info->_site;
 $_site = (new getinfo())->_site;

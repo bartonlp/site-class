@@ -28,9 +28,7 @@
       "includes/database-engines"
     ],
     "files": [
-      "includes/database-engines/helper-functions.php",
-      "includes/tracker.php",
-      "includes/beacon.php"
+      "includes/database-engines/helper-functions.php"
     ]
   }    
 }

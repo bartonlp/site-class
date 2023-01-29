@@ -47,13 +47,10 @@ define("TRACKER_VERSION", "3.0.1tracker");
 if($VERSION_ONLY === true) {
   return;
 }
-
 $_site = require_once(getenv("SITELOADNAME"));
-
 $_site->count = false; // Don't count this.
 
 $S = new Database($_site);
-
 require_once(SITECLASS_DIR . "/defines.php"); // constants for TRACKER, BOTS, BEACON.
 
 //$DEBUG_START = true; // start
