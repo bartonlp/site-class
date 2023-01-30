@@ -7,7 +7,7 @@
  */
 // BLP 2023-01-15 - Reworked the start of SqlError().
 
-define("SQLEXCEPTION_CLASS_VERSION", "2.1.0exception");
+define("SQLEXCEPTION_CLASS_VERSION", "2.1.1exception");
 
 class SqlException extends Exception {
   /**

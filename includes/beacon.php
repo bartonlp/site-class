@@ -3,10 +3,10 @@
 
 // If you want the version defined ONLY and no other information.
 
-define("BEACON_VERSION", "3.0.1beacon");
+define("BEACON_VERSION", "3.0.2beacon"); // BLP 2023-01-30 - Add check for $_site.
 
-if($VERSION_ONLY === true) {
-  return;
+if($_site || $VERSION_ONLY === true) {
+  return BEACON_VERSION;
 }
 
 $_site = require_once(getenv("SITELOADNAME")); // mysitemap.json has count false.

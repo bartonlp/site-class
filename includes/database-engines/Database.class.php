@@ -1,10 +1,11 @@
 <?php
 /* Well tested and maintained */
+// BLP 2023-01-30 - Add global for $h and $b and then make them a stdClass.
 // BLP 2023-01-24 - added $__info array for node programs in /examples/node-programs.
 // A node program that is using the 'php' module to be able to 'render()' a PHP file should use
 // $__info to pass the ip address and user agent. See /examples/node-programs/server.js for details.
 
-define("DATABASE_CLASS_VERSION", "2.0.0database");
+define("DATABASE_CLASS_VERSION", "2.0.1database"); // BLP 2023-01-30 - 
 
 /**
  * Database wrapper class
@@ -24,8 +25,13 @@ class Database extends dbAbstract {
    */
 
   public function __construct(object $s, ?bool $isSiteClass=null) {
-    global $__info; // BLP 2023-01-24 - added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
+    global $__info, $h, $b; // BLP 2023-01-24 - added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
 
+    // BLP 2023-01-30 - We initialize $h and $b here for use with all things SiteClass et all.
+    
+    $h = new \stdClass;
+    $b = new \stdClass;
+    
     $this->errorClass = new ErrorClass();
 
     // If this is NOT from SiteClass then add these variable.

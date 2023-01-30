@@ -1,5 +1,7 @@
+# BLP 2023-01-30 - Updated all of the Version numbers.  
+See the file in includes and includes/datbase-engines for details. 
 # BLP 2022-08-18 -   
-Reworked exmples and tested it.
+Added examples directory back and reworked exmples and tested it.
 It seems to work ok from the examples directory
 when using php -S ...; I tested it when loaded into a real website and it also seems to work OK.
 
@@ -53,10 +55,9 @@ and added symlinks to either the whole directory or items within it to the other
 <li>www.newbern-nc.info: The Tyson Group</li>
 <li>www.newbernzig.com: The Ziegler Suites</li>
 <li>www.bartonphillips.net: my CookiLess domain</li>
-<li>www.bartonphillips.org: my home HP-Envy disktop which is served from my home</li>
+<li>www.bartonphillips.org: my home HP-Envy disktop which is served from my home. It only has https</li>
+<li>www.bonnieburch.com: my wifes website</li>
 </ul>
 
 I also have a <b>dyndns.org</b> account (bartonphillips.dyndns.org) that keeps track of my ip. I can get to my Rpi via
-baronphillips.dyndns.org:8080. I will get rid of that once I can get a static ip.
-
-See the includes/SiteClass.class.php file for more changes.
+baronphillips.dyndns.org:8080 or bartonphillips.org:8080, these are only http. I will get rid of that once I can get a static ip.

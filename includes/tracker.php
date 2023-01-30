@@ -42,15 +42,17 @@ CREATE TABLE `dayrecords` (
 
 // If you want the version defined ONLY and no other information.
 
-define("TRACKER_VERSION", "3.0.1tracker");
+define("TRACKER_VERSION", "3.0.2tracker"); // BLP 2023-01-30 - add check for $_site
 
-if($VERSION_ONLY === true) {
-  return;
+if($_site || $VERSION_ONLY === true) {
+  return TRACKER_VERSION;
 }
+
 $_site = require_once(getenv("SITELOADNAME"));
 $_site->count = false; // Don't count this.
 
 $S = new Database($_site);
+
 require_once(SITECLASS_DIR . "/defines.php"); // constants for TRACKER, BOTS, BEACON.
 
 //$DEBUG_START = true; // start

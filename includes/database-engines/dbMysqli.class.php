@@ -15,7 +15,7 @@
 // to handal PHP 8.1
 // Updated Version to '2.1.0mysqli'
 
-define("MYSQL_CLASS_VERSION", "2.1.0mysqli");
+define("MYSQL_CLASS_VERSION", "2.1.1mysqli"); // BLP 2023-01-30 - 
 
 /**
  * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.

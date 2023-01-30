@@ -26,8 +26,8 @@
   </style>
 </head>
 <body>
-<h1 id="siteclass-verion-343-database-version-200-dbmysqli-version-200">SiteClass Verion 3.4.3, Database Version 2.0.0, dbMysqli Version 2.0.0</h1>
-<p><strong>SiteClass</strong> version 3.4.3 is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.</p>
+<h1 id="siteclass-verion-344-database-version-200-dbmysqli-version-200">SiteClass Verion 3.4.4, Database Version 2.0.0, dbMysqli Version 2.0.0</h1>
+<p><strong>SiteClass</strong> version 3.4.4 is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.</p>
 <p>Updated BLP 2022-09-26 - Moved other pages (like aboutwebsite.php etc) from bartonphillips.net to bartonlp.com/otherpages/.<br />
 Removed the symlinks from bartonphillips.net (see BLP 2022-08-14). Instead I have added RewriteRules to <em>.htaccess</em> to goto <a href="https://bartonlp/otherpages">https://bartonlp/otherpages</a> (see <em>.htaccess</em>)<br />
 Updated BLP 2022-08-14 - Change had coded references to <del>bartonphillips.net</del> <ins>bartonlp.com/otherpages</ins> to $h, $b, $this (from mysitemap.json)<br />
@@ -36,16 +36,17 @@ Updated BLP 2022-07-31 - Moved functins from SiteClass to Database. Added versio
 Updated BLP 2022-04-24 - added defines.php with the tracker, bots and beacon constants.</p>
 <p>This project has several parts that can function standalone or combined.</p>
 <ul>
-<li>Database.class.php (version 2.0.0database): provides a wrapper to the PHP <em>mysqli</em> engine.</li>
+<li>SiteClass.class.php (version 3.4.4): tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.</li>
+<li>Database.class.php (version 2.0.1database): provides a wrapper to the PHP <em>mysqli</em> engine.</li>
+<li>dbMysqli.class.php (version 2.1.1mysqli) : (rigorously tested) This is the latest PHP version of the MySql database engine.</li>
 <li>dbTables.class.php (version 1.0.0dbTables): uses the functionality of Database.class.php to make creating tables easy.</li>
 <li>ErrorClass.class.php (version 2.0.0error): Error and Exception classes</li>
-<li>SqlException.class.php (version 2.0.0exception): Sql exception class.</li>
-<li>SiteClass.class.php (version 3.4.3): tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.</li>
+<li>SqlException.class.php (version 2.0.1exception): Sql exception class.</li>
 <li>defines.php (version 1.0.0defines): constants for tracker(), tracker.php, beacon.php, robots.php, sitemap.php and checktracker2.php. This has all of the constants like TRACKER_BOT, BOTS_ROBOTS etc.</li>
-<li>beacon.php (version 3.0.1beacon)</li>
-<li>tracker.php (version 3.0.1tracker)</li>
-<li>tracker.js (version 3.0.1trackerjs)</li>
-<li>dbMysqli.class.php (version 2.1.0mysqli) : (rigorously tested) This is the latest PHP version of the MySql database engine.</li>
+<li>beacon.php (version 3.0.2beacon)</li>
+<li>tracker.php (version 3.0.2tracker)</li>
+<li>tracker.js (version 3.0.2trackerjs)</li>
+<li>siteload.ph (version 1.1.11siteload)</li>
 </ul>
 <h2 id="siteclass-documentation">SiteClass Documentation</h2>
 <p><a href="https://bartonlp.github.io/site-class">SiteClass Documentation</a></p>

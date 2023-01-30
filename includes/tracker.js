@@ -8,7 +8,7 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.0.1trackerjs";
+const TRACKERJS_VERSION = "3.0.2trackerjs"; // BLP 2023-01-30 - 
 
 let visits = 0;
 let lastId;  // set by SiteClass via tracker.js

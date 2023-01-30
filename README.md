@@ -1,6 +1,6 @@
-# SiteClass Verion 3.4.3, Database Version 2.0.0, dbMysqli Version 2.0.0
+# SiteClass Verion 3.4.4, Database Version 2.0.0, dbMysqli Version 2.0.0
 
-**SiteClass** version 3.4.3 is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. 
+**SiteClass** version 3.4.4 is a PHP mini framework for simple, small websites. It can be esaly combined with other frameworks or templeting engines if needed. 
 For small websites I feel that frameworks like Laravel or Meteor etc. are just too much.
 
 Updated BLP 2022-09-26 - Moved other pages (like aboutwebsite.php etc) from bartonphillips.net to bartonlp.com/otherpages/.  
@@ -15,17 +15,18 @@ Updated BLP 2022-04-24 - added defines.php with the tracker, bots and beacon con
 
 This project has several parts that can function standalone or combined.
 
-* Database.class.php (version 2.0.0database): provides a wrapper to the PHP *mysqli* engine.
+* SiteClass.class.php (version 3.4.4): tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.
+* Database.class.php (version 2.0.1database): provides a wrapper to the PHP *mysqli* engine.
+* dbMysqli.class.php (version 2.1.1mysqli) : (rigorously tested) This is the latest PHP version of the MySql database engine.
 * dbTables.class.php (version 1.0.0dbTables): uses the functionality of Database.class.php to make creating tables easy.
 * ErrorClass.class.php (version 2.0.0error): Error and Exception classes
-* SqlException.class.php (version 2.0.0exception): Sql exception class.
-* SiteClass.class.php (version 3.4.3): tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.
+* SqlException.class.php (version 2.0.1exception): Sql exception class.
 * defines.php (version 1.0.0defines): constants for tracker(), tracker.php, beacon.php, robots.php, sitemap.php and checktracker2.php. This has all of the constants 
 like TRACKER_BOT, BOTS_ROBOTS etc.
-* beacon.php (version 3.0.1beacon)
-* tracker.php (version 3.0.1tracker)
-* tracker.js (version 3.0.1trackerjs)
-* dbMysqli.class.php (version 2.1.0mysqli) : (rigorously tested) This is the latest PHP version of the MySql database engine.
+* beacon.php (version 3.0.2beacon)
+* tracker.php (version 3.0.2tracker)
+* tracker.js (version 3.0.2trackerjs)
+* siteload.ph (version 1.1.11siteload)
 
 ## SiteClass Documentation 
 

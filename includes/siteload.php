@@ -9,14 +9,11 @@
 // if we did a symlink to DOCUMENT_ROOT + 'weewx/index.php' and the symlink were
 // /extra/weewx then if we did a chdir('..') we would get to /extra which is wrong.
 // What we want is /var/www/weewx to /var/wwww.
+// BLP 2023-01-30 - removed $h and $b from here and added them to Database.class.php
 
 namespace siteload;
 
-define("SITELOAD_VERSION", "1.0.10siteload");
-//echo "version: " . SITELOAD_VERSION . "<br>";
-// We are in 'vendor/bartonlp/site-class/includes' so we want to go back three directories to load
-// autoload.php
-
+define("SITELOAD_VERSION", "1.0.11siteload"); // BLP 2023-01-30 - 
 define("SITECLASS_DIR", __DIR__);
 
 require_once(__DIR__ ."/../../../autoload.php");
@@ -66,7 +63,7 @@ class getinfo {
     
     $this->_site->siteloadVersion = SITELOAD_VERSION;
     $this->_site->siteClassDir = SITECLASS_DIR;
-    
+      
     if($mode = $this->_site->errorMode) {
       if($mode->development === true) { // true we are in development
         \ErrorClass::setDevelopment(true); // Do this first because it sets NoEmailErrs to true.
@@ -157,9 +154,6 @@ EOF;
   exit();
 }
 
-// BLP 2022-01-23 -- Add $h and $b as stdClass for php8.1
-
-$h = new \stdClass;
-$b = new \stdClass;
 return $_site;
+
 
