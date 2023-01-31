@@ -5,7 +5,7 @@
 
 define("BEACON_VERSION", "3.0.2beacon"); // BLP 2023-01-30 - Add check for $_site.
 
-if($_site || $VERSION_ONLY === true) {
+if($_site || $__VERSION_ONLY === true) {
   return BEACON_VERSION;
 }
 

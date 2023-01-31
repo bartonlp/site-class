@@ -1,7 +1,8 @@
 <?php
 /* WELL TESTED and MAINTAINED */
+// BLP 2023-01-31 - added $db->dbTables and made $db a reference.
 
-define("DBTABLE_CLASS_VERSION", "1.0.0dbTables");
+define("DBTABLE_CLASS_VERSION", "1.0.1dbTables"); // BLP 2023-01-31 - 
 
 // Make database tables given either a SiteClass or Database class object.
 
@@ -12,8 +13,9 @@ class dbTables {
    * @param object|class $db. Can be either SiteClass or Database class.
    */
   
-  public function __construct($db) {
+  public function __construct(&$db) { // BLP 2023-01-31 - make $db a reference
     $this->db = $db;
+    $db->dbTables = $this->getVersion(); // BLP 2023-01-31 - add the version to $db
   }
 
   public static function getVersion() {

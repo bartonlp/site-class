@@ -1,11 +1,12 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2023-01-31 - add getPageHead so I can see when the methode is accessed.
 // BLP 2023-01-26 - changed Exception to SqlException and added $this to throws.
 // BLP 2023-01-24 - added $__info array for node programs in /examples/node-programs.
 // A node program that is using the 'php' module to be able to 'render()' a PHP file should use
 // $__info to pass the ip address and user agent. See /examples/node-programs/server.js for details.
 
-define("SITE_CLASS_VERSION", "3.4.4"); // BLP 2023-01-30 - 
+define("SITE_CLASS_VERSION", "3.4.5"); // BLP 2023-01-31 -  
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -194,6 +195,9 @@ class SiteClass extends Database {
    */
 
   public function getPageHead(?object $h=null):string {
+    $this->getPageHead = true; // BLP 2023-01-31 -
+    
+    
     $h = $h ?? new stdClass;
 
     // use either $h or $this values or a constant
@@ -257,13 +261,14 @@ EOF;
       $h->noTrack = $h->noTrack ?? $this->noTrack;
       $h->nodb = $h->nodb ?? $this->nodb;
 
-      $h->trackerLocationJs = $h->trackerLocationJs ?? $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
-      $h->trackerLocation = $h->trackerLocation ?? $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
-      $h->beaconLocation = $h->beaconLocation ?? $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php";
-      
       if($h->noTrack === true || $h->nodb === true) {
         $trackerStr = '';
       } else {
+        // BLP 2023-01-31 - moved from abobe if.
+        $h->trackerLocationJs = $h->trackerLocationJs ?? $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
+        $h->trackerLocation = $h->trackerLocation ?? $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
+        $h->beaconLocation = $h->beaconLocation ?? $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php";
+
         $trackerStr =<<<EOF
   <script data-lastid="$this->LAST_ID" src="$h->trackerLocationJs"></script>
   <script>
