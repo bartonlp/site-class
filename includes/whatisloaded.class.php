@@ -3,6 +3,8 @@
 
 namespace whatis;
 
+define("WHATISLOADED_VERSION", "1.0.0whatis");
+
 class WhatIsLoaded {
 
   public function __construct($site) {
@@ -38,10 +40,15 @@ class WhatIsLoaded {
         }
       }
     }
-    $this->info = (object)["site"=>$site, "siteClass"=>$siteClass, "database"=>$database, "dbMysqli"=>$dbMysqli, "tracker"=>$tracker, "beacon"=>$beacon, "trackerjs"=>$javaScript];
+    $whatis = $this->getVersion();
+    $this->info = (object)["site"=>$site, "siteClass"=>$siteClass, "database"=>$database, "dbMysqli"=>$dbMysqli, "tracker"=>$tracker, "beacon"=>$beacon, "trackerjs"=>$javaScript, "whatis"=>$whatis];
   }
 
   public function getinfo() {
     return $this->info;
+  }
+
+  public static function getVersion() {
+    return WHATISLOADED_VERSION;
   }
 }

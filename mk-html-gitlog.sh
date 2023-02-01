@@ -18,3 +18,5 @@ code {
 pagetitle="Main Readme file";
 /usr/bin/pandoc -Vpagetitle="$pagetitle" -Vmath="$css" -s -f gfm -t html5 README.md -o README.html
 
+# Create 'git log >~/www/bartonlp.com/gitlog
+git log > ~/www/bartonlp.com/gitlog

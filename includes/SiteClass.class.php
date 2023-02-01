@@ -6,7 +6,7 @@
 // A node program that is using the 'php' module to be able to 'render()' a PHP file should use
 // $__info to pass the ip address and user agent. See /examples/node-programs/server.js for details.
 
-define("SITE_CLASS_VERSION", "3.4.5"); // BLP 2023-01-31 -  
+define("SITE_CLASS_VERSION", "3.4.6"); // BLP 2023-01-31 -  
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
