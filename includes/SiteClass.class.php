@@ -104,9 +104,6 @@ class SiteClass extends Database {
         $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
 
         if(!$this->isMe()) { //If it is NOT ME do counter2 and daycount
-          // These are all checked for existance in the database in the functions and also the nodb
-          // is checked and if true we return at once.
-
           $this->counter2(); // in 'masterdb' database
           $this->daycount(); // in 'masterdb' database
         }
@@ -361,7 +358,7 @@ EOF;
       $image2 = "<img id='headerImage2' alt='headerImage2' src='$h->trackerLocation?page=normal&amp;id=$this->LAST_ID&amp;image=$this->trackerImg2'>";
       $image3 = "<img id='noscript' alt='noscriptImage' src='$h->trackerLocation?page=noscript&amp;id=$this->LAST_ID'>";
     }
-    
+
     if(!is_null($this->bannerFile)) {
       $pageBannerText = require($h->bannerFile);
     } else {
@@ -731,7 +728,7 @@ EOF;
       
       $this->query("insert into $this->masterdb.daycounts (site, `date`, lasttime) values('$this->siteName', current_date(), now())");
     } catch(SqlException $e) {
-      if($e->getCode() != 1062) {
+      if($e->getCode() != 1062) { // I expect this to fail for dupkey after the first insert per day.
         throw new SqlException(__CLASS__ . "$e", $this);
       }
     }
