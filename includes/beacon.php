@@ -39,10 +39,11 @@ $S->isMeFalse = $data['isMeFalse'];
 $msg = strtoupper($type);
 
 if(!$id || $visits === null) {
+  if(!$msg) $msg = "NO_TYPE";
   error_log("beacon:  NO ID, $ip, $site, $msg -- visits=$visits, \$S->ip=$S->ip, \$S->self=$S->self, \$S->agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
   
   $S->query("insert into $S->masterdb.badplayer (ip, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', '$site', '$S->self', 'counted', '{$msg}_GOAWAY', 1, '-104', 'NO ID Go away', '$S->agent', now(), now()) ".
+            "values('$S->ip', '$site', '$S->self', 'counted', '{$msg}_BEACON_GOAWAY', 1, '-104', 'NO ID Go away', '$S->agent', now(), now()) ".
             "on duplicate key update count=count+1, lasttime=now()");
 
   echo "<h1>GO AWAY</h1><p>" . BEACON_VERSION . "</p>";

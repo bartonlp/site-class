@@ -1,7 +1,7 @@
 <?php
 // Track the various thing that happen. Some of this is done via JavaScript while others are by the
 // header images and the csstest that is in the .htaccess file as a RewirteRule.
-// NOE: the $_site info is from a mysitemap.json that is where the tracker.php
+// NOTE: the $_site info is from a mysitemap.json that is where the tracker.php
 // is located (or a directory above it) not necessarily from the mysitemap.json that lives with the
 // target program.
 /*
@@ -121,14 +121,21 @@ if($_POST['page'] == 'start') {
 
   if($S->query("select botAs, isJavaScript, hex(isJavaScript) from $S->masterdb.tracker where id=$id")) {
     [$botAs, $java, $js] = $S->fetchrow('num');
+  } else { // BLP 2023-02-10 - add for debug
+    error_log("tracker.php select of id=$id failed: id=$id, site=$site, page=$thepage, ip=$ip");
   }
-
+  
   $java |= TRACKER_START; 
   $js2 = strtoupper(dechex($java));
 
-  if(!$S->isMyIp($ip) && $DEBUG_START) error_log("tracker: $id, $ip, $site, $thepage, START1, botAs=$botAs, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+  if(!$S->isMyIp($ip) && $DEBUG_START) {
+    error_log("tracker: $id, $ip, $site, $thepage, START1, botAs=$botAs, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+  }
   
-  $S->query("update $S->masterdb.tracker set isJavaScript='$java', lasttime=now() where id='$id'");
+  if(!$S->query("update $S->masterdb.tracker set isJavaScript='$java', lasttime=now() where id='$id'")) { // BLP 2023-02-10 - add for debug
+    error_log("tracker.php update of id=$id failed: id=$id, site=$site, page=$thepage, ip=$ip");
+  }
+
   echo "Start OK, visits: $visits, java=$js";
   exit();
 }
@@ -547,7 +554,7 @@ if($id) {
   $finger = $S->fetchrow('num')[0] ?? "NONE";
 }
 $request = $_REQUEST ? ", \$_REQUEST: " . print_r($_REQUEST, true) : '';
-$id = $id ?? "NO ID  ";
+$id = $id ?? "NO_ID__";
 error_log("tracker: $id, $S->ip, $S->siteName, $S->self, GOAWAY, $S->agent, finger=$finger{$request}");
 
 GOAWAYNOW:

@@ -25,12 +25,14 @@ class Database extends dbAbstract {
    */
 
   public function __construct(object $s, ?bool $isSiteClass=null) {
-    global $__info, $h, $b; // BLP 2023-01-24 - added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
+    global $__info; // BLP 2023-01-24 - added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
 
     // BLP 2023-01-30 - We initialize $h and $b here for use with all things SiteClass et all.
     
-    $h = new \stdClass;
-    $b = new \stdClass;
+    //$h = new \stdClass;
+    //$b = new \stdClass;
+    $GLOBALS['h'] = new \stdClass; // BLP 2023-02-01 - 
+    $GLOBALS['b'] = new \stdClass;
     
     $this->errorClass = new ErrorClass();
 
