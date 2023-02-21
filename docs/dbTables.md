@@ -66,17 +66,17 @@ The 'maketable' method takes several optional arguments to help setup the table.
 The '$extra' argument is an associative array with the following items:
 
 * 'callback': this contains a function to call. The function receives two reference arguments:
-&$row and &$desc.  
-`function callbackfunction(&$row, &$desc) {}`    
+\&$row and \&$desc.  
+`function callbackfunction(\&$row, \&$desc) {}`    
 The $row has the row from the table. The '$desc' looks like  
 `<tr><td>*</td></tr>`  
 For example if your sql query looked like this:  
 `$sql = "select test as Test from sometable";`    
-Then $row['Test'] would have the item 'test' from the table. This value can be modified in the
+Then \$row['Test'] would have the item 'test' from the table. This value can be modified in the
 callback function. For example:  
 `$row['Test'] = "<span class='odd'>{$row['Test']}</span>";`  
 This code would change the referenced value.  
-'$desc' can be changed also:   
+'\$desc' can be changed also:   
 `$desc = preg_replace('~<tr>~', "<tr class='oddtr'>", $desc);`
 
 * 'callback2': this is done after 'callback'. The callback2 function takes a single '&$desc' 
