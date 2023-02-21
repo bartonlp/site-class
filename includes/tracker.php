@@ -368,15 +368,15 @@ if($type = $_GET['page']) {
     // try to insert into the id that was passed in.
 
     try {
-      $ip = "NONE";
+      $ip = "NO_IP";
 
       $sql = "insert into $S->masterdb.tracker (id, ip, botAs, starttime, lasttime) ".
-             "values($id, '$ip', '$botAs', now(), now()) ".
-             "on duplicate key update botAs='$botAs', lasttime=now()";
+             "values($id, '$S->ip', '$ip,$botAs', now(), now()) ".
+             "on duplicate key update botAs='$ip,$botAs', lasttime=now()";
       
       $S->query($sql);
 
-      error_log("tracker: $id, $ip, $S->siteName, $S->self, SELECT_FAILED_INSERT_OK_{$msg}, ".
+      error_log("tracker: $id, \$S->ip=$S->ip, $S->siteName, $S->self, SELECT_FAILED_INSERT_OK_$ip_{$msg}, ".
                 "err=$errno, errmsg=$errmsg, time=" . (new DateTime)->format('H:i:s:v'));
     } catch(Exception $e) {
       $errno = $e->getCode();
@@ -387,12 +387,11 @@ if($type = $_GET['page']) {
 
       try {
         $sql = "insert into $S->masterdb.badplayer (ip, id, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) ".
-               "values('$S->ip', $id, '$S->siteName', '$S->self', '$botAs', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+               "values('$S->ip', $id, '$S->siteName', '$S->self', '$ip,$botAs', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
                "on duplicate key update botAs='$botAs', count=count+1, lasttime=now()";
         
         if(!$S->query($sql)) {
-
-          error_log("tracker: $S->ip, badplayer - could not do insert/update");
+          error_log("tracker: \$S->ip=$S->ip, \$ip=$ip badplayer - could not do insert/update");
         } else {
           if(!str_contains($tmpBotAs, BOTAS_COUNTED)) error_log("tracker: $id, $S->ip, insert into badplayer OK: $botAs, $msg, errno=$errno, errmsg=$errmsg, sql=$sql");
         }
@@ -412,7 +411,7 @@ if($type = $_GET['page']) {
 
   $java = hexdec($js);
   
-  if($S->isBot($agent)) {
+  if(empty($agent) || $S->isBot($agent)) {
     if(!str_contains($botAs, BOTAS_COUNTED)) {
       if($botAs) {
         $botAs = BOTAS_COUNTED . ",$botAs";

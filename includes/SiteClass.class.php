@@ -1,12 +1,14 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2023-02-20 - Major changes to the getPage... functions. This approach is probably better
+// then the 'new' branch. I will probably drop 'new' in favor of this approach. Bumped version.
 // BLP 2023-01-31 - add getPageHead so I can see when the methode is accessed.
 // BLP 2023-01-26 - changed Exception to SqlException and added $this to throws.
 // BLP 2023-01-24 - added $__info array for node programs in /examples/node-programs.
 // A node program that is using the 'php' module to be able to 'render()' a PHP file should use
 // $__info to pass the ip address and user agent. See /examples/node-programs/server.js for details.
 
-define("SITE_CLASS_VERSION", "3.4.6"); // BLP 2023-01-31 -  
+define("SITE_CLASS_VERSION", "3.6.0"); // BLP 2023-02-20 - 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -149,16 +151,37 @@ class SiteClass extends Database {
    * @return array top, footer
    */
 
+  // BLP 2023-02-20 - reworked how we capture and ues $h, $b
+  // See the other getPage... functions which now have not $h or $b passed in.
+  // All of the information is placed in $this right here.
+  
   public function getPageTopBottom(?object $h=null, ?object $b=null):array {
-    $h = $h ?? new stdClass;
-        
+    $this->h_inlineScript = $h->inlineScript; // A little klug here
+    $this->b_inlineScript = $b->inlineScript;
+    $this->h_script = $h->script;
+    $this->b_script = $b->script;
+
+    // and in these as we must not put the inlineScript or the script into $this as it has already
+    // been added above.
+    
+    foreach($h as $k=>$v) {
+      if($k == "inlineScript" || $k == "script") continue;
+      $this->$k = $v;
+    }
+    foreach($b as $k=>$v) {
+      if($k == "inlineScript" || $k == "script") continue;
+      $this->$k = $v;
+    }
+
+    //error_log("SiteClass this: " . print_r($this, true));
+    
     // Do getPageTop and getPageFooter
 
-    $top = $this->getPageTop($h);
+    $top = $this->getPageTop();
 
     // BLP 2022-04-09 - We can pass in a footer via $h.
     
-    $footer = $h->footer ?? $this->getPageFooter($b);
+    $footer = $this->footer ?? $this->getPageFooter();
 
     // return the array which we usually get via '[$top, $footer] = $S->getPageTopBottom($h, $b)'
 
@@ -169,20 +192,17 @@ class SiteClass extends Database {
    * getPageTop()
    * Get Page Top
    * Gets both the page <head> and <header> sections
-   * @param ?object $h
    * @return string with the <head>  and <header> (ie banner) sections
    */
   
-  public function getPageTop(?object $h=null):string {
-    $h = $h ?? new stdClass;
-    
+  public function getPageTop():string {
     // Get the page <head> section
 
-    $head = $this->getPageHead($h);
+    $head = $this->getPageHead();
 
     // Get the page's banner section (<header>...</header>)
     
-    $banner = $this->getPageBanner($h);
+    $banner = $this->getPageBanner();
 
     return "$head\n$banner";
   }
@@ -190,66 +210,68 @@ class SiteClass extends Database {
   /**
    * getPageHead()
    * Get the page <head></head> stuff including the doctype etc.
-   * @param object $h
    * @return string $pageHead
    */
 
-  public function getPageHead(?object $h=null):string {
+  public function getPageHead():string {
     $this->getPageHead = true; // BLP 2023-01-31 -
     
-    
-    $h = $h ?? new stdClass;
+    $h = new stdClass;
 
     // use either $h or $this values or a constant
 
-    $dtype = $h->doctype ?? $this->doctype; // note that $this->doctype could also be from mysitemap.json see the constructor.
+    $dtype = $this->doctype; // note that $this->doctype could also be from mysitemap.json see the constructor.
 
-    $h->base = ($h->base = ($h->base ?? $this->base)) ? "<base src='$h->base'>" : null;
+    $h->base = $this->base ? "<base src='$this->base'>" : null;
 
     // All meta tags
 
-    $h->title = ($h->title = ($h->title ?? $this->title)) ? "<title>$h->title</title>" : null;
-    $h->desc = ($h->desc = ($h->desc ?? $this->desc)) ? "<meta name='description' content='$h->desc'>" : null;
-    $h->keywords = ($h->keywords = ($h->keywords ?? $this->keywords)) ? "<meta name='keywords' content='$h->keywords'>" : null;
-    $h->copyright = ($h->copyright = ($h->copyright ?? $this->copyright)) ? "<meta name='copyright' content='$h->copyright'>" : null;
-    $h->author = ($h->author = ($h->author ?? $this->author)) ? "<meta name='author' content='$h->author'>" : null;
-    $h->charset = ($h->charset = ($h->charset ?? $this->charset)) ? "<meta charset='$h->charset'>" : "<meta charset='utf-8'>";
-    $h->viewport = ($h->viewport = ($h->viewport ?? $this->viewport)) ?
-                   "<meta name='viewport' content='$h->viewport'>" : "<meta name='viewport' content='width=device-width, initial-scale=1'>";
-    $h->canonical = ($h->canonical = ($h->canonical ?? $this->canonical)) ? "<link rel='canonical' href='$h->canonical'>" : null;
-    $h->meta = $h->meta ?? $this->meta;
+    $h->title = $this->title ? "<title>$this->title</title>" : null;
+    $h->desc = $this->desc ? "<meta name='description' content='$this->desc'>" : null;
+    $h->keywords = $this->keywords ? "<meta name='keywords' content='$this->keywords'>" : null;
+    $h->copyright = $this->copyright ? "<meta name='copyright' content='$this->copyright'>" : null;
+    $h->author = $this->author ? "<meta name='author' content='$this->author'>" : null;
+    $h->charset = $this->charset ? "<meta charset='$this->charset'>" : "<meta charset='utf-8'>";
+    $h->viewport = $this->viewport ? "<meta name='viewport' content='$this->viewport'>" :
+                   "<meta name='viewport' content='width=device-width, initial-scale=1'>";
+    $h->canonical = $this->canonical ? "<link rel='canonical' href='$this->canonical'>" : null;
+    $h->meta = $this->meta;
     
     // link tags
     
-    $h->favicon = ($h->favicon = ($h->favicon ?? $this->favicon ?? 'https://bartonphillips.net/images/favicon.ico')) ?
-                  "<link rel='shortcut icon' href='$h->favicon'>" : null;
+    $h->favicon = $this->favicon ? "<link rel='shortcut icon' href='$this->favicon'>" :
+                  "<link rel='shortcut icon' href='https://bartonphillips.net/images/favicon.ico'>";
 
-    $h->defaultCss = ($h->defaultCss = ($h->defaultCss ?? $this->defaultCss)) ?
-                     (($h->defaultCss !== true ) ? "<link rel='stylesheet' href='$h->defaultCss' title='default'>" : null)
-                      : "<link rel='stylesheet' href='https://bartonphillips.net/css/blp.css' title='default'>";
-
+    if($this->defaultCss === false) { // If this is false NO default
+      $h->defaultCss = null;
+    } else { // Else either add the value or the default.
+      $h->defaultCss = $this->defaultCss ? "<link rel='stylesheet' href='$this->defaultCss' title='default'>" :
+                       "<link rel='stylesheet' href='https://bartonphillips.net/css/blp.css' title='default'>";
+    }
+    
     // $h->css is a special case. If the style is not already there incase the text in <style> tags.
 
-    if($h->css && preg_match("~<style~", $h->css) == 0) {
-      $h->css = "<style>$h->css</style>";
+    if($this->css && preg_match("~<style~", $this->css) == 0) {
+      $h->css = "<style>$this->css</style>";
     }
 
-    // $h->inlineScript is new. Incase it in script tags
-
-    $h->inlineScript = $h->inlineScript ? "<script>\n$h->inlineScript\n</script>" : null;
+    // We set the $h->inlineScript here with h_inlineScript
+    
+    $h->inlineScript = $this->h_inlineScript ? "<script>\n$this->h_inlineScript\n</script>" : null;
     
     // The rest, $h->link, $h->script and $h->extra need the full '<link' or '<script' text.
-    
-    $h->preheadcomment = $h->preheadcomment ?? $this->preheadcomment; // Must be a real html comment ie <!-- ... -->
-    $h->lang = $h->lang ?? $this->lang ?? 'en';
-    $h->htmlextra = $h->htmlextra ?? $this->htmlextra; // Must be full html
-    
-    $h->headFile = $h->headFile ?? $this->headFile;
-    $h->nojquery = $h->nojquery ?? $this->nojquery; // BLP 2022-04-09 - new
 
+    $h->script = $this->h_script;
+    $h->link = $this->link;
+    $h->extra = $this->extra;
+    
+    $preheadcomment = $this->preheadcomment; // Must be a real html comment ie <!-- ... -->
+    $lang = $this->lang ?? 'en';
+    $htmlextra = $this->htmlextra; // Must be full html
+    
     // If nojquery is true then don't add $trackerStr
 
-    if($h->nojquery !== true) {
+    if($this->nojquery !== true) {
       $jQuery = <<<EOF
   <!-- jQuery BLP 2022-12-21 - Latest version -->
   <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
@@ -258,36 +280,35 @@ class SiteClass extends Database {
 EOF;
       // Should we use tracker.js? If either noTrack or nodb are set in mysitemap.json then don't
 
-      $h->noTrack = $h->noTrack ?? $this->noTrack;
-      $h->nodb = $h->nodb ?? $this->nodb;
-
-      if($h->noTrack === true || $h->nodb === true) {
+      if($this->noTrack === true || $this->nodb === true) {
         $trackerStr = '';
       } else {
-        // BLP 2023-01-31 - moved from abobe if.
-        $h->trackerLocationJs = $h->trackerLocationJs ?? $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
-        $h->trackerLocation = $h->trackerLocation ?? $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
-        $h->beaconLocation = $h->beaconLocation ?? $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php";
+        // BLP 2023-02-20 - trackerLocationJs needs to be part of $this for whatisloaded.class.php.
+      
+        $this->trackerLocationJs = $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
+
+        $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
+        $beaconLocation = $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php";
 
         $trackerStr =<<<EOF
-  <script data-lastid="$this->LAST_ID" src="$h->trackerLocationJs"></script>
+  <script data-lastid="$this->LAST_ID" src="$this->trackerLocationJs"></script>
   <script>
     var thesite = "$this->siteName",
     theip = "$this->ip",
     thepage = "$this->self",
-    trackerUrl = "$h->trackerLocation",
-    beaconUrl = "$h->beaconLocation";
+    trackerUrl = "$trackerLocation",
+    beaconUrl = "$beaconLocation";
   </script>
 EOF;
       }
     }
     
-    $html = '<html lang="' . $h->lang . '" ' . $h->htmlextra . ">"; // stuff like manafest etc.
+    $html = '<html lang="' . $lang . '" ' . $htmlextra . ">"; // stuff like manafest etc.
 
     // What if headFile is null? Use the Default Head.
 
-    if(!is_null($h->headFile)) {
-      if(($p = require_once($h->headFile)) != 1) {
+    if(!is_null($this->headFile)) {
+      if(($p = require_once($this->headFile)) != 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
         throw new SqlException(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1", $this);
@@ -302,9 +323,9 @@ $html
 $h->title
   <!-- METAs -->
   <meta charset="utf-8"/>
-  <meta name="description" content="{$h->desc}"/>
+  <meta name="description" content="{$this->desc}"/>
   <!-- local link -->
-$h->link
+$this->link
 $jQuery
 $trackerStr
   <!-- extra -->
@@ -321,7 +342,7 @@ EOF;
 
     // Default header has < /> elements. If not XHTML we remove the /> at the end!
     $pageHead = <<<EOF
-{$h->preheadcomment}{$dtype}
+{$preheadcomment}{$dtype}
 $pageHeadText
 EOF;
 
@@ -332,38 +353,33 @@ EOF;
    * getPageBanner()
    * Get Page Banner
    * BLP 2022-01-30 -- New logic
-   * @param ?object $h
    * @return string banner
    */
 
-  public function getPageBanner(?object $h=null):string {
-    $h = $h ?? new stdClass;
+  public function getPageBanner():string {
+    $h = new stdClass;
 
     // BLP 2022-04-09 - These need to be checked here.
     
-    $h->nodb = $h->nodb ?? $this->nodb;
-    $h->noTrack = $h->noTrack ?? $this->noTrack;
-
-    $h->bannerFile = $h->bannerFile ?? $this->bannerFile;
-    $bodytag = $h->bodytag ?? $this->bodytag ?? "<body>";
-    $mainTitle = $h->banner ?? $this->mainTitle;
+    $bodytag = $this->bodytag ?? "<body>";
+    $mainTitle = $this->banner ?? $this->mainTitle;
 
     // BLP 2022-04-09 - if we have nodb or noTrack then there will be no tracker.js or tracker.php
     // so we can't set the images at all.
 
-    $h->trackerLocation = $h->trackerLocation ?? $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
+    $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
 
-    if($h->nodb !== true && $h->noTrack !== true) {
+    if($this->nodb !== true && $this->noTrack !== true) {
       // BLP 2022-03-24 -- Add alt and add src='blank.gif'
       // BLP 2022-04-09 - for now I am leaving trackerImg1 and trackerImg2 only on $this.
     
       $image1 = "<img id='logo' data-image='$this->trackerImg1' alt='logo' src=''>";
-      $image2 = "<img id='headerImage2' alt='headerImage2' src='$h->trackerLocation?page=normal&amp;id=$this->LAST_ID&amp;image=$this->trackerImg2'>";
-      $image3 = "<img id='noscript' alt='noscriptImage' src='$h->trackerLocation?page=noscript&amp;id=$this->LAST_ID'>";
+      $image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal&amp;id=$this->LAST_ID&amp;image=$this->trackerImg2'>";
+      $image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?page=noscript&amp;id=$this->LAST_ID'>";
     }
     
     if(!is_null($this->bannerFile)) {
-      $pageBannerText = require($h->bannerFile);
+      $pageBannerText = require($this->bannerFile);
     } else {
       // a default banner
       $pageBannerText =<<<EOF
@@ -393,16 +409,15 @@ EOF;
   /**
    * getPageFooter()
    * Get Page Footer
-   * @param object $b. 
    * @return string
    */
   
-  public function getPageFooter(?object $b=null):string {
+  public function getPageFooter():string {
     // BLP 2022-01-02 -- if nofooter is true just return an empty footer
 
-    $b = $b ?? new stdClass;
+    $b = new stdClass;
     
-    if(($b->nofooter ?? $this->nofooter) === true) {
+    if($this->nofooter === true) {
       return <<<EOF
 <footer>
 </footer>
@@ -413,42 +428,46 @@ EOF;
     
     // BLP 2022-02-23 -- added the following.
     
-    $b->ctrmsg = $b->ctrmsg ?? $this->ctrmsg;
-    $b->msg = $b->msg ?? $this->msg;
-    $b->msg1 = $b->msg1 ?? $this->msg1;
-    $b->msg2 = $b->msg2 ?? $this->msg2;
+    $b->ctrmsg = $this->ctrmsg;
+    $b->msg = $this->msg;
+    $b->msg1 = $this->msg1;
+    $b->msg2 = $this->msg2;
     
-    $b->address = (($b->noAddress ?? $this->noAddress) ? null : ($b->address ?? $this->address)) . "<br>";
-    $b->noCopyright = $b->noCopyright ?? $this->noCopyright;
-    $b->copyright = $b->noCopyright ? null : ($b->copyright ?? $this->copyright) . "<br>";
+    $b->address = $this->noAddress ? null : ($this->address . "<br>");
+    $noCopyright = $this->noCopyright;
+    $b->copyright = $noCopyright ? null : ($this->copyright . "<br>");
     if(preg_match("~^\d{4}~", $b->copyright) === 1) {
       $b->copyright = "Copyright &copy; $b->copyright";
     }
-    $b->aboutwebsite = $b->aboutwebsite ??
-                       $this->aboutwebsite ??
+    
+    $b->aboutwebsite = $this->aboutwebsite ??
                        "<h2><a target='_blank' href='https://bartonlp.com/otherpages/aboutwebsite.php?site=$this->siteName&domain=$this->siteDomain'>About This Site</a></h2>";
     
-    $b->emailAddress = ($b->noEmailAddress ?? $this->noEmailAddress) ? null : ($b->emailAddress ?? $this->EMAILADDRESS);
-    $b->emailAddress = $b->emailAddress ? "<a href='mailto:$b->emailAddress'>$b->emailAddress</a>" : null;
-    $b->inlineScript = $b->inlineScript ? "<script>\n$b->inlineScript\n</script>" : null;
+    $b->emailAddress = $this->noEmailAddress ? null : ($this->emailAddress ?? $this->EMAILADDRESS);
+    $b->emailAddress = $this->emailAddress ? "<a href='mailto:$this->emailAddress'>$this->emailAddress</a>" : null;
+
+    // Set the $b values from the b_ values
+    
+    $b->inlineScript = $this->b_inlineScript ? "<script>\n$this->b_inlineScript\n</script>" : null;
+    $b->script = $this->b_script;
 
     // counterWigget is available to the footerFile to use if wanted.
     // BLP 2022-01-02 -- if count is set then use the counter
     
-    if(($b->noCounter ?? $this->noCounter) !== true) {
-      $counterWigget = $this->getCounterWigget($b->ctrmsg); // ctrmsg may be null which is OK
+    if($this->noCounter !== true) {
+      $counterWigget = $this->getCounterWigget($this->ctrmsg); // ctrmsg may be null which is OK
     }
 
     // BLP 2021-10-24 -- lastmod is also available to footerFile to use if wanted.
 
-    if(($b->noLastmod ?? $this->noLastmod) !== true) {
+    if($this->noLastmod !== true) {
       $lastmod = "Last Modified: " . date("M j, Y H:i", getlastmod());
     }
 
     // BLP 2022-01-28 -- add noGeo
 
-    if(($b->noGeo ?? $this->noGeo) !== true) {
-      $geo = $b->gioLocation ?? $this->gioLocation ?? "https://bartonphillips.net/js";
+    if($this->noGeo !== true) {
+      $geo = $this->gioLocation ?? "https://bartonphillips.net/js";
       
       $geo = "<script src='$geo/geo.js'></script>";
     }
@@ -457,7 +476,7 @@ EOF;
     // If either is set to 'false' then use the default footer, else use $this->footerFile unless
     // it is false.
     
-    if(($b->footerFile ?? $this->footerFile) !== false && $this->footerFile !== null) {
+    if($this->footerFile !== false && $this->footerFile !== null) {
       $pageFooterText = require($this->footerFile);
     } else {
       $pageFooterText = <<<EOF
