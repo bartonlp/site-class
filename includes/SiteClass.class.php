@@ -251,6 +251,8 @@ class SiteClass extends Database {
     
     // $h->css is a special case. If the style is not already there incase the text in <style> tags.
 
+    $h->css = $this->css;
+    
     if($this->css && preg_match("~<style~", $this->css) == 0) {
       $h->css = "<style>$this->css</style>";
     }
