@@ -153,10 +153,15 @@ class SiteClass extends Database {
   // All of the information is placed in $this right here.
   
   public function getPageTopBottom(?object $h=null, ?object $b=null):array {
-    $this->h_inlineScript = $h->inlineScript; // A little klug here
-    $this->b_inlineScript = $b->inlineScript;
-    $this->h_script = $h->script;
-    $this->b_script = $b->script;
+    if($h !== null) {
+      $this->h_inlineScript = $h->inlineScript; // A little klug here
+      $this->h_script = $h->script;
+    }
+
+    if($b !== null) {
+      $this->b_inlineScript = $b->inlineScript;
+      $this->b_script = $b->script;
+    }
 
     // and in these as we must not put the inlineScript or the script into $this as it has already
     // been added above.

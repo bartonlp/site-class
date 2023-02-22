@@ -240,8 +240,8 @@
   <![endif]-->
 </head>
 <body>
-<h1 id="siteclass-and-database-methods-version-340-and-200">SiteClass
-and Database Methods (version 3.4.0 and 2.0.0)</h1>
+<h1 id="siteclass-and-database-methods-version-360-and-201">SiteClass
+and Database Methods (version 3.6.0 and 2.0.1)</h1>
 <hr />
 <h2 id="siteclass-methods">SiteClass methods:</h2>
 <p>While there are a number of methods for each of the major classes
@@ -262,11 +262,16 @@ $b is for the footer or bottom. You can pass 'msg', 'msg1', 'msg2' or
 'cntmsg' (see the code).<br />
 I usually put things into the 'footerFile' but on occasions a page needs
 something extra.<br />
-This method calls getPageHead(), getPageBanner(), getPageFooter().</li>
-<li>public function getPageTop(?object $h=null):string</li>
-<li>public function getPageHead(?object $h=null):string</li>
-<li>public function getPageBanner(?object $h=null):string</li>
-<li>public function getPageFooter(?object $b=null):string</li>
+This method calls getPageHead(), getPageBanner(), getPageFooter().<br />
+You can't pas $h or $b to these function. Instead you should set the
+values in $S.<br />
+The two values inlineScript and script values for $h and $b should be
+set as $S-&gt;h_inlineScript.<br />
+Add an h_ or b_ prefix to the inlineScript or script properties.</li>
+<li>public function getPageTop():string</li>
+<li>public function getPageHead():string</li>
+<li>public function getPageBanner():string</li>
+<li>public function getPageFooter():string</li>
 <li>public function getDoctype():string</li>
 <li>public function __toString():string</li>
 <li>There are a number of 'protected' methods and properties that can be
@@ -319,9 +324,9 @@ they are not as well tested as the other methods.</li>
 <h2 id="contact-me">Contact Me</h2>
 <p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com"><a
 href="mailto:bartonphillips@gmail.com">bartonphillips@gmail.com</a></a>
-Copyright © 2022 Barton Phillips<br />
+Copyright © 2023 Barton Phillips<br />
 Project maintained by <a
 href="https://github.com/bartonlp">bartonlp</a><br />
-Last modified August 14, 2022</p>
+Last modified February 21, 2023</p>
 </body>
 </html>

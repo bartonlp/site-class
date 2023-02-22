@@ -1,4 +1,4 @@
-# SiteClass and Database Methods (version 3.4.0 and 2.0.0)
+# SiteClass and Database Methods (version 3.6.0 and 2.0.1)
 
 ---
 
@@ -17,10 +17,13 @@ $h can have 'title', 'desc', 'banner' and many other less used options.
 $b is for the footer or bottom. You can pass 'msg', 'msg1', 'msg2' or 'cntmsg' (see the code).  
 I usually put things into the 'footerFile' but on occasions a page needs something extra.  
 This method calls getPageHead(), getPageBanner(), getPageFooter().  
-* public function getPageTop(?object $h=null):string  
-* public function getPageHead(?object $h=null):string  
-* public function getPageBanner(?object $h=null):string  
-* public function getPageFooter(?object $b=null):string  
+You can't pas $h or $b to these function. Instead you should set the values in $S.  
+The two values inlineScript and script values for $h and $b should be set as $S->h_inlineScript.  
+Add an h_ or b_ prefix to the inlineScript or script properties.
+* public function getPageTop():string  
+* public function getPageHead():string  
+* public function getPageBanner():string  
+* public function getPageFooter():string  
 * public function getDoctype():string  
 * public function \__toString():string  
 * There are a number of 'protected' methods and properties that can be used in a child class.
@@ -70,6 +73,6 @@ I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are
 ## Contact Me
 
 Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a>
-Copyright &copy; 2022 Barton Phillips  
+Copyright &copy; 2023 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)  
-Last modified August 14, 2022
+Last modified February 21, 2023
