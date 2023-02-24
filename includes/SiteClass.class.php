@@ -1,14 +1,7 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
-// BLP 2023-02-20 - Major changes to the getPage... functions. This approach is probably better
-// then the 'new' branch. I will probably drop 'new' in favor of this approach. Bumped version.
-// BLP 2023-01-31 - add getPageHead so I can see when the methode is accessed.
-// BLP 2023-01-26 - changed Exception to SqlException and added $this to throws.
-// BLP 2023-01-24 - added $__info array for node programs in /examples/node-programs.
-// A node program that is using the 'php' module to be able to 'render()' a PHP file should use
-// $__info to pass the ip address and user agent. See /examples/node-programs/server.js for details.
 
-define("SITE_CLASS_VERSION", "3.6.0"); // BLP 2023-02-20 - 
+define("SITE_CLASS_VERSION", "3.6.1"); // BLP 2023-02-24 - 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -49,17 +42,9 @@ class SiteClass extends Database {
    *  'count' is default true.
    *  $s has the values from $_site = require_once(getenv("SITELOADNAME"));
    *  which uses siteload.php to gets values from mysitemap.json.
-   * Some values are added to $s and then we call parent::__constructor with $s and true (isSiteClass).
    */
   
   public function __construct(object $s) {
-    global $__info; // BLP 2023-01-24 - Added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
-
-    $s->ip = $_SERVER['REMOTE_ADDR'] ?? "$__info[0]"; // BLP 2023-01-18 - Added for NODE with php view.
-    $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? "$__info[1]"; // BLP 2022-01-28 -- CLI agent is NULL and $__info[1] will be null also
-    $s->self = htmlentities($_SERVER['PHP_SELF']); 
-    $s->requestUri = $_SERVER['REQUEST_URI'];
-
     // Do the parent Database constructor which does the dbAbstract constructor.
     
     parent::__construct($s, true); // set true to tell Database that it has been called from here.
@@ -153,12 +138,14 @@ class SiteClass extends Database {
   // All of the information is placed in $this right here.
   
   public function getPageTopBottom(?object $h=null, ?object $b=null):array {
-    if($h !== null) {
+    // BLP 2023-02-23 - check if $h or $b have any properties.
+
+    if(count((array)$h) != 0) {
       $this->h_inlineScript = $h->inlineScript; // A little klug here
       $this->h_script = $h->script;
     }
 
-    if($b !== null) {
+    if(count((array)$b) != 0) {
       $this->b_inlineScript = $b->inlineScript;
       $this->b_script = $b->script;
     }
