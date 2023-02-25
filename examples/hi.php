@@ -2,8 +2,8 @@
 $_site = require_once(getenv("SITELOADNAME"));
 $S = new $_site->className($_site);
 
-$h->banner = "<h1>I am HI</h1>";
-[$top, $footer] = $S->getPageTopBottom($h);
+$S->banner = "<h1>I am HI</h1>";
+[$top, $footer] = $S->getPageTopBottom();
 
 echo <<<EOF
 $top

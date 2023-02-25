@@ -28,18 +28,17 @@ $me = $S->isMe() ? 'true' : 'false'; // This should be true if you have inserted
 // These are the value in the myip table (plus my server address).
 $myip = print_r($S->myIp, true);
 
-// The $h object has information that is passed to the getPageTopBottom() function.  
-$h->title = "Example1"; // The <title>
-$h->banner = "<h1>Example1</h1>"; // This is the banner.
+$S->title = "Example1"; // The <title>
+$S->banner = "<h1>Example1</h1>"; // This is the banner.
 // Add some css.
-$h->css =<<<EOF
+$S->css =<<<EOF
 pre { font-size: 8px; }
 EOF;
-$b->inlineScript = "var isMeFalse = true;";
+$S->b_inlineScript = "var isMeFalse = true;";
 $bot1 = $S->isBot('I am a bot') ? "true" : "false"; // This should be true
 $bot2 = $S->isBot($S->agent) ? "true" : "false"; // This should be false unless your are one.
 
-[$top, $footer] = $S->getPageTopBottom($h, $b);
+[$top, $footer] = $S->getPageTopBottom();
 
 echo <<<EOF
 $top

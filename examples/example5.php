@@ -7,17 +7,17 @@ $S = new $_site->className($_site);
 $T = new dbTables($S);
 
 // Pass some info to getPageTopBottom method
-$h->title = "Example"; // Goes in the <title></title>
-$h->banner = "<h1>Example</h1>"; // becomes the <header> section
+$S->title = "Example"; // Goes in the <title></title>
+$S->banner = "<h1>Example</h1>"; // becomes the <header> section
 // Add some local css to but a border and padding on the table 
-$h->css = <<<EOF
+$S->css = <<<EOF
 main table * {
   padding: .5em;
   border: 1px solid black;
 }
 EOF;
 
-[$top, $footer] = $S->getPageTopBottom($h);
+[$top, $footer] = $S->getPageTopBottom();
 
 // create a table from the memberTable
 $sql = "select id, site, page, ip, lasttime from $S->masterdb.tracker where site='Examples' limit 5";

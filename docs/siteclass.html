@@ -240,8 +240,8 @@
   <![endif]-->
 </head>
 <body>
-<h1 id="siteclass-and-database-methods-version-360-and-201">SiteClass
-and Database Methods (version 3.6.0 and 2.0.1)</h1>
+<h1 id="siteclass-and-database-methods-version-362-and-220">SiteClass
+and Database Methods (version 3.6.2 and 2.2.0)</h1>
 <hr />
 <h2 id="siteclass-methods">SiteClass methods:</h2>
 <p>While there are a number of methods for each of the major classes
@@ -254,22 +254,32 @@ $expire, string $path="/", ?string $thedomain=null,<br />
 ?bool $secure=null, ?bool $httponly=null, ?string
 $samesite=null):bool</li>
 <li>public function getIp():string</li>
-<li>public function getPageTopBottom(?object $h=null, ?object
-$b=null):array<br />
-This is the most used method. It takes one or two arguments which can be
-object or null (defaults to null).<br />
-$h can have 'title', 'desc', 'banner' and many other less used
-options.<br />
-$b is for the footer or bottom. You can pass 'msg', 'msg1', 'msg2' or
-'cntmsg' (see the code).<br />
-I usually put things into the 'footerFile' but on occasions a page needs
-something extra.<br />
-This method calls getPageHead(), getPageBanner(), getPageFooter().<br />
-You can't pass $h or $b to these function. Instead you should set the
-values in $S.<br />
-The two values inlineScript and script values for $h and $b should be
-set as $S-&gt;h_inlineScript.<br />
-Add an h_ or b_ prefix to the inlineScript or script properties.</li>
+<li>public function getPageTopBottom(?object $h=null, ?object <span
+class="math inline"><em>b</em> = <em>n</em><em>u</em><em>l</em><em>l</em>) : <em>a</em><em>r</em><em>r</em><em>a</em><em>y</em><em>T</em><em>h</em><em>i</em><em>s</em><em>i</em><em>s</em><em>t</em><em>h</em><em>e</em><em>m</em><em>o</em><em>s</em><em>t</em><em>u</em><em>s</em><em>e</em><em>d</em><em>m</em><em>e</em><em>t</em><em>h</em><em>o</em><em>d</em>.<em>I</em><em>t</em><em>t</em><em>a</em><em>k</em><em>e</em><em>s</em><em>o</em><em>n</em><em>e</em><em>o</em><em>r</em><em>t</em><em>w</em><em>o</em><em>a</em><em>r</em><em>g</em><em>u</em><em>m</em><em>e</em><em>n</em><em>t</em><em>s</em><em>w</em><em>h</em><em>i</em><em>c</em><em>h</em><em>c</em><em>a</em><em>n</em><em>b</em><em>e</em><em>o</em><em>b</em><em>j</em><em>e</em><em>c</em><em>t</em><em>o</em><em>r</em><em>n</em><em>u</em><em>l</em><em>l</em>(<em>d</em><em>e</em><em>f</em><em>a</em><em>u</em><em>l</em><em>t</em><em>s</em><em>t</em><em>o</em><em>n</em><em>u</em><em>l</em><em>l</em>).<em>Y</em><em>o</em><em>u</em><em>c</em><em>a</em><em>n</em><em>u</em><em>s</em><em>e</em>*</span>h*
+and <em>$b</em> but the perfered method is the set the properties of
+<strong>SiteClass</strong>.<br />
+I usually have this code at the top of my page:</li>
+</ul>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode php"><code class="sourceCode php"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">$_site</span> <span class="op">=</span> <span class="kw">require_once</span>(<span class="fu">getenv</span>(<span class="st">&quot;SITELOADNAME&quot;</span>))<span class="ot">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="va">$S</span> <span class="op">=</span> <span class="kw">new</span> <span class="cn">S</span>iteClass(<span class="va">$_site</span>)<span class="ot">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Set the properties of $S</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="va">$S</span>-&gt;title <span class="op">=</span> <span class="st">&quot;test page&quot;</span><span class="ot">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="va">$S</span>-&gt;banner <span class="op">=</span> <span class="st">&quot;&lt;h1&gt;</span><span class="va">$S</span>-&gt;title<span class="st">&lt;/h1&gt;&quot;</span><span class="ot">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="va">$S</span>-&gt;css <span class="op">=</span> <span class="st">&quot;h1 { color: red; }&quot;</span><span class="ot">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="va">$S</span>-&gt;b_inlineScript <span class="op">=</span> <span class="st">&quot;console.log(&#39;this is a test&#39;)&quot;</span><span class="ot">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>[<span class="va">$top</span><span class="ot">,</span> <span class="va">$footer</span>] <span class="op">=</span> <span class="va">$S</span>-&gt;getPageTopBottom()<span class="ot">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">echo</span> <span class="ss">&lt;&lt;&lt;EOF</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="va">$top</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="st">&lt;p&gt;Some test stuff&lt;/p&gt;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="va">$footer</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="ss">EOF</span>;</span></code></pre></div>
+<p>You could also set <em><span
+class="math inline"><em>h</em> * <em>a</em><em>n</em><em>d</em>*</span>b</em>
+but this is depreciated.</p>
+<p>getPageTopBottom() calls getPageHead(), getPageBanner(),
+getPageFooter().</p>
+<ul>
 <li>public function getPageTop():string</li>
 <li>public function getPageHead():string</li>
 <li>public function getPageBanner():string</li>
@@ -284,10 +294,9 @@ used in a child class.</li>
 <li>constructor</li>
 <li>public function getDb():object. Get the database object.</li>
 <li>public function setDb($db). Set the database object.</li>
-<li>public function query($query)<br />
-This is the workhourse of the database. It is used for 'select',
-'update', 'insert' and basically anything you need to do like 'drop',
-'alter' etc. $query is the sql statement.</li>
+<li>public function query(<span
+class="math inline"><em>s</em><em>q</em><em>l</em>)<em>T</em><em>h</em><em>i</em><em>s</em><em>i</em><em>s</em><em>t</em><em>h</em><em>e</em><em>w</em><em>o</em><em>r</em><em>k</em><em>h</em><em>o</em><em>u</em><em>r</em><em>s</em><em>e</em><em>o</em><em>f</em><em>t</em><em>h</em><em>e</em><em>d</em><em>a</em><em>t</em><em>a</em><em>b</em><em>a</em><em>s</em><em>e</em>.<em>I</em><em>t</em><em>i</em><em>s</em><em>u</em><em>s</em><em>e</em><em>d</em><em>f</em><em>o</em><em>r</em>′<em>s</em><em>e</em><em>l</em><em>e</em><em>c</em><em>t</em>′, ′<em>u</em><em>p</em><em>d</em><em>a</em><em>t</em><em>e</em>′, ′<em>i</em><em>n</em><em>s</em><em>e</em><em>r</em><em>t</em>′<em>a</em><em>n</em><em>d</em><em>b</em><em>a</em><em>s</em><em>i</em><em>c</em><em>a</em><em>l</em><em>l</em><em>y</em><em>a</em><em>n</em><em>y</em><em>t</em><em>h</em><em>i</em><em>n</em><em>g</em><em>y</em><em>o</em><em>u</em><em>n</em><em>e</em><em>e</em><em>d</em><em>t</em><em>o</em><em>d</em><em>o</em><em>l</em><em>i</em><em>k</em><em>e</em>′<em>d</em><em>r</em><em>o</em><em>p</em>′, ′<em>a</em><em>l</em><em>t</em><em>e</em><em>r</em>′<em>e</em><em>t</em><em>c</em>.*</span>sql*
+is the sql statement.</li>
 <li>public function fetchrow($result=null, $type="both")<br />
 Probably the second most used method. If it follows the 'query' the
 $result is not needed. The only time $result is needed is if there are
@@ -295,11 +304,11 @@ other queries in a while loop. In that case you need to get the result
 of the query by calling the getResult() method before running the while
 loop.<br />
 The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only
-an associative array, while 'num' return a numeric array. I usually use
-a numeric array with</li>
+an associative array, while 'num' return a numeric array.<br />
+I usually use a numeric array with</li>
 </ul>
-<div class="sourceCode" id="cb1"><pre
-class="sourceCode php"><code class="sourceCode php"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span>([<span class="va">$name</span><span class="ot">,</span> <span class="va">$email</span>] <span class="op">=</span> <span class="va">$S</span>-&gt;fetchrow(<span class="st">&#39;num&#39;</span>)) { ... }</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode php"><code class="sourceCode php"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span>([<span class="va">$name</span><span class="ot">,</span> <span class="va">$email</span>] <span class="op">=</span> <span class="va">$S</span>-&gt;fetchrow(<span class="st">&#39;num&#39;</span>)) { ... }</span></code></pre></div>
 <ul>
 <li>public function queryfetch($query, $retarray=false)</li>
 <li>public function getLastInsertId()<br />
@@ -330,6 +339,6 @@ href="mailto:bartonphillips@gmail.com">bartonphillips@gmail.com</a></a>
 Copyright © 2023 Barton Phillips<br />
 Project maintained by <a
 href="https://github.com/bartonlp">bartonlp</a><br />
-Last modified February 21, 2023</p>
+Last modified February 24, 2023</p>
 </body>
 </html>

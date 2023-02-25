@@ -8,9 +8,8 @@ $_site = require_once(getenv("SITELOADNAME"));
 
 $S = new $_site->className($_site);
 
-// The $h object has information that is passed to the getPageTopBottom() function.  
-$h->title = "Example3"; // The <title>
-$h->banner = "<h1>Example3</h1>"; // This is the banner.
+$S->title = "Example3"; // The <title>
+$S->banner = "<h1>Example3</h1>"; // This is the banner.
 
 // Lets do some database stuff
 /* Here is the schema for the counter table.
@@ -41,7 +40,7 @@ while([$file, $site, $count, $real, $lasttime] = $S->fetchrow('num')) {
 $T = new dbTables($S);
 $tbl = $T->maketable($sql, ['attr'=>['id'=>'table1', 'border'=>'1']])[0];
 
-[$top, $footer] = $S->getPageTopBottom($h, $b);
+[$top, $footer] = $S->getPageTopBottom();
 
 echo <<<EOF
 $top

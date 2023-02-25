@@ -20,9 +20,9 @@ $prefix = $_SERVER['HTTPS'] == "on" ? 'https://' : 'http://';
 
 $webdomain = $prefix . $webdomain;
 
-$h->title = "About This Web Site and Server";
-$h->banner = "<h2 class='center'>About This Web Site and Server</h2>";
-$h->css = <<<EOF
+$S->title = "About This Web Site and Server";
+$S->banner = "<h2 class='center'>About This Web Site and Server</h2>";
+$S->css = <<<EOF
 img { border: 0; }
 /* About this web site (aboutwebsite.php)  */
 #aboutWebSite {
@@ -73,7 +73,7 @@ img[alt="Best viewed with Mozilla or any other browser"] {
 }
 EOF;
 
-[$top, $footer] = $S->getPageTopBottom($h);
+[$top, $footer] = $S->getPageTopBottom();
 
 echo <<<EOF
 $top
