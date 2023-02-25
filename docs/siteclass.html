@@ -254,16 +254,18 @@ $expire, string $path="/", ?string $thedomain=null,<br />
 ?bool $secure=null, ?bool $httponly=null, ?string
 $samesite=null):bool</li>
 <li>public function getIp():string</li>
-<li>public function getPageTopBottom(?object $h=null, ?object <span
-class="math inline"><em>b</em> = <em>n</em><em>u</em><em>l</em><em>l</em>) : <em>a</em><em>r</em><em>r</em><em>a</em><em>y</em><em>T</em><em>h</em><em>i</em><em>s</em><em>i</em><em>s</em><em>t</em><em>h</em><em>e</em><em>m</em><em>o</em><em>s</em><em>t</em><em>u</em><em>s</em><em>e</em><em>d</em><em>m</em><em>e</em><em>t</em><em>h</em><em>o</em><em>d</em>.<em>I</em><em>t</em><em>t</em><em>a</em><em>k</em><em>e</em><em>s</em><em>o</em><em>n</em><em>e</em><em>o</em><em>r</em><em>t</em><em>w</em><em>o</em><em>a</em><em>r</em><em>g</em><em>u</em><em>m</em><em>e</em><em>n</em><em>t</em><em>s</em><em>w</em><em>h</em><em>i</em><em>c</em><em>h</em><em>c</em><em>a</em><em>n</em><em>b</em><em>e</em><em>o</em><em>b</em><em>j</em><em>e</em><em>c</em><em>t</em><em>o</em><em>r</em><em>n</em><em>u</em><em>l</em><em>l</em>(<em>d</em><em>e</em><em>f</em><em>a</em><em>u</em><em>l</em><em>t</em><em>s</em><em>t</em><em>o</em><em>n</em><em>u</em><em>l</em><em>l</em>).</span>h
-can have 'title', 'desc', 'banner' and many other less used
+<li>public function getPageTopBottom(?object $h=null, ?object
+$b=null):array<br />
+This is the most used method. It takes one or two arguments which can be
+object or null (defaults to null).<br />
+$h can have 'title', 'desc', 'banner' and many other less used
 options.<br />
 $b is for the footer or bottom. You can pass 'msg', 'msg1', 'msg2' or
 'cntmsg' (see the code).<br />
 I usually put things into the 'footerFile' but on occasions a page needs
 something extra.<br />
 This method calls getPageHead(), getPageBanner(), getPageFooter().<br />
-You can't pas $h or $b to these function. Instead you should set the
+You can't pass $h or $b to these function. Instead you should set the
 values in $S.<br />
 The two values inlineScript and script values for $h and $b should be
 set as $S-&gt;h_inlineScript.<br />
@@ -282,9 +284,10 @@ used in a child class.</li>
 <li>constructor</li>
 <li>public function getDb():object. Get the database object.</li>
 <li>public function setDb($db). Set the database object.</li>
-<li>public function query(<span
-class="math inline"><em>q</em><em>u</em><em>e</em><em>r</em><em>y</em>)<em>T</em><em>h</em><em>i</em><em>s</em><em>i</em><em>s</em><em>t</em><em>h</em><em>e</em><em>w</em><em>o</em><em>r</em><em>k</em><em>h</em><em>o</em><em>u</em><em>r</em><em>s</em><em>e</em><em>o</em><em>f</em><em>t</em><em>h</em><em>e</em><em>d</em><em>a</em><em>t</em><em>a</em><em>b</em><em>a</em><em>s</em><em>e</em>.<em>I</em><em>t</em><em>i</em><em>s</em><em>u</em><em>s</em><em>e</em><em>d</em><em>f</em><em>o</em><em>r</em>′<em>s</em><em>e</em><em>l</em><em>e</em><em>c</em><em>t</em>′, ′<em>u</em><em>p</em><em>d</em><em>a</em><em>t</em><em>e</em>′, ′<em>i</em><em>n</em><em>s</em><em>e</em><em>r</em><em>t</em>′<em>a</em><em>n</em><em>d</em><em>b</em><em>a</em><em>s</em><em>i</em><em>c</em><em>a</em><em>l</em><em>l</em><em>y</em><em>a</em><em>n</em><em>y</em><em>t</em><em>h</em><em>i</em><em>n</em><em>g</em><em>y</em><em>o</em><em>u</em><em>n</em><em>e</em><em>e</em><em>d</em><em>t</em><em>o</em><em>d</em><em>o</em><em>l</em><em>i</em><em>k</em><em>e</em>′<em>d</em><em>r</em><em>o</em><em>p</em>′, ′<em>a</em><em>l</em><em>t</em><em>e</em><em>r</em>′<em>e</em><em>t</em><em>c</em>.</span>query
-is the sql statement.</li>
+<li>public function query($query)<br />
+This is the workhourse of the database. It is used for 'select',
+'update', 'insert' and basically anything you need to do like 'drop',
+'alter' etc. $query is the sql statement.</li>
 <li>public function fetchrow($result=null, $type="both")<br />
 Probably the second most used method. If it follows the 'query' the
 $result is not needed. The only time $result is needed is if there are

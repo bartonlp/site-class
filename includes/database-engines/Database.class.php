@@ -5,7 +5,7 @@
 // A node program that is using the 'php' module to be able to 'render()' a PHP file should use
 // $__info to pass the ip address and user agent. See /examples/node-programs/server.js for details.
 
-define("DATABASE_CLASS_VERSION", "2.0.1database"); // BLP 2023-01-30 - 
+define("DATABASE_CLASS_VERSION", "2.2.0database"); // BLP 2023-02-24 - 
 
 /**
  * Database wrapper class
@@ -25,26 +25,6 @@ class Database extends dbAbstract {
    */
 
   public function __construct(object $s, ?bool $isSiteClass=null) {
-    global $__info; // BLP 2023-01-24 - added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
-
-    // BLP 2023-01-30 - We initialize $h and $b here for use with all things SiteClass et all.
-    
-    //$h = new \stdClass;
-    //$b = new \stdClass;
-    $GLOBALS['h'] = new \stdClass; // BLP 2023-02-01 - 
-    $GLOBALS['b'] = new \stdClass;
-    
-    $this->errorClass = new ErrorClass();
-
-    // If this is NOT from SiteClass then add these variable.
-    
-    if(!$isSiteClass) {
-      $s->ip = $_SERVER['REMOTE_ADDR'] ?? "$__info[0]"; // BLP 2023-01-18 - Added for NODE with php view.
-      $s->agent = $_SERVER['HTTP_USER_AGENT'] ?? "$__info[1]"; // BLP 2022-01-28 -- CLI agent is NULL and $__info[1] wil be null
-      $s->self = htmlentities($_SERVER['PHP_SELF']);
-      $s->requestUri = $_SERVER['REQUEST_URI'];
-    }
-    
     // Do the parent dbAbstract constructor
     
     parent::__construct($s);

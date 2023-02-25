@@ -1,8 +1,7 @@
 <?php
 /* MAINTAINED and WELL TESTED */
-// BLP 2022-05-26 - 
 
-define("ABSTRACT_CLASS_VERSION", "2.1.0ab");
+define("ABSTRACT_CLASS_VERSION", "2.2.0ab"); // BLP 2023-02-24 - 
 
 // Abstract database class
 // Most of this class is implemented here. This keeps us from having to duplicate this over and
@@ -13,6 +12,22 @@ require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER
 
 abstract class dbAbstract {
   protected function __construct(object $s) {
+    global $__info; // BLP 2023-01-24 - added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
+
+    // BLP 2023-02-24 - This logic can go as soon as I get everything up to date!!!
+    $GLOBALS['h'] = new \stdClass; // BLP 2023-02-01 - 
+    $GLOBALS['b'] = new \stdClass;
+    // BLP 2023-02-24 -
+    
+    $this->errorClass = new ErrorClass();
+
+    // If we have $s items use them otherwise get the defaults
+
+    $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'] ?? "$__info[0]"; // BLP 2023-01-18 - Added for NODE with php view.
+    $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'] ?? "$__info[1]"; // BLP 2022-01-28 -- CLI agent is NULL and $__info[1] wil be null
+    $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
+    $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
+
     foreach($s as $k=>$v) {
       $this->$k = $v;
     }

@@ -11,13 +11,13 @@ The ones most used have some documentation with them.
 * public function setSiteCookie(string $cookie, string $value, int $expire, string $path="/", ?string $thedomain=null,  
 ?bool $secure=null, ?bool $httponly=null, ?string $samesite=null):bool
 * public function getIp():string
-* public function getPageTopBottom(?object $h=null, ?object $b=null):array  
+* public function getPageTopBottom(?object $h=null, ?object $b=null):array   
 This is the most used method. It takes one or two arguments which can be object or null (defaults to null).  
-$h can have 'title', 'desc', 'banner' and many other less used options.  
-$b is for the footer or bottom. You can pass 'msg', 'msg1', 'msg2' or 'cntmsg' (see the code).  
+\$h can have 'title', 'desc', 'banner' and many other less used options.  
+\$b is for the footer or bottom. You can pass 'msg', 'msg1', 'msg2' or 'cntmsg' (see the code).  
 I usually put things into the 'footerFile' but on occasions a page needs something extra.  
 This method calls getPageHead(), getPageBanner(), getPageFooter().  
-You can't pas $h or $b to these function. Instead you should set the values in $S.  
+You can't pass $h or $b to these function. Instead you should set the values in $S.  
 The two values inlineScript and script values for $h and $b should be set as $S->h_inlineScript.  
 Add an h_ or b_ prefix to the inlineScript or script properties.
 * public function getPageTop():string  
@@ -33,7 +33,7 @@ Add an h_ or b_ prefix to the inlineScript or script properties.
 * constructor
 * public function getDb():object. Get the database object.
 * public function setDb($db). Set the database object.
-* public function query($query)  
+* public function query(\$query)  
 This is the workhourse of the database. It is used for 'select', 'update', 'insert' and basically anything you need to do like 'drop', 'alter' etc.
 $query is the sql statement.
 * public function fetchrow($result=null, $type="both")  
