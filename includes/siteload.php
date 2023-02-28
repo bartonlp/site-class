@@ -9,7 +9,6 @@
 // if we did a symlink to DOCUMENT_ROOT + 'weewx/index.php' and the symlink were
 // /extra/weewx then if we did a chdir('..') we would get to /extra which is wrong.
 // What we want is /var/www/weewx to /var/wwww.
-// BLP 2023-01-30 - removed $h and $b from here and added them to Database.class.php
 
 namespace siteload;
 
@@ -129,12 +128,7 @@ EOF;
   }
 }
 
-//$info = new siteload\getinfo();
-//vardump("info", $info);
-//$_site = $info->_site;
 $_site = (new getinfo())->_site;
-
-//vardump("\$_site", $_site);
 
 // BLP 2022-01-12 -- If $_site is NULL that means the json_decode() failed.
 
@@ -155,5 +149,3 @@ EOF;
 }
 
 return $_site;
-
-
