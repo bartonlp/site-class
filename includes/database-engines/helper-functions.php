@@ -49,6 +49,15 @@ if(!function_exists('vardumpNoEscape')) {
   }
 }
 
+// Strip Comments
+
+if(!function_exists('stripComments')) {
+  function stripComments($x) {
+    $pat = '~".*?"(*SKIP)(*FAIL)|(?://[^\n]*)|(?:#[^\n]*)|(?:/\*.*?\*/)~s';
+    return preg_replace($pat, "", $x);
+  }
+}
+
 // Put a line with escaping
 
 if(!function_exists('put')) {

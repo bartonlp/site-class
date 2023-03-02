@@ -240,8 +240,8 @@
   <![endif]-->
 </head>
 <body>
-<h1 id="siteclass-and-database-methods-version-362-and-220">SiteClass
-and Database Methods (version 3.6.2 and 2.2.0)</h1>
+<h1 id="siteclass-and-database-methods-version-370-and-300">SiteClass
+and Database Methods (version 3.7.0 and 3.0.0)</h1>
 <hr />
 <h2 id="siteclass-methods">SiteClass methods:</h2>
 <p>While there are a number of methods for each of the major classes
@@ -254,10 +254,7 @@ $expire, string $path="/", ?string $thedomain=null,<br />
 ?bool $secure=null, ?bool $httponly=null, ?string
 $samesite=null):bool</li>
 <li>public function getIp():string</li>
-<li>public function getPageTopBottom(?object $h=null, ?object <span
-class="math inline"><em>b</em> = <em>n</em><em>u</em><em>l</em><em>l</em>) : <em>a</em><em>r</em><em>r</em><em>a</em><em>y</em><em>T</em><em>h</em><em>i</em><em>s</em><em>i</em><em>s</em><em>t</em><em>h</em><em>e</em><em>m</em><em>o</em><em>s</em><em>t</em><em>u</em><em>s</em><em>e</em><em>d</em><em>m</em><em>e</em><em>t</em><em>h</em><em>o</em><em>d</em>.<em>I</em><em>t</em><em>t</em><em>a</em><em>k</em><em>e</em><em>s</em><em>o</em><em>n</em><em>e</em><em>o</em><em>r</em><em>t</em><em>w</em><em>o</em><em>a</em><em>r</em><em>g</em><em>u</em><em>m</em><em>e</em><em>n</em><em>t</em><em>s</em><em>w</em><em>h</em><em>i</em><em>c</em><em>h</em><em>c</em><em>a</em><em>n</em><em>b</em><em>e</em><em>o</em><em>b</em><em>j</em><em>e</em><em>c</em><em>t</em><em>o</em><em>r</em><em>n</em><em>u</em><em>l</em><em>l</em>(<em>d</em><em>e</em><em>f</em><em>a</em><em>u</em><em>l</em><em>t</em><em>s</em><em>t</em><em>o</em><em>n</em><em>u</em><em>l</em><em>l</em>).<em>Y</em><em>o</em><em>u</em><em>c</em><em>a</em><em>n</em><em>u</em><em>s</em><em>e</em>*</span>h*
-and <em>$b</em> but the perfered method is the set the properties of
-<strong>SiteClass</strong>.<br />
+<li>public function getPageTopBottom():array<br />
 I usually have this code at the top of my page:</li>
 </ul>
 <div class="sourceCode" id="cb1"><pre
@@ -274,9 +271,6 @@ class="sourceCode php"><code class="sourceCode php"><span id="cb1-1"><a href="#c
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="st">&lt;p&gt;Some test stuff&lt;/p&gt;</span></span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="va">$footer</span></span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="ss">EOF</span>;</span></code></pre></div>
-<p>You could also set <em><span
-class="math inline"><em>h</em> * <em>a</em><em>n</em><em>d</em>*</span>b</em>
-but this is depreciated.</p>
 <p>getPageTopBottom() calls getPageHead(), getPageBanner(),
 getPageFooter().</p>
 <ul>
@@ -339,6 +333,6 @@ href="mailto:bartonphillips@gmail.com">bartonphillips@gmail.com</a></a>
 Copyright © 2023 Barton Phillips<br />
 Project maintained by <a
 href="https://github.com/bartonlp">bartonlp</a><br />
-Last modified February 24, 2023</p>
+Last modified March 1, 2023</p>
 </body>
 </html>

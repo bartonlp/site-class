@@ -1,11 +1,7 @@
 <?php
 /* Well tested and maintained */
-// BLP 2023-01-30 - Add global for $h and $b and then make them a stdClass.
-// BLP 2023-01-24 - added $__info array for node programs in /examples/node-programs.
-// A node program that is using the 'php' module to be able to 'render()' a PHP file should use
-// $__info to pass the ip address and user agent. See /examples/node-programs/server.js for details.
 
-define("DATABASE_CLASS_VERSION", "2.2.0database"); // BLP 2023-02-24 - 
+define("DATABASE_CLASS_VERSION", "3.0.0database"); // BLP 2023-02-24 - 
 
 /**
  * Database wrapper class
@@ -13,9 +9,6 @@ define("DATABASE_CLASS_VERSION", "2.2.0database"); // BLP 2023-02-24 -
 
 class Database extends dbAbstract {
   /**
-   * BLP 2021-10-28 -- major overhall. Now we pass only an object in, before we passed a complicated 'mixed' in.
-   * There is no program that uses anything but $_site from mysitemap.json.
-   *
    * constructor
    * @param $s object. $isSiteClass bool.
    * $s should have all of the $this from SiteClass or $_site from mysitemap.json
@@ -24,7 +17,9 @@ class Database extends dbAbstract {
    * $isSiteClass is true if this is from SiteClass.
    */
 
-  public function __construct(object $s, ?bool $isSiteClass=null) {
+  private $hitCount = 0;
+
+  public function __construct(object $s) {
     // Do the parent dbAbstract constructor
     
     parent::__construct($s);
@@ -34,44 +29,6 @@ class Database extends dbAbstract {
     if($this->nodb || !$this->dbinfo) {
       return;
     }
-
-    $db = null;
-    $arg = $this->dbinfo;
-
-    // BLP BLP 2022-01-14 -- In almost all cases the Database password is now in
-    // /home/barton/database-password on bartonlp.org
-
-    $password = ($this->dbinfo->password) ?? require("/home/barton/database-password");
-
-    if(isset($arg->engine) === false) {
-      $this->errno = -2;
-      $this->error = "'engine' not defined";
-      throw new SqlException(__METHOD__, $this);
-    }
-
-    // BLP 2023-01-26 - currently there is only ONE viable engine and that is dbMysqli
-    
-    $class = "db" . ucfirst(strtolower($arg->engine));
-    
-    if(class_exists($class)) {
-      $db = @new $class($arg->host, $arg->user, $password, $arg->database, $arg->port);
-    } else {
-      throw new SqlException(__METHOD__ .": Class Not Found : $class<br>", $this);
-    }
-
-    if(is_null($db) || $db === false) {
-      throw new SqlException(__METHOD__ . ": Connect failed", $this);
-    }
-    
-    $this->db = $db;
-    // BLP 2022-10-31 - Add noTrack
-    if($this->noTrack !== false && ($this->dbinfo->user == "barton" || $this->user == "barton")) { // make sure its the 'barton' user!
-      $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
-    }
-
-    // Escapte the agent in case it has something like an apostraphy in it.
-    
-    $this->agent = $this->escape($this->agent);
   } // END Construct
 
   /**
@@ -210,7 +167,259 @@ class Database extends dbAbstract {
     $this->isBot = false;
     return $this->isBot;
   }
+
+  // ********************************************************************************
+  // Private and protected methods.
+  // Protected methods can be overridden in child classes so most things that would be private
+  // should be protected in this base class
+
+  // **************
+  // Start Counters
+  // **************
+
+  /**
+   * trackbots()
+   * Track both bots and bots2
+   * This sets $this->isBot unless the 'bots' table is not found.
+   * SEE defines.php for the values for isJavaScript.
+     CREATE TABLE `bots` (
+       `ip` varchar(40) NOT NULL DEFAULT '',
+       `agent` text NOT NULL,
+       `count` int DEFAULT NULL,
+       `robots` int DEFAULT '0',
+       `site` varchar(255) DEFAULT NULL, // this is $who which can be multiple sites seperated by commas.
+       `creation_time` datetime DEFAULT NULL,
+       `lasttime` datetime DEFAULT NULL,
+       PRIMARY KEY (`ip`,`agent`(254))
+     ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+     CREATE TABLE `bots2` (
+       `ip` varchar(40) NOT NULL DEFAULT '',
+       `agent` text NOT NULL,
+       `page` text,
+       `date` date NOT NULL,
+       `site` varchar(50) NOT NULL DEFAULT '', 
+       `which` int NOT NULL DEFAULT '0',
+       `count` int DEFAULT NULL,
+       `lasttime` datetime DEFAULT NULL,
+       PRIMARY KEY (`ip`,`agent`(254),`date`,`site`,`which`)
+     ) ENGINE=InnoDB DEFAULT CHARSET=latin1
+     Things enter the bots table from 'robots.txt', 'Sitemap.xml' and BOTS_CRON_ZERO from checktracker2.php.
+     Also if we have found BOTS_MATCH or BOTS_TABLE we enter it here.
+   */
+
+  protected function trackbots():void {
+    if(!empty($this->foundBotAs)) {
+      $agent = $this->agent;
+
+      try {
+        $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
+                     "values('$this->ip', '$agent', 1, " . BOTS_SITECLASS . ", '$this->siteName', now(), now())");
+      } catch(SqlException $e) {
+        if($e->getCode() == 1062) { // duplicate key
+          // We need the site info first. This can be one or multiple sites seperated by commas.
+
+          $this->query("select site from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
+
+          $who = $this->fetchrow('num')[0]; // get the site which could have multiple sites seperated by commas.
+
+          // Look at who (the haystack) and see if siteName is there. If it is not there this
+          // returns false.
+
+          if(strpos($who, $this->siteName) === false) {
+            $who .= ", $this->siteName";
+          }
+
+          $this->query("update $this->masterdb.bots set robots=robots | " . BOTS_SITECLASS . ", site='$who', count=count+1, lasttime=now() ".
+                       "where ip='$this->ip' and agent='$agent'");
+        } else {
+          throw new SqlException(__CLASS__ . " " . __LINE__ . ":$e", $this);
+        }
+      }
+
+      // Now do bots2
+
+      $this->query("insert into $this->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
+                   "values('$this->ip', '$agent', '$this->self', now(), '$this->siteName', " . BOTS_SITECLASS . ", 1, now())".
+                   "on duplicate key update count=count+1, lasttime=now()");
+    }
+  }
+   
+  /**
+   * tracker()
+   * track if java script or not.
+   * CREATE TABLE `tracker` (
+   *  `id` int NOT NULL AUTO_INCREMENT,
+   *  `botAs` varchar(30) DEFAULT NULL,
+   *  `site` varchar(25) DEFAULT NULL,
+   *  `page` varchar(255) NOT NULL DEFAULT '',
+   *  `finger` varchar(50) DEFAULT NULL,
+   *  `nogeo` tinyint(1) DEFAULT NULL,
+   *  `ip` varchar(40) DEFAULT NULL,
+   *  `agent` text,
+   *  `starttime` datetime DEFAULT NULL,
+   *  `endtime` datetime DEFAULT NULL,
+   *  `difftime` varchar(20) DEFAULT NULL,
+   *  `isJavaScript` int DEFAULT '0',
+   *  `lasttime` datetime DEFAULT NULL,
+   *  PRIMARY KEY (`id`),
+   *  KEY `site` (`site`),
+   *  KEY `ip` (`ip`),
+   *  KEY `lasttime` (`lasttime`),
+   *  KEY `starttime` (`starttime`)
+   * ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3
+   */
+
+  protected function tracker():void {
+    $agent = $this->agent;
+
+    // BLP 2021-12-28 -- Explanation.
+    // Here we set $java (isJavaScript) to 0x8000 or zero.
+    // We then look at isBot and if nothing was found in the bots table and the regex did not
+    // match something in the list then isJavaScript will be zero.
+    // The visitor was probably a bot and will be added to the bots table as a 0x100 by the cron
+    // job checktracker2.php and to the bots2 table as 16. The bot was more than likely curl,
+    // wget, python or the like that sets its user-agent to something that would not trigger my
+    // regex. Such visitor leave very little footprint.
+
+    $java = $this->isMe() ? TRACKER_ME : TRACKER_ZERO;
+
+    if($this->isBot) { // can NEVER be me!
+      $java = TRACKER_BOT; // This is the robots tag
+    }
+
+    // The primary key is id which is auto incrementing so every time we come here we create a
+    // new record.
+
+    // Add foundBotAs to end of agent.
+
+    if($this->foundBotAs != '') {
+      $tmp = preg_replace("~,~", "<br>", $this->foundBotAs);
+      $agent .= $this->foundBotAs ? '<br><span class="botas">' . $tmp . '</span>' : '';
+    }
+    $agent = $this->escape($agent);
+
+    $this->query("insert into $this->masterdb.tracker (botAs, site, page, ip, agent, starttime, isJavaScript, lasttime) ".
+                 "values('$this->foundBotAs', '$this->siteName', '$this->self', '$this->ip','$agent', now(), $java, now())");
+
+    $this->LAST_ID = $this->getLastInsertId();
+  }
+
+  /**
+   * counter()
+   * This is the page counter feature in the footer
+   * By default this uses a table 'counter' with 'filename', 'count', and 'lasttime'.
+   *  'filename' is the primary key.
+   * counter() updates $this->hitCount
+   */
+
+  protected function counter():void {
+    $filename = $this->self; // get the name of the file
+
+    try {
+      $this->query("insert into $this->masterdb.counter (site, filename, count, lasttime) values('$this->siteName', '$filename', 1, now())");
+    } catch(SqlException $e) {
+      if($e->getCode() != 1062) {
+        throw new SqlException(__CLASS__ . " " . __LINE__ . ":$e", $this);
+      }
+    }
+    
+    // Is it me?
+    
+    if(!$this->isMe()) { // No it is NOT me.
+      // realcnt is ONLY NON BOTS
+
+      $realcnt = $this->isBot ? 0 : 1;
+
+      // count is total of ALL hits that are NOT ME!
+
+      $sql = "update $this->masterdb.counter set count=count+1, realcnt=realcnt+$realcnt, lasttime=now() ".
+             "where site='$this->siteName' and filename='$filename'";
+
+      $this->query($sql);
+    }
+
+    // Now retreive the hit count value after it may have been incremented above. NOTE, I am NOT
+    // included here.
+
+    $sql = "select realcnt from $this->masterdb.counter where site='$this->siteName' and filename='$filename'";
+
+    $this->query($sql);
+
+    $this->hitCount = ($this->fetchrow('num')[0]) ?? 0; // This is the number of REAL (non BOT) accesses and NON Me.
+  }
+
+  /**
+   * counter2
+   * count files accessed per day
+   * Primary key is 'site', 'date', 'filename'.
+   */
   
+  protected function counter2():void {
+    [$real, $bot] = $this->isBot ? [0,1] : [1,0];
+
+    $sql = "insert into $this->masterdb.counter2 (site, date, filename, `real`, bots, lasttime) ".
+           "values('$this->siteName', now(), left('$this->self', 254), $real , $bot, now()) ".
+           "on duplicate key update `real`=`real`+$real, bots=bots+$bot, lasttime=now()";
+
+    $this->query($sql);
+  }
+
+  /*
+   * daycount()
+   * This creates the very first record then if this is a BOT it updates 'bots' and 'lasttime'.
+   * We only count robots here. Reals are counted via the AJAX from tracker.js by tracker.php and beacon.php
+     CREATE TABLE `daycounts` (
+      `site` varchar(50) NOT NULL DEFAULT '',
+      `date` date NOT NULL,
+      `real` int DEFAULT '0',
+      `bots` int DEFAULT '0',
+      `visits` int DEFAULT '0',
+      `lasttime` datetime DEFAULT NULL,
+      PRIMARY KEY (`site`,`date`)
+    ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
+   */
+  
+  protected function daycount():void {
+    try {
+      // This will create the very first daycounts entry for the day.
+      
+      $this->query("insert into $this->masterdb.daycounts (site, `date`, lasttime) values('$this->siteName', current_date(), now())");
+    } catch(SqlException $e) {
+      if($e->getCode() != 1062) { // I expect this to fail for dupkey after the first insert per day.
+        throw new SqlException(__CLASS__ . "$e", $this);
+      }
+    }
+    
+    if($this->isBot === false) return; // If NOT a bot return.
+
+    // Only count bots here.
+    
+    $this->query("update $this->masterdb.daycounts set bots=bots+1, lasttime=now() where date=current_date() and site='$this->siteName'");
+  }
+  
+  /**
+   * logagent()
+   * Log logagent
+   * This counts everyone!
+   * logagent is used by 'analysis.php'
+   */
+  
+  protected function logagent():void {
+    // site, ip and agent(256) are the primary key. Note, agent is a text field so we look at the
+    // first 256 characters here (I don't think this will make any difference).
+
+    $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime) " .
+           "values('$this->siteName', '$this->ip', '$this->agent', '1', now(), now()) ".
+           "on duplicate key update count=count+1, lasttime=now()";
+
+    $this->query($sql);
+  }
+
+  // ************
+  // End Counters
+  // ************
+
   /**
    * checkIfBot() before we do any of the other protected functions in SiteClass.
    * Calls the public isBot().
@@ -251,67 +460,6 @@ class Database extends dbAbstract {
     }
   }
 
-  /*
-   * Check if the required tables are presssent.
-   * Returns myIp array.
-   */
-  
-  private function CheckIfTablesExist():array {
-    // Do all of the table checks once here.
-    // NOTE: $this->debug() function is declared in dbAbstract.class.php.
-    
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots')")) {
-      $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots2')"))  {
-      $this->debug("Database $this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'tracker')")) {
-      $this->debug("Database $this->siteName: $this->self: table tracker does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
-      $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter')")) {
-      $this->debug("Database $this->siteName: $this->self: table counter does not exist in the $this->masterdb database: ". __LINE__, true);
-    }      
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter2')")) {
-      $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'daycounts')")) {
-      $this->debug("Database $this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'logagent')")) {
-      $this->debug("Database $this->siteName: $this->self: table logagent does not exist in the $this->masterdb database: " . __LINE__, true);
-    }
-
-    // The masterdb must be owned by 'barton'. That is the dbinfo->user must be
-    // 'barton'. There is one database where this is not true. The 'test' database has a
-    // mysitemap.json file that has dbinfo->user as 'test'. It is in the
-    // bartonphillips.com/exmples.js/user-test directory.
-    // In general all databases that are going to do anything with counters etc. must have a user
-    // of 'barton' and $this->nodb false. The program without 'barton' can NOT do any calls via masterdb!
-
-    //error_log("Database user: " . $this->user);
-    //error_log("Database dbinfo->user: " . $this->dbinfo->user);
-    
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
-      $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-
-    $this->query("select myIp from $this->masterdb.myip");
-
-    while([$ip] = $this->fetchrow('num')) {
-      $myIp[] = $ip;
-    }
-    
-    $myIp[] = DO_SERVER; // BLP 2022-04-30 - Add my server.
-
-    //error_log("Database after myIp set, this: " . print_r($this, true));
-   
-    return $myIp;
-  }
-  
   public function __toString() {
     return __CLASS__;
   }

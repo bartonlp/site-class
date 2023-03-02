@@ -132,7 +132,7 @@ CREATE TABLE `tracker` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 ```
 
-If you look at *SiteClass* you will see several methods in the constructor:
+If you look at *dbAbstract* you will see several methods in the constructor:
 
 * $this->trackbots();
 * $this->tracker();
@@ -140,7 +140,9 @@ If you look at *SiteClass* you will see several methods in the constructor:
 * $this->logagent();
 * $this->counter();
 
-If you look at these methods you will see that they are protected by a check of the database to see if the tables exists in the database. If the table does not exist an 'error_log' message is output. You can prevent the error message by setting "noErrorLog": "true" in the 'mysitemap.json' file.
+If you look at these methods you will see that they are protected by a check of the database to see if the tables exists in the database. 
+If the table does not exist an 'error_log' message is output. 
+You can prevent the error message by setting "noErrorLog": "true" in the 'mysitemap.json' file.
 
 ## Additional Files for Tracking
 
@@ -149,85 +151,16 @@ I have five additional PHP files to check *robots.txt* (robots.php) and *Sitemap
 If you want to track reads of *robots.txt* and *Sitemap.xml* you can add 'RewriteRule' clauses to your '.htaccess' file:
 
 ```bash
-# direct robots.txt to robots.php and Sitemap.xml to sitemap.php
+# Direct robots.txt to robots.php and Sitemap.xml to sitemap.php
+# Also csstest-nnnnn.css redirects to our tracker.php 
 RewriteRule ^robots\.txt$ robots.php [L,NC]
 RewriteRule ^Sitemap\.xml$ sitemap.php [L,NC]
+RewriteRule ^csstest-(.*)\.css$ https://bartonlp.com/otherpages/tracker.php?id=$1&page=csstest [L,QSA]
 ```
-
-If you want to do tracking you can include the 'tracker.js' file in the *php* head section in your 'head.i.php' file.
-
-```php
-<head>
-  <!-- Other head stuff in the head.i.php file -->
-  <!-- jQuery is required for tracker.js -->
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
-  <!-- set the 'lastId' variable to $this->LAST_ID. This is the 'id' key of the entry in the 'tracker' table -->
-  <script>
-var lastId = $this->LAST_ID;
-  </script>
-  <script src="js/tracker.js"></script>
-  <!-- Other stuff -->
-```
-
-The 'tracker.js' will use AJAX to communicate with the 'tracker.php' and 'beacon.php' files. These files track the progress of the session and use 'unload' to capture the end of the session. Look at the two *php* files for more information. From the information in the MySql tables you could create a *php* file that could show the tracking information. I do this on my website so take a look at [www.bartonphillips.com](http://www.bartonphillips.com).
 
 ## Page Counting
 
-If you want a page counter you can add '\$counterWigget' to your 'footer.i.php' file. You can pass arguments via the `$S->getPageTopBottom($h, $b);` by passing a '$b' array. You can pass 'msg', 'msg1', 'msg2' and 'ctrmsg'. Or of course anything else you might want in your footer. The 'ctrmsg' is inserted just above the counter so you can add a reset message like "Counter Reset: 2016-03-27".
-
-```php
-return <<<EOF
-<footer>
-<!-- Other footer stuff like address, copyright etc. -->
-{$arg['msg']}
-{$arg['msg1']} 
-$counterWigget
-{$arg['msg2']}
-</footer>
-</body>
-</html>
-EOF;
-```
-
-The '$counterWigget' has *css* to render the counter. 
-
-```css
-/* Example CSS for the counterWigget */
-/* #hitCounter is a div wrapper around the entire counter */
-#hitCounter {
-        margin-left: auto;
-        margin-right: auto;
-        width: 50%;
-        text-align: center;
-}
-/* #hitCountertbl is the table that holds the counter */
-#hitCountertbl {
-        font-size: 1em;
-        width: 0;
-        border: 8px ridge yellow;
-        margin-left: auto;
-        margin-right: auto;
-        background-color: #F5DEB3
-}
-/* #hitcountertr is the tr tag that holds the counter */
-#hitCountertr {
-        width: 0;
-        border: 8px ridge yellow;
-        margin-left: auto;
-        margin-right: auto;
-        background-color: #F5DEB3
-}
-/* #hitCounterth is the th tag that holds the counter */
-#hitCounterth {
-        color: rgb(123, 16, 66);
-}
-```
-
-The above code created a centered table with a yellow 8 pixel ridge border, a light orangeish background and deep redish numbers. 
-
-![Counter](counter.png)
-
-Using the above *css* you can create almost any type of counter you want. 
+__!!!!NEEDS UPDATING!!!!__
 
 ---
 
@@ -241,6 +174,6 @@ Using the above *css* you can create almost any type of counter you want.
 ## Contact Me
 
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
-Copyright &copy; 2022 Barton Phillips  
+Copyright &copy; 2023 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)
-Last Modified Aug 14, 2022
+Last Modified March 1, 2023
