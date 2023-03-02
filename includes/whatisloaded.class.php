@@ -50,7 +50,9 @@ class WhatIsLoaded {
       }
     }
     $whatis = $this->getVersion();
-    return (object)["site"=>$site, "siteClass"=>$siteClass, "database"=>$database, "dbMysqli"=>$dbMysqli, "tracker"=>$tracker, "beacon"=>$beacon, "trackerjs"=>$javaScript, "whatis"=>$whatis];
+    return (object)["siteload.php"=>$site, "SiteClass.class.php"=>$siteClass,
+                    "Database.class.php"=>$database, "dbMysqli.class.php"=>$dbMysqli, "tracker.php"=>$tracker,
+                    "beacon.php"=>$beacon, "tracker.js"=>$javaScript, "whatisloaded.class.php"=>$whatis];
   }
 
   public static function getVersion() {

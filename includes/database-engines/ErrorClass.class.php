@@ -182,15 +182,15 @@ function finalOutput($error, $from) {
   // Email error information to webmaster
   // During debug set the Error class's $noEmailErrs to ture
   
-  if(ErrorClass::getNoEmailErrs() !== true) {
+  if(ErrorClass::getNoEmail() !== true) {
     $s = $GLOBALS["_site"];
     
-    if(!$s || empty($s->EMAILADDRESS)) {
+    if(/*!$s ||*/ $s?->EMAILADDRESS) {
       $s->EMAILADDRESS = $s->EMAILRETURN = $s->EMAILFROM = "bartonphillips@gmail.com";
+      //mail("bartonphillips@gmail.com", 'TEST From ErrorClass', "This is a test", "From: Barton\r\nBcc: bartonphillips@gmail.com");        
+      mail($s->EMAILADDRESS, $from, "{$err}{$userId}",
+           "From: ". $s->EMAILFROM, "-f ". $s->EMAILRETURN);
     }
-    //mail("bartonphillips@gmail.com", 'TEST From ErrorClass', "This is a test", "From: Barton\r\nBcc: bartonphillips@gmail.com");        
-    mail($s->EMAILADDRESS, $from, "{$err}{$userId}",
-         "From: ". $s->EMAILFROM, "-f ". $s->EMAILRETURN);
   }
 
   // Log the raw error info.
@@ -239,7 +239,7 @@ set_exception_handler('my_exceptionhandler');
  */
 
 class ErrorClass {
-  private static $noEmailErrs = false;
+  private static $noEmail = false;
   private static $development = false;
   private static $noHtml = false;
   private static $errType = null;
@@ -294,19 +294,19 @@ class ErrorClass {
   
   static public function setDevelopment($b) {
     self::$development = $b;
-    self::$noEmailErrs = $b;
+    self::$noEmail = $b;
   }
 
   static public function getDevelopment() {
     return self::$development;
   }
   
-  static public function setNoEmailErrs($b) {
-    self::$noEmailErrs = $b;
+  static public function setNoEmail($b) {
+    self::$noEmail = $b;
   }
 
-  static public function getNoEmailErrs() {
-    return self::$noEmailErrs;
+  static public function getNoEmail() {
+    return self::$noEmail;
   }
   
   static public function setNoHtml($b) {
