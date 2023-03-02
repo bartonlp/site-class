@@ -122,18 +122,18 @@ if($_POST['page'] == 'start') {
   if($S->query("select botAs, isJavaScript, hex(isJavaScript) from $S->masterdb.tracker where id=$id")) {
     [$botAs, $java, $js] = $S->fetchrow('num');
   } else { // BLP 2023-02-10 - add for debug
-    error_log("tracker.php select of id=$id failed: id=$id, site=$site, page=$thepage, ip=$ip");
+    error_log("tracker start: $id, $ip, $site, $thispage,  Select of id=$id failed, time=" . (new DateTime)->format('H:I:s:v'));
   }
   
   $java |= TRACKER_START; 
   $js2 = strtoupper(dechex($java));
 
   if(!$S->isMyIp($ip) && $DEBUG_START) {
-    error_log("tracker: $id, $ip, $site, $thepage, START1, botAs=$botAs, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+    error_log("tracker start: $id, $ip, $site, $thepage, START1, botAs=$botAs, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
   }
   
   if(!$S->query("update $S->masterdb.tracker set isJavaScript='$java', lasttime=now() where id='$id'")) { // BLP 2023-02-10 - add for debug
-    error_log("tracker.php update of id=$id failed: id=$id, site=$site, page=$thepage, ip=$ip");
+    error_log("tracker start: $id, $ip, $site, $thepage, Update of id=$id failed, time=" . (new DateTime)->format('H:i:s:v'));
   }
 
   echo "Start OK, visits: $visits, java=$js";
@@ -434,7 +434,7 @@ if($type = $_GET['page']) {
       if(!$S->query("update $S->masterdb.tracker set botAs='$botAs', lasttime=now() where id=$id")) {
         // We did not find a record. Create a record
 
-        error_log("tracker: $id, $ip, $sit, $thispage, ISABOT_NO_UPDATE_{$msg}, id not valid no update posible, time" . (new DateTime)->format('H:i:s:v'));
+        error_log("tracker: $id, $ip, $site, $thispage, ISABOT_NO_UPDATE_{$msg}, id not valid no update posible, time" . (new DateTime)->format('H:i:s:v'));
 
         try {
           $S->query("insert into $S->masterdb.tracker (id, ip, site, page, agent, botAs, isJavaScript, finger, starttime, lasttime) ".
