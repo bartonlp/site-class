@@ -15,7 +15,7 @@
 // to handal PHP 8.1
 // Updated Version to '2.1.0mysqli'
 
-define("MYSQL_CLASS_VERSION", "2.1.1mysqli"); // BLP 2023-01-30 - 
+define("MYSQL_CLASS_VERSION", "2.1.2mysqli"); // BLP 2023-03-07 - constructor get $dbinfo object and gets password from file.
 
 /**
  * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.
@@ -40,21 +40,22 @@ class dbMysqli extends dbAbstract {
     
   static public $lastQuery = null; // for debugging
   static public $lastNonSelectResult = null; // for insert, update etc.
-  
+
   /**
    * Constructor
-   * @param string $host host name like "localhost:3306" etc.
-   * @param string $user user name for database
-   * @param string $password user's password for database
-   * @param string $database name of the database
-   *
-   * as a side effect opens the database, that is connects and selects the database
+   * @param object $dbinfo. Has host, user, database and maybe password.
+   * as a side effect opens the database, that is connects the database
    */
 
-  public function __construct($host, $user, $password, $database, $port) {
-    if(preg_match("/^(.*?):/", $host, $m)) {
-      $host = $m[1];
+  public function __construct(object $dbinfo) { 
+    // BLP BLP 2022-01-14 -- In almost all cases the Database password is now in
+    // /home/barton/database-password on bartonlp.org
+
+    foreach($dbinfo as $k=>$v) {
+      $$k = $v;
     }
+    $password = $password ?? require("/home/barton/database-password");
+    
     $this->host = $host;
     $this->user = $user;
     $this->password = $password;

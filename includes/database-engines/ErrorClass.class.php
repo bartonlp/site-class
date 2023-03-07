@@ -93,7 +93,7 @@ function my_errorhandler($errno, $errstr, $errfile, $errline) { //, array $errco
 // Relies on the statics from 'ErrorClass' to format the output etc.
 // ErrorClass::$development
 // ErrorClass::$nohtml
-// ErrorClass::$noEmailErrs
+// ErrorClass::$noEmail
 
 function my_exceptionhandler($e) {
   //error_log("Top of my_exceptionhandler");
@@ -180,12 +180,12 @@ function finalOutput($error, $from) {
   if(!$userId) $userId = "agent: ". $_SERVER['HTTP_USER_AGENT'] . "\n";
 
   // Email error information to webmaster
-  // During debug set the Error class's $noEmailErrs to ture
+  // During debug set the Error class's $noEmail to ture
   
   if(ErrorClass::getNoEmail() !== true) {
     $s = $GLOBALS["_site"];
     
-    if(/*!$s ||*/ $s?->EMAILADDRESS) {
+    if($s?->EMAILADDRESS) { // use the new null safe operator.
       $s->EMAILADDRESS = $s->EMAILRETURN = $s->EMAILFROM = "bartonphillips@gmail.com";
       //mail("bartonphillips@gmail.com", 'TEST From ErrorClass', "This is a test", "From: Barton\r\nBcc: bartonphillips@gmail.com");        
       mail($s->EMAILADDRESS, $from, "{$err}{$userId}",
@@ -246,7 +246,7 @@ class ErrorClass {
   private static $noOutput = false;
   private static $instance = null;
   
-  // args can be array|object. noEmailErrs, development, noHtml, noOutput, errType
+  // args can be array|object. noEmail, development, noHtml, noOutput, errType
   
   /**
    *  public Constructor
@@ -259,7 +259,7 @@ class ErrorClass {
       $args = (object)$args;
     }
 
-    if(isset($args->noEmailErrs)) self::$noEmailErrs = $args->noEmailErrs; //$args['noEmailErrs'];
+    if(isset($args->noEmail)) self::$noEmail = $args->noEmail; //$args['noEmail'];
     if(isset($args->development)) self::$development = $args->development;
     if(isset($args->nohtml)) self::$noHtml = $args->noHtml;
     if(isset($args->noOutput)) self::$noOutput = $args->noOutput;
@@ -290,7 +290,7 @@ class ErrorClass {
     return self::$errType;
   }
 
-  //BLP 2021-03-15 -- if we set development also set noEmaiErrs!
+  //BLP 2021-03-15 -- if we set development also set noEmai!
   
   static public function setDevelopment($b) {
     self::$development = $b;

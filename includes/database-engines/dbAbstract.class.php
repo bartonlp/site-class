@@ -1,7 +1,7 @@
 <?php
 /* MAINTAINED and WELL TESTED */
 
-define("ABSTRACT_CLASS_VERSION", "3.0.0ab"); // BLP 2023-02-24 - 
+define("ABSTRACT_CLASS_VERSION", "3.0.1ab"); // BLP 2023-03-07 - remove $arg use $dbinfo. Pass $dbinfo items to dbMysqli
 
 // Abstract database class
 // Most of this class is implemented here. This keeps us from having to duplicate this over and
@@ -29,26 +29,20 @@ abstract class dbAbstract {
       $this->$k = $v;
     }
     
-    // If no database in mysitemap.json set everything so the database is not loaded.
+    // If no 'dbinfo' (no database) in mysitemap.json set everything so the database is not loaded.
     
     if($this->nodb === true || is_null($this->dbinfo)) {
-      // nodb === true so don't do any database stuff
-      $this->nodb = true;
       $this->count = false;
       $this->noTrack = true; // If nodb then noTrack is true also.
-      $this->dbinfo = null;
-      return;
+      $this->nodb = true;    // Maybe $this->dbinfo was null
+      $this->dbinfo = null;  // Maybe nodb was set
+      return; // If we have NO DATABASE just return.
     }
 
     $db = null;
-    $arg = $this->dbinfo;
+    $dbinfo = $this->dbinfo; // BLP 2023-03-07 - change name from $arg to dbinfo. Moved password to dbMysqli
 
-    // BLP BLP 2022-01-14 -- In almost all cases the Database password is now in
-    // /home/barton/database-password on bartonlp.org
-
-    $password = ($this->dbinfo->password) ?? require("/home/barton/database-password");
-
-    if(isset($arg->engine) === false) {
+    if(isset($dbinfo->engine) === false) {
       $this->errno = -2;
       $this->error = "'engine' not defined";
       throw new SqlException(__METHOD__, $this);
@@ -56,10 +50,10 @@ abstract class dbAbstract {
 
     // BLP 2023-01-26 - currently there is only ONE viable engine and that is dbMysqli
     
-    $class = "db" . ucfirst(strtolower($arg->engine));
+    $class = "db" . ucfirst(strtolower($dbinfo->engine));
     
     if(class_exists($class)) {
-      $db = new $class($arg->host, $arg->user, $password, $arg->database, $arg->port);
+      $db = new $class($dbinfo);
     } else {
       throw new SqlException(__METHOD__ .": Class Not Found : $class<br>", $this);
     }

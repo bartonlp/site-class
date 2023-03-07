@@ -1,6 +1,7 @@
 # CHANGES
 
-[Full git log of changes](https://bartonlp.com/gitlog)
+[Full git log of changes](https://bartonlp.com/gitlog)  
+[Version](https://bartonlp.com/otherpages/getVersions.php)
 
 # Currently I have:  
 <ul>

@@ -1,7 +1,7 @@
 <?php
 /* Well tested and maintained */
 
-define("DATABASE_CLASS_VERSION", "3.0.0database"); // BLP 2023-02-24 - 
+define("DATABASE_CLASS_VERSION", "3.0.0database"); // BLP 2023-02-24 -
 
 /**
  * Database wrapper class
@@ -19,7 +19,15 @@ class Database extends dbAbstract {
 
   private $hitCount = 0;
 
-  public function __construct(object $s) {
+  public function __construct(object $s, ?bool $isSiteClass=null) {
+    // If we came from SiteClass $isSiteClass is true.
+    // If we DID NOT come from SiteClass then only set $s->noTrack if specifically set true to
+    // false!
+    
+    if($isSiteClass !== true) {
+      $s->noTrack = $s->noTrack ?? true; // If not set to false set it to true.
+    }
+
     // Do the parent dbAbstract constructor
     
     parent::__construct($s);

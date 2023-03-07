@@ -25,10 +25,8 @@ require_once(__DIR__ . "/defines.php"); // This has the constants for TRACKER, B
 class SiteClass extends Database {
   // Give these default values incase they are not mentioned in mysitemap.json.
   // Note they could still be null from mysitemap.json!
-  
+
   public $count = true;
-  
-  // Current Doc Type
   public $doctype = "<!DOCTYPE html>";
 
   /**
@@ -45,7 +43,7 @@ class SiteClass extends Database {
   public function __construct(object $s) {
     // Do the parent Database constructor which does the dbAbstract constructor.
     
-    parent::__construct($s);
+    parent::__construct($s, true); // BLP 2023-03-04 - second arg is true because this is called from SiteClass!
     
     // BLP 2018-07-01 -- Add the date to the copyright notice if one exists
 

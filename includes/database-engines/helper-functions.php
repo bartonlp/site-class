@@ -1,7 +1,7 @@
 <?php
 /* HELPER FUNCTIONS. Well tested and maintained */
 
-define("HELPER_FUNCTION_VERSION", "1.0.0helper");
+define("HELPER_FUNCTION_VERSION", "1.1.0helper");
 
 /**
  * Helper Functions
@@ -76,6 +76,7 @@ if(!function_exists('putNoEscape')) {
 }
 
 /**
+ * BLP 2023-03-03 - 
  * stripSlashesDeep
  * recursively do stripslahes() on an array or string.
  * @param array|string $value either a string or an array of strings/arrays ...
