@@ -5,7 +5,8 @@ For small websites I feel that frameworks like Laravel or Meteor etc. are just t
 
 See [github.com/bartonlp/site-class](https://github.com/bartonlp/site-class) for a full list of changes.
 
-You can check the versions of the framework: [Get Versions](https://bartonphillips.com/articles/showVersions.php)
+You can check the versions of the framework: [Get Versions](https://bartonphillips.com/articles/showVersions.php)  
+Or [Get Versions](https://bartonlp.com/otherpages/getVersions.php)
 
 This project has several parts that can function standalone or combined.  
 
