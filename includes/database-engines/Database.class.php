@@ -33,10 +33,6 @@ class Database extends dbAbstract {
     parent::__construct($s);
 
     date_default_timezone_set("America/New_York");
-
-    if($this->nodb || !$this->dbinfo) {
-      return;
-    }
   } // END Construct
 
   /**
@@ -328,6 +324,7 @@ class Database extends dbAbstract {
       $this->query("insert into $this->masterdb.counter (site, filename, count, lasttime) values('$this->siteName', '$filename', 1, now())");
     } catch(SqlException $e) {
       if($e->getCode() != 1062) {
+        //error_log("e: |" .print_r($e, true)."|");
         throw new SqlException(__CLASS__ . " " . __LINE__ . ":$e", $this);
       }
     }

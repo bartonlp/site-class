@@ -11,6 +11,13 @@ define("ABSTRACT_CLASS_VERSION", "3.0.1ab"); // BLP 2023-03-07 - remove $arg use
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 abstract class dbAbstract {
+  protected $db;
+  
+  /*
+   * constructor.
+   * @param: object $s. This usually has the info from mysitemap.json.
+   */
+  
   protected function __construct(object $s) {
     global $__info; // BLP 2023-01-24 - added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
 
@@ -55,7 +62,7 @@ abstract class dbAbstract {
     if(class_exists($class)) {
       $db = new $class($dbinfo);
     } else {
-      throw new SqlException(__METHOD__ .": Class Not Found : $class<br>", $this);
+      throw new SqlException(__METHOD__ . ": Class Not Found : $class<br>", $this);
     }
 
     if(is_null($db) || $db === false) {
@@ -137,6 +144,14 @@ abstract class dbAbstract {
 
   public function setDb($db) {
     $this->db = $db;
+  }
+
+  public function getDbError() {
+    return $this->db->error;
+  }
+
+  public function getDbErrno() {
+    return $this->db->errno;
   }
   
   // The following methods either execute or if the method is not defined throw an Exception
