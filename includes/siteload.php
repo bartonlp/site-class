@@ -10,17 +10,21 @@
 // /extra/weewx then if we did a chdir('..') we would get to /extra which is wrong.
 // What we want is /var/www/weewx to /var/wwww.
 
-namespace siteload;
+namespace bartonlp\siteload;
 
-define("SITELOAD_VERSION", "1.0.11siteload"); // BLP 2023-01-30 - 
+define("SITELOAD_VERSION", "2.0.0siteload"); // BLP 2023-01-30 - 
 define("SITECLASS_DIR", __DIR__);
-
 require_once(__DIR__ ."/../../../autoload.php");
+
+// If we only want the version info $__VERSION is set. We do this in whatisloaded.class.php.
+// It can also be done to get the versions of beacon.php and tracker.php.
+
+if($__VERSION_ONLY) return;
 
 class getinfo {
   private $docroot;
   private $mydir;
-  public $_site;
+  private $_site;
   
   public function __construct() {
     $old = error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
@@ -120,6 +124,12 @@ EOF;
     }
   }
 
+  // This is the getter for the private $this->_site;
+  
+  public function getSite() {
+    return $this->_site;
+  }
+  
   // BLP 2021-02-20 -- Added this to remove any comments that may be in my 'mystiemap.json'
 
   private function stripComments($x) {
@@ -128,7 +138,7 @@ EOF;
   }
 }
 
-$_site = (new getinfo())->_site;
+$_site = (new getinfo())->getSite();
 
 // BLP 2022-01-12 -- If $_site is NULL that means the json_decode() failed.
 

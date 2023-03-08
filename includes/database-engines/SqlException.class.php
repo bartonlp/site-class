@@ -52,14 +52,19 @@ class SqlException extends Exception {
       $Error = "No valid \$self->errno or \$self->error.";
     } else {
       //echo "self: " . print_r($self, true). "<br>";
-      $Error = $self->db->error ?? $self->error;
-      $Errno = $self->db->errno ?? $self->errno;
+      //$Error = $self->db->error ?? $self->error;
+      //$Errno = $self->db->errno ?? $self->errno;
+      $Error = $self->getDbError() ?? $self->error;
+      $Errno = $self->getDbErrno() ?? $self->errno;
     }
     // BLP 2023-01-15 - END.
     
-    if(($size = strlen($msg)) > 500) $msg = "Message Too Long: $size";
+    if(($size = strlen($msg)) > 500) {
+      //error_log("TOO LONG: $msg");
+      $msg = "Message Too Long: $size";
+    }
     if(($size = strlen($Error)) > 500) $Error = "Error Too Long: $size";
-
+    
     $backtrace = debug_backtrace(); // trace back information
 
     $caller = $backtrace[1]; // Get caller information

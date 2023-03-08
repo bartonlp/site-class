@@ -372,8 +372,8 @@ class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#c
 <span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a>  <span class="kw">KEY</span> `ip` (`ip`),</span>
 <span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a>  <span class="kw">KEY</span> `agent` (`agent`)</span>
 <span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a>) ENGINE<span class="op">=</span>MyISAM <span class="kw">DEFAULT</span> CHARSET<span class="op">=</span>utf8;</span></code></pre></div>
-<p>If you look at <em>SiteClass</em> you will see several methods in the
-constructor:</p>
+<p>If you look at <em>dbAbstract</em> you will see several methods in
+the constructor:</p>
 <ul>
 <li>$this-&gt;trackbots();</li>
 <li>$this-&gt;tracker();</li>
@@ -396,85 +396,13 @@ These file are here in the 'docs/' directory.</p>
 <em>Sitemap.xml</em> you can add 'RewriteRule' clauses to your
 '.htaccess' file:</p>
 <div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># direct robots.txt to robots.php and Sitemap.xml to sitemap.php</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">RewriteRule</span> ^robots<span class="dt">\.</span>txt$ robots.php <span class="pp">[</span><span class="ss">L,NC</span><span class="pp">]</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">RewriteRule</span> ^Sitemap<span class="dt">\.</span>xml$ sitemap.php <span class="pp">[</span><span class="ss">L,NC</span><span class="pp">]</span></span></code></pre></div>
-<p>If you want to do tracking you can include the 'tracker.js' file in
-the <em>php</em> head section in your 'head.i.php' file.</p>
-<div class="sourceCode" id="cb3"><pre
-class="sourceCode php"><code class="sourceCode php"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>head<span class="op">&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;!--</span> <span class="cn">O</span>ther head stuff in the head<span class="op">.</span>i<span class="op">.</span>php <span class="fu">file</span> <span class="op">-</span>-&gt;</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;!--</span> jQuery is required <span class="cf">for</span> tracker<span class="op">.</span>js <span class="op">-</span>-&gt;</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;</span>script src<span class="op">=</span><span class="st">&quot;http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js&quot;</span><span class="op">&gt;&lt;/</span>script<span class="op">&gt;</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;!--</span> set the <span class="st">&#39;lastId&#39;</span> variable to <span class="va">$this</span>-&gt;<span class="cn">LAST_ID</span><span class="op">.</span> <span class="cn">T</span>his is the <span class="st">&#39;id&#39;</span> <span class="fu">key</span> of the entry in the <span class="st">&#39;tracker&#39;</span> table <span class="op">-</span>-&gt;</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;</span>script<span class="op">&gt;</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="kw">var</span> lastId <span class="op">=</span> <span class="va">$this</span>-&gt;<span class="cn">LAST_ID</span><span class="ot">;</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;/</span>script<span class="op">&gt;</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;</span>script src<span class="op">=</span><span class="st">&quot;js/tracker.js&quot;</span><span class="op">&gt;&lt;/</span>script<span class="op">&gt;</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;!--</span> <span class="cn">O</span>ther stuff <span class="op">-</span>-&gt;</span></code></pre></div>
-<p>The 'tracker.js' will use AJAX to communicate with the 'tracker.php'
-and 'beacon.php' files. These files track the progress of the session
-and use 'unload' to capture the end of the session. Look at the two
-<em>php</em> files for more information. From the information in the
-MySql tables you could create a <em>php</em> file that could show the
-tracking information. I do this on my website so take a look at <a
-href="http://www.bartonphillips.com"><span>www.bartonphillips.com</span></a>.</p>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Direct robots.txt to robots.php and Sitemap.xml to sitemap.php</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Also csstest-nnnnn.css redirects to our tracker.php </span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">RewriteRule</span> ^robots<span class="dt">\.</span>txt$ robots.php <span class="pp">[</span><span class="ss">L,NC</span><span class="pp">]</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">RewriteRule</span> ^Sitemap<span class="dt">\.</span>xml$ sitemap.php <span class="pp">[</span><span class="ss">L,NC</span><span class="pp">]</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">RewriteRule</span> ^csstest-<span class="er">(</span><span class="bu">.</span><span class="pp">*</span><span class="kw">)</span><span class="ex">\.css$</span> https://bartonlp.com/otherpages/tracker.php<span class="pp">?</span>id=<span class="va">$1</span><span class="kw">&amp;</span><span class="va">page</span><span class="op">=</span>csstest <span class="ex">[L,QSA]</span></span></code></pre></div>
 <h2 id="page-counting">Page Counting</h2>
-<p>If you want a page counter you can add '$counterWigget' to your
-'footer.i.php' file. You can pass arguments via the
-<code>$S-&gt;getPageTopBottom($h, $b);</code> by passing a '$b' array.
-You can pass 'msg', 'msg1', 'msg2' and 'ctrmsg'. Or of course anything
-else you might want in your footer. The 'ctrmsg' is inserted just above
-the counter so you can add a reset message like "Counter Reset:
-2016-03-27".</p>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode php"><code class="sourceCode php"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> <span class="ss">&lt;&lt;&lt;EOF</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="st">&lt;footer&gt;</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">&lt;!-- Other footer stuff like address, copyright etc. --&gt;</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>{<span class="va">$arg</span>[<span class="st">&#39;msg&#39;</span>]}</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>{<span class="va">$arg</span>[<span class="st">&#39;msg1&#39;</span>]}<span class="st"> </span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="va">$counterWigget</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>{<span class="va">$arg</span>[<span class="st">&#39;msg2&#39;</span>]}</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="st">&lt;/footer&gt;</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="st">&lt;/body&gt;</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="st">&lt;/html&gt;</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="ss">EOF</span>;</span></code></pre></div>
-<p>The '$counterWigget' has <em>css</em> to render the counter.</p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode css"><code class="sourceCode css"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">/* Example CSS for the counterWigget */</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">/* #hitCounter is a div wrapper around the entire counter */</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#hitCounter</span> {</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="kw">margin-left</span>: <span class="bu">auto</span><span class="op">;</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="kw">margin-right</span>: <span class="bu">auto</span><span class="op">;</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">width</span>: <span class="dv">50</span><span class="dt">%</span><span class="op">;</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">text-align</span>: <span class="dv">center</span><span class="op">;</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">/* #hitCountertbl is the table that holds the counter */</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="pp">#hitCountertbl</span> {</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        <span class="kw">font-size</span>: <span class="dv">1</span><span class="dt">em</span><span class="op">;</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        <span class="kw">width</span>: <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        <span class="kw">border</span>: <span class="dv">8</span><span class="dt">px</span> <span class="dv">ridge</span> <span class="cn">yellow</span><span class="op">;</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">margin-left</span>: <span class="bu">auto</span><span class="op">;</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        <span class="kw">margin-right</span>: <span class="bu">auto</span><span class="op">;</span></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        <span class="kw">background-color</span>: <span class="cn">#F5DEB3</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="co">/* #hitcountertr is the tr tag that holds the counter */</span></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="pp">#hitCountertr</span> {</span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        <span class="kw">width</span>: <span class="dv">0</span><span class="op">;</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        <span class="kw">border</span>: <span class="dv">8</span><span class="dt">px</span> <span class="dv">ridge</span> <span class="cn">yellow</span><span class="op">;</span></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        <span class="kw">margin-left</span>: <span class="bu">auto</span><span class="op">;</span></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        <span class="kw">margin-right</span>: <span class="bu">auto</span><span class="op">;</span></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        <span class="kw">background-color</span>: <span class="cn">#F5DEB3</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="co">/* #hitCounterth is the th tag that holds the counter */</span></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="pp">#hitCounterth</span> {</span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>        <span class="kw">color</span>: <span class="fu">rgb(</span><span class="dv">123</span><span class="op">,</span> <span class="dv">16</span><span class="op">,</span> <span class="dv">66</span><span class="fu">)</span><span class="op">;</span></span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-<p>The above code created a centered table with a yellow 8 pixel ridge
-border, a light orangeish background and deep redish numbers.</p>
-<p><img src="counter.png" alt="Counter" /></p>
-<p>Using the above <em>css</em> you can create almost any type of
-counter you want.</p>
+<p><strong>!!!!NEEDS UPDATING!!!!</strong></p>
 <hr />
 <p><a href="examples.html">Examples</a> <a
 href="dbTables.html">dbTables</a> <a href="siteclass.html">SiteClass
@@ -484,8 +412,8 @@ href="index.html">Index</a></p>
 <h2 id="contact-me">Contact Me</h2>
 <p>Barton Phillips : <a
 href="mailto://bartonphillips@gmail.com"><span>bartonphillips@gmail.com</span></a><br />
-Copyright © 2022 Barton Phillips<br />
+Copyright © 2023 Barton Phillips<br />
 Project maintained by <a href="https://github.com/bartonlp">bartonlp</a>
-Last Modified Aug 14, 2022</p>
+Last Modified March 1, 2023</p>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <?php
 /* MAINTAINED and WELL TESTED */
 
-define("ABSTRACT_CLASS_VERSION", "2.2.0ab"); // BLP 2023-02-24 - 
+define("ABSTRACT_CLASS_VERSION", "3.0.1ab"); // BLP 2023-03-07 - remove $arg use $dbinfo. Pass $dbinfo items to dbMysqli
 
 // Abstract database class
 // Most of this class is implemented here. This keeps us from having to duplicate this over and
@@ -11,14 +11,16 @@ define("ABSTRACT_CLASS_VERSION", "2.2.0ab"); // BLP 2023-02-24 -
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 abstract class dbAbstract {
+  protected $db;
+  
+  /*
+   * constructor.
+   * @param: object $s. This usually has the info from mysitemap.json.
+   */
+  
   protected function __construct(object $s) {
     global $__info; // BLP 2023-01-24 - added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
 
-    // BLP 2023-02-24 - This logic can go as soon as I get everything up to date!!!
-    $GLOBALS['h'] = new \stdClass; // BLP 2023-02-01 - 
-    $GLOBALS['b'] = new \stdClass;
-    // BLP 2023-02-24 -
-    
     $this->errorClass = new ErrorClass();
 
     // If we have $s items use them otherwise get the defaults
@@ -28,8 +30,86 @@ abstract class dbAbstract {
     $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
     $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
 
+    // Put all of the $s values into $this.
+    
     foreach($s as $k=>$v) {
       $this->$k = $v;
+    }
+    
+    // If no 'dbinfo' (no database) in mysitemap.json set everything so the database is not loaded.
+    
+    if($this->nodb === true || is_null($this->dbinfo)) {
+      $this->count = false;
+      $this->noTrack = true; // If nodb then noTrack is true also.
+      $this->nodb = true;    // Maybe $this->dbinfo was null
+      $this->dbinfo = null;  // Maybe nodb was set
+      return; // If we have NO DATABASE just return.
+    }
+
+    $db = null;
+    $dbinfo = $this->dbinfo; // BLP 2023-03-07 - change name from $arg to dbinfo. Moved password to dbMysqli
+
+    if(isset($dbinfo->engine) === false) {
+      $this->errno = -2;
+      $this->error = "'engine' not defined";
+      throw new SqlException(__METHOD__, $this);
+    }
+
+    // BLP 2023-01-26 - currently there is only ONE viable engine and that is dbMysqli
+    
+    $class = "db" . ucfirst(strtolower($dbinfo->engine));
+    
+    if(class_exists($class)) {
+      $db = new $class($dbinfo);
+    } else {
+      throw new SqlException(__METHOD__ . ": Class Not Found : $class<br>", $this);
+    }
+
+    if(is_null($db) || $db === false) {
+      throw new SqlException(__METHOD__ . ": Connect failed", $this);
+    }
+    
+    $this->db = $db;
+
+    if($this->noTrack !== false && ($this->dbinfo->user == "barton" || $this->user == "barton")) { // make sure its the 'barton' user!
+      $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
+    }
+
+    // Escapte the agent in case it has something like an apostraphy in it.
+    
+    $this->agent = $this->escape($this->agent);
+    
+    // These all use database 'barton' ($this->masterdb)
+    // and are always done regardless of 'count'!
+    // If $this->nodb or there is no $this->dbinfo we have made $this->noTrack true and
+    // $this->count false
+    
+    if($this->noTrack !== true) {
+      $this->logagent();   // This logs Me and everybody else! This is done regardless of $this->isBot or $this->isMe().
+
+      // checkIfBot() must be done before the rest because everyone uses $this->isBot.
+
+      $this->checkIfBot(); // This set $this->isBot. Does a isMe() so I never get set as a bot!
+
+      // Now do all of the rest.
+
+      $this->trackbots();  // both 'bots' and 'bots2'. This also does a isMe() so never get put into the 'bots*' tables.
+      $this->tracker();    // This logs Me and everybody else but uses the $this->isBot! Note this is done before daycount()
+      $this->updatemyip(); // Update myip if it is ME
+
+      // If 'count' is false we don't do these counters
+
+      if($this->count) {
+        // Get the count for hitCount. The hitCount is always
+        // updated (unless the counter table does not exist).
+
+        $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
+
+        if(!$this->isMe()) { //If it is NOT ME do counter2 and daycount
+          $this->counter2(); // in 'masterdb' database
+          $this->daycount(); // in 'masterdb' database
+        }
+      }
     }
   }
 
@@ -64,6 +144,14 @@ abstract class dbAbstract {
 
   public function setDb($db) {
     $this->db = $db;
+  }
+
+  public function getDbError() {
+    return $this->db->error;
+  }
+
+  public function getDbErrno() {
+    return $this->db->errno;
   }
   
   // The following methods either execute or if the method is not defined throw an Exception
@@ -201,5 +289,66 @@ abstract class dbAbstract {
     if($exit === true) {
       throw new SqlException($msg, $this);
     }
+  }
+
+  /*
+   * Check if the required tables are presssent.
+   * Returns myIp array.
+   */
+  
+  private function CheckIfTablesExist():array {
+    // Do all of the table checks once here.
+    // NOTE: $this->debug() function is declared in dbAbstract.class.php.
+    
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots')")) {
+      $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots2')"))  {
+      $this->debug("Database $this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'tracker')")) {
+      $this->debug("Database $this->siteName: $this->self: table tracker does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
+      $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter')")) {
+      $this->debug("Database $this->siteName: $this->self: table counter does not exist in the $this->masterdb database: ". __LINE__, true);
+    }      
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter2')")) {
+      $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'daycounts')")) {
+      $this->debug("Database $this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'logagent')")) {
+      $this->debug("Database $this->siteName: $this->self: table logagent does not exist in the $this->masterdb database: " . __LINE__, true);
+    }
+
+    // The masterdb must be owned by 'barton'. That is the dbinfo->user must be
+    // 'barton'. There is one database where this is not true. The 'test' database has a
+    // mysitemap.json file that has dbinfo->user as 'test'. It is in the
+    // bartonphillips.com/exmples.js/user-test directory.
+    // In general all databases that are going to do anything with counters etc. must have a user
+    // of 'barton' and $this->nodb false. The program without 'barton' can NOT do any calls via masterdb!
+
+    //error_log("Database user: " . $this->user);
+    //error_log("Database dbinfo->user: " . $this->dbinfo->user);
+    
+    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
+      $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
+    }
+
+    $this->query("select myIp from $this->masterdb.myip");
+
+    while([$ip] = $this->fetchrow('num')) {
+      $myIp[] = $ip;
+    }
+    
+    $myIp[] = DO_SERVER; // BLP 2022-04-30 - Add my server.
+
+    //error_log("Database after myIp set, this: " . print_r($this, true));
+   
+    return $myIp;
   }
 }

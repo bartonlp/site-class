@@ -15,7 +15,7 @@
 // to handal PHP 8.1
 // Updated Version to '2.1.0mysqli'
 
-define("MYSQL_CLASS_VERSION", "2.1.1mysqli"); // BLP 2023-01-30 - 
+define("MYSQL_CLASS_VERSION", "3.0.0mysqli"); // BLP 2023-03-07 - constructor get $dbinfo object and gets password from file.
 
 /**
  * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.
@@ -31,36 +31,60 @@ define("MYSQL_CLASS_VERSION", "2.1.1mysqli"); // BLP 2023-01-30 -
  */
 
 class dbMysqli extends dbAbstract {
+  protected $db;
+  
   /**
    * MySqli Database Link Identifier
    * @var resource $db
    */
 
   private $result; // for select etc. a result set.
-    
   static public $lastQuery = null; // for debugging
   static public $lastNonSelectResult = null; // for insert, update etc.
-  
+
   /**
    * Constructor
-   * @param string $host host name like "localhost:3306" etc.
-   * @param string $user user name for database
-   * @param string $password user's password for database
-   * @param string $database name of the database
-   *
-   * as a side effect opens the database, that is connects and selects the database
+   * @param object $dbinfo. Has host, user, database and maybe password.
+   * as a side effect opens the database, that is connects the database
    */
 
-  public function __construct($host, $user, $password, $database, $port) {
-    if(preg_match("/^(.*?):/", $host, $m)) {
-      $host = $m[1];
+  public function __construct(object $dbinfo) { 
+    // BLP BLP 2022-01-14 -- In almost all cases the Database password is now in
+    // /home/barton/database-password on bartonlp.org
+
+    foreach($dbinfo as $k=>$v) {
+      $$k = $v;
     }
-    $this->host = $host;
-    $this->user = $user;
-    $this->password = $password;
-    $this->database = $database;
-    $this->port = $port;
-    $this->opendb();
+    
+    // BLP 2023-01-15 - START. For PHP 8 and above.
+    $driver = new mysqli_driver();
+    $driver->report_mode = MYSQLI_REPORT_OFF;
+    // BLP 2023-01-15 - END
+
+    $password = $password ?? require("/home/barton/database-password");
+
+    // If we use the 4th param to the constructor we don't need to do a $db->select_db()!
+    // public mysqli::__construct(
+    //   string $hostname = ini_get("mysqli.default_host"),
+    //   string $username = ini_get("mysqli.default_user"),
+    //   string $password = ini_get("mysqli.default_pw"),
+    //   string $database = "",
+    //   int $port = ini_get("mysqli.default_port"),
+    //   string $socket = ini_get("mysqli.default_socket")
+    // )
+    
+    $db = new mysqli($host, $user, $password, $database, $port);
+
+    if($db->connect_errno) {
+      $this->errno = $db->connect_errno;
+      $this->error = $db->connect_error;
+      throw new SqlException(__METHOD__ . ": Can't connect to database", $this);
+    }
+
+    // BLP 2021-12-31 -- EST/EDT New York
+    $db->query("set time_zone='EST5EDT'");
+    $this->db = $db;
+    $this->db->database = $database;
   }
 
   public static function getVersion() {
@@ -73,40 +97,13 @@ class dbMysqli extends dbAbstract {
    * On Error outputs message and exits.
    */
   
-  protected function opendb() {
+  private function opendb() {
     // Only do one open
 
     if($this->db) {
       return $this->db;
     }
-
-    // BLP 2023-01-15 - START. For PHP 8 and above.
-    $driver = new mysqli_driver();
-    $driver->report_mode = MYSQLI_REPORT_OFF;
-    // BLP 2023-01-15 - END
-
-    // If we use the 4th param to the constructor we don't need to do a $db->select_db()!
-    // public mysqli::__construct(
-    //   string $hostname = ini_get("mysqli.default_host"),
-    //   string $username = ini_get("mysqli.default_user"),
-    //   string $password = ini_get("mysqli.default_pw"),
-    //   string $database = "",
-    //   int $port = ini_get("mysqli.default_port"),
-    //   string $socket = ini_get("mysqli.default_socket")
-    // )
-    
-    $db = new mysqli($this->host, $this->user, $this->password, $this->database, $this->port);
-
-    if($db->connect_errno) {
-      $this->errno = $db->connect_errno;
-      $this->error = $db->connect_error;
-      throw new SqlException(__METHOD__ . ": Can't connect to database", $this);
-    }
-
-    // BLP 2021-12-31 -- EST/EDT New York
-    $db->query("set time_zone='EST5EDT'");
-    $this->db = $db;
-    return $db;
+    throw new SqlException(__CLASS__ . " " . __LINE__ .": $this->siteName ", $this);
   }
 
   /**
@@ -306,11 +303,8 @@ class dbMysqli extends dbAbstract {
    */
   
   public function getErrorInfo() {
-    //$error = $this->db->error;
-    //$errno = $this->db->errno;
-    //$err = ['errno'=>$errno, 'error'=>$error];
-    // return $err;
-    return ['errno'=>$this->db->errno, 'error'=>$this->db->error];
+    //return ['errno'=>$this->db->errno, 'error'=>$this->db->error];
+    return ['errno'=>$this->getDbErrno(), 'error'=>$this->getDbError()];
   }
   
   // real_escape_string

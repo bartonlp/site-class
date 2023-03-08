@@ -1,7 +1,7 @@
 <?php
 /* HELPER FUNCTIONS. Well tested and maintained */
 
-define("HELPER_FUNCTION_VERSION", "1.0.0helper");
+define("HELPER_FUNCTION_VERSION", "1.1.0helper");
 
 /**
  * Helper Functions
@@ -49,6 +49,15 @@ if(!function_exists('vardumpNoEscape')) {
   }
 }
 
+// Strip Comments
+
+if(!function_exists('stripComments')) {
+  function stripComments($x) {
+    $pat = '~".*?"(*SKIP)(*FAIL)|(?://[^\n]*)|(?:#[^\n]*)|(?:/\*.*?\*/)~s';
+    return preg_replace($pat, "", $x);
+  }
+}
+
 // Put a line with escaping
 
 if(!function_exists('put')) {
@@ -67,6 +76,7 @@ if(!function_exists('putNoEscape')) {
 }
 
 /**
+ * BLP 2023-03-03 - 
  * stripSlashesDeep
  * recursively do stripslahes() on an array or string.
  * @param array|string $value either a string or an array of strings/arrays ...

@@ -1,7 +1,7 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
 
-define("SITE_CLASS_VERSION", "3.6.1"); // BLP 2023-02-24 - 
+define("SITE_CLASS_VERSION", "3.7.0"); // BLP 2023-03-01 - 
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -23,14 +23,10 @@ define("SITE_CLASS_VERSION", "3.6.1"); // BLP 2023-02-24 -
 require_once(__DIR__ . "/defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 class SiteClass extends Database {
-  private $hitCount = 0;
-
   // Give these default values incase they are not mentioned in mysitemap.json.
   // Note they could still be null from mysitemap.json!
-  
+
   public $count = true;
-  
-  // Current Doc Type
   public $doctype = "<!DOCTYPE html>";
 
   /**
@@ -47,54 +43,12 @@ class SiteClass extends Database {
   public function __construct(object $s) {
     // Do the parent Database constructor which does the dbAbstract constructor.
     
-    parent::__construct($s, true); // set true to tell Database that it has been called from here.
+    parent::__construct($s, true); // BLP 2023-03-04 - second arg is true because this is called from SiteClass!
     
     // BLP 2018-07-01 -- Add the date to the copyright notice if one exists
 
     if($this->copyright) {
       $this->copyright = date("Y") . " $this->copyright";
-    }
-
-    // If no database in mysitemap.json set everything so the database is not loaded.
-    
-    if($this->nodb === true || is_null($this->dbinfo)) {
-      // nodb === true so don't do any database stuff
-      $this->nodb = true;
-      $this->count = false;
-      $this->noTrack = true; // If nodb then noTrack is true also.
-    }
-    
-    // These all use database 'barton' ($this->masterdb)
-    // and are always done regardless of 'count'!
-    // If $this->nodb or there is no $this->dbinfo we have made $this->noTrack true and
-    // $this->count false
-    
-    if($this->noTrack !== true) {
-      $this->logagent();   // This logs Me and everybody else! This is done regardless of $this->isBot or $this->isMe().
-
-      // checkIfBot() must be done before the rest because everyone uses $this->isBot.
-
-      $this->checkIfBot(); // This set $this->isBot. Does a isMe() so I never get set as a bot!
-
-      // Now do all of the rest.
-
-      $this->trackbots();  // both 'bots' and 'bots2'. This also does a isMe() so never get put into the 'bots*' tables.
-      $this->tracker();    // This logs Me and everybody else but uses the $this->isBot! Note this is done before daycount()
-      $this->updatemyip(); // Update myip if it is ME
-
-      // If 'count' is false we don't do these counters
-
-      if($this->count) {
-        // Get the count for hitCount. The hitCount is always
-        // updated (unless the counter table does not exist).
-
-        $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
-
-        if(!$this->isMe()) { //If it is NOT ME do counter2 and daycount
-          $this->counter2(); // in 'masterdb' database
-          $this->daycount(); // in 'masterdb' database
-        }
-      }
     }
   } // End of constructor.
 
@@ -127,43 +81,10 @@ class SiteClass extends Database {
   /**
    * getPageTopBottom()
    * Get Page Top (<head> and <header> ie banner) and Footer
-   * @param ?object $h top stuff
-   * @param ?object $b bottom stuff
-   *  if $h->footer then use it for the footer and do not call getPageFooter()
    * @return array top, footer
    */
 
-  // BLP 2023-02-20 - reworked how we capture and ues $h, $b
-  // See the other getPage... functions which now have not $h or $b passed in.
-  // All of the information is placed in $this right here.
-  
-  public function getPageTopBottom(?object $h=null, ?object $b=null):array {
-    // BLP 2023-02-23 - check if $h or $b have any properties.
-
-    if(count((array)$h) != 0) {
-      $this->h_inlineScript = $h->inlineScript; // A little klug here
-      $this->h_script = $h->script;
-    }
-
-    if(count((array)$b) != 0) {
-      $this->b_inlineScript = $b->inlineScript;
-      $this->b_script = $b->script;
-    }
-
-    // and in these as we must not put the inlineScript or the script into $this as it has already
-    // been added above.
-    
-    foreach($h as $k=>$v) {
-      if($k == "inlineScript" || $k == "script") continue;
-      $this->$k = $v;
-    }
-    foreach($b as $k=>$v) {
-      if($k == "inlineScript" || $k == "script") continue;
-      $this->$k = $v;
-    }
-
-    //error_log("SiteClass this: " . print_r($this, true));
-    
+  public function getPageTopBottom():array {
     // Do getPageTop and getPageFooter
 
     $top = $this->getPageTop();
@@ -522,256 +443,4 @@ $hits
 </div>
 EOF;
   }
-
-  // ********************************************************************************
-  // Private and protected methods.
-  // Protected methods can be overridden in child classes so most things that would be private
-  // should be protected in this base class
-
-  // **************
-  // Start Counters
-  // **************
-
-  /**
-   * trackbots()
-   * Track both bots and bots2
-   * This sets $this->isBot unless the 'bots' table is not found.
-   * SEE defines.php for the values for isJavaScript.
-     CREATE TABLE `bots` (
-       `ip` varchar(40) NOT NULL DEFAULT '',
-       `agent` text NOT NULL,
-       `count` int DEFAULT NULL,
-       `robots` int DEFAULT '0',
-       `site` varchar(255) DEFAULT NULL, // this is $who which can be multiple sites seperated by commas.
-       `creation_time` datetime DEFAULT NULL,
-       `lasttime` datetime DEFAULT NULL,
-       PRIMARY KEY (`ip`,`agent`(254))
-     ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-
-     CREATE TABLE `bots2` (
-       `ip` varchar(40) NOT NULL DEFAULT '',
-       `agent` text NOT NULL,
-       `page` text,
-       `date` date NOT NULL,
-       `site` varchar(50) NOT NULL DEFAULT '', 
-       `which` int NOT NULL DEFAULT '0',
-       `count` int DEFAULT NULL,
-       `lasttime` datetime DEFAULT NULL,
-       PRIMARY KEY (`ip`,`agent`(254),`date`,`site`,`which`)
-     ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-     Things enter the bots table from 'robots.txt', 'Sitemap.xml' and BOTS_CRON_ZERO from checktracker2.php.
-     Also if we have found BOTS_MATCH or BOTS_TABLE we enter it here.
-   */
-
-  protected function trackbots():void {
-    if(!empty($this->foundBotAs)) {
-      $agent = $this->agent;
-
-      try {
-        $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
-                     "values('$this->ip', '$agent', 1, " . BOTS_SITECLASS . ", '$this->siteName', now(), now())");
-      } catch(SqlException $e) {
-        if($e->getCode() == 1062) { // duplicate key
-          // We need the site info first. This can be one or multiple sites seperated by commas.
-
-          $this->query("select site from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
-
-          $who = $this->fetchrow('num')[0]; // get the site which could have multiple sites seperated by commas.
-
-          // Look at who (the haystack) and see if siteName is there. If it is not there this
-          // returns false.
-
-          if(strpos($who, $this->siteName) === false) {
-            $who .= ", $this->siteName";
-          }
-
-          $this->query("update $this->masterdb.bots set robots=robots | " . BOTS_SITECLASS . ", site='$who', count=count+1, lasttime=now() ".
-                       "where ip='$this->ip' and agent='$agent'");
-        } else {
-          throw new SqlException(__CLASS__ . " " . __LINE__ . ":$e", $this);
-        }
-      }
-
-      // Now do bots2
-
-      $this->query("insert into $this->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
-                   "values('$this->ip', '$agent', '$this->self', now(), '$this->siteName', " . BOTS_SITECLASS . ", 1, now())".
-                   "on duplicate key update count=count+1, lasttime=now()");
-    }
-  }
-   
-  /**
-   * tracker()
-   * track if java script or not.
-   * CREATE TABLE `tracker` (
-   *  `id` int NOT NULL AUTO_INCREMENT,
-   *  `botAs` varchar(30) DEFAULT NULL,
-   *  `site` varchar(25) DEFAULT NULL,
-   *  `page` varchar(255) NOT NULL DEFAULT '',
-   *  `finger` varchar(50) DEFAULT NULL,
-   *  `nogeo` tinyint(1) DEFAULT NULL,
-   *  `ip` varchar(40) DEFAULT NULL,
-   *  `agent` text,
-   *  `starttime` datetime DEFAULT NULL,
-   *  `endtime` datetime DEFAULT NULL,
-   *  `difftime` varchar(20) DEFAULT NULL,
-   *  `isJavaScript` int DEFAULT '0',
-   *  `lasttime` datetime DEFAULT NULL,
-   *  PRIMARY KEY (`id`),
-   *  KEY `site` (`site`),
-   *  KEY `ip` (`ip`),
-   *  KEY `lasttime` (`lasttime`),
-   *  KEY `starttime` (`starttime`)
-   * ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3
-   */
-
-  protected function tracker():void {
-    $agent = $this->agent;
-
-    // BLP 2021-12-28 -- Explanation.
-    // Here we set $java (isJavaScript) to 0x8000 or zero.
-    // We then look at isBot and if nothing was found in the bots table and the regex did not
-    // match something in the list then isJavaScript will be zero.
-    // The visitor was probably a bot and will be added to the bots table as a 0x100 by the cron
-    // job checktracker2.php and to the bots2 table as 16. The bot was more than likely curl,
-    // wget, python or the like that sets its user-agent to something that would not trigger my
-    // regex. Such visitor leave very little footprint.
-
-    $java = $this->isMe() ? TRACKER_ME : TRACKER_ZERO;
-
-    if($this->isBot) { // can NEVER be me!
-      $java = TRACKER_BOT; // This is the robots tag
-    }
-
-    // The primary key is id which is auto incrementing so every time we come here we create a
-    // new record.
-
-    // Add foundBotAs to end of agent.
-
-    if($this->foundBotAs != '') {
-      $tmp = preg_replace("~,~", "<br>", $this->foundBotAs);
-      $agent .= $this->foundBotAs ? '<br><span class="botas">' . $tmp . '</span>' : '';
-    }
-    $agent = $this->escape($agent);
-
-    $this->query("insert into $this->masterdb.tracker (botAs, site, page, ip, agent, starttime, isJavaScript, lasttime) ".
-                 "values('$this->foundBotAs', '$this->siteName', '$this->self', '$this->ip','$agent', now(), $java, now())");
-
-    $this->LAST_ID = $this->getLastInsertId();
-  }
-
-  /**
-   * counter()
-   * This is the page counter feature in the footer
-   * By default this uses a table 'counter' with 'filename', 'count', and 'lasttime'.
-   *  'filename' is the primary key.
-   * counter() updates $this->hitCount
-   */
-
-  protected function counter():void {
-    $filename = $this->self; // get the name of the file
-
-    try {
-      $this->query("insert into $this->masterdb.counter (site, filename, count, lasttime) values('$this->siteName', '$filename', 1, now())");
-    } catch(SqlException $e) {
-      if($e->getCode() != 1062) {
-        throw new SqlException(__CLASS__ . " " . __LINE__ . ":$e", $this);
-      }
-    }
-    
-    // Is it me?
-    
-    if(!$this->isMe()) { // No it is NOT me.
-      // realcnt is ONLY NON BOTS
-
-      $realcnt = $this->isBot ? 0 : 1;
-
-      // count is total of ALL hits that are NOT ME!
-
-      $sql = "update $this->masterdb.counter set count=count+1, realcnt=realcnt+$realcnt, lasttime=now() ".
-             "where site='$this->siteName' and filename='$filename'";
-
-      $this->query($sql);
-    }
-
-    // Now retreive the hit count value after it may have been incremented above. NOTE, I am NOT
-    // included here.
-
-    $sql = "select realcnt from $this->masterdb.counter where site='$this->siteName' and filename='$filename'";
-
-    $this->query($sql);
-
-    $this->hitCount = ($this->fetchrow('num')[0]) ?? 0; // This is the number of REAL (non BOT) accesses and NON Me.
-  }
-
-  /**
-   * counter2
-   * count files accessed per day
-   * Primary key is 'site', 'date', 'filename'.
-   */
-  
-  protected function counter2():void {
-    [$real, $bot] = $this->isBot ? [0,1] : [1,0];
-
-    $sql = "insert into $this->masterdb.counter2 (site, date, filename, `real`, bots, lasttime) ".
-           "values('$this->siteName', now(), left('$this->self', 254), $real , $bot, now()) ".
-           "on duplicate key update `real`=`real`+$real, bots=bots+$bot, lasttime=now()";
-
-    $this->query($sql);
-  }
-
-  /*
-   * daycount()
-   * This creates the very first record then if this is a BOT it updates 'bots' and 'lasttime'.
-   * We only count robots here. Reals are counted via the AJAX from tracker.js by tracker.php and beacon.php
-     CREATE TABLE `daycounts` (
-      `site` varchar(50) NOT NULL DEFAULT '',
-      `date` date NOT NULL,
-      `real` int DEFAULT '0',
-      `bots` int DEFAULT '0',
-      `visits` int DEFAULT '0',
-      `lasttime` datetime DEFAULT NULL,
-      PRIMARY KEY (`site`,`date`)
-    ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
-   */
-  
-  protected function daycount():void {
-    try {
-      // This will create the very first daycounts entry for the day.
-      
-      $this->query("insert into $this->masterdb.daycounts (site, `date`, lasttime) values('$this->siteName', current_date(), now())");
-    } catch(SqlException $e) {
-      if($e->getCode() != 1062) { // I expect this to fail for dupkey after the first insert per day.
-        throw new SqlException(__CLASS__ . "$e", $this);
-      }
-    }
-    
-    if($this->isBot === false) return; // If NOT a bot return.
-
-    // Only count bots here.
-    
-    $this->query("update $this->masterdb.daycounts set bots=bots+1, lasttime=now() where date=current_date() and site='$this->siteName'");
-  }
-  
-  /**
-   * logagent()
-   * Log logagent
-   * This counts everyone!
-   * logagent is used by 'analysis.php'
-   */
-  
-  protected function logagent():void {
-    // site, ip and agent(256) are the primary key. Note, agent is a text field so we look at the
-    // first 256 characters here (I don't think this will make any difference).
-
-    $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime) " .
-           "values('$this->siteName', '$this->ip', '$this->agent', '1', now(), now()) ".
-           "on duplicate key update count=count+1, lasttime=now()";
-
-    $this->query($sql);
-  }
-
-  // ************
-  // End Counters
-  // ************
 } // End of Class

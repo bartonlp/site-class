@@ -1,4 +1,4 @@
-# SiteClass and Database Methods (version 3.6.2 and 2.2.0)
+# SiteClass and Database Methods (version 3.7.0 and 3.0.0)
 
 ---
 
@@ -11,9 +11,7 @@ The ones most used have some documentation with them.
 * public function setSiteCookie(string $cookie, string $value, int $expire, string $path="/", ?string $thedomain=null,  
 ?bool $secure=null, ?bool $httponly=null, ?string $samesite=null):bool
 * public function getIp():string
-* public function getPageTopBottom(?object $h=null, ?object $b=null):array   
-This is the most used method. It takes one or two arguments which can be object or null (defaults to null).  
-You can use *$h* and *$b* but the perfered method is the set the properties of __SiteClass__.   
+* public function getPageTopBottom():array   
 I usually have this code at the top of my page:
 ```php
 $_site = require_once(getenv("SITELOADNAME"));
@@ -30,7 +28,6 @@ $top
 $footer
 EOF;
 ```
-You could also set *$h* and *$b* but this is depreciated.
 
 getPageTopBottom() calls getPageHead(), getPageBanner(), getPageFooter().  
 
@@ -90,4 +87,4 @@ I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are
 Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a>
 Copyright &copy; 2023 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)  
-Last modified February 24, 2023
+Last modified March 1, 2023
