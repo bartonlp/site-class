@@ -299,7 +299,7 @@ class Database extends dbAbstract {
 
     if($this->foundBotAs != '') {
       $tmp = preg_replace("~,~", "<br>", $this->foundBotAs);
-      $agent .= $this->foundBotAs ? '<br><span class="botas">' . $tmp . '</span>' : '';
+      $agent .= $this->foundBotAs ? "<br><span class='botas'>$tmp</span>" : '';
     }
     $agent = $this->escape($agent);
 

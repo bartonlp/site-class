@@ -14,7 +14,7 @@ $S = new Database($_site);
 
 require_once(SITECLASS_DIR . "/defines.php");
 
-//$DEBUG1 = true; // COUNTED real+1 bots-1
+$DEBUG1 = true; // COUNTED real+1 bots-1
 //$DEBUG2 = true; // After update tracker table
 //$DEBUG3 = true; // visablechange
 //$DEBUG_IPS = true; // show ip mismatches.
@@ -63,6 +63,8 @@ if($S->query("select botAs, isJavaScript, hex(isJavaScript), difftime, referer, 
 // beacon is supported and will then always use beacon. I can't really imagin an instance where a
 // client could change its mind midway.
 
+// BLP 2023-03-11 - Remove $tmpBotsAs. This should stop multiple daycounts on exit
+
 if(($java & TRACKER_MASK) == 0) {
   switch($type) {
     case "pagehide":
@@ -84,7 +86,6 @@ if(($java & TRACKER_MASK) == 0) {
 
   $java |= $beacon;
   $js2 = strtoupper(dechex($java));
-  $tmpBotAs = $botAs;
   
   if($DEBUG_IPS && ($ip != $S->ip)) {
     error_log("beacon:  $id, $ip, $site, $thepage, IP_MISMATCH_{$msg}, \$ip != \$S->ip -- \$S->ip=$S->ip, botAs=$botAs, jsin=$js, jsout=$js2, visits=$visits");
@@ -112,7 +113,7 @@ if(($java & TRACKER_MASK) == 0) {
 
   // At this point $botAs can have BOTAS_COUNTED and robot, sitemap or zero.
 
-  if(!$S->isMyIp($ip) && !str_contains($tmpBotAs, BOTAS_COUNTED)) { // it is not ME and it has not been counted yet.
+  if(!$S->isMyIp($ip) && !str_contains($BotAs, BOTAS_COUNTED)) { // it is not ME and it has not been counted yet.
     $S->query("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
     [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
     $dayreal++;
