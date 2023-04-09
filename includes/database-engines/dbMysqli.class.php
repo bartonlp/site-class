@@ -20,9 +20,9 @@ define("MYSQL_CLASS_VERSION", "3.0.0mysqli"); // BLP 2023-03-07 - constructor ge
 /**
  * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.
  * The mysqli extension allows you to access the functionality provided by MySQL 4.1 and above.
- * More information about the MySQL Database server can be found at » http://www.mysql.com/
+ * More information about the MySQL Database server can be found at http://www.mysql.com/
  * An overview of software available for using MySQL from PHP can be found at Overview
- * Documentation for MySQL can be found at » http://dev.mysql.com/doc/.
+ * Documentation for MySQL can be found at http://dev.mysql.com/doc/.
  * Parts of this documentation included from MySQL manual with permissions of Oracle Corporation.
  */
 
