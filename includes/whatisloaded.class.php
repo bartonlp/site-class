@@ -1,7 +1,7 @@
 <?php
 // WhatIsLoaded class.
 // We return an array with one numeric and the rest are name=>value pairs.
-// Look at the getinfo() method for what is returned.
+// Look at the getWhatIsInfo() method for what is returned.
 
 namespace bartonlp\whatisloaded;
 
@@ -24,9 +24,9 @@ define("WHATISLOADED_VERSION", "2.0.0whatis");
     private $dbAbstract;
         
     public function __construct() {
-      $__VERSION_ONLY = true; // used by siteload.php, tracker.php, beacon.php.
+      $__VERSION_ONLY = true; // also used by siteload.php, tracker.php, beacon.php.
 
-      require(getenv("SITELOADNAME"));
+      $this->site = require(getenv("SITELOADNAME"));
       //require("/var/www/vendor/autoload.php");
       
       $this->site = SITELOAD_VERSION;
@@ -49,8 +49,9 @@ define("WHATISLOADED_VERSION", "2.0.0whatis");
       $this->dbAbstract = \dbAbstract::getVersion();
     }
 
-    public function getinfo() {
-      $whatis = $this->getVersion();
+    public function getWhatIsInfo() {
+      $whatis = $this->getVersion(); // Get the version
+      
       $tbl =<<<EOF
 <table id='whatIsLoaded' border='1'>
 <tbody>
@@ -85,4 +86,4 @@ EOF;
   }
 })();
 
-return (new WhatIsLoaded)->getinfo();
+return (new WhatIsLoaded)->getWhatIsInfo();

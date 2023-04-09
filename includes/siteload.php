@@ -19,8 +19,8 @@ require_once(__DIR__ ."/../../../autoload.php");
 // If we only want the version info $__VERSION is set. We do this in whatisloaded.class.php.
 // It can also be done to get the versions of beacon.php and tracker.php.
 
-if($__VERSION_ONLY) return;
-
+if($__VERSION_ONLY) return SITELOAD_VERSION;
+if(!class_exists("getinfo")) {
 class getinfo {
   private $docroot;
   private $mydir;
@@ -136,6 +136,7 @@ EOF;
     $pat = '~".*?"(*SKIP)(*FAIL)|(?://[^\n]*)|(?:#[^\n]*)|(?:/\*.*?\*/)~s';
     return preg_replace($pat, "", $x);
   }
+}
 }
 
 $_site = (new getinfo())->getSite();

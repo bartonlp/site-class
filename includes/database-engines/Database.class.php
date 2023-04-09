@@ -265,6 +265,7 @@ class Database extends dbAbstract {
    *  `endtime` datetime DEFAULT NULL,
    *  `difftime` varchar(20) DEFAULT NULL,
    *  `isJavaScript` int DEFAULT '0',
+   *  `error` varchar(256) DEFAULT NULL,
    *  `lasttime` datetime DEFAULT NULL,
    *  PRIMARY KEY (`id`),
    *  KEY `site` (`site`),
@@ -295,12 +296,6 @@ class Database extends dbAbstract {
     // The primary key is id which is auto incrementing so every time we come here we create a
     // new record.
 
-    // Add foundBotAs to end of agent.
-
-    if($this->foundBotAs != '') {
-      $tmp = preg_replace("~,~", "<br>", $this->foundBotAs);
-      $agent .= $this->foundBotAs ? "<br><span class='botas'>$tmp</span>" : '';
-    }
     $agent = $this->escape($agent);
 
     $this->query("insert into $this->masterdb.tracker (botAs, site, page, ip, agent, starttime, isJavaScript, lasttime) ".

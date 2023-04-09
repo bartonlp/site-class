@@ -61,7 +61,7 @@ class SqlException extends Exception {
     
     if(($size = strlen($msg)) > 500) {
       //error_log("TOO LONG: $msg");
-      $msg = "Message Too Long: $size";
+      $msg = "Message Too Long: $size<br>\nMESSAGE: $msg";
     }
     if(($size = strlen($Error)) > 500) $Error = "Error Too Long: $size";
     
@@ -132,25 +132,25 @@ class SqlException extends Exception {
         }
 
         if($bk['class']) {
-          $classfunc = "<b>{$bk['class']}::{$bk['function']}($args)</b>";
+          $classfunc = "\n<b>{$bk['class']}::{$bk['function']}($args)</b>\n";
         } else {
           $classfunc = "function <b>{$bk['function']}($args)</b>";
         }
-        $firstcaller .= "$classfunc<br> in <b>{$bk['file']}</b><br>".
+        $firstcaller .= "$classfunc<br> in <b>{$bk['file']}</b><br>\n".
                         " on line <b>{$bk['line']}</b><br>\n";
       }
     }
     $cwd = getcwd();
     
     $error = <<<EOF
-<p>&quot;<i>$msg</i>&quot;<br>
+\n<p>&quot;<i>$msg</i>&quot;<br>
 error=&quot;<i>$Error</i>&quot;, \$Errno=&quot;<i>$Errno</i>&quot;<br>
 cwd=$cwd<br>
 called from <strong>{$caller['file']}</strong><br> on line <strong>{$caller['line']}</strong><br>
 EOF;
 
     if(isset($firstcaller)) {
-      $error .= "Back Trace:<br>\n$firstcaller";
+      $error .= "\n<br>Back Trace:<br>\n$firstcaller";
     }
 
     // this is the message and code to pass to Exception.

@@ -60,14 +60,17 @@ jQuery(document).ready(function($) {
   // Get the cookie. If it has 'mytime' we set 'visits' to zero.
   // Always reset cookie for 10 min.
 
-  visits = (document.cookie.match(/(mytime)=/)) ? 0 : 1;
+  visits = (document.cookie.match(/(mytime)=/)) ? 0 : 1; // visits is now set for the rest of the visit.
+  
   console.log(`cookie mytime: visits=${visits}`);
   
   let date = new Date();
   let value = date.toGMTString();
   date.setTime(date.getTime() + (60 * 10 * 1000));
-  let expires = "; expires=" + date.toGMTString();
-  document.cookie = "mytime=" + value + expires + ";path=/";
+  value += "|" + date.toGMTString();
+
+  console.log("value="+value);
+  document.cookie = "mytime=" + value + "; expires=" + date.toGMTString() + ";path=/";
 
   // Usually the image stuff (script, normal and noscript) will
   // happen before 'start' or 'load'.
@@ -75,11 +78,11 @@ jQuery(document).ready(function($) {
   // javascript works. Otherwise we should get information from the
   // image in the <noscript> section of includes/banner.i.php
 
-  let ref = document.referrer; // Get the referrer which we pass to 'start'
+  let ref = document.referrer; // Get the referer which we pass to 'start'
   
   $.ajax({
     url: trackerUrl,
-    data: {page: 'start', id: lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse, referer: ref},
+    data: {page: 'start', id: lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, referer: ref},
     type: 'post',
     success: function(data) {
       console.log(data +", "+ makeTime());
@@ -152,7 +155,7 @@ jQuery(document).ready(function($) {
     var type = e.type;
     $.ajax({
       url: trackerUrl,
-      data: {page: type, 'id': lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse},
+      data: {page: type, 'id': lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse},
       type: 'post',
       success: function(data) {
         console.log(data +", "+ makeTime());
