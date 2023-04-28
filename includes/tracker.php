@@ -78,7 +78,7 @@ $S = new Database($_site);
 
 require_once(SITECLASS_DIR . "/defines.php"); // constants for TRACKER, BOTS, BEACON.
 
-$DEBUG_START = true; // start
+//$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
 //$DEBUG_TIMER = true; // Timer
 $DEBUG_DAYCOUNT = true; // Timer real+1
@@ -233,10 +233,14 @@ if($_POST['page'] == 'timer') {
   $S->query("select botAs, isJavaScript, hex(isJavaScript), finger, agent from $S->masterdb.tracker where id=$id");
   [$botAs, $java, $js, $finger, $agent] = $S->fetchrow('num');
 
-  if($S->isBot($agent)) {
-    if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits: $visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
-    echo "Timer1 This is a BOT, $id, $ip, $site, $thepage";
-    exit(); // If this is a bot don't bother
+  if(!empty($agent)) {
+    if($S->isBot($agent)) {
+      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits: $visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+      echo "Timer1 This is a BOT, $id, $ip, $site, $thepage";
+      exit(); // If this is a bot don't bother
+    }
+  } else {
+    error_log("tracker: $id, $ip, $site, $thepage, 'EMPTY_AGENT', botAs=$botAs");
   }
 
   $java |= TRACKER_TIMER; // Or in TIMER
@@ -252,6 +256,7 @@ if($_POST['page'] == 'timer') {
       echo "Timer2 This is a BOT, $id, $ip, $site, $thepage";
       exit();
     }
+   
     $botAs = BOTAS_COUNTED;
   }
 
@@ -372,7 +377,7 @@ if($type = $_GET['page']) {
       error_log("tracker Switch Error: $S->ip, $type, time=" . (new DateTime)->format('H:i:s:v'));
       goto GOAWAY;
   }
-    
+
   // I get people that call tracker 'exit' functions directly with nufarious stuff.
   
   try {
