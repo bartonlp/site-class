@@ -14,7 +14,7 @@ $S = new Database($_site);
 
 require_once(SITECLASS_DIR . "/defines.php");
 
-$DEBUG1 = true; // COUNTED real+1 bots-1
+//$DEBUG1 = true; // COUNTED real+1 bots-1
 //$DEBUG2 = true; // After update tracker table
 //$DEBUG3 = true; // visablechange
 //$DEBUG_IPS = true; // show ip mismatches.
@@ -103,7 +103,6 @@ if(($java & TRACKER_MASK) == 0) {
     if(!empty($botAs)) {
       // This must have robot, sitemap, or zero
       if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
-      echo "Timer2 This is a BOT, $id, $ip, $site, $thepage";
       exit();
     }
   }

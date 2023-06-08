@@ -44,7 +44,7 @@ class SiteClass extends Database {
     // Do the parent Database constructor which does the dbAbstract constructor.
     
     parent::__construct($s, true); // BLP 2023-03-04 - second arg is true because this is called from SiteClass!
-    
+
     // BLP 2018-07-01 -- Add the date to the copyright notice if one exists
 
     if($this->copyright) {
@@ -425,7 +425,7 @@ EOF;
     // hitCount is updated by 'counter()'
 
     $hits = number_format($this->hitCount);
-        
+
     // Let the redered appearance be up to the pages css!
     // #F5DEB3==rgb(245,222,179) is 'wheat' for the background
     // rgb(123, 16, 66) is a burgundy for the number

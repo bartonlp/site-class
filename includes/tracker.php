@@ -81,7 +81,7 @@ require_once(SITECLASS_DIR . "/defines.php"); // constants for TRACKER, BOTS, BE
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
 //$DEBUG_TIMER = true; // Timer
-$DEBUG_DAYCOUNT = true; // Timer real+1
+//$DEBUG_DAYCOUNT = true; // Timer real+1
 //$DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
 //$DEBUG_ISABOT = true;
@@ -267,7 +267,7 @@ if($_POST['page'] == 'timer') {
       [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
       $dayreal++;
       $dayvisits += $visits;
-      $daybots = empty($datbots) ? 0 : $daybots; // BLP 2023-01-07 -
+      $daybots = empty($daybots) ? 0 : $daybots; // BLP 2023-01-07 -
       
       $sql = "update $S->masterdb.daycounts set `real`='$dayreal', bots='$daybots', visits='$dayvisits' where date=current_date() and site='$site'";
       $S->query($sql);
@@ -432,7 +432,7 @@ if($type = $_GET['page']) {
   $java = hexdec($js);
   
   if(empty($agent) || $S->isBot($agent)) {
-    if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, image=$image, time=" . (new DateTime)->format('H:i:s:v'));
+    if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, image=$image, time=" . (new DateTime)->format('H:i:s:v'));
 
     // We know that there is an ID but is there a record with that ID?
 
@@ -534,10 +534,11 @@ if($id) {
   $finger = $S->fetchrow('num')[0] ?? "NONE";
 }
 $request = $_REQUEST ? ", \$_REQUEST: " . print_r($_REQUEST, true) : '';
-$id = $id ?? "NO_ID__";
-error_log("tracker: $id, $S->ip, $S->siteName, $S->self, GOAWAY, $S->agent, finger=$finger{$request}");
+$id = $id ?? "NO_ID";
 
 GOAWAYNOW:
+
+error_log("tracker: $id, $S->ip, $S->siteName, $S->self, GOAWAY, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
 
 $version = TRACKER_VERSION;
 
