@@ -21,10 +21,11 @@ class Database extends dbAbstract {
 
   public function __construct(object $s, ?bool $isSiteClass=null) {
     // If we came from SiteClass $isSiteClass is true.
-    // If we DID NOT come from SiteClass then only set $s->noTrack if specifically set true to
-    // false!
     
     if($isSiteClass !== true) {
+      // If we did not come from SiteClass and $s->noTrack does not have a value,
+      // then set it to true. Just Database should NOT do tracker (usually).
+      
       $s->noTrack = $s->noTrack ?? true; // If not set to false set it to true.
     }
 
@@ -346,7 +347,7 @@ class Database extends dbAbstract {
 
     $this->query($sql);
 
-    $this->hitCount = ($this->fetchrow('num')[0]) ?? 0; // This is the number of REAL (non BOT) accesses and NON Me.
+    $this->hitCount = ($this->fetchrow('num')[0]) ?? 0; // This is the number of REAL (non BOT) accesses and NOT Me.
   }
 
   /**
