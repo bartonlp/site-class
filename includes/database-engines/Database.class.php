@@ -17,7 +17,7 @@ class Database extends dbAbstract {
    * $isSiteClass is true if this is from SiteClass.
    */
 
-  private $hitCount = 0;
+  protected $hitCount = 0;
 
   public function __construct(object $s, ?bool $isSiteClass=null) {
     // If we came from SiteClass $isSiteClass is true.

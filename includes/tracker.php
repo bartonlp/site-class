@@ -81,7 +81,7 @@ require_once(SITECLASS_DIR . "/defines.php"); // constants for TRACKER, BOTS, BE
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
 //$DEBUG_TIMER = true; // Timer
-$DEBUG_DAYCOUNT = true; // Timer real+1
+//$DEBUG_DAYCOUNT = true; // Timer real+1
 //$DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
 //$DEBUG_ISABOT = true;

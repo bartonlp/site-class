@@ -425,7 +425,7 @@ EOF;
     // hitCount is updated by 'counter()'
 
     $hits = number_format($this->hitCount);
-        
+
     // Let the redered appearance be up to the pages css!
     // #F5DEB3==rgb(245,222,179) is 'wheat' for the background
     // rgb(123, 16, 66) is a burgundy for the number
