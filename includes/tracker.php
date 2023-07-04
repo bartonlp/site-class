@@ -374,7 +374,7 @@ if($type = $_GET['page']) {
       $image = $image ?? "NONE";
       break;
     default:
-      error_log("tracker Switch Error: $S->ip, $type, time=" . (new DateTime)->format('H:i:s:v'));
+      error_log("tracker Switch Error: $S->ip, type=$type, time=" . (new DateTime)->format('H:i:s:v'));
       goto GOAWAY;
   }
 

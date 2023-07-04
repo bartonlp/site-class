@@ -7,7 +7,6 @@ define("ERROR_CLASS_VERSION", "2.0.0error");
 
 // Contains the my_errorhandler, my_exceptionhandler, Error class.
 // set_exception_handler to my_exceptionhandler
-// The Error class constructor does set_error_handler to my_errorhandler.
    
 // Error handeler function
 // Arguments:
@@ -67,7 +66,7 @@ function my_errorhandler($errno, $errstr, $errfile, $errline) { //, array $errco
 
             $arg = ($arg === false) ? 'false' : $arg;
             $arg = ($arg === true) ? 'true' : $arg;
-            $x = escapeltgt(print_r($arg, true));            
+            $x = escapeltgt(print_r($arg, true));
             $btrace .= "          arg: $x\n";
           }
         }
@@ -109,10 +108,14 @@ function my_exceptionhandler($e) {
     // Get Trace information
     
     $traceback = '';
-
+    //echo "ONE, cl=$cl<br>";
     foreach($e->getTrace() as $v) {
-      // $k is a numeric
-      $args = '';
+      //echo "TWO<br>";
+      // The key here is a numeric and
+      // $v is an assoc array with keys 'file', 'line', 'function', 'class' and 'args'.
+      
+      $args = ''; // This will hold the $v2 values
+
       foreach($v as $k=>$v1) {
         // $v is an assoc array 'file, line, ...'
         // most $v1's are strings. 'args' is an array
@@ -136,25 +139,32 @@ function my_exceptionhandler($e) {
             break;
         }
       }
-      $args = rtrim($args, ", ");
+      $args = rtrim($args, ", "); // $$k was $args so remove the trailing comma.
 
+      // $$k is $file, $line, etc. So we use the referenced values below.
+
+      //echo "HERE<br>";
       $traceback .= " file: $file<br> line: $line<br> class: $class<br>\n".
                     "function: $function($args)<br><br>";
     }
 
-    if($traceback) $traceback = "<hr><div style='text-align: left'>Trace back:<br>\n$traceback</div>";
-
+    if($traceback) {
+      $traceback = "Trace back:<br>\n$traceback";
+      //echo "Traceback<br>";
+    }
+    
     $error = <<<EOF
 <div style="text-align: center; width: 85%; margin: auto auto; background-color: white; border: 1px solid black; padding: 10px;">
-Class: <b>$cl</b><br>\nException: &quot;<b>{$e->getMessage()}</b>&quot;<br>
-in file <b>{$e->getFile()}</b><br> on line {$e->getLine()}
-$traceback
+Class: <b>$cl</b><br>\n<b>{$e->getMessage()}</b>
+in file <b>{$e->getFile()}</b><br> on line {$e->getLine()}$traceback
 </div>
 EOF;
   }
 
   finalOutput($error, $cl);
-  exit();
+//  if(ErrorClass::getExitonerror() === true) {
+//    exit();
+//  }
 }
 
 // Do the final output part of the error/exception
@@ -162,12 +172,13 @@ EOF;
 // $from is Error or Exception
 
 function finalOutput($error, $from) {
+  //error_log("ErrorClass: finalOutput");
   // For use by Email and database.log
   // Turn the error message into just plane text with LF at end of each line where a BR was.
   // and remove the "ERROR" header and any blank lines.
 
   $err = html_entity_decode(preg_replace("/<.*?>/", '', $error));
-  $err = preg_replace("/^\s*$/", '', $err);
+  $err = preg_replace("/^\s*$/", '', $err); // remove blank lines
 
   // Callback to get the user ID if the callback exists
 
@@ -184,13 +195,44 @@ function finalOutput($error, $from) {
   
   if(ErrorClass::getNoEmail() !== true) {
     $s = $GLOBALS["_site"];
+
+    $recipients = "{\"address\": {\"email\": \"$s->EMAILADDRESS\",\"header_to\": \"$s->EMAILADDRESS\"}}";
+    $contents = preg_replace(["~\"~", "~\\n~"], ['','<br>'], "$err<br>$userId");
     
-    if($s?->EMAILADDRESS) { // use the new null safe operator.
-      $s->EMAILADDRESS = $s->EMAILRETURN = $s->EMAILFROM = "bartonphillips@gmail.com";
-      //mail("bartonphillips@gmail.com", 'TEST From ErrorClass', "This is a test", "From: Barton\r\nBcc: bartonphillips@gmail.com");        
-      mail($s->EMAILADDRESS, $from, "{$err}{$userId}",
-           "From: ". $s->EMAILFROM, "-f ". $s->EMAILRETURN);
-    }
+    $post =<<<EOF
+{"recipients": [
+  $recipients
+],
+  "content": {
+    "from": "SqlException@mail.bartonphillips.com",
+    "reply_to": "Barton Phillips<barton@bartonphillips.com>",
+    "subject": "$from",
+    "text": "View This in HTML Mode",
+    "html": "$contents"
+  }
+}
+EOF;
+
+    $apikey = file_get_contents("https://bartonphillips.net/sparkpost_api_key.txt"); //("SPARKPOST_API_KEY");
+    
+    $options = [
+                CURLOPT_URL=>"https://api.sparkpost.com/api/v1/transmissions", //?num_rcpt_errors",
+                CURLOPT_HEADER=>0,
+                CURLOPT_HTTPHEADER=>[
+                                     "Authorization:$apikey",
+                                     "Content-Type:application/json"
+                                    ],
+                CURLOPT_POST=>true,
+                CURLOPT_RETURNTRANSFER=>true,
+                CURLOPT_POSTFIELDS=>$post
+                                   ];
+    //error_log("SqlException: options=" . print_r($options, true));
+        
+    $ch = curl_init();
+    curl_setopt_array($ch, $options);
+
+    $result = curl_exec($ch);
+    error_log("SqlException: Send To ME. RESULT: $result"); // This should stay!!!
   }
 
   // Log the raw error info.
@@ -198,9 +240,9 @@ function finalOutput($error, $from) {
   date_default_timezone_set('America/New_York');
 
   // This error_log should always stay in!! *****************
-  error_log("ErrorClass, finalOutput: $from\n$err{$userId}");
+  error_log("ErrorClass, finalOutput: $from\n$err\n$userId");
   // ********************************************************
-  
+    
   if(ErrorClass::getDevelopment() !== true) {
     // Minimal error message
     $error = <<<EOF
@@ -224,7 +266,10 @@ EOF;
   }
 
   if(ErrorClass::getNoOutput() !== true) {
+    //************************
+    // Don't remove this echo
     echo $error; // BLP 2022-01-28 -- on CLI this outputs to the console, on apache it goes to the client screen.
+    //***********************
   }
   return;
 }
@@ -236,6 +281,10 @@ set_exception_handler('my_exceptionhandler');
 /****************************************************************
 /**
  * Error Class
+ * This class only sets/gets the static private variables.
+ * The constructor and set them if called with $args.
+ * If $args['errType'] is set then that is the value of $errType
+ * else it is set as bellow along with the set_error_handler().
  */
 
 class ErrorClass {
@@ -244,41 +293,13 @@ class ErrorClass {
   private static $noHtml = false;
   private static $errType = null;
   private static $noOutput = false;
-  private static $instance = null;
+  private static $noBacktrace = false; // BLP 2023-06-22
+  private static $errLast = false; // BLP 2023-06-22
+  //private static $exitonError = true; // BLP 2023-06-23 -
   
-  // args can be array|object. noEmail, development, noHtml, noOutput, errType
+  // BLP 2023-06-23 - Removed constructor because all of the methods are static.
+  // The set_error_handler() is done by the php.ini file.
   
-  /**
-   *  public Constructor
-   */
-
-  public function __construct($args=null) {
-    if(self::$instance) return;
-    
-    if(is_array($args)) {
-      $args = (object)$args;
-    }
-
-    if(isset($args->noEmail)) self::$noEmail = $args->noEmail; //$args['noEmail'];
-    if(isset($args->development)) self::$development = $args->development;
-    if(isset($args->nohtml)) self::$noHtml = $args->noHtml;
-    if(isset($args->noOutput)) self::$noOutput = $args->noOutput;
-
-    // ignore E_NOTICE, E_WARNING and E_STRICT errors by default
-    
-    if(!isset($args->errType)) {
-      if(is_null(self::$errType)) {
-        // BLP 2022-02-06 -- ADD E_DEPRECATED
-        set_error_handler('my_errorhandler', E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT | E_DEPRECATED));
-        self::setErrorType(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT | E_DEPRECATED));
-      } // if self::$errType is set then the handler has already been set
-    } else {
-      // $args->errType is set
-      self::$errType = $args->errType;
-      set_error_handler('my_errorhandler', $args->errType);
-    }
-  }
-
   static public function setErrorType($bits) {
     self::$errType = $bits;
     //echo "Set error handler: $bits<br>\n";
@@ -290,6 +311,34 @@ class ErrorClass {
     return self::$errType;
   }
 
+  // BLP 2023-06-22 - START
+  static public function setNobacktrace($b) {
+    self::$noBacktrace = $b;
+  }
+
+  static public function getNobacktrace() {
+    return self::$noBacktrace;
+  }
+
+  static public function setErrlast($b) {
+    self::$errLast = $b;
+  }
+
+  static public function getErrlast() {
+    return self::$errLast;
+  }
+
+  /*
+  static public function setExitonerror($b) {
+    self::$exitonError = $b;
+  }
+
+  static public function getExitonerror() {
+    return self::$exitonError;
+  }
+  */
+  // BLP 2023-06-22 - END
+  
   //BLP 2021-03-15 -- if we set development also set noEmai!
   
   static public function setDevelopment($b) {

@@ -209,7 +209,8 @@ EOF;
     theip = "$this->ip",
     thepage = "$this->self",
     trackerUrl = "$trackerLocation",
-    beaconUrl = "$beaconLocation";
+    beaconUrl = "$beaconLocation",
+    noCssLastId = "$this->noCssLastId";
   </script>
 EOF;
       }

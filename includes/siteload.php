@@ -12,7 +12,7 @@
 
 namespace bartonlp\siteload;
 
-define("SITELOAD_VERSION", "2.0.0siteload"); // BLP 2023-01-30 - 
+define("SITELOAD_VERSION", "2.0.1siteload"); // BLP 2023-06-22 - added noTraceback and errLast
 define("SITECLASS_DIR", __DIR__);
 require_once(__DIR__ ."/../../../autoload.php");
 
@@ -75,9 +75,9 @@ class getinfo {
       // If this is true set it if it is false unset it but if it is null don't do anything! 
 
       if($mode->noEmail === true) { // true means let there be emails
-        \ErrorClass::setNoEmailErrs(true); 
+        \ErrorClass::setNoEmail(true); 
       } elseif($mode->noEmail === false) { // only if false, a null does nothing here.
-        \ErrorClass::setNoEmailErrs(false); 
+        \ErrorClass::setNoEmail(false); 
       } 
 
       if($mode->noHtml === true) { 
@@ -86,6 +86,14 @@ class getinfo {
       
       if($mode->noOutput === true) {
         \ErrorClass::setNoOutput(true);
+      }
+
+      if($mode->noBacktrace === true) {
+        \ErrorClass::setNobacktrace(true);
+      }
+
+      if($mode->errLast == true) {
+        \ErrorClass::setErrlast(true);
       }
     }
     

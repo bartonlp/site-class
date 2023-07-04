@@ -47,7 +47,7 @@ abstract class dbAbstract {
     }
 
     $db = null;
-    $dbinfo = $this->dbinfo; // BLP 2023-03-07 - change name from $arg to dbinfo. Moved password to dbMysqli
+    $dbinfo = $this->dbinfo;
 
     if(isset($dbinfo->engine) === false) {
       $this->errno = -2;
@@ -179,8 +179,6 @@ abstract class dbAbstract {
       throw new Exception(__METHOD__ . " not implemented");
     }
   }
-
-  // BLP 2022-01-02 -- add type which was missing.
 
   public function queryfetch($query, $type=null, $retarray=false) {
     if(method_exists($this->db, 'queryfetch')) {

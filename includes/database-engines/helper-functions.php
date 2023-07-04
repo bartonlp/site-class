@@ -1,7 +1,7 @@
 <?php
 /* HELPER FUNCTIONS. Well tested and maintained */
 
-define("HELPER_FUNCTION_VERSION", "1.1.0helper");
+define("HELPER_FUNCTION_VERSION", "1.1.1helper"); // BLP 2023-06-21 - added array_deep()
 
 /**
  * Helper Functions
@@ -155,21 +155,58 @@ if(!function_exists('escapeltgt')) {
   }
 }
 
-// Callback to get the user id for SqlError
+// Callback to get the user id for SqlException SqlError()
 
 if(!function_exists('ErrorGetId')) {
   function ErrorGetId() {
     if($_COOKIE['SiteId']) {
-      $email = explode(":", $_COOKIE['SiteId'])[1];
+      //$email = explode(":", $_COOKIE['SiteId'])[1];
+      $siteId = $_COOKIE['SiteId']; // BLP 2023-06-22 - Get full SiteId
     }
     // do we have an id?
-    if(empty($email)) {
+    if(empty($siteId)) {
       // NO email this is the generic version
       $id = "IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
     } else {
       // This is for members
-      $id = "CookieEmail=$email, IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
+      //$id = "CookieEmail=$email, IP={$_SERVER['REMOTE_ADDR']}
+      //\nAGENT={$_SERVER['HTTP_USER_AGENT']}";
+      $id = "SiteId=$siteId, IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}"; // BLP 2023-06-22 - use siteId
     }
     return $id;
   }
 }
+
+// BLP 2023-06-21 -
+// array_deep()
+
+if(!function_exists('array_deep')) {
+  // If it does not already exist define it here
+  function array_deep($a) {
+    if(is_array($a)) {
+      $a = array_map('array_deep', $a);
+      $ret = "";
+      foreach($a as $key=>$val) {
+        if(is_numeric($key)) {
+          $ret .= "$val, ";
+        } else {
+          $ret .= "$key=>$val";
+        }
+      }
+      $ret = rtrim($ret, ", ");
+      $a = "array($ret)";
+    } else {
+      if(is_string($a)) {
+        if(strpos($a, "'")) {
+          $a = "\"$a\"";
+        } else {
+          $a = "'$a', ";
+        }
+      } elseif(is_numeric($a)) {
+        $a = "$a, ";
+      }
+    }
+    return $a;
+  }
+}
+

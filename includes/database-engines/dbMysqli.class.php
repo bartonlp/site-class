@@ -11,11 +11,8 @@
  * @copyright Copyright (c) 2010, Barton Phillips
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
  */
-// BLP 2023-01-15 - Added '$driver = new mysqli_driver(); $driver->report_mode = MYSQLI_REPORT_OFF;'
-// to handal PHP 8.1
-// Updated Version to '2.1.0mysqli'
 
-define("MYSQL_CLASS_VERSION", "3.0.0mysqli"); // BLP 2023-03-07 - constructor get $dbinfo object and gets password from file.
+define("MYSQL_CLASS_VERSION", "3.0.0mysqli"); 
 
 /**
  * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.
@@ -27,17 +24,12 @@ define("MYSQL_CLASS_VERSION", "3.0.0mysqli"); // BLP 2023-03-07 - constructor ge
  */
 
 /**
- * @package Database
+ * @package Mysqli Database
  */
 
 class dbMysqli extends dbAbstract {
-  protected $db;
+  //protected $db; // BLP 2023-06-24 - defined in dbAbastract.
   
-  /**
-   * MySqli Database Link Identifier
-   * @var resource $db
-   */
-
   private $result; // for select etc. a result set.
   static public $lastQuery = null; // for debugging
   static public $lastNonSelectResult = null; // for insert, update etc.
@@ -52,9 +44,14 @@ class dbMysqli extends dbAbstract {
     // BLP BLP 2022-01-14 -- In almost all cases the Database password is now in
     // /home/barton/database-password on bartonlp.org
 
-    foreach($dbinfo as $k=>$v) {
-      $$k = $v;
-    }
+    // BLP 2023-06-24 - use extract instead of the foreach().
+    //foreach($dbinfo as $k=>$v) {
+    //  $$k = $v; // $k=host,user,password,database, so $$k has the values, so later I can say $host.
+    //}
+
+    // extract the $host, $user, $password and $database.
+    
+    extract((array)$dbinfo); // Cast the $dbinfo object into an array
     
     // BLP 2023-01-15 - START. For PHP 8 and above.
     $driver = new mysqli_driver();
@@ -220,7 +217,7 @@ class dbMysqli extends dbAbstract {
       $type = $result;
       $result = $this->result;
     } elseif(get_class($result) != "mysqli_result") { // BLP 2022-01-17 -- use get_class() not get_debug_type() as it is only PHP8
-      throw new SqlException("dbMysqli.class.php " .__LINE__. "get_class() is not an 'mysqli_result'");
+      throw new SqlException("dbMysqli.class.php " .__LINE__. "get_class() is not an 'mysqli_result'", $this); // BLP 2023-06-24 - add $this
     } 
 
     if(!$result) {
@@ -303,17 +300,12 @@ class dbMysqli extends dbAbstract {
    */
   
   public function getErrorInfo() {
-    //return ['errno'=>$this->db->errno, 'error'=>$this->db->error];
     return ['errno'=>$this->getDbErrno(), 'error'=>$this->getDbError()];
   }
   
   // real_escape_string
   
   public function escape($string) {
-//    if(get_magic_quotes_runtime()) {
-//      $string = stripslashes($string);
-//    }
-
     return @$this->db->real_escape_string($string);
   }
 

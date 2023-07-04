@@ -47,8 +47,13 @@ function postAjaxMsg(msg, arg1='', arg2='') {
 jQuery(document).ready(function($) {
   // logo is in banner.i.php and it is now fully instantiated. 
 
+  //console.log("noCssLastId=", noCssLastId);
+
   lastId = $("script[data-lastid]").attr("data-lastid"); // this happens before the 'ready' above!
-  $("script[data-lastid]").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
+
+  if(noCssLastId === false) {
+    $("script[data-lastid]").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
+  }
   
   let image = $("#logo").attr("data-image");
   $("#logo").attr('src', trackerUrl + "?page=script&id="+lastId+"&image="+image);
