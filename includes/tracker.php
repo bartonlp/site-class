@@ -85,6 +85,7 @@ require_once(SITECLASS_DIR . "/defines.php"); // constants for TRACKER, BOTS, BE
 //$DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
 //$DEBUG_ISABOT = true;
+$DEBUG_ISABOT2 = true;
 
 // ****************************************************************
 // All of the following are the result of a javascript interactionl
@@ -95,6 +96,14 @@ if($_POST) {
   if($_POST['isMeFalse']) $S->isMeFalse = true;
 }
 
+// BLP 2023-08-07 - Test new approach for script
+/*
+if($_POST['page'] == "test") {
+  error_log("tracker.php 'test': " . print_r($_POST, true));
+  vardump("\$_POST", $_POST);
+  exit();
+}
+*/
 // Post an ajax error message
 
 if($_POST['page'] == 'ajaxmsg') {
@@ -240,7 +249,7 @@ if($_POST['page'] == 'timer') {
       exit(); // If this is a bot don't bother
     }
   } else {
-    error_log("tracker: $id, $ip, $site, $thepage, 'EMPTY_AGENT', botAs=$botAs");
+    error_log("tracker, timer: $id, $ip, $site, $thepage, 'EMPTY_AGENT', botAs=$botAs");
   }
 
   $java |= TRACKER_TIMER; // Or in TIMER
@@ -378,8 +387,6 @@ if($type = $_GET['page']) {
       goto GOAWAY;
   }
 
-  // I get people that call tracker 'exit' functions directly with nufarious stuff.
-  
   try {
     $sql = "select site, ip, page, finger, hex(isJavaScript), agent from $S->masterdb.tracker where id=$id";
     
@@ -432,7 +439,7 @@ if($type = $_GET['page']) {
   $java = hexdec($js);
   
   if(empty($agent) || $S->isBot($agent)) {
-    if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, image=$image, time=" . (new DateTime)->format('H:i:s:v'));
+    if($DEBUG_ISABOT2) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, image=$image, time=" . (new DateTime)->format('H:i:s:v'));
 
     // We know that there is an ID but is there a record with that ID?
 
@@ -441,7 +448,7 @@ if($type = $_GET['page']) {
                 "on duplicate key update error='ISABOT_UPDATE_$msg', lasttime=now()");
 
     // BLP 2023-01-18 - If this is a bot change the image.
-    $image = "/images/bot.jpg"; // Image of a bad bot!
+    //$image = "/images/bot.jpg"; // Image of a bad bot!
   }
   
   if($DEBUG_GET2) error_log("tracker: $id, $ip, $site, $thepage, $msg -- referer=$ref");
@@ -485,7 +492,7 @@ if($type = $_GET['page']) {
     }
   }
 
-  $imageType = preg_replace("~.*\.(.*)$~", "$1", $img);
+  $imageType = pathinfo($img, PATHINFO_EXTENSION); //preg_replace("~.*\.(.*)$~", "$1", $img);
 
   $imgFinal = file_get_contents($img);
   header("Content-type: image/$imageType");

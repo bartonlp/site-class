@@ -177,6 +177,8 @@ function finalOutput($error, $from) {
   // Turn the error message into just plane text with LF at end of each line where a BR was.
   // and remove the "ERROR" header and any blank lines.
 
+  //error_log("ErrorClass, finalOutput: $error, $from");
+  
   $err = html_entity_decode(preg_replace("/<.*?>/", '', $error));
   $err = preg_replace("/^\s*$/", '', $err); // remove blank lines
 
@@ -232,7 +234,7 @@ EOF;
     curl_setopt_array($ch, $options);
 
     $result = curl_exec($ch);
-    error_log("SqlException: Send To ME. RESULT: $result"); // This should stay!!!
+    error_log("ErrorClass.class.php, SqlException: Send To ME (".$s->EMAILADDRESS."). RESULT: $result"); // This should stay!!!
   }
 
   // Log the raw error info.
@@ -240,7 +242,7 @@ EOF;
   date_default_timezone_set('America/New_York');
 
   // This error_log should always stay in!! *****************
-  error_log("ErrorClass, finalOutput: $from\n$err\n$userId");
+  error_log("ErrorClass.class.php, finalOutput: $from\n$err\n$userId");
   // ********************************************************
     
   if(ErrorClass::getDevelopment() !== true) {

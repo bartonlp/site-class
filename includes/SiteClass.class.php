@@ -1,7 +1,7 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
 
-define("SITE_CLASS_VERSION", "3.7.0"); // BLP 2023-03-01 - 
+define("SITE_CLASS_VERSION", "3.7.1"); // BLP 2023-07-22 - added $h->logoAnchor in getPageBanner()
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -164,7 +164,7 @@ class SiteClass extends Database {
     $h->css = $this->css;
     
     if($this->css && preg_match("~<style~", $this->css) == 0) {
-      $h->css = "<style>$this->css</style>";
+      $h->css = "<style>\n$this->css\n</style>";
     }
 
     // We set the $h->inlineScript here with h_inlineScript
@@ -267,6 +267,7 @@ EOF;
    * Get Page Banner
    * BLP 2022-01-30 -- New logic
    * @return string banner
+   * NOTE: The body tag is done HERE!
    */
 
   public function getPageBanner():string {
@@ -280,17 +281,19 @@ EOF;
     // BLP 2022-04-09 - if we have nodb or noTrack then there will be no tracker.js or tracker.php
     // so we can't set the images at all.
 
-    $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
-
     if($this->nodb !== true && $this->noTrack !== true) {
       // BLP 2022-03-24 -- Add alt and add src='blank.gif'
       // BLP 2022-04-09 - for now I am leaving trackerImg1 and trackerImg2 only on $this.
+
+      $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
     
       $image1 = "<img id='logo' data-image='$this->trackerImg1' alt='logo' src=''>";
       $image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal&amp;id=$this->LAST_ID&amp;image=$this->trackerImg2'>";
       $image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?page=noscript&amp;id=$this->LAST_ID'>";
     }
 
+    $h->logoAnchor = $this->logoAnchor ?? "https://www.$this->siteDomain";
+    
     if(!is_null($this->bannerFile)) {
       $pageBannerText = require($this->bannerFile);
     } else {
@@ -306,7 +309,6 @@ $mainTitle
 or you have JavaScripts disabled.</strong>
 </noscript>
 </header>
-
 EOF;
     }
 

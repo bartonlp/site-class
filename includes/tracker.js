@@ -11,14 +11,15 @@
 const TRACKERJS_VERSION = "3.0.2trackerjs"; // BLP 2023-01-30 - 
 
 let visits = 0;
-let lastId;  // set by SiteClass via tracker.js
+//let lastId;  // set by SiteClass via tracker.js
 // set by caller
 var isMeFalse;
 //isMeFalse = true; // For Debugging
 var doState; // for debugging. It can be set by the caller.
 
-var trackerUrl;
-var beaconUrl;
+// BLP 2023-08-07 - don't think I need these two vars
+//var trackerUrl;
+//var beaconUrl;
 
 function makeTime() {
   let x = new Date;
@@ -41,21 +42,26 @@ function postAjaxMsg(msg, arg1='', arg2='') {
   });
 }
 
+// BLP 2023-07-24 - Move this out of ready() so it happens before the
+// stuff after the footer.
+
+const lastId = $("script[data-lastid]").attr("data-lastid");
+var image; // BLP 2023-08-07 - define here so it can be used elsewhere
+
 // Get the image from image logo's data-image attribute.
 // Then set the src attribute to the 'lastId' and the 'image' from logo.
 
 jQuery(document).ready(function($) {
   // logo is in banner.i.php and it is now fully instantiated. 
 
-  //console.log("noCssLastId=", noCssLastId);
-
-  lastId = $("script[data-lastid]").attr("data-lastid"); // this happens before the 'ready' above!
-
-  if(noCssLastId === false) {
+  if(noCssLastId !== true) {
     $("script[data-lastid]").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
   }
   
-  let image = $("#logo").attr("data-image");
+  // let image = $("#logo").attr("data-image"); // BLP 2023-08-07 -
+  // moved outside of ready.
+  
+  image = $("#logo").attr("data-image");
   $("#logo").attr('src', trackerUrl + "?page=script&id="+lastId+"&image="+image);
 
   // The rest of this is for everybody!
