@@ -1,9 +1,13 @@
 <?php
+// BLP 2023-08-09 - IMPORTANT: This file and beacon.php MUST be symlinked into the directory where
+// the parent files are. tracker.js can remain under vendor/bartonlp/site-class/includes.
+
 // Track the various thing that happen. Some of this is done via JavaScript while others are by the
 // header images and the csstest that is in the .htaccess file as a RewirteRule.
 // NOTE: the $_site info is from a mysitemap.json that is where the tracker.php
 // is located (or a directory above it) not necessarily from the mysitemap.json that lives with the
 // target program.
+// BLP 2023-08-08 - Move the 'script' type to 'start'. 
 /*
 CREATE TABLE `tracker` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -63,18 +67,21 @@ CREATE TABLE `dayrecords` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-// If you want the version defined ONLY and no other information.
+define("TRACKER_VERSION", "3.1.0tracker"); // BLP 2023-08-08 - 
 
-define("TRACKER_VERSION", "3.0.2tracker"); // BLP 2023-01-30 - add check for $_site
+// If you want the version defined ONLY and no other information.
 
 if($_site || $__VERSION_ONLY === true) {
   return TRACKER_VERSION;
 }
 
 $_site = require_once(getenv("SITELOADNAME"));
+
 $_site->count = false; // Don't count this.
 
 $S = new Database($_site);
+//error_log("\$_site: " . print_r($_site, true));
+//error_log("\$S: " . print_r($S, true));
 
 require_once(SITECLASS_DIR . "/defines.php"); // constants for TRACKER, BOTS, BEACON.
 
@@ -96,14 +103,6 @@ if($_POST) {
   if($_POST['isMeFalse']) $S->isMeFalse = true;
 }
 
-// BLP 2023-08-07 - Test new approach for script
-/*
-if($_POST['page'] == "test") {
-  error_log("tracker.php 'test': " . print_r($_POST, true));
-  vardump("\$_POST", $_POST);
-  exit();
-}
-*/
 // Post an ajax error message
 
 if($_POST['page'] == 'ajaxmsg') {
@@ -126,7 +125,8 @@ if($_POST['page'] == 'ajaxmsg') {
   exit();
 }
 
-// start is an ajax call from tracker.js
+// 'start' is an ajax call from tracker.js
+// BLP 2023-08-08 - 'start' now implies the 'script' (TRACKER_SCRIPT goes away. see defines.php)
 
 if($_POST['page'] == 'start') {
   $id = $_POST['id'];
@@ -137,7 +137,7 @@ if($_POST['page'] == 'start') {
   $ref = $_POST['referer'];
 
   if(!$id) {
-    error_log("tracker $site, $ip: START NO ID");
+    error_log("tracker: $site, $ip: START NO ID");
     exit();
   }
 
@@ -224,7 +224,7 @@ if($_POST['page'] == 'onexit') {
 }
 // END OF EXIT FUNCTIONS
 
-// timer is an ajax call from tracker.js
+// 'timer' is an ajax call from tracker.js
 // TIMER. This runs while the page is up.
 
 if($_POST['page'] == 'timer') {
@@ -235,7 +235,7 @@ if($_POST['page'] == 'timer') {
   $thepage = $_POST['thepage'];
 
   if(!$id) {
-    error_log("tracker $site, $ip: TIMER NO ID");
+    error_log("tracker: $site, $ip: TIMER NO ID");
     exit();
   }
 
@@ -245,7 +245,7 @@ if($_POST['page'] == 'timer') {
   if(!empty($agent)) {
     if($S->isBot($agent)) {
       if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits: $visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
-      echo "Timer1 This is a BOT, $id, $ip, $site, $thepage";
+      echo "Timer1: This is a BOT, $id, $ip, $site, $thepage";
       exit(); // If this is a bot don't bother
     }
   } else {
@@ -319,8 +319,9 @@ if($_POST['page'] == 'timer') {
 
 // Here is an example of the banner.i.php:
 // <header>
-//   <a href="https://www.bartonphillips.com">
-//    <img id='logo' data-image="image" src="https://bartonphillips.net/images/blp-image.png"></a>
+//   <!-- bartonphillips.com/includes/banner.i.php -->
+//   <a href="$h->logoAnchor">
+//    <!-- The logo line is changed by tracker.js -->
 // $image2
 // $mainTitle
 // <noscript>
@@ -332,13 +333,19 @@ if($_POST['page'] == 'timer') {
 // </noscript>
 // </header>
 //
-// tracker.js changes the <img id='logo' ... from the above to 'src' attribute:
-// src="https://bartonphillips.net/tracker.php?page=script&id="+lastId+"&image="+image);
-// When tracker.php is called to get the image 'page' has the values script, normal or noscript.
+// $image2 and $image3 look like this:
+// <img id={headerImg2 or noscript} alt={headerImg2, noscriptImg}
+// src='{the url for tracker.php}?page={normal or noscript}&id={$lastId}&image={image url}'> 
 //
-// csstest happens via .htaccess REWRITERULE. See .htaccess for more details.
-
-//error_log("tracker: site=$S->siteName, \$_GET: " . print_r($_GET, true));
+// In the 'ready' function tracker.js creates:
+// <picture id='logo'><source srcset={phoneImg} media='((hover: none) and
+// (pointer: course))' alt='photoImage'><img src={desktopImg} alt='desktopImage'></picture>
+//
+// The {phoneImg} and {disktopImg} are the two javascript variables.
+//
+// When tracker.php is called to get the image, 'page' has the values 'normal', 'noscript' or
+// 'csstest'.
+// 'csstest' happens via .htaccess REWRITERULE. See .htaccess for more details.
 
 if($type = $_GET['page']) {
   $msg = strtoupper($type);
@@ -347,7 +354,7 @@ if($type = $_GET['page']) {
   $image = $_GET['image'];
 
   if(!$id) {
-    error_log("tracker: type=$msg, NO ID, $S->ip, $S->agent");
+    error_log("tracker: type=$msg, NO ID, $S->siteName, $S->ip, $S->agent");
     exit();
   }
 
@@ -362,7 +369,7 @@ if($type = $_GET['page']) {
            "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
            "on duplicate key update errmsg='UPDATE_ID_NOT_NUMERIC::$errmsg', count=count+1, lasttime=now()";
 
-    error_log("tracker ID_IS_NOT_NUMERIC: ip=$S->ip, id(value)=$id, agent=$S->agent");
+    error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, agent=$S->agent");
 
     $S->query($sql);
     goto GOAWAYNOW;
@@ -372,9 +379,11 @@ if($type = $_GET['page']) {
     case "normal":
       $or = TRACKER_NORMAL;
       break;
+    /* BLP 2023-08-08 - moved logic into start
     case "script":
       $or = TRACKER_SCRIPT;
       break;
+    */
     case "noscript":
       $or = TRACKER_NOSCRIPT;
       break;
@@ -383,7 +392,7 @@ if($type = $_GET['page']) {
       $image = $image ?? "NONE";
       break;
     default:
-      error_log("tracker Switch Error: $S->ip, type=$type, time=" . (new DateTime)->format('H:i:s:v'));
+      error_log("tracker Switch Error: $S->ip, $S->siteName, type=$type, time=" . (new DateTime)->format('H:i:s:v'));
       goto GOAWAY;
   }
 
@@ -403,6 +412,8 @@ if($type = $_GET['page']) {
 
     // try to insert into the id that was passed in.
 
+    // BLP 2023-08-09 - $S->siteName is not valid! See comments at the top.
+    
     try {
       $ip = $ip ?? "NO_IP";
       
@@ -412,7 +423,7 @@ if($type = $_GET['page']) {
       
       $S->query($sql);
 
-      error_log("tracker: $id, \$S->ip=$S->ip, $S->siteName, $S->self, SELECT_FAILED_INSERT_OK_{$ip}_{$msg}, ".
+      error_log("tracker: $id, \$S->ip=$S->ip, \$S->siteName=$S->siteName,  $S->self, SELECT_FAILED_INSERT_OK_{$ip}_{$msg}, ".
                 "err=$errno, errmsg=$errmsg, time=" . (new DateTime)->format('H:i:s:v'));
     } catch(Exception $e) {
       $errno = $e->getCode();
@@ -422,11 +433,11 @@ if($type = $_GET['page']) {
       // The primary key is ip and type
 
       $sql = "insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
-             "values('$S->ip', $id, '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+             "values('$S->ip', $id, '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
              "on duplicate key update count=count+1, errmsg=errmsg . '::$errmsg', lasttime=now()";
         
       if(!$S->query($sql)) {
-        error_log("tracker: \$S->ip=$S->ip, \$ip=$ip badplayer - could not do insert/update");
+        error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip badplayer - could not do insert/update");
       }       
       goto GOAWAYNOW;
     }
@@ -473,25 +484,23 @@ if($type = $_GET['page']) {
     exit();
   }
 
-  // BLP 2022-08-15 - Get the default image. Use the $S->defaultImage if not null
-  // The defaultImage can be set in mysitemap.json or via $_site only.
-  
   $img = $S->defaultImage ?? "https://bartonphillips.net/images/blank.png";
 
   // script and normal may have an image but
   // noscript has NO IMAGE
-  
+
   if($image) {
     $pos = strpos($image, "http"); // does $image start with http?
     if($pos !== false && $pos == 0) { 
       $img = $image; // $image has the full url starting with http (could be https)
     } else {
-      // BLP 2022-08-15 - Use $S->imageLocation if not null.
-      // This can be set in mysitemap.json or via $_site only.
-      $img = ($S->imagesLocation ?? "https://bartonphillips.net") . $image;
+      // BLP 2023-08-09 - If we don't have an full url then force this to be from
+      // bartonphillips.net. We can't use $S->imageLocation.
+      
+      $img = "https://bartonphillips.net$image";
     }
   }
-
+    
   $imageType = pathinfo($img, PATHINFO_EXTENSION); //preg_replace("~.*\.(.*)$~", "$1", $img);
 
   $imgFinal = file_get_contents($img);
@@ -508,20 +517,19 @@ GOAWAY: // Label for goto.
 $id = $_GET['id'] ?? $_POST['id'];
 
 if(!$id) {
-  //error_log("tracker $S->siteName, $S->ip: GOAWAY NO ID");
   $errno = -102;
   $errmsg = "No tracker logic triggered";
   
   // No id
   
   $S->query("insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAY NO ID', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+            "values('$S->ip', $S->siteName, '$S->self', 'GOAWAY NO ID', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
             "on duplicate key update count=count+1, lasttime=now()");
 } else {
   // If this ID is not in the table add it with TRACKER_GOAWAY.
   
   $S->query("insert into $S->masterdb.tracker (id, site, ip, agent, isJavaScript, starttime, lasttime) ".
-            "values($id, '$S->siteName', '$S->ip', '$S->agent', " . TRACKER_GOAWAY . ", now(), now()) ".
+            "values($id, '$S->ip', $S->siteName, '$S->agent', " . TRACKER_GOAWAY . ", now(), now()) ".
             "on duplicate key update isJavaScript=isJavaScript|" . TRACKER_GOAWAY . ", lasttime=now()");
 
   $errno = -103;
@@ -529,7 +537,7 @@ if(!$id) {
   $botAs = BOTAS_COUNTED;
   
   $S->query("insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', $id, '$S->siteName', '$S->self', 'GOAWAY', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+            "values('$S->ip', $S->siteName, $id, '$S->self', 'GOAWAY', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
             "on duplicate key update count=count+1, lasttime=now()");
 }
 

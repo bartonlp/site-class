@@ -1,25 +1,17 @@
 // Track user activity
 // Goes hand in hand with tracker.php
-// BLP 2023-01-19 - When run via the node server.js at
-// /var/www/bartonphillips.com/examples/node-programs/server.js the csstest-.*\.css
-// comes from the the app.get(name....) for example apt.get('test2'...)
-// the css would be from /test2/csstest-.*\.css. I hope this is clear
-// enough so if I look at this a year from now it all makes sense.
+// BLP 2023-08-08 - Changed to use the new images for desktop and phone.
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.0.2trackerjs"; // BLP 2023-01-30 - 
+const TRACKERJS_VERSION = "3.1.0trackerjs"; // BLP 2023-08-08 - 
 
 let visits = 0;
-//let lastId;  // set by SiteClass via tracker.js
-// set by caller
+
 var isMeFalse;
 //isMeFalse = true; // For Debugging
-var doState; // for debugging. It can be set by the caller.
 
-// BLP 2023-08-07 - don't think I need these two vars
-//var trackerUrl;
-//var beaconUrl;
+var doState; // for debugging. It can be set by the caller.
 
 function makeTime() {
   let x = new Date;
@@ -42,31 +34,31 @@ function postAjaxMsg(msg, arg1='', arg2='') {
   });
 }
 
-// BLP 2023-07-24 - Move this out of ready() so it happens before the
-// stuff after the footer.
+// The very first thing we do is get the lastId from the script tag.
 
 const lastId = $("script[data-lastid]").attr("data-lastid");
-var image; // BLP 2023-08-07 - define here so it can be used elsewhere
 
-// Get the image from image logo's data-image attribute.
-// Then set the src attribute to the 'lastId' and the 'image' from logo.
+// Now we wait until all of the DOM is loaded and ready.
+// NOTE: these Javascript variables have been set in
+// SiteClass.class.php -- SiteClass::getPageHead() and are available
+// everywhere because they are declaired as 'var' right after
+// tracker.js is declaired:
+// thesite, thepage, trackerUrl, beaconUrl, noCssLastId, desktopImg,
+// phoneImg.
 
 jQuery(document).ready(function($) {
-  // logo is in banner.i.php and it is now fully instantiated. 
-
   if(noCssLastId !== true) {
     $("script[data-lastid]").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
   }
   
-  // let image = $("#logo").attr("data-image"); // BLP 2023-08-07 -
-  // moved outside of ready.
-  
-  image = $("#logo").attr("data-image");
-  $("#logo").attr('src', trackerUrl + "?page=script&id="+lastId+"&image="+image);
+  // BLP 2023-08-08 - desktopImg and phoneImg are supplied by SiteClass::getPageHead();
 
-  // The rest of this is for everybody!
+  $("header a:first-of-type").html("<picture id='logo'>"+
+                                   "<source srcset=" + phoneImg + " media='((hover: none) and (pointer: coarse))' alt='phoneImage'>" +
+                                   "<img src=" + desktopImg + " alt='desktopImage'></picture>");
 
-  console.log("thesite: " + thesite + ", theip: " + theip + ", thepage: " + thepage + ", lastId: " + lastId + ", isMeFalse: " + isMeFalse);
+  console.log("VARIABLES -- thesite: " + thesite + ", theip: " + theip + ", thepage: " + thepage + ", lastId: " + lastId +
+              ", isMeFalse: " + isMeFalse + ", phoneImg: " + phoneImg + ", desktopImg: " + desktopImg);
   
   // Get the cookie. If it has 'mytime' we set 'visits' to zero.
   // Always reset cookie for 10 min.
@@ -80,15 +72,16 @@ jQuery(document).ready(function($) {
   date.setTime(date.getTime() + (60 * 10 * 1000));
   value += "|" + date.toGMTString();
 
-  console.log("value="+value);
+  console.log("mytime cookie value="+value);
   document.cookie = "mytime=" + value + "; expires=" + date.toGMTString() + ";path=/";
 
-  // Usually the image stuff (script, normal and noscript) will
+  // Usually the image stuff (normal and noscript) will
   // happen before 'start' or 'load'.
   // 'start' is done weather or not 'load' happens. As long as
   // javascript works. Otherwise we should get information from the
   // image in the <noscript> section of includes/banner.i.php
-
+  // BLP 2023-08-08 - 'start' now implies 'script'!
+  
   let ref = document.referrer; // Get the referer which we pass to 'start'
   
   $.ajax({
@@ -163,10 +156,10 @@ jQuery(document).ready(function($) {
   // On the load event
   
   $(window).on("load", function(e) {
-    var type = e.type;
+
     $.ajax({
       url: trackerUrl,
-      data: {page: type, 'id': lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse},
+      data: {page: e.type, 'id': lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse},
       type: 'post',
       success: function(data) {
         console.log(data +", "+ makeTime());
@@ -189,11 +182,12 @@ jQuery(document).ready(function($) {
     } else { // This is only if beacon is not supported by the client (which is infrequently. This can happen with MS-Ie and old versions of others).
       console.log("Beacon NOT SUPPORTED");
 
-      var type = e.type;
-
+      // BLP 2023-08-08 - tracker.php will send an error_log if this
+      // happens because it should NEVER HAPEN!
+      
       $.ajax({
         url: trackerUrl,
-        data: {page: 'onexit', type: type, 'id': lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse, state: state},
+        data: {page: 'onexit', type: e.type, 'id': lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse, state: state},
         type: 'post',
         success: function(data) {
           console.log("tracker ", data);

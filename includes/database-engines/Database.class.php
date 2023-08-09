@@ -1,5 +1,6 @@
 <?php
 /* Well tested and maintained */
+// BLP 2023-08-09 -
 
 define("DATABASE_CLASS_VERSION", "3.0.0database"); // BLP 2023-02-24 -
 

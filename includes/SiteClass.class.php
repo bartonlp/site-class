@@ -1,7 +1,8 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
+// BLP 2023-08-08 - Change to use new tracker.js and tracker.php
 
-define("SITE_CLASS_VERSION", "3.7.1"); // BLP 2023-07-22 - added $h->logoAnchor in getPageBanner()
+define("SITE_CLASS_VERSION", "3.8.0"); // BLP 2023-08-08 - updated. New tracker.js and tracker.php. Added desktopImg and phoneImg.
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!
@@ -199,9 +200,17 @@ EOF;
       
         $this->trackerLocationJs = $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
 
-        $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
-        $beaconLocation = $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php";
+        // BLP 2023-08-09 - tracker.php and beacon.php MUST be symlinked into the parents
+        // directory!
+        
+        $trackerLocation = $this->trackerLocation ?? "./tracker.php"; // BLP 2023-08-09 - a symlink
+        $beaconLocation = $this->beaconLocation ?? "./beacon.php"; // BLP 2023-08-09 - a symlink
 
+        $logoImgLocation = $this->logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-08 -
+
+        $desktopImg = "$logoImgLocation$this->trackerImg1"; // BLP 2023-08-08 - 
+        $phoneImg = "$logoImgLocation$this->trackerImgPhone"; // BLP 2023-08-08 - 
+ 
         $trackerStr =<<<EOF
   <script data-lastid="$this->LAST_ID" src="$this->trackerLocationJs"></script>
   <script>
@@ -210,7 +219,9 @@ EOF;
     thepage = "$this->self",
     trackerUrl = "$trackerLocation",
     beaconUrl = "$beaconLocation",
-    noCssLastId = "$this->noCssLastId";
+    noCssLastId = "$this->noCssLastId",
+    desktopImg = "$desktopImg", // BLP 2023-08-08 - 
+    phoneImg = "$phoneImg"; // BLP 2023-08-08 -
   </script>
 EOF;
       }
@@ -286,9 +297,9 @@ EOF;
       // BLP 2022-04-09 - for now I am leaving trackerImg1 and trackerImg2 only on $this.
 
       $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
-    
-      $image1 = "<img id='logo' data-image='$this->trackerImg1' alt='logo' src=''>";
-      $image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal&amp;id=$this->LAST_ID&amp;image=$this->trackerImg2'>";
+      
+      //$image1 = "<img id='logo' data-image='$this->trackerImg1' alt='logo' src=''>";
+      $image2 = "<img id='headerImage2' alt='headerImage2' src='https://bartonphillips.net$this->trackerImg2' alt=NO SCRIPT'>";
       $image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?page=noscript&amp;id=$this->LAST_ID'>";
     }
 
