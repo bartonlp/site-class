@@ -207,10 +207,17 @@ EOF;
         $beaconLocation = $this->beaconLocation ?? "./beacon.php"; // BLP 2023-08-09 - a symlink
 
         $logoImgLocation = $this->logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-08 -
+        $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-10 -
 
-        $desktopImg = "$logoImgLocation$this->trackerImg1"; // BLP 2023-08-08 - 
-        $phoneImg = "$logoImgLocation$this->trackerImgPhone"; // BLP 2023-08-08 - 
- 
+        // BLP 2023-08-10 - Here we want the images to be real or null so we can check them in
+        // tracker.js
+        
+        $desktopImg = $this->trackerImg1 ? "$logoImgLocation$this->trackerImg1" : null; // BLP 2023-08-08 - 
+        $phoneImg = $this->trackerImgPhone ? "$logoImgLocation$this->trackerImgPhone" : null; // BLP 2023-08-08 - 
+
+        $disktopImg2 = $this->trackerImg2 ? "$headerImg2Location$this->trackerImg2" : null; // BLP 2023-08-10 - 
+        $phoneImg2 = $this->trackerImgPhone2 ? "$headerImg2Location$this->trackerImgPhone2" : null; // BLP 2023-08-10 - 
+        
         $trackerStr =<<<EOF
   <script data-lastid="$this->LAST_ID" src="$this->trackerLocationJs"></script>
   <script>
@@ -222,6 +229,8 @@ EOF;
     noCssLastId = "$this->noCssLastId",
     desktopImg = "$desktopImg", // BLP 2023-08-08 - 
     phoneImg = "$phoneImg"; // BLP 2023-08-08 -
+    desktopImg2 = "$desktopImg2"; // BLP 2023-08-10 - 
+    phoneImg2 = "$phoneImg2" // BLP 2023-08-10 - 
   </script>
 EOF;
       }
@@ -297,9 +306,10 @@ EOF;
       // BLP 2022-04-09 - for now I am leaving trackerImg1 and trackerImg2 only on $this.
 
       $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
-      
-      //$image1 = "<img id='logo' data-image='$this->trackerImg1' alt='logo' src=''>";
-      $image2 = "<img id='headerImage2' alt='headerImage2' src='https://bartonphillips.net$this->trackerImg2' alt=NO SCRIPT'>";
+
+      // BLP 2023-08-10 - We start out with the <img> having the NO SCRIPT logo, because this will
+      // be changed by tracker.js if the user has Javascript.
+      $image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal&amp;id=$this->LAST_ID&amp;image=/noscript.png' alt=NO SCRIPT'>";
       $image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?page=noscript&amp;id=$this->LAST_ID'>";
     }
 

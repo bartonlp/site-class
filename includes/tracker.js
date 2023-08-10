@@ -1,6 +1,7 @@
 // Track user activity
 // Goes hand in hand with tracker.php
 // BLP 2023-08-08 - Changed to use the new images for desktop and phone.
+// BLP 2023-08-10 - Do 'headerImage2'
 
 'use strict';
 
@@ -53,9 +54,16 @@ jQuery(document).ready(function($) {
   
   // BLP 2023-08-08 - desktopImg and phoneImg are supplied by SiteClass::getPageHead();
 
+  phoneImg = phoneImg ?? "/blank.png";
+  phoneImg2 = phoneImg2 ?? "/blank.png";
+             
   $("header a:first-of-type").html("<picture id='logo'>"+
                                    "<source srcset=" + phoneImg + " media='((hover: none) and (pointer: coarse))' alt='phoneImage'>" +
                                    "<img src=" + desktopImg + " alt='desktopImage'></picture>");
+
+  $("#logo a").html("<picture id='headerImage2' alt='headerImage2'>"+
+                    "<source srcset=" + phoneImg2 + " media='((hover: none) and (pointer: coarse))' alt='phoneImage'>" +
+                    "<img src=" + desktopImg2 + " alt='desktopImage'></picture>");
 
   console.log("VARIABLES -- thesite: " + thesite + ", theip: " + theip + ", thepage: " + thepage + ", lastId: " + lastId +
               ", isMeFalse: " + isMeFalse + ", phoneImg: " + phoneImg + ", desktopImg: " + desktopImg);
