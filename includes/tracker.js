@@ -109,8 +109,6 @@ jQuery(document).ready(function($) {
     
     $("header a:first-of-type").after(picture);
   } 
-    // BLP 2023-08-10 - Here we need to put a
-  }
 
   // BLP 2023-08-10 - At this point we may or may not have a second
   // item in header.
