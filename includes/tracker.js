@@ -53,20 +53,71 @@ jQuery(document).ready(function($) {
   }
   
   // BLP 2023-08-08 - desktopImg and phoneImg are supplied by SiteClass::getPageHead();
+  // BLP 2023-08-10 - Same logic as Img2
 
-  phoneImg = phoneImg ?? "/blank.png";
-  phoneImg2 = phoneImg2 ?? "/blank.png";
-             
-  $("header a:first-of-type").html("<picture id='logo'>"+
-                                   "<source srcset=" + phoneImg + " media='((hover: none) and (pointer: coarse))' alt='phoneImage'>" +
-                                   "<img src=" + desktopImg + " alt='desktopImage'></picture>");
+  let picture;
 
-  $("#logo a").html("<picture id='headerImage2' alt='headerImage2'>"+
-                    "<source srcset=" + phoneImg2 + " media='((hover: none) and (pointer: coarse))' alt='phoneImage'>" +
-                    "<img src=" + desktopImg2 + " alt='desktopImage'></picture>");
+  if(phoneImg || desktopImg) {
+    picture = "<picture id='logo'>";
+    
+    if(phoneImg) {
+      picture += "<source srcset=" + phoneImg + " media='((hover: none) and (pointer: coarse))' alt='phoneImage'>";
+    }
 
+    if(desktopImg) {
+      picture += "<img src=" + desktopImg + " alt='desktopImage'>"
+    } else {
+      picture += "<img src=" + phoneImg + " alt='phoneImage'>";
+    }
+    
+    picture += "</picture>";
+
+    // BLP 2023-08-10 - This will remove the <img> tag and replace it
+    // with the <picture> tag.
+    
+    $("header a:first-of-type").html(picture);
+  }
+
+  // BLP 2023-08-10 - Here we need to remove the <img
+  // id='headerImage2'> before we replave it with a posible <picture>
+  // tag.
+  
+  $("#headerImage2").remove();
+
+  // BLP 2023-08-10 - look to see if we have any Img2 items.
+
+  if(phoneImg2 || desktopImg2) {
+    picture = "<picture id='headerImage2'>";
+
+    // BLP 2023-08-10 - Do we have a phoneImg2?
+    
+    if(phoneImg2) {
+      picture += "<source srcset=" + phoneImg2 + " media='((hover: none) and (pointer: coarse))' alt='phoneImage'>";
+    } 
+
+    // BLP 2023-08-10 - Do we have a desktopImg2?
+    
+    if(desktopImg2) {
+      picture += "<img src=" + desktopImg2 + " alt='desktopImage'>"
+    } else {
+      picture += "<img src=" + phoneImg2 + " alt='phoneImage'>";
+    }
+      
+    // BLP 2023-08-10 - If we have either finish off the picture tag.
+    
+    picture += "</picture>";
+    
+    $("header a:first-of-type").after(picture);
+  } 
+    // BLP 2023-08-10 - Here we need to put a
+  }
+
+  // BLP 2023-08-10 - At this point we may or may not have a second
+  // item in header.
+  
   console.log("VARIABLES -- thesite: " + thesite + ", theip: " + theip + ", thepage: " + thepage + ", lastId: " + lastId +
-              ", isMeFalse: " + isMeFalse + ", phoneImg: " + phoneImg + ", desktopImg: " + desktopImg);
+              ", isMeFalse: " + isMeFalse + ", phoneImg: " + phoneImg + ", desktopImg: " + desktopImg +
+              ", phoneImg2: " + phoneImg2 + ", desktopImg2: " + desktopImg2);
   
   // Get the cookie. If it has 'mytime' we set 'visits' to zero.
   // Always reset cookie for 10 min.
