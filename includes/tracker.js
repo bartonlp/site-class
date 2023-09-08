@@ -38,6 +38,7 @@ function postAjaxMsg(msg, arg1='', arg2='') {
 // The very first thing we do is get the lastId from the script tag.
 
 const lastId = $("script[data-lastid]").attr("data-lastid");
+console.log("navigator.userAgentData: ", navigator.userAgentData);
 
 // Now we wait until all of the DOM is loaded and ready.
 // NOTE: these Javascript variables have been set in
@@ -75,7 +76,7 @@ jQuery(document).ready(function($) {
     // BLP 2023-08-10 - This will remove the <img> tag and replace it
     // with the <picture> tag.
     
-    $("header a:first-of-type").html(picture);
+    $("header a:first-of-type").first().html(picture);
   }
 
   // BLP 2023-08-10 - Here we need to remove the <img
@@ -109,15 +110,13 @@ jQuery(document).ready(function($) {
     
     $("header a:first-of-type").after(picture);
   } 
-    // BLP 2023-08-10 - Here we need to put a
-  }
 
   // BLP 2023-08-10 - At this point we may or may not have a second
   // item in header.
   
   console.log("VARIABLES -- thesite: " + thesite + ", theip: " + theip + ", thepage: " + thepage + ", lastId: " + lastId +
               ", isMeFalse: " + isMeFalse + ", phoneImg: " + phoneImg + ", desktopImg: " + desktopImg +
-              ", phoneImg2: " + phoneImg2 + ", desktopImg2: " + desktopImg2);
+              ", phoneImg2: " + phoneImg2 + ", desktopImg2: " + desktopImg2 + ", mysitemap: " + mysitemap);
   
   // Get the cookie. If it has 'mytime' we set 'visits' to zero.
   // Always reset cookie for 10 min.
@@ -145,7 +144,7 @@ jQuery(document).ready(function($) {
   
   $.ajax({
     url: trackerUrl,
-    data: {page: 'start', id: lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, referer: ref},
+    data: {page: 'start', id: lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, referer: ref, mysitemap: mysitemap},
     type: 'post',
     success: function(data) {
       console.log(data +", "+ makeTime());
@@ -218,7 +217,7 @@ jQuery(document).ready(function($) {
 
     $.ajax({
       url: trackerUrl,
-      data: {page: e.type, 'id': lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse},
+      data: {page: e.type, 'id': lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, mysitemap: mysitemap},
       type: 'post',
       success: function(data) {
         console.log(data +", "+ makeTime());
@@ -246,7 +245,7 @@ jQuery(document).ready(function($) {
       
       $.ajax({
         url: trackerUrl,
-        data: {page: 'onexit', type: e.type, 'id': lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse, state: state},
+        data: {page: 'onexit', type: e.type, 'id': lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse, state: state, mysitemap: mysitemap},
         type: 'post',
         success: function(data) {
           console.log("tracker ", data);
@@ -288,7 +287,7 @@ jQuery(document).ready(function($) {
 
     $.ajax({
       url: trackerUrl,
-      data: {page: 'timer', id: lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse},
+      data: {page: 'timer', id: lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse, mysitemap: mysitemap},
       type: 'post',
       success: function(data) {
         difftime += 10000;

@@ -28,6 +28,7 @@ class Database extends dbAbstract {
       // then set it to true. Just Database should NOT do tracker (usually).
       
       $s->noTrack = $s->noTrack ?? true; // If not set to false set it to true.
+      if($s->noTrack === true) $s->count = false; // BLP 2023-08-11 - Force count false if noTrack is true
     }
 
     // Do the parent dbAbstract constructor

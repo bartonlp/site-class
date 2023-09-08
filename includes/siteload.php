@@ -9,10 +9,11 @@
 // if we did a symlink to DOCUMENT_ROOT + 'weewx/index.php' and the symlink were
 // /extra/weewx then if we did a chdir('..') we would get to /extra which is wrong.
 // What we want is /var/www/weewx to /var/wwww.
+// BLP 2023-08-11 - added getinfo::$mysitemap and logic to set it.
 
 namespace bartonlp\siteload;
 
-define("SITELOAD_VERSION", "2.0.1siteload"); // BLP 2023-06-22 - added noTraceback and errLast
+define("SITELOAD_VERSION", "2.1.0siteload"); // BLP 2023-08-11 - add static $mysitemap
 define("SITECLASS_DIR", __DIR__);
 require_once(__DIR__ ."/../../../autoload.php");
 
@@ -26,7 +27,8 @@ if(!class_exists("getinfo")) {
     private $docroot;
     private $mydir;
     private $_site;
-
+    public static $mysitemap; // BLP 2023-08-11 - This is used by tracker.js and tracker.php to get the right $_site.
+    
     public function __construct() {
       $old = error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
 
@@ -62,6 +64,11 @@ if(!class_exists("getinfo")) {
       $this->mydir = $mydir;
 
       $this->_site = json_decode($this->findsitemap());
+
+      // BLP 2023-08-17 - $this->mydir has the actual location of the mysitemap.json after the call
+      // to $this->findsitemap().
+      
+      self::$mysitemap = "$this->mydir/mysitemap.json";
       
       // Set the siteloadVersion and siteClassDir
 
@@ -109,7 +116,9 @@ if(!class_exists("getinfo")) {
       $mydir = $this->mydir;
 
       if(file_exists($mydir . "/mysitemap.json")) {
-        return $this->stripComments(file_get_contents($mydir . "/mysitemap.json"));
+        // BLP 2023-08-17 - use the stripComments() from the helperfunctions.php
+        
+        return stripComments(file_get_contents($mydir . "/mysitemap.json"));
       } else {
         // If we didn't find the mysitemap.json then have we reached to docroot? Or have we reached the
         // root. We should actually never reach the root.
@@ -124,11 +133,11 @@ EOF;
         }
 
         // We are not at the root so do $mydir = dirname($mydir). For example if $mydir is
-        // '/var/www/weewx' it becomes '/var/www'
-        //echo "mydir: $mydir\n";
+
         $this->mydir = dirname($mydir);
-        //chdir($mydir); // This will change the dir to something under the docroot
+
         // Recurse
+
         return $this->findsitemap();
       }
     }
@@ -137,13 +146,6 @@ EOF;
 
     public function getSite() {
       return $this->_site;
-    }
-
-    // BLP 2021-02-20 -- Added this to remove any comments that may be in my 'mystiemap.json'
-
-    private function stripComments($x) {
-      $pat = '~".*?"(*SKIP)(*FAIL)|(?://[^\n]*)|(?:#[^\n]*)|(?:/\*.*?\*/)~s';
-      return preg_replace($pat, "", $x);
     }
   }
 }

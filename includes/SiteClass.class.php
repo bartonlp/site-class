@@ -20,6 +20,7 @@ define("SITE_CLASS_VERSION", "3.8.0"); // BLP 2023-08-08 - updated. New tracker.
  * @package SiteClass
  * This class can be extended to handle special issues and add methods.
  */
+use \bartonlp\siteload\getinfo as load;
 
 require_once(__DIR__ . "/defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -203,21 +204,40 @@ EOF;
         // BLP 2023-08-09 - tracker.php and beacon.php MUST be symlinked into the parents
         // directory!
         
-        $trackerLocation = $this->trackerLocation ?? "./tracker.php"; // BLP 2023-08-09 - a symlink
-        $beaconLocation = $this->beaconLocation ?? "./beacon.php"; // BLP 2023-08-09 - a symlink
+        $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php"; // BLP 2023-08-09 - a symlink
+        $beaconLocation = $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php"; // BLP 2023-08-09 - a symlink
 
         $logoImgLocation = $this->logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-08 -
         $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-10 -
 
         // BLP 2023-08-10 - Here we want the images to be real or null so we can check them in
         // tracker.js
-        
-        $desktopImg = $this->trackerImg1 ? "$logoImgLocation$this->trackerImg1" : null; // BLP 2023-08-08 - 
-        $phoneImg = $this->trackerImgPhone ? "$logoImgLocation$this->trackerImgPhone" : null; // BLP 2023-08-08 - 
 
-        $desktopImg2 = $this->trackerImg2 ? "$headerImg2Location$this->trackerImg2" : null; // BLP 2023-08-10 -
-        $phoneImg2 = $this->trackerImgPhone2 ? "$headerImg2Location$this->trackerImgPhone2" : null; // BLP 2023-08-10 - 
-        
+        if(strpos($this->trackerImg1, "http") === 0) {
+          $desktopImg = $this->trackerImg1;
+        } else {
+          $desktopImg = $this->trackerImg1 ? "$logoImgLocation$this->trackerImg1" : null; // BLP 2023-08-08 -
+        }
+        if(strpos($this->trackerImgPhone, "http") === 0) {
+          $phoneImg = $this->trackerImgPhone;
+        } else {
+          $phoneImg = $this->trackerImgPhone ? "$logoImgLocation$this->trackerImgPhone" : null; // BLP 2023-08-08 - 
+        }
+        if(strpos($this->trackerImg2, "http") === 0 ) {
+          $desktopImg2 = $this->trackerImg2;
+        } else {
+          $desktopImg2 = $this->trackerImg2 ? "$headerImg2Location$this->trackerImg2" : null; // BLP 2023-08-10 -
+        }
+        if(strpos($this->trackerImgPhone2, "http") === 0) {
+          $phoneImg2 = $this->trackerImgPhone2;
+        } else {
+          $phoneImg2 = $this->trackerImgPhone2 ? "$headerImg2Location$this->trackerImgPhone2" : null; // BLP 2023-08-10 - 
+        }
+
+        // BLP 2023-08-11 - what if I get this from the mysitemap.json for the target?
+
+        $mysitemap = load::$mysitemap;
+
         $trackerStr =<<<EOF
   <script data-lastid="$this->LAST_ID" src="$this->trackerLocationJs"></script>
   <script>
@@ -230,7 +250,8 @@ EOF;
     desktopImg = "$desktopImg", // BLP 2023-08-08 - 
     phoneImg = "$phoneImg"; // BLP 2023-08-08 -
     desktopImg2 = "$desktopImg2"; // BLP 2023-08-10 - 
-    phoneImg2 = "$phoneImg2" // BLP 2023-08-10 - 
+    phoneImg2 = "$phoneImg2", // BLP 2023-08-10 -
+    mysitemap = "$mysitemap" // BLP 2023-08-11 - pass it into javascript
   </script>
 EOF;
       }
@@ -309,8 +330,9 @@ EOF;
 
       // BLP 2023-08-10 - We start out with the <img id='headerImage2'> having the NO SCRIPT logo, because this will
       // be changed by tracker.js if the user has Javascript.
+      // I have a png and an svg of the NO SCRIPT, but the svg does not work?
 
-      $image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal&amp;id=$this->LAST_ID&amp;image=/images/noscript.png' alt='NO SCRIPT'>";
+      $image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal&amp;id=$this->LAST_ID&amp;image=/images/noscript.svg' alt='NO SCRIPT'>";
 
       $image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?page=noscript&amp;id=$this->LAST_ID'>";
     }

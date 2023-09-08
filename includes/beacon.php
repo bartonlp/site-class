@@ -17,10 +17,10 @@ $S = new Database($_site);
 
 require_once(SITECLASS_DIR . "/defines.php");
 
-$DEBUG1 = true; // COUNTED real+1 bots-1
-$DEBUG2 = true; // After update tracker table
-$DEBUG3 = true; // visablechange
-$DEBUG_IPS = true; // show ip mismatches.
+//$DEBUG1 = true; // COUNTED real+1 bots-1
+//$DEBUG2 = true; // After update tracker table
+//$DEBUG3 = true; // visablechange
+//$DEBUG_IPS = true; // show ip mismatches.
 $DEBUG_ISABOT = true;
 
 // The input comes via php as json data not $_GET or $_POST

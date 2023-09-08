@@ -1,12 +1,12 @@
 <?php
-// BLP 2023-08-09 - IMPORTANT: This file and beacon.php MUST be symlinked into the directory where
-// the parent files are. tracker.js can remain under vendor/bartonlp/site-class/includes.
-
 // Track the various thing that happen. Some of this is done via JavaScript while others are by the
 // header images and the csstest that is in the .htaccess file as a RewirteRule.
 // NOTE: the $_site info is from a mysitemap.json that is where the tracker.php
 // is located (or a directory above it) not necessarily from the mysitemap.json that lives with the
 // target program.
+// BLP 2023-08-11 - added logic below to allow me to keep the files tracker.php in
+// https://bartonlp.com/otherpages/ with symlinks to the site-class library.
+// SO we do not need a symlink in everypage directory!!!!
 // BLP 2023-08-08 - Move the 'script' type to 'start'. 
 /*
 CREATE TABLE `tracker` (
@@ -67,7 +67,7 @@ CREATE TABLE `dayrecords` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("TRACKER_VERSION", "3.1.0tracker"); // BLP 2023-08-08 - 
+define("TRACKER_VERSION", "3.2.0tracker"); // BLP 2023-08-11 - 
 
 // If you want the version defined ONLY and no other information.
 
@@ -77,11 +77,20 @@ if($_site || $__VERSION_ONLY === true) {
 
 $_site = require_once(getenv("SITELOADNAME"));
 
-$_site->count = false; // Don't count this.
+// BLP 2023-08-11 - If this is a POST from tracker.js via ajax get the $_site via a
+// file_get_contents(). See SiteClass::getPageHead(), siteload.php.
+
+if($_POST) {
+  // Here isMeFalse is a string '1'.
+  if($_POST['isMeFalse']) $S->isMeFalse = true;
+
+  // BLP 2023-08-11 - This allow us to keep the tracker.php at bartonlp.com/otherpages with a
+  // symlink to vendor/bartonlp/site-class/includes/tracker.php
+  
+  $_site = json_decode(stripComments(file_get_contents($_POST['mysitemap'])));
+}  
 
 $S = new Database($_site);
-//error_log("\$_site: " . print_r($_site, true));
-//error_log("\$S: " . print_r($S, true));
 
 require_once(SITECLASS_DIR . "/defines.php"); // constants for TRACKER, BOTS, BEACON.
 
@@ -92,16 +101,11 @@ require_once(SITECLASS_DIR . "/defines.php"); // constants for TRACKER, BOTS, BE
 //$DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
 //$DEBUG_ISABOT = true;
-$DEBUG_ISABOT2 = true;
+//$DEBUG_ISABOT2 = true;
 
 // ****************************************************************
 // All of the following are the result of a javascript interactionl
 // ****************************************************************
-
-if($_POST) {
-  // Here isMeFalse is a string '1'.
-  if($_POST['isMeFalse']) $S->isMeFalse = true;
-}
 
 // Post an ajax error message
 
@@ -379,11 +383,6 @@ if($type = $_GET['page']) {
     case "normal":
       $or = TRACKER_NORMAL;
       break;
-    /* BLP 2023-08-08 - moved logic into start
-    case "script":
-      $or = TRACKER_SCRIPT;
-      break;
-    */
     case "noscript":
       $or = TRACKER_NOSCRIPT;
       break;
@@ -412,8 +411,6 @@ if($type = $_GET['page']) {
 
     // try to insert into the id that was passed in.
 
-    // BLP 2023-08-09 - $S->siteName is not valid! See comments at the top.
-    
     try {
       $ip = $ip ?? "NO_IP";
       
@@ -504,7 +501,13 @@ if($type = $_GET['page']) {
   $imageType = pathinfo($img, PATHINFO_EXTENSION); //preg_replace("~.*\.(.*)$~", "$1", $img);
 
   $imgFinal = file_get_contents($img);
-  header("Content-type: image/$imageType");
+
+  if($imageType == 'svg') $imageType = "image/svg+xml";
+
+  header("Content-Type: $imageType");
+
+  //error_log("tracker.php imageType=$imageType, img=$img, imgFinal=$imgFinal");
+
   echo $imgFinal;
   exit();
 }
@@ -523,13 +526,13 @@ if(!$id) {
   // No id
   
   $S->query("insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', $S->siteName, '$S->self', 'GOAWAY NO ID', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+            "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAY NO ID', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
             "on duplicate key update count=count+1, lasttime=now()");
 } else {
   // If this ID is not in the table add it with TRACKER_GOAWAY.
   
   $S->query("insert into $S->masterdb.tracker (id, site, ip, agent, isJavaScript, starttime, lasttime) ".
-            "values($id, '$S->ip', $S->siteName, '$S->agent', " . TRACKER_GOAWAY . ", now(), now()) ".
+            "values($id, '$S->ip', '$S->siteName', '$S->agent', " . TRACKER_GOAWAY . ", now(), now()) ".
             "on duplicate key update isJavaScript=isJavaScript|" . TRACKER_GOAWAY . ", lasttime=now()");
 
   $errno = -103;
@@ -537,7 +540,7 @@ if(!$id) {
   $botAs = BOTAS_COUNTED;
   
   $S->query("insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', $S->siteName, $id, '$S->self', 'GOAWAY', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+            "values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
             "on duplicate key update count=count+1, lasttime=now()");
 }
 
