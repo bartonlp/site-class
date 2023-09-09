@@ -76,6 +76,7 @@ if($_site || $__VERSION_ONLY === true) {
 }
 
 $_site = require_once(getenv("SITELOADNAME"));
+require_once(SITECLASS_DIR . "/defines.php");
 
 // BLP 2023-08-11 - If this is a POST from tracker.js via ajax get the $_site via a
 // file_get_contents(). See SiteClass::getPageHead(), siteload.php.
@@ -86,13 +87,11 @@ if($_POST) {
 
   // BLP 2023-08-11 - This allow us to keep the tracker.php at bartonlp.com/otherpages with a
   // symlink to vendor/bartonlp/site-class/includes/tracker.php
-  
+
   $_site = json_decode(stripComments(file_get_contents($_POST['mysitemap'])));
 }  
 
 $S = new Database($_site);
-
-require_once(SITECLASS_DIR . "/defines.php"); // constants for TRACKER, BOTS, BEACON.
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load

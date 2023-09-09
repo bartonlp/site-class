@@ -20,6 +20,9 @@ define("SITE_CLASS_VERSION", "3.8.0"); // BLP 2023-08-08 - updated. New tracker.
  * @package SiteClass
  * This class can be extended to handle special issues and add methods.
  */
+
+// BLP 2023-09-08 - make an alias for getinfo.
+
 use \bartonlp\siteload\getinfo as load;
 
 require_once(__DIR__ . "/defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
@@ -234,7 +237,9 @@ EOF;
           $phoneImg2 = $this->trackerImgPhone2 ? "$headerImg2Location$this->trackerImgPhone2" : null; // BLP 2023-08-10 - 
         }
 
-        // BLP 2023-08-11 - what if I get this from the mysitemap.json for the target?
+        // BLP 2023-09-08 - load is an alias for getinfo() in siteload.php. See the top of this
+        // program for the 'use' alias.
+        // I use $mysitemap in tracker.php to be able to not have symlinks in all of my domains.
 
         $mysitemap = load::$mysitemap;
 

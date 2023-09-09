@@ -9,7 +9,8 @@
 // if we did a symlink to DOCUMENT_ROOT + 'weewx/index.php' and the symlink were
 // /extra/weewx then if we did a chdir('..') we would get to /extra which is wrong.
 // What we want is /var/www/weewx to /var/wwww.
-// BLP 2023-08-11 - added getinfo::$mysitemap and logic to set it.
+// BLP 2023-08-11 - added getinfo::$mysitemap and logic to set it. I do this so I don't need
+// symlinks for tracker.php in my sites.
 
 namespace bartonlp\siteload;
 
