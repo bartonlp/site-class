@@ -1,6 +1,7 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
-// BLP 2023-08-08 - Change to use new tracker.js and tracker.php
+// BLP 2023-10-02 - Note that the constructor calls the Database constructor which in turn call the
+// dbAbstract constructor which does all of the heavy lifting.
 
 define("SITE_CLASS_VERSION", "3.8.0"); // BLP 2023-08-08 - updated. New tracker.js and tracker.php. Added desktopImg and phoneImg.
 
@@ -24,8 +25,6 @@ define("SITE_CLASS_VERSION", "3.8.0"); // BLP 2023-08-08 - updated. New tracker.
 // BLP 2023-09-08 - make an alias for getinfo.
 
 use \bartonlp\siteload\getinfo as load;
-
-require_once(__DIR__ . "/defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 class SiteClass extends Database {
   // Give these default values incase they are not mentioned in mysitemap.json.

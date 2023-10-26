@@ -8,6 +8,9 @@ define("ABSTRACT_CLASS_VERSION", "3.0.1ab"); // BLP 2023-03-07 - remove $arg use
 // over again in each higher level class like SiteClass or Database.
 // The db engines (dbMysqli.class.php, etc.) have most of these methods implemented.
 
+// BLP 2023-10-24 - moved this require here from several other places. If it is here I don't need
+// to require it anywhere else that uses the SiteClass or Database.
+
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 abstract class dbAbstract {
@@ -20,6 +23,8 @@ abstract class dbAbstract {
   
   protected function __construct(object $s) {
     global $__info; // BLP 2023-01-24 - added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
+
+    header("Accept-CH: Sec-Ch-Ua-Platform,Sec-Ch-Ua-Platform-Version,Sec-CH-UA-Full-Version-List,Sec-CH-UA-Arch,Sec-CH-UA-Model"); // BLP 2023-10-02 - ask for sec headers
 
     $this->errorClass = new ErrorClass();
 
@@ -85,6 +90,9 @@ abstract class dbAbstract {
     // $this->count false
     
     if($this->noTrack !== true) {
+      // BLP 2023-10-02 - get all of the $_SERVER info.
+      $this->getserver();
+      
       $this->logagent();   // This logs Me and everybody else! This is done regardless of $this->isBot or $this->isMe().
 
       // checkIfBot() must be done before the rest because everyone uses $this->isBot.
@@ -346,7 +354,8 @@ abstract class dbAbstract {
     $myIp[] = DO_SERVER; // BLP 2022-04-30 - Add my server.
 
     //error_log("Database after myIp set, this: " . print_r($this, true));
-   
+    //vardump("myIp", $myIp);
+    
     return $myIp;
   }
 }

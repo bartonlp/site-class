@@ -1,6 +1,9 @@
 <?php
 /* Well tested and maintained */
-// BLP 2023-08-09 -
+// BLP 2023-10-02 - all of the tracking logic is in this file.
+// The dbAbstract constructor does most of the heavy lifting. It get info from $_SERVER, it calls
+// all of the tracking and counting logic that is in this file.
+// We do a require_once(__DIR__ . "/../defines.php") in dbAbstract.class.php.
 
 define("DATABASE_CLASS_VERSION", "3.0.0database"); // BLP 2023-02-24 -
 
@@ -59,7 +62,7 @@ class Database extends dbAbstract {
                      );
 
     if(!setcookie($cookie, $value, $options)) {
-      error_log("SiteClass $this->siteName: $this->self: setcookie failed ". __LINE__);
+      error_log("Database $this->siteName: $this->self: setcookie failed ". __LINE__);
       return false;
     }
 
@@ -110,6 +113,8 @@ class Database extends dbAbstract {
 
   /*
    * isBot(string $agent):bool
+   * *** This is ONLY called from checkIfBot() in the dbAbstract constructor!
+   * *** However, it can be called by applications using $S.
    * Determines if an agent is a bot or not.
    * @return bool
    * Side effects:
@@ -126,14 +131,10 @@ class Database extends dbAbstract {
                         "http client|PECL::HTTP~i", $agent)) === 1) { // 1 means a match
       $this->isBot = true;
       $this->foundBotAs = BOTAS_MATCH;
-      return $this->isBot;
     } elseif($x === false) { // false is error
       // This is an unexplained ERROR
       throw new SqlExceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", $this);
     }
-
-    // If $x was 1 or false we have returned with true and BOTAS_MATCH or we threw an exception.
-    // $x is zero so there was NO match.
 
     if($this->query("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Is it in the bots table?
       // Yes it is in the bots table.
@@ -141,11 +142,11 @@ class Database extends dbAbstract {
       $tmp = '';
 
       // Look at each posible entry in bots. The entries may be for different sites and have
-      // different values for $robots.
+      // different values for $robots. The BOTAS_... are a string while BOTS_... are integers.
       
       while([$robots] = $this->fetchrow('num')) {
         if($robots & BOTS_ROBOTS) {
-          $tmp = "," . BOTAS_ROBOT;
+          $tmp .= "," . BOTAS_ROBOT;
         }
         if($robots & BOTS_SITEMAP) {
           $tmp .= "," . BOTAS_SITEMAP;
@@ -158,13 +159,15 @@ class Database extends dbAbstract {
       
       if($tmp != '') {
         $tmp = ltrim($tmp, ','); // remove the leading comma
-        $this->foundBotAs = $tmp; //'bots table' plus $tmp;
-        $this->isBot = true; // BOTAS_TABLE plus robot and/or sitemap
-      } else {
-        $this->foundBotAs = BOTAS_NOT;
-        $this->isBot = false;
-      }
-      
+        $this->foundBotAs .= "," . $tmp; // BLP 2023-10-23 - foundBotAs could be BOTAS_MATCH
+        $this->isBot = true; 
+      } 
+    }
+
+    /* if(!$this->isMe()) error_log("Database isBot(): ip=$this->ip, foundBotAs=$this->foundBotAs,
+    /* robots=$tmp"); */
+
+    if(str_contains($this->foundBotAs, BOTAS_MATCH)) {
       return $this->isBot;
     }
 
@@ -183,6 +186,94 @@ class Database extends dbAbstract {
   // **************
   // Start Counters
   // **************
+
+  /**
+   * BLP 2023-10-02 - new expermental. 
+   * getserver()
+   * Save all of the sec-ch info from the apache request header into the server table.
+   */
+
+  protected function getserver():void {
+    $req = apache_request_headers();  // get headers
+
+    // Only save sec-ch headers
+
+    $info = '';
+    
+    foreach($req as $k=>$v) {
+      if(strpos($k, "sec-ch") === false) continue;
+
+      $tmp = preg_replace("~v=\"(.*?)\"~", '$1', $v); // everything except sec-ch-ua and sec-ua-mobile
+      
+      switch($k) {
+        case 'sec-ch-ua':
+          $ua = explode(",", $v);
+/*for debug */          
+          //if(!$this->isMe()) error_log("Database getserver: ip=$this->ip, site=$this->sitename, page=$this->self, ua: ". print_r($ua, true));
+
+          $tmp = $secname = trim((explode(";", $ua[0]))[0], " \n\r\t\v\x00\""); // Get $ua[0]. It might be 'Not A'.
+
+          If(preg_match("~.*?Not.*?A~", $secname) === 1) {
+            $secname = trim((explode(";", $ua[1]))[0], " \n\r\t\v\x00\""); // Get $ua[1]
+          }
+/*for debug */          
+          //if(!$this->isMe()) 
+          //  error_log("Database getserver: ip=$this->ip, site=$this->siteName, page=$this->self, secname0=$tmp, secname1=$secname, req: ". print_r($req, true));
+
+          $info .= "ua=$secname,";
+          $this->secname = "$secname,";
+          break;
+        case 'sec-ch-ua-mobile':
+          if($v == "v=?0") {
+            $info .= "phone,";
+          } else {
+            $info .= "not-phone,";
+          }
+          break;
+        case 'sec-ch-ua-arch':
+          $info .= "arch=$tmp,";
+          break;
+        case 'sec-ch-ua-platform':
+          $info .= "platform=$tmp,";
+          break;
+        case 'sec-ch-ua-platform-version':
+          $info .= "Version=$tmp,";
+          break;
+        case 'sec-ch-ua-model':
+          $info .= "Model=$tmp,";
+        default:
+          continue;
+      }
+    }
+    $info = rtrim($info, ',');
+
+    if($this->isMe()) return;
+
+    // If we didn't find any return.
+    
+    if(empty($info)) {
+      return; // BLP 2023-10-25 - if empty don't log anything.
+    }
+
+    // Check to see if this is iPhone or Android
+    
+    preg_match("~iPhone|Android~i", $this->agent, $m);
+
+    // BLP 2023-10-25 - NOTE foundBotAs is set by checkIfBot() which is called by the constructor
+    // in dbAbstract.
+    
+    // error log info.
+
+    error_log("Database getserver() ip=$this->ip, site=$this->siteName, page=$this->self, phone=$m[0], bot=$this->foundBotAs, info: " . print_r($info, true));
+        
+    $this->info = rtrim($info, ',');
+
+    // $m[0] is iPhone or Andriod or null.
+    // Add into to the server table.
+    
+    $this->query("insert into $this->masterdb.server (ip, site, page, bot, info, phone, lasttime) " .
+                 "values('$this->ip', '$this->siteName', '$this->self', '$this->foundBotAs', '$info', '$m[0]', now())");
+  }
 
   /**
    * trackbots()
@@ -253,6 +344,8 @@ class Database extends dbAbstract {
   }
    
   /**
+   * BLP 2023-10-05 - Added `browser`.
+   *
    * tracker()
    * track if java script or not.
    * CREATE TABLE `tracker` (
@@ -262,8 +355,10 @@ class Database extends dbAbstract {
    *  `page` varchar(255) NOT NULL DEFAULT '',
    *  `finger` varchar(50) DEFAULT NULL,
    *  `nogeo` tinyint(1) DEFAULT NULL,
+   *  `browser` varchar(50) DEFAULT NULL,
    *  `ip` varchar(40) DEFAULT NULL,
    *  `agent` text,
+   *  `referer` varchar(255) DEFAULT '',
    *  `starttime` datetime DEFAULT NULL,
    *  `endtime` datetime DEFAULT NULL,
    *  `difftime` varchar(20) DEFAULT NULL,
@@ -275,14 +370,58 @@ class Database extends dbAbstract {
    *  KEY `ip` (`ip`),
    *  KEY `lasttime` (`lasttime`),
    *  KEY `starttime` (`starttime`)
-   * ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3
+   * ) ENGINE=MyISAM AUTO_INCREMENT=6708643 DEFAULT CHARSET=utf8mb3;
    */
 
   protected function tracker():void {
     $agent = $this->agent;
+    $secname = $this->secname;
 
+    // BLP 2023-10-05 - This is the `browser` logic. It sets $name.
+
+    $pat2 = "~ Edge/| Edg/|firefox|chrome|crios|safari|trident|msie|opera|konqueror~i";
+
+    if(preg_match_all($pat2, $agent, $m)) {
+      $m = array_map('strtolower', $m[0]);
+      $mm = $m[count($m)-1];
+
+      switch($mm) {
+        case 'opera':
+          $name = 'Opera';
+          break;
+        case ' edg/':
+        case ' edge/':
+          $name = 'MS-Edge';
+          break;
+        case 'trident':
+        case 'msie':
+          $name = 'MsIe';
+          break;
+        case 'chrome':
+          $name = 'Chrome';
+          break;
+        case 'safari':
+          if(($m[count($m)-2] == 'chrome') || ($m[count($m)-2] == 'crios')) {
+            $name = 'Chrome';
+          } else {
+            $name = 'Safari';
+          }
+          break;
+        case 'firefox':
+          $name = 'Firefox';
+          break;
+        case 'konqueror':
+          $name = 'Konqueror';
+          break;
+        default:
+          error_log("Database.class.php: not in BROWSER pattern: $mm[0]");
+          continue;
+      }
+    }
+    // BLP 2023-10-05 - end `browser` logic.
+    
     // BLP 2021-12-28 -- Explanation.
-    // Here we set $java (isJavaScript) to 0x8000 or zero.
+    // Here we set $java (isJavaScript) to TRACKER_BOT or zero.
     // We then look at isBot and if nothing was found in the bots table and the regex did not
     // match something in the list then isJavaScript will be zero.
     // The visitor was probably a bot and will be added to the bots table as a 0x100 by the cron
@@ -301,8 +440,15 @@ class Database extends dbAbstract {
 
     $agent = $this->escape($agent);
 
-    $this->query("insert into $this->masterdb.tracker (botAs, site, page, ip, agent, starttime, isJavaScript, lasttime) ".
-                 "values('$this->foundBotAs', '$this->siteName', '$this->self', '$this->ip','$agent', now(), $java, now())");
+    // BLP 2023-10-05 - added `browser` and $name.
+
+    $name = "$secname$name";
+
+    // BLP 2023-10-19 - here foundBotAs could be BOTAS_ZERO and java could be TRACKER_ZERO. If that
+    // is the case then this is not going to be found in checktracker2.php.
+    
+    $this->query("insert into $this->masterdb.tracker (botAs, site, page, ip, browser, agent, starttime, isJavaScript, lasttime) ".
+                 "values('$this->foundBotAs', '$this->siteName', '$this->self', '$this->ip', '$name', '$agent', now(), $java, now())");
 
     $this->LAST_ID = $this->getLastInsertId();
   }
@@ -425,13 +571,14 @@ class Database extends dbAbstract {
 
   /**
    * checkIfBot() before we do any of the other protected functions in SiteClass.
+   * *** This is ONLY called by the constructor in dbAbstract!
    * Calls the public isBot().
    * Checks if the user-agent looks like a bot or if the ip is in the bots table
    * or previous tracker records had something other than zero or 0x2000.
    * Set $this->isBot true/false.
    * return bool.
    * SEE defines.php for the values for TRACKER_BOT, BOTS_SITECLASS
-   * $this-isBot() is false or there is no entry in the bots table
+   * $this-isBot() is false if there is no 'match' or no entry in the bots table
    */
 
   protected function checkIfBot():bool {

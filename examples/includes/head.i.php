@@ -11,6 +11,7 @@ $h->author
 $h->desc
 $h->keywords
 $h->meta
+$h->canonical
 $h->favicon
 $h->defaultCss
 $h->link

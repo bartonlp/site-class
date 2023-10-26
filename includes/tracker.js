@@ -237,11 +237,11 @@ jQuery(document).ready(function($) {
     if(navigator.sendBeacon) { // If beacon is supported by this client we will always do beacon.
       navigator.sendBeacon(beaconUrl, JSON.stringify({'id':lastId, 'type': e.type, 'site': thesite, 'ip': theip, 'visits': visits, 'thepage': thepage, 'isMeFalse': isMeFalse, 'state': state}));
       console.log("beacon " + e.type + ", "+thesite+", "+thepage+", state="+state+", "+makeTime());
-    } else { // This is only if beacon is not supported by the client (which is infrequently. This can happen with MS-Ie and old versions of others).
+    } else { // This is only if beacon is not supported by the client (which is infrequently. This can happen with MS-Ie, tor and old versions of others).
       console.log("Beacon NOT SUPPORTED");
-
+      
       // BLP 2023-08-08 - tracker.php will send an error_log if this
-      // happens because it should NEVER HAPEN!
+      // happens. It does happen if you use 'tor' for example.
       
       $.ajax({
         url: trackerUrl,

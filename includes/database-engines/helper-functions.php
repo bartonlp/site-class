@@ -1,7 +1,8 @@
 <?php
 /* HELPER FUNCTIONS. Well tested and maintained */
+// BLP 2023-10-04 - added varexport() functions.
 
-define("HELPER_FUNCTION_VERSION", "1.1.1helper"); // BLP 2023-06-21 - added array_deep()
+define("HELPER_FUNCTION_VERSION", "1.1.2helper"); // BLP 2023-10-04 - 
 
 /**
  * Helper Functions
@@ -44,6 +45,40 @@ if(!function_exists('vardumpNoEscape')) {
     }
     for($i=0; $i < count($args); ++$i) {
       $v .= print_r($args[$i], true);
+    }
+    echo "$msg$v\n";
+  }
+}
+
+// BLP 2023-10-04 - varexport makes value readable
+
+if(!function_exists('varexport')) {
+  function varexport() {
+    $args = func_get_args();
+
+    if(count($args) > 1 && is_string($args[0])) {
+      $msg = array_shift($args);
+      $msg = "<b>$msg:</b>\n";
+    }
+    for($i=0; $i < count($args); ++$i) {
+      $v .= escapeltgt(var_export($args[$i], true));
+    }
+    echo "<pre class='vardump'>$msg$v</pre>";
+  }
+} 
+
+// BLP 2023-10-04 - As above but does not escape the lt/gt or do any HTML.
+
+if(!function_exists('varexportNoEscape')) {
+  function varexportNoEscape() {
+    $args = func_get_args();
+
+    if(count($args) > 1 && is_string($args[0])) {
+      $msg = array_shift($args);
+      $msg = "$msg:\n";
+    }
+    for($i=0; $i < count($args); ++$i) {
+      $v .= var_export($args[$i], true);
     }
     echo "$msg$v\n";
   }

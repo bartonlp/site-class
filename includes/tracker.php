@@ -7,7 +7,10 @@
 // BLP 2023-08-11 - added logic below to allow me to keep the files tracker.php in
 // https://bartonlp.com/otherpages/ with symlinks to the site-class library.
 // SO we do not need a symlink in everypage directory!!!!
-// BLP 2023-08-08 - Move the 'script' type to 'start'. 
+// BLP 2023-08-08 - Move the 'script' type to 'start'.
+// BLP 2023-09-10 - add if($_POST) right after the require_once(). We need to get the host from the
+// first $_site->dbinfo and replace the value form the file_get_contents().
+
 /*
 CREATE TABLE `tracker` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -67,7 +70,7 @@ CREATE TABLE `dayrecords` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("TRACKER_VERSION", "3.2.0tracker"); // BLP 2023-08-11 - 
+define("TRACKER_VERSION", "3.2.1tracker"); // BLP 2023-09-10 - 
 
 // If you want the version defined ONLY and no other information.
 
@@ -76,10 +79,10 @@ if($_site || $__VERSION_ONLY === true) {
 }
 
 $_site = require_once(getenv("SITELOADNAME"));
-require_once(SITECLASS_DIR . "/defines.php");
 
-// BLP 2023-08-11 - If this is a POST from tracker.js via ajax get the $_site via a
-// file_get_contents(). See SiteClass::getPageHead(), siteload.php.
+// BLP 2023-09-10 - If this is a POST from tracker.js via ajax get the $_site via a
+// file_get_contents($_POST['mysitemap']) but use the host from $_site->dbinfo->host above. See
+// SiteClass::getPageHead(), siteload.php. 
 
 if($_POST) {
   // Here isMeFalse is a string '1'.
@@ -88,10 +91,14 @@ if($_POST) {
   // BLP 2023-08-11 - This allow us to keep the tracker.php at bartonlp.com/otherpages with a
   // symlink to vendor/bartonlp/site-class/includes/tracker.php
 
+  //error_log("tracker.php {$_POST['site']}, mysitemap=" . $_POST['mysitemap']);
+
+  $tmp = $_site->dbinfo->host; // BLP 2023-09-10 -
   $_site = json_decode(stripComments(file_get_contents($_POST['mysitemap'])));
+  $_site->dbinfo->host = $tmp; // BLP 2023-09-10 - 
 }  
 
-$S = new Database($_site);
+$S = new Database($_site); // BLP 2023-10-02 - because we use Database noTrack is set and we do not do any tracking.
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -99,8 +106,8 @@ $S = new Database($_site);
 //$DEBUG_DAYCOUNT = true; // Timer real+1
 //$DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
-//$DEBUG_ISABOT = true;
-//$DEBUG_ISABOT2 = true;
+//$DEBUG_ISABOT = true; // This is in the 'timer' logic
+//$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
 
 // ****************************************************************
 // All of the following are the result of a javascript interactionl
@@ -212,6 +219,7 @@ if($_POST['page'] == 'load') {
 // browsers and of course MS-Ie. Therefore these should not happen often.
 // BLP 2022-10-27 - I have not seen one in several months so I am removing this logic and replacing
 // it with an error message!
+// BLP 2023-10-06 - Tor does not support 'beacon' so Tor comes here.
 
 if($_POST['page'] == 'onexit') {
   $id = $_POST['id'];
@@ -220,9 +228,41 @@ if($_POST['page'] == 'onexit') {
   $thepage = $_POST['thepage'];
   $type = $_POST['type'];
 
+  if($S->query("select botAs, isJavaScript, difftime, agent from $S->masterdb.tracker where id=$id")) {
+    [$botAs, $java, $difftime, $agent] = $S->fetchrow('num');
+  } else {
+    error_log("tracker onexit: NO record for $id, line=" . __LINE__);
+  }
+
   $msg = strtoupper($type);
+
+  // BLP 2023-10-06 - use BEACON values.
   
-  error_log("tracker onexit: $id, $site, $ip, $thepage, $msg, These Should Never Happen");
+  switch($type) {
+    case "pagehide":
+      $onexit = BEACON_PAGEHIDE;
+      break;
+    case "unload":
+      $onexit = BEACON_UNLOAD;
+      break;
+    case "beforeunload":
+      $onexit = BEACON_BEFOREUNLOAD;
+      break;
+    case "visibilitychange":
+      $onexit = BEACON_VISIBILITYCHANGE;
+      break;
+    default:
+      error_log("tracker: $id, $ip, $site, $thepage, SWITCH_ERROR_{$type}, botAs=$botAs -- \$S->ip=$S->ip, \$S->agent=$S->agent");
+      exit();
+  }
+
+  $botAs = empty($botAs) ? "Tor?" : "$botAs,Tor?";
+  $java |= $onexit;
+  
+  $S->query("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
+            "isJavaScript='$java', lasttime=now() where id=$id");
+
+  error_log("tracker onexit: $id, $site, $ip, $thepage, $msg, $botAs, Maybe Tor?");
   exit();
 }
 // END OF EXIT FUNCTIONS
@@ -245,6 +285,9 @@ if($_POST['page'] == 'timer') {
   $S->query("select botAs, isJavaScript, hex(isJavaScript), finger, agent from $S->masterdb.tracker where id=$id");
   [$botAs, $java, $js, $finger, $agent] = $S->fetchrow('num');
 
+  $java |= TRACKER_TIMER; // Or in TIMER
+  $js2 = strtoupper(dechex($java));
+
   if(!empty($agent)) {
     if($S->isBot($agent)) {
       if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits: $visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
@@ -254,9 +297,6 @@ if($_POST['page'] == 'timer') {
   } else {
     error_log("tracker, timer: $id, $ip, $site, $thepage, 'EMPTY_AGENT', botAs=$botAs");
   }
-
-  $java |= TRACKER_TIMER; // Or in TIMER
-  $js2 = strtoupper(dechex($java));
 
   $tmpBotAs = $botAs;
 
@@ -300,7 +340,7 @@ if($_POST['page'] == 'timer') {
   }
 
   // BLP 2022-12-06 - now $botAs will have counted and maybe robot or sitemap or zero.
-  
+
   $sql = "update $S->masterdb.tracker set botAs='$botAs', isJavaScript='$java', endtime=now(), ".
          "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id";
 
@@ -364,7 +404,6 @@ if($type = $_GET['page']) {
   if(!is_numeric($id)) {
     $errno = -99;
     $errmsg = "ID is not numeric";
-    //$botAs = BOTAS_COUNTED;
 
     // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
     

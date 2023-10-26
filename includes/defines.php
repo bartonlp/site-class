@@ -1,7 +1,6 @@
 <?php
 // Defines for tables.
-// BLP 2023-08-08 - Remove TRACKER_SCRIPT which is now the same as TRACKER_START (see tracker.js
-// and tracker.php as well as SiteClass::getPageHead().
+// BLP 2023-10-20 - removed, define("BOTAS_TABLE", "table");
 
 define("DEFINES_VERSION", "1.1.0defines"); // BLP 2023-08-08 - 
 
@@ -31,6 +30,7 @@ define("TRACKER_ZERO", 0); // This happens in SiteClass, isMe() is false and isB
 define("TRACKER_GOTO", 0x1000); // see bartonphillips.com/goto.php, also webtats.php and webstats.js
 define("TRACKER_GOAWAY", 0x2000); // tracker called with no info so GoAway
 
+define("CHECKTRACKER", 0x8000); // BLP 2023-10-20 - checktracker2.php ors in this value with TRACKER_BOT if the 
 // Beacon is part of isJavaScript in the tracker table.
 // BLP 2023-08-08 - BEACON_VISIBILITYCHANGE moves to 0x10 from 0x40000
 
@@ -43,7 +43,6 @@ define("BEACON_MASK", BEACON_VISIBILITYCHANGE | BEACON_PAGEHIDE | BEACON_UNLOAD 
 
 // foundBotAs. This is the value in the tracker table as botAs.
 define("BOTAS_MATCH", "match");
-define("BOTAS_TABLE", "table");
 define("BOTAS_NOT", null);
 define("BOTAS_ROBOT", "robot");
 define("BOTAS_SITEMAP", "sitemap");

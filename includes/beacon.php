@@ -21,7 +21,7 @@ require_once(SITECLASS_DIR . "/defines.php");
 //$DEBUG2 = true; // After update tracker table
 //$DEBUG3 = true; // visablechange
 //$DEBUG_IPS = true; // show ip mismatches.
-$DEBUG_ISABOT = true;
+//$DEBUG_ISABOT = true;
 
 // The input comes via php as json data not $_GET or $_POST
 
@@ -61,7 +61,7 @@ if(!$id || $visits === null) {
 if($S->query("select botAs, isJavaScript, hex(isJavaScript), difftime, finger, agent from $S->masterdb.tracker where id=$id")) {
   [$botAs, $java, $js, $difftime, $finger, $agent] = $S->fetchrow('num');
 } else {
-  error_log("tracker: NO record for $id, line=" . __LINE__);
+  error_log("beacon: NO record for $id, line=" . __LINE__);
 }
 
 // BLP 2023-08-08 - tracker.php does not do any 'exit' tracking any more!
@@ -104,7 +104,7 @@ if(!str_contains($botAs, BOTAS_COUNTED)) {
   if(!empty($botAs)) {
     // This must have robot, sitemap, or zero
     
-    if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+    if($DEBUG_ISABOT) error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
     exit();
   }
 }
