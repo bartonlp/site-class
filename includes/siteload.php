@@ -5,10 +5,7 @@
 // target.
 // For example DOCUMENT_ROOT + /path/target
 // So we take this and if we do not find the files at first we do a $mysite = dirname($mysite) and
-// then do a chdir($mysite); This may not be DOCUMENT_ROOT + ... but may the REAL path. For Example
-// if we did a symlink to DOCUMENT_ROOT + 'weewx/index.php' and the symlink were
-// /extra/weewx then if we did a chdir('..') we would get to /extra which is wrong.
-// What we want is /var/www/weewx to /var/wwww.
+// then do a chdir($mysite); This may not be DOCUMENT_ROOT + ... but may the REAL path.
 // BLP 2023-08-11 - added getinfo::$mysitemap and logic to set it. I do this so I don't need
 // symlinks for tracker.php in my sites.
 

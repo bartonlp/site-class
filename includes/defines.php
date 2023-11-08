@@ -47,6 +47,9 @@ define("BOTAS_NOT", null);
 define("BOTAS_ROBOT", "robot");
 define("BOTAS_SITEMAP", "sitemap");
 define("BOTAS_ZERO", "zero");
+define("BOTAS_ZBOT", "zbot"); // BLP 2023-11-04 - 
 define("BOTAS_COUNTED", "counted");
+define("BOTAS_NOAGENT", "no-agent"); // BLP 2023-10-27 - added
+
 // Define the DigitalOcean Server
 define("DO_SERVER", "157.245.129.4");

@@ -11,11 +11,11 @@ if($_site || $__VERSION_ONLY === true) {
 }
 
 // The normal beacon starts here.
+// NOTE: we can get $_site from the mysitemap.json at bartonlp.com/otherpages because all of the
+// inportant information is passed to this program via 'php://input'
 
-$_site = require_once(getenv("SITELOADNAME")); 
+$_site = require_once(getenv("SITELOADNAME"));
 $S = new Database($_site);
-
-require_once(SITECLASS_DIR . "/defines.php");
 
 //$DEBUG1 = true; // COUNTED real+1 bots-1
 //$DEBUG2 = true; // After update tracker table
@@ -36,6 +36,8 @@ $ip = $data['ip'];
 $visits = $data['visits'];
 $thepage = $data['thepage'];
 $state = $data['state'];
+
+//error_log("*** beacon: site=$site, ip=$ip, page=$thepage, state=$state, type=$type");
 
 // Here the isMeFalse is passed as a true bool.
 $S->isMeFalse = $data['isMeFalse'];
@@ -120,7 +122,11 @@ if(!$S->isMyIp($ip) && !str_contains($botAs, BOTAS_COUNTED)) { // it is not ME a
   if($DEBUG1) error_log("beacon:  $id, $ip, $site, $thepage, COUNTED_{$msg}1, real+1, botAs=$botAs, state=$state, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, visits: $visits, time=" . (new DateTime)->format('H:i:s:v'));
 }
 
-$botAs = BOTAS_COUNTED;
+if(empty($botAs)) {
+  $botAs = BOTAS_COUNTED;
+} elseif(!str_contains($botAs, BOTAS_COUNTED)) {
+  $botAs .= "," . BOTAS_COUNTED;
+}
 
 // Now update tracker. $botAs should have BOTS_COUNTED!
 

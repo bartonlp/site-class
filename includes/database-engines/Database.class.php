@@ -77,7 +77,7 @@ class Database extends dbAbstract {
 
   public function isMyIp(string $ip):bool {
     if($this->isMeFalse === true) return false;
-    return (array_intersect([$ip], $this->myIp)[0] === null) ? false : true;
+    return (!empty(array_intersect([$ip], $this->myIp)));
   }
   
   /**
@@ -125,17 +125,28 @@ class Database extends dbAbstract {
   
   public function isBot(string $agent):bool {
     $this->isBot = false;
-
-    if(($x = preg_match("~\+*https?://|@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
-                        "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
-                        "http client|PECL::HTTP~i", $agent)) === 1) { // 1 means a match
+    $this->foundBotAs = ''; // These two will be set in isBot().
+    
+    if(!empty($agent)) { // BLP 2023-10-27 - Check agent.
+      if(($x = preg_match("~\+*https?://|@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
+                          "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
+                          "http client|PECL::HTTP~i", $agent)) === 1) { // 1 means a match
+        $this->isBot = true;
+        $this->foundBotAs = BOTAS_MATCH;
+      } elseif($x === false) { // false is error
+        // This is an unexplained ERROR
+        throw new SqlExceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", $this);
+      }
+    } else {
+      // BLP 2023-10-27 - If the agent is empty then this is a BOT
+      $this->foundBotAs = BOTAS_NOAGENT;
       $this->isBot = true;
-      $this->foundBotAs = BOTAS_MATCH;
-    } elseif($x === false) { // false is error
-      // This is an unexplained ERROR
-      throw new SqlExceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", $this);
+      /* BLP 2023-10-29 - debug. analysis.php calls isBot() and agent may be empty and isMeFalse is true. */
+      if(!$this->isMe()) error_log("Database isBot(): ip=$this->ip, site=$this->siteName, NO-AGENT, foundBotAs=$this->foundBotAs");
     }
 
+    // BLP 2023-10-27 - at this point isBot may have true and either 'match' or 'no-agent'.
+    
     if($this->query("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Is it in the bots table?
       // Yes it is in the bots table.
 
@@ -152,29 +163,32 @@ class Database extends dbAbstract {
           $tmp .= "," . BOTAS_SITEMAP;
         }
         if($robots & BOTS_CRON_ZERO) {
-          $tmp .= "," . BOTAS_ZERO;
+          $tmp .= "," . BOTAS_ZBOT; // BLP 2023-11-04 - found 0x100 in bots so this is a zero (0x100) from bots ttable: 'zbot'
         }
         if($tmp != '') break;
       }
       
       if($tmp != '') {
-        $tmp = ltrim($tmp, ','); // remove the leading comma
-        $this->foundBotAs .= "," . $tmp; // BLP 2023-10-23 - foundBotAs could be BOTAS_MATCH
+        if(empty($this->foundBotAs)) {
+          $tmp = ltrim($tmp, ','); // remove the leading comma
+          $this->foundBotAs = $tmp; // foundBotAs has never been set!
+        } else {
+          $this->foundBotAs .= $tmp; // foundBotAs could be BOTAS_MATCH or BOTAS_NOAGENT so add $tmp.
+        }
         $this->isBot = true; 
       } 
     }
 
-    /* if(!$this->isMe()) error_log("Database isBot(): ip=$this->ip, foundBotAs=$this->foundBotAs,
-    /* robots=$tmp"); */
+    // isBot may be true because 1) BOTAS_MATCH, 2) BOTAS_NOAGENT or 3) found in bots
+    // table. If the preg_match() found the agent, then BOTAS_MATCH. If there was 'no agent', isBot is set
+    // and BOTAS_NOAGENT is set.
+    
+    if(!$this->isBot) {
+      // The agent was not found by preg_match() and the ip was NOT in the bots table either.
 
-    if(str_contains($this->foundBotAs, BOTAS_MATCH)) {
-      return $this->isBot;
+      $this->foundBotAs = BOTAS_NOT; // not a bot (null)
     }
 
-    // The ip was NOT in the bots table either.
-
-    $this->foundBotAs = BOTAS_NOT; // not a bot
-    $this->isBot = false;
     return $this->isBot;
   }
 
@@ -208,27 +222,22 @@ class Database extends dbAbstract {
       switch($k) {
         case 'sec-ch-ua':
           $ua = explode(",", $v);
-/*for debug */          
-          //if(!$this->isMe()) error_log("Database getserver: ip=$this->ip, site=$this->sitename, page=$this->self, ua: ". print_r($ua, true));
 
           $tmp = $secname = trim((explode(";", $ua[0]))[0], " \n\r\t\v\x00\""); // Get $ua[0]. It might be 'Not A'.
 
           If(preg_match("~.*?Not.*?A~", $secname) === 1) {
             $secname = trim((explode(";", $ua[1]))[0], " \n\r\t\v\x00\""); // Get $ua[1]
           }
-/*for debug */          
-          //if(!$this->isMe()) 
-          //  error_log("Database getserver: ip=$this->ip, site=$this->siteName, page=$this->self, secname0=$tmp, secname1=$secname, req: ". print_r($req, true));
-
-          $info .= "ua=$secname,";
+          $info .= "ua=$v,";
           $this->secname = "$secname,";
           break;
         case 'sec-ch-ua-mobile':
-          if($v == "v=?0") {
-            $info .= "phone,";
-          } else {
-            $info .= "not-phone,";
-          }
+//          if($v == "?0") {
+//            $info .= "phone,";
+//          } else {
+//            $info .= "not-phone,";
+//          }
+          $info .= "$v,";
           break;
         case 'sec-ch-ua-arch':
           $info .= "arch=$tmp,";
@@ -264,7 +273,7 @@ class Database extends dbAbstract {
     
     // error log info.
 
-    error_log("Database getserver() ip=$this->ip, site=$this->siteName, page=$this->self, phone=$m[0], bot=$this->foundBotAs, info: " . print_r($info, true));
+    error_log("Database getserver() ip=$this->ip, site=$this->siteName, page=$this->self, phone=$m[0], bot=$this->foundBotAs, info: $info");
         
     $this->info = rtrim($info, ',');
 
@@ -444,13 +453,14 @@ class Database extends dbAbstract {
 
     $name = "$secname$name";
 
-    // BLP 2023-10-19 - here foundBotAs could be BOTAS_ZERO and java could be TRACKER_ZERO. If that
-    // is the case then this is not going to be found in checktracker2.php.
+    // BLP 2023-10-19 - here foundBotAs could be BOTAS_ZERO ('zero') and java could be TRACKER_ZERO
+    // (0). If that is the case then this is not going to be found in checktracker2.php.
     
     $this->query("insert into $this->masterdb.tracker (botAs, site, page, ip, browser, agent, starttime, isJavaScript, lasttime) ".
                  "values('$this->foundBotAs', '$this->siteName', '$this->self', '$this->ip', '$name', '$agent', now(), $java, now())");
 
     $this->LAST_ID = $this->getLastInsertId();
+    //error_log("Database.class.php Server: site=$this->siteName, LAST_ID=" . $this->getLastInsertId());
   }
 
   /**

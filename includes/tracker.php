@@ -90,12 +90,38 @@ if($_POST) {
 
   // BLP 2023-08-11 - This allow us to keep the tracker.php at bartonlp.com/otherpages with a
   // symlink to vendor/bartonlp/site-class/includes/tracker.php
+  // There are two remote sites where I have to do a get_file_contentes(): HP-Envy and RPI.
+  // Every thing on the server can use require.
 
-  //error_log("tracker.php {$_POST['site']}, mysitemap=" . $_POST['mysitemap']);
-
+  $mysite = $_POST['mysitemap'];
+  
   $tmp = $_site->dbinfo->host; // BLP 2023-09-10 -
-  $_site = json_decode(stripComments(file_get_contents($_POST['mysitemap'])));
-  $_site->dbinfo->host = $tmp; // BLP 2023-09-10 - 
+
+  unset($_site);
+
+  if(str_contains($mysite, "bartonphillips.org")) {
+    $port = null;
+    if(str_contains($mysite, ":8000")) {
+      $port = ":8000";
+    }
+    $mysite = preg_replace("~/var/www/(.*?)/~", "https://bartonphillips.org$port/", $_POST['mysitemap']);
+  }
+  
+  //error_log("*** tracker.php: mysite=$mysite");
+  
+  $_site = json_decode(stripComments(file_get_contents($mysite)));
+
+  $ip = $_SERVER['REMOTE_ADDR'];
+
+  if($_site === null) {
+    error_log("*** tracker.php: \$_site is NULL, ip=$ip");
+    echo "ERROR \$_site is NULL";
+    exit();
+  }
+  
+  $_site->dbinfo->host = $tmp; // BLP 2023-09-10 -
+
+  //if($ip != "195.252.232.86") error_log("*** tracker.php: mysite=$mysite, site=$_site->siteName, ip=$ip, host=$tmp");
 }  
 
 $S = new Database($_site); // BLP 2023-10-02 - because we use Database noTrack is set and we do not do any tracking.
@@ -179,7 +205,6 @@ if($_POST['page'] == 'start') {
   }
   
   $S->query($sql);
-
   echo "Start OK, java=$js";
   exit();
 }
@@ -194,6 +219,7 @@ if($_POST['page'] == 'load') {
   
   if(!$id) {
     error_log("tracker $site, $ip: LOAD NO ID");
+    echo "Load Error: no id, exiting";
     exit();
   }
 
@@ -279,6 +305,7 @@ if($_POST['page'] == 'timer') {
 
   if(!$id) {
     error_log("tracker: $site, $ip: TIMER NO ID");
+    echo "Timer Error: no id, exiting";
     exit();
   }
 
@@ -298,24 +325,31 @@ if($_POST['page'] == 'timer') {
     error_log("tracker, timer: $id, $ip, $site, $thepage, 'EMPTY_AGENT', botAs=$botAs");
   }
 
-  $tmpBotAs = $botAs;
-
+  // $botAs could have any or all of these: counted as well as  match, robot, sitemap or zbot
+  
   if(!str_contains($botAs, BOTAS_COUNTED)) {
     // Does not contain BOTAS_COUNTED
+    
     if(!empty($botAs)) {
-      // This must have robot, sitemap, or zero
+      // This must have match, no-agent, robot, sitemap, or zbot
+
       if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
-      echo "Timer2 This is a BOT, $id, $ip, $site, $thepage";
+
+      echo "Timer2 This is a BOT, $id, $ip, $site, $thepage, $botAs";
       exit();
     }
-   
+    // $botAs must be blank so set it to 'counted'.
+    
     $botAs = BOTAS_COUNTED;
   }
 
-  if(!$S->isMyIp($ip) && !str_contains($tmpBotAs, BOTAS_COUNTED)) {
+  // If we get here we know that $botAs could have counted from above, but it may still have the other values.
+    
+  if(!$S->isMyIp($ip) && !str_contains($botAs, BOTAS_COUNTED)) {
+    // It is not me, and $botAs does not conatin counted. It may have any of the other values.
+    
     try {
-      $sql = "select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'";
-      $S->query($sql);
+      $S->query("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
       [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
       $dayreal++;
       $dayvisits += $visits;
@@ -327,20 +361,24 @@ if($_POST['page'] == 'timer') {
 
       // BLP 2022-12-06 - Added rcount and bcount
       
-      $sql = "insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, dayvisits, visits, lasttime) ".
-             "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', '$dayreal', 1, '$daybots', '$dayvisits', '$visits', now()) ".
-             "on duplicate key update finger='$finger', dayreal='$dayreal', rcount=rcount+1, daybots='$daybots', ".
-             "dayvisits='$dayvisits', visits='$visits', lasttime=now()";
-
-      $S->query($sql);
+      $S->query("insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, dayvisits, visits, lasttime) ".
+                "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', '$dayreal', 1, '$daybots', '$dayvisits', '$visits', now()) ".
+                "on duplicate key update finger='$finger', dayreal='$dayreal', rcount=rcount+1, daybots='$daybots', ".
+                "dayvisits='$dayvisits', visits='$visits', lasttime=now()");
     } catch(Exception $e) {
-      error_log("Exception: $e");
-      error_log("tracker Exception: update or insert daycounts real=$dayreal, bots=$daybots, visits=$dayvisits, site=$site, sql=$sql");
+      error_log("tracker Exception ($e) update or insert daycounts: real=$dayreal, bots=$daybots, visits=$dayvisits, site=$site, sql=$sql");
     }      
   }
 
-  // BLP 2022-12-06 - now $botAs will have counted and maybe robot or sitemap or zero.
+  // BLP 2022-12-06 - now $botAs may have counted as well as maybe all of the other values.
+  // Look again to see if we have counted.
 
+  if(!str_contains($botAs, BOTAS_COUNTED)) {
+    // It does not have counted so add it to the start
+
+    $botAs = BOTAS_COUNTED . "," . $botAs;
+  }
+  
   $sql = "update $S->masterdb.tracker set botAs='$botAs', isJavaScript='$java', endtime=now(), ".
          "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id";
 
