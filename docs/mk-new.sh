@@ -4,7 +4,11 @@
 # Make .html files from .md files
 echo "index";
 pagetitle="index";
-/usr/bin/pandoc -f gfm -t html5 -Vpagetitle="$pagetitle" --css=./stylesheets/styles.css --standalone index.md -o index.html
+# --include-in-header=addscript. The file addscript just has two
+# <script src=...></script> statements. This lets me add the two needed
+# javascript file: 1) jQuery, 2) javascripts/main.js
+/usr/bin/pandoc -f gfm -t html5 -Vpagetitle="$pagetitle" --css=stylesheets/styles.css --include-in-header=addscript --standalone index.md -o index.html
+#
 echo "dbTables";
 pagetitle="dbTables";
 /usr/bin/pandoc -f gfm -t html5 -Vpagetitle="$pagetitle" --css=pandoc.css --standalone dbTables.md -o dbTables.html
