@@ -6,154 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>dbTables</title>
   <style>
-    html {
-      color: #1a1a1a;
-      background-color: #fdfdfd;
-    }
-    body {
-      margin: 0 auto;
-      max-width: 36em;
-      padding-left: 50px;
-      padding-right: 50px;
-      padding-top: 50px;
-      padding-bottom: 50px;
-      hyphens: auto;
-      overflow-wrap: break-word;
-      text-rendering: optimizeLegibility;
-      font-kerning: normal;
-    }
-    @media (max-width: 600px) {
-      body {
-        font-size: 0.9em;
-        padding: 12px;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-    }
-    @media print {
-      html {
-        background-color: white;
-      }
-      body {
-        background-color: transparent;
-        color: black;
-        font-size: 12pt;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
-      }
-    }
-    p {
-      margin: 1em 0;
-    }
-    a {
-      color: #1a1a1a;
-    }
-    a:visited {
-      color: #1a1a1a;
-    }
-    img {
-      max-width: 100%;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.4em;
-    }
-    h5, h6 {
-      font-size: 1em;
-      font-style: italic;
-    }
-    h6 {
-      font-weight: normal;
-    }
-    ol, ul {
-      padding-left: 1.7em;
-      margin-top: 1em;
-    }
-    li > ol, li > ul {
-      margin-top: 0;
-    }
-    blockquote {
-      margin: 1em 0 1em 1.7em;
-      padding-left: 1em;
-      border-left: 2px solid #e6e6e6;
-      color: #606060;
-    }
-    code {
-      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
-      font-size: 85%;
-      margin: 0;
-      hyphens: manual;
-    }
-    pre {
-      margin: 1em 0;
-      overflow: auto;
-    }
-    pre code {
-      padding: 0;
-      overflow: visible;
-      overflow-wrap: normal;
-    }
-    .sourceCode {
-     background-color: transparent;
-     overflow: visible;
-    }
-    hr {
-      background-color: #1a1a1a;
-      border: none;
-      height: 1px;
-      margin: 1em 0;
-    }
-    table {
-      margin: 1em 0;
-      border-collapse: collapse;
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      font-variant-numeric: lining-nums tabular-nums;
-    }
-    table caption {
-      margin-bottom: 0.75em;
-    }
-    tbody {
-      margin-top: 0.5em;
-      border-top: 1px solid #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    th {
-      border-top: 1px solid #1a1a1a;
-      padding: 0.25em 0.5em 0.25em 0.5em;
-    }
-    td {
-      padding: 0.125em 0.5em 0.25em 0.5em;
-    }
-    header {
-      margin-bottom: 4em;
-      text-align: center;
-    }
-    #TOC li {
-      list-style: none;
-    }
-    #TOC ul {
-      padding-left: 1.3em;
-    }
-    #TOC > ul {
-      padding-left: 0;
-    }
-    #TOC a:not(:hover) {
-      text-decoration: none;
-    }
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
     div.column{flex: auto; overflow-x: auto;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    ul.task-list{list-style: none;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
     ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
       width: 0.8em;
       margin: 0 0.8em 0.2em -1.6em;
       vertical-align: middle;
@@ -161,7 +23,7 @@
     .display.math{display: block; text-align: center; margin: 0.5rem auto;}
     /* CSS for syntax highlighting */
     pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span { line-height: 1.25; }
     pre > code.sourceCode > span:empty { height: 1.2em; }
     .sourceCode { overflow: visible; }
     code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -224,17 +86,7 @@
     code span.vs { color: #4070a0; } /* VerbatimString */
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
-  
-  <style>
-  div.sourceCode {
-    background-color: #EEF3E2;
-    border-left: 10px solid gray;
-    padding-left: 5px;
-  }
-  code {
-    background-color: #EEF3E2;
-  }
-  </style>
+  <link rel="stylesheet" href="pandoc.css" />
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
@@ -365,31 +217,30 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="
 <li>constructor</li>
 <li>public function makeresultrows($query, $rowdesc, array
 $extra=array())</li>
-<li>public function maketable($query, array <span
-class="math inline"><em>e</em><em>x</em><em>t</em><em>r</em><em>a</em> = <em>n</em><em>u</em><em>l</em><em>l</em>)</span>extra
-is an optional assoc array: $extra['callback'], $extra['callback2'],
-$extra['footer'] and <span
-class="math inline"><em>e</em><em>x</em><em>t</em><em>r</em><em>a</em>[′<em>a</em><em>t</em><em>t</em><em>r</em>′].</span>extra['attr']
-is an assoc array that can have attributes for the <table> tag, like
-'id', 'title', 'class', 'style' etc.<br />
-<span
-class="math inline"><em>e</em><em>x</em><em>t</em><em>r</em><em>a</em>[′<em>c</em><em>a</em><em>l</em><em>l</em><em>b</em><em>a</em><em>c</em><em>k</em>′]<em>f</em><em>u</em><em>n</em><em>c</em><em>t</em><em>i</em><em>o</em><em>n</em><em>t</em><em>h</em><em>a</em><em>t</em><em>c</em><em>a</em><em>n</em><em>m</em><em>o</em><em>d</em><em>i</em><em>f</em><em>y</em><em>t</em><em>h</em><em>e</em><em>h</em><em>e</em><em>a</em><em>d</em><em>e</em><em>r</em><em>a</em><em>f</em><em>t</em><em>e</em><em>r</em><em>i</em><em>t</em><em>i</em><em>s</em><em>f</em><em>i</em><em>l</em><em>l</em><em>e</em><em>d</em><em>i</em><em>n</em>.</span>extra['footer']
-a footer string<br />
+<li>public function maketable($query, array $extra=null)<br />
+$extra is an optional assoc array: $extra['callback'],
+$extra['callback2'], $extra['footer'] and $extra['attr'].<br />
+$extra['attr'] is an assoc array that can have attributes for the
+<table> tag, like 'id', 'title', 'class', 'style' etc.<br />
+$extra['callback'] function that can modify the header after it is
+filled in.<br />
+$extra['footer'] a footer string<br />
 @return array [{string table}, {result}, {num}, {hdr},
 table=&gt;{string}, result=&gt;{result}, num=&gt;{num rows},
 header=&gt;{hdr}] or === false</li>
 </ul>
 <hr />
-<p><a href="examples.html">Examples</a> <a
-href="dbTables.html">dbTables</a> <a href="siteclass.html">SiteClass
-Methods</a> <a href="files.html">Additional Files</a> <a
-href="analysis.html">Analysis and Tracking</a> <a
-href="index.html">Index</a></p>
+<p><a href="examplereadme.html">Examples</a><br />
+<a href="dbTables.html">dbTables</a><br />
+<a href="siteclass.html">SiteClass Methods</a><br />
+<a href="files.html">Additional Files</a><br />
+<a href="analysis.html">Analysis and Tracking</a><br />
+<a href="index.html">Index</a></p>
 <h2 id="contact-me">Contact Me</h2>
 <p>Barton Phillips : <a
 href="mailto://bartonphillips@gmail.com"><span>bartonphillips@gmail.com</span></a><br />
-Copyright © 2022 Barton Phillips<br />
+Copyright © 2023 Barton Phillips<br />
 Project maintained by <a href="https://github.com/bartonlp">bartonlp</a>
-Last Modified Aug 14, 2022</p>
+Last Modified November 8, 2023</p>
 </body>
 </html>

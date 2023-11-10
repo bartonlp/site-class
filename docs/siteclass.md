@@ -1,4 +1,4 @@
-# SiteClass and Database Methods (version 3.7.0 and 3.0.0)
+# SiteClass and Database Methods (version 3.8.0 and 3.0.0)
 
 ---
 
@@ -76,6 +76,7 @@ I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are
 
 ---
 
+[Examples](examplereadme.html)  
 [dbTables](dbTables.html)  
 [SiteClass Methods](siteclass.html)  
 [Additional Files](files.html)  
@@ -87,4 +88,4 @@ I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are
 Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a>
 Copyright &copy; 2023 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)  
-Last modified March 1, 2023
+Last modified November 8, 2023

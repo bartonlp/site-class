@@ -164,11 +164,11 @@ __!!!!NEEDS UPDATING!!!!__
 
 ---
 
-[Examples](examples.html)
-[dbTables](dbTables.html)
-[SiteClass Methods](siteclass.html)
-[Additional Files](files.html)
-[Analysis and Tracking](analysis.html)
+[Examples](examplereadme.html)  
+[dbTables](dbTables.html)  
+[SiteClass Methods](siteclass.html)  
+[Additional Files](files.html)  
+[Analysis and Tracking](analysis.html)  
 [Index](index.html)
 
 ## Contact Me
@@ -176,4 +176,4 @@ __!!!!NEEDS UPDATING!!!!__
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
 Copyright &copy; 2023 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)
-Last Modified March 1, 2023
+Last Modified Novenber 8, 2023

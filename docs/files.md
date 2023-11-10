@@ -122,11 +122,11 @@ Creating the special files make the tedious boiler plate simple and yet configur
 
 ---
 
-[Examples](examples.html)
-[dbTables](dbTables.html)
-[SiteClass Methods](siteclass.html)
-[Additional Files](files.html)
-[Analysis and Tracking](analysis.html)
+[Examples](examples.html)  
+[dbTables](dbTables.html)  
+[SiteClass Methods](siteclass.html)  
+[Additional Files](files.html)  
+[Analysis and Tracking](analysis.html)  
 [Index](index.html)
 
 ## Contact Me
@@ -134,4 +134,4 @@ Creating the special files make the tedious boiler plate simple and yet configur
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
 Copyright &copy; 2023 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)   
-Last Modified Feb. 24, 2023
+Last Modified November 8, 2023
