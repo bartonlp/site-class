@@ -1,8 +1,9 @@
 <?php
 /*
+ * Maintained and well tested.
+ *
  * @package SqlException
  * Extends Exception
- * message, code, file and line are members of Exception
  */
 
 define("SQLEXCEPTION_CLASS_VERSION", "2.1.2exception"); // BLP 2023-06-23 - 

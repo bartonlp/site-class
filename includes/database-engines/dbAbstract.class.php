@@ -1,7 +1,8 @@
 <?php
 /* MAINTAINED and WELL TESTED */
+// BLP 2023-11-12 - Moved my_exceptionhandler into Abstract class.
 
-define("ABSTRACT_CLASS_VERSION", "3.0.1ab"); // BLP 2023-03-07 - remove $arg use $dbinfo. Pass $dbinfo items to dbMysqli
+define("ABSTRACT_CLASS_VERSION", "3.1.0ab"); // BLP 2023-03-07 - remove $arg use $dbinfo. Pass $dbinfo items to dbMysqli
 
 // Abstract database class
 // Most of this class is implemented here. This keeps us from having to duplicate this over and
@@ -26,8 +27,8 @@ abstract class dbAbstract {
 
     header("Accept-CH: Sec-Ch-Ua-Platform,Sec-Ch-Ua-Platform-Version,Sec-CH-UA-Full-Version-List,Sec-CH-UA-Arch,Sec-CH-UA-Model"); // BLP 2023-10-02 - ask for sec headers
 
-    $this->errorClass = new ErrorClass();
-
+    set_exception_handler("dbAbstract::my_exceptionhandler"); // BLP 2023-11-12 - Moved into Abstract class from ErrorClass.
+    
     // If we have $s items use them otherwise get the defaults
 
     $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'] ?? "$__info[0]"; // BLP 2023-01-18 - Added for NODE with php view.
@@ -163,7 +164,7 @@ abstract class dbAbstract {
   }
   
   // The following methods either execute or if the method is not defined throw an Exception
-  
+
   public function query($query) {
     if(method_exists($this->db, 'query')) {
       return $this->db->query($query);
@@ -277,6 +278,174 @@ abstract class dbAbstract {
   }
 
   /*
+   * my_exceptionhandler
+   * Must be a static
+   * BLP 2023-11-12 - moved from ErrorClas.class.php to here.
+   */
+
+  public static function my_exceptionhandler($e) {
+    $from =  get_class($e);
+
+    $error = $e; // get the full error message
+
+    // If this is a SqlException then the formating etc. was done by the class
+
+    if($from != "SqlException") {
+      // NOT SqlException
+
+      // Get Trace information
+
+      $traceback = '';
+
+      foreach($e->getTrace() as $v) {
+        // The key here is a numeric and
+        // $v is an assoc array with keys 'file', 'line', 'function', 'class' and 'args'.
+
+        $args = ''; // This will hold the $v2 values
+
+        foreach($v as $k=>$v1) {
+          // $v is an assoc array 'file, line, ...'
+          // most $v1's are strings. 'args' is an array
+          switch($k) {
+            case 'file':
+            case 'line':
+            case 'function':
+            case 'class':
+              $$k = $v1;
+              break;
+            case 'args':
+              foreach($v1 as $v2) {
+                //cout("type of v2: " .gettype($v2));
+                if(is_object($v2)) {
+                  $v2 = get_class($v2);
+                } elseif(is_array($v2)) {
+                  $v2 = print_r($v2, true);
+                }
+                $$k .= "\"$v2\", ";
+              }
+              break;
+          }
+        }
+        $args = rtrim($args, ", "); // $$k was $args so remove the trailing comma.
+
+        // $$k is $file, $line, etc. So we use the referenced values below.
+
+        $traceback .= " file: $file<br> line: $line<br> class: $from<br>\n".
+                      "function: $function($args)<br><br>";
+      }
+
+      if($traceback) {
+        $traceback = "<br>Trace back:<br>\n$traceback";
+      }
+
+      $error = <<<EOF
+<div style="text-align: center; width: 85%; margin: auto auto; background-color: white; border: 1px solid black; padding: 10px;">
+Class: <b>$from</b><br>\n<b>{$e->getMessage()}</b>
+in file <b>{$e->getFile()}</b><br> on line {$e->getLine()} $traceback
+</div>
+EOF;
+    }
+
+    // Remove all html tags.
+
+    $err = html_entity_decode(preg_replace("/<.*?>/", '', $error));
+    $err = preg_replace("/^\s*$/", '', $err); // remove blank lines
+
+    // Callback to get the user ID if the callback exists
+
+    $userId = '';
+
+    if(function_exists('ErrorGetId')) {
+      $userId = "User: " . ErrorGetId();
+    }
+
+    if(!$userId) $userId = "agent: ". $_SERVER['HTTP_USER_AGENT'] . "\n";
+
+    // Email error information to webmaster
+    // During debug set the Error class's $noEmail to ture
+
+    if(ErrorClass::getNoEmail() !== true) {
+      $s = $GLOBALS["_site"];
+
+      $recipients = "{\"address\": {\"email\": \"$s->EMAILADDRESS\",\"header_to\": \"$s->EMAILADDRESS\"}}";
+      $contents = preg_replace(["~\"~", "~\\n~"], ['','<br>'], "$err<br>$userId");
+
+      $post =<<<EOF
+{"recipients": [
+  $recipients
+],
+  "content": {
+    "from": "SqlException@mail.bartonphillips.com",
+    "reply_to": "Barton Phillips<barton@bartonphillips.com>",
+    "subject": "$from",
+    "text": "View This in HTML Mode",
+    "html": "$contents"
+  }
+}
+EOF;
+
+      $apikey = file_get_contents("https://bartonphillips.net/sparkpost_api_key.txt"); //("SPARKPOST_API_KEY");
+
+      $options = [
+                  CURLOPT_URL=>"https://api.sparkpost.com/api/v1/transmissions", //?num_rcpt_errors",
+                  CURLOPT_HEADER=>0,
+                  CURLOPT_HTTPHEADER=>[
+                                       "Authorization:$apikey",
+                                       "Content-Type:application/json"
+                                      ],
+                  CURLOPT_POST=>true,
+                  CURLOPT_RETURNTRANSFER=>true,
+                  CURLOPT_POSTFIELDS=>$post
+                                     ];
+      //error_log("SqlException: options=" . print_r($options, true));
+
+      $ch = curl_init();
+      curl_setopt_array($ch, $options);
+
+      $result = curl_exec($ch);
+      error_log("dbAbstract.class.php, SqlException: Send To ME (".$s->EMAILADDRESS."). RESULT: $result"); // This should stay!!!
+    }
+
+    // Log the raw error info.
+    // BLP 2021-03-06 -- New server is in New York
+    date_default_timezone_set('America/New_York');
+
+    // This error_log should always stay in!! *****************
+    error_log("dbAbstract.class.php: $from\n$err\n$userId");
+    // ********************************************************
+
+    if(ErrorClass::getDevelopment() !== true) {
+      // Minimal error message
+      $error = <<<EOF
+<p>The webmaster has been notified of this error and it should be fixed shortly. Please try again in
+a couple of hours.</p>
+
+EOF;
+      $err = " The webmaster has been notified of this error and it should be fixed shortly." .
+      " Please try again in a couple of hours.";
+    }
+
+    if(ErrorClass::getNohtml() === true) {
+      $error = "$from: $err";
+    } else {
+      $error = <<<EOF
+<div style="text-align: center; background-color: white; border: 1px solid black; width: 85%; margin: auto auto; padding: 10px;">
+<h1 style="color: red">$from</h1>
+$error
+</div>
+EOF;
+    }
+
+    if(ErrorClass::getNoOutput() !== true) {
+      //************************
+      // Don't remove this echo
+      echo $error; // BLP 2022-01-28 -- on CLI this outputs to the console, on apache it goes to the client screen.
+      //***********************
+    }
+    return;
+  }
+
+  /*
    * debug()
    * @param $exit. If true throw and exception. Else just output via error_log().
    * If noErrorLog is set in mysitemap.json then don't do error_log()
@@ -338,9 +507,6 @@ abstract class dbAbstract {
     // In general all databases that are going to do anything with counters etc. must have a user
     // of 'barton' and $this->nodb false. The program without 'barton' can NOT do any calls via masterdb!
 
-    //error_log("Database user: " . $this->user);
-    //error_log("Database dbinfo->user: " . $this->dbinfo->user);
-    
     if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
       $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
     }

@@ -134,6 +134,7 @@ $S = new Database($_site); // BLP 2023-10-02 - because we use Database noTrack i
 //$DEBUG_GET1 = true;
 //$DEBUG_ISABOT = true; // This is in the 'timer' logic
 //$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
+$DEBUG_NOSCRIPT = true; // no script
 
 // ****************************************************************
 // All of the following are the result of a javascript interactionl
@@ -441,7 +442,7 @@ if($type = $_GET['page']) {
 
   if(!is_numeric($id)) {
     $errno = -99;
-    $errmsg = "ID is not numeric";
+    $errmsg = "ID is not numeric: $id";
 
     // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
     
@@ -518,8 +519,10 @@ if($type = $_GET['page']) {
 
   // If we get here the $ip, $site, $thepage and $agent are all valid.
 
-  if($DEBUG_GET1) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
-
+  if($DEBUG_GET1)
+     error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
+  
+  
   $java = hexdec($js);
   
   if(empty($agent) || $S->isBot($agent)) {
@@ -582,7 +585,8 @@ if($type = $_GET['page']) {
 
   header("Content-Type: $imageType");
 
-  //error_log("tracker.php imageType=$imageType, img=$img, imgFinal=$imgFinal");
+  $js |= $or;
+  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
 
   echo $imgFinal;
   exit();

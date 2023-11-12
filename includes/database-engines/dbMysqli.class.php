@@ -28,8 +28,6 @@ define("MYSQL_CLASS_VERSION", "3.0.0mysqli");
  */
 
 class dbMysqli extends dbAbstract {
-  //protected $db; // BLP 2023-06-24 - defined in dbAbastract.
-  
   private $result; // for select etc. a result set.
   static public $lastQuery = null; // for debugging
   static public $lastNonSelectResult = null; // for insert, update etc.

@@ -142,7 +142,7 @@ class Database extends dbAbstract {
       $this->foundBotAs = BOTAS_NOAGENT;
       $this->isBot = true;
       /* BLP 2023-10-29 - debug. analysis.php calls isBot() and agent may be empty and isMeFalse is true. */
-      if(!$this->isMe()) error_log("Database isBot(): ip=$this->ip, site=$this->siteName, NO-AGENT, foundBotAs=$this->foundBotAs");
+      //if(!$this->isMe()) error_log("Database isBot(): ip=$this->ip, site=$this->siteName, NO-AGENT, foundBotAs=$this->foundBotAs");
     }
 
     // BLP 2023-10-27 - at this point isBot may have true and either 'match' or 'no-agent'.
@@ -273,7 +273,7 @@ class Database extends dbAbstract {
     
     // error log info.
 
-    error_log("Database getserver() ip=$this->ip, site=$this->siteName, page=$this->self, phone=$m[0], bot=$this->foundBotAs, info: $info");
+    //error_log("Database getserver() ip=$this->ip, site=$this->siteName, page=$this->self, phone=$m[0], bot=$this->foundBotAs, info: $info");
         
     $this->info = rtrim($info, ',');
 
