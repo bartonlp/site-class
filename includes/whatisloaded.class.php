@@ -5,7 +5,7 @@
 
 namespace bartonlp\whatisloaded;
 
-define("WHATISLOADED_VERSION", "2.0.0whatis");
+define("WHATISLOADED_VERSION", "3.0.0whatis");
 
 (function() {
   class WhatIsLoaded {
@@ -21,7 +21,6 @@ define("WHATISLOADED_VERSION", "2.0.0whatis");
     private $dbTables;
     private $ErrorClass;
     private $SqlException;
-    private $dbAbstract;
         
     public function __construct() {
       $__VERSION_ONLY = true; // also used by siteload.php, tracker.php, beacon.php.
@@ -46,7 +45,6 @@ define("WHATISLOADED_VERSION", "2.0.0whatis");
       $this->dbTables = \dbTables::getVersion();
       $this->ErrorClass= \ErrorClass::getVersion();
       $this->SqlException = \SqlException::getVersion();
-      $this->dbAbstract = \dbAbstract::getVersion();
     }
 
     public function getWhatIsInfo() {
@@ -62,7 +60,6 @@ define("WHATISLOADED_VERSION", "2.0.0whatis");
 <tr><td>dbTables.class.php</td><td>$this->dbTables</td></tr>
 <tr><td>ErrorClass.class.php</td><td>$this->ErrorClass</td></tr>
 <tr><td>SqlException.class.php</td><td>$this->SqlException</td></tr>
-<tr><td>dbAbstract.class.php</td><td>$this->dbAbstract</td></tr>
 <tr><td>whatisloaded.class.php</td><td>$whatis</td></tr>
 <tr><td>tracker.php</td><td>$this->tracker</td></tr>
 <tr><td>beacon.php</td><td>$this->beacon</td></tr>
@@ -74,7 +71,7 @@ EOF;
       return [$tbl, "siteload.php"=>$this->site, "SiteClass.class.php"=>$this->siteClass,
       "Database.class.php"=>$this->database, "dbMysqli.class.php"=>$this->dbMysqli,
       "dbTables.class.php"=>$this->dbTables, "ErrorClass.class.php"=>$this->ErrorClass,
-      "SqlException.class.php"=>$this->SqlException, "dbAbstract.class.php"=>$this->dbAbstract,
+      "SqlException.class.php"=>$this->SqlException, 
       "whatisloaded.class.php"=>$whatis,
       "tracker.php"=>$this->tracker, "beacon.php"=>$this->beacon,
       "tracker.js"=>$this->javaScript, "helper-functions.php"=>$this->helper];

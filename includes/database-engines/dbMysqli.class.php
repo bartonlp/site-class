@@ -1,18 +1,17 @@
 <?php
 /* MAINTAINED and WELL TESTED. This is the default Database and has received extensive testing */
 /**
- * Database Class
+ * dbMysqli Class
  *
- * General MySqli Database Class. 
- * @package Database
+ * Wrapper around MySqli Database Class. 
+ * @package dbMysqli
  * @author Barton Phillips <barton@bartonphillips.com>
- * @version 1.0
  * @link http://www.bartonphillips.com
  * @copyright Copyright (c) 2010, Barton Phillips
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
  */
 
-define("MYSQL_CLASS_VERSION", "3.0.0mysqli"); 
+define("MYSQL_CLASS_VERSION", "4.0.0mysqli"); 
 
 /**
  * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.
@@ -25,9 +24,12 @@ define("MYSQL_CLASS_VERSION", "3.0.0mysqli");
 
 /**
  * @package Mysqli Database
+ * This is the base class for Database. SiteClass extends Database.
+ * This class can also be used standalone. $siteInfo must have a dbinfo with host, user, database and optionally port.
+ * The password is optional and if not pressent is picked up form my $HOME.
  */
 
-class dbMysqli extends dbAbstract {
+class dbMysqli {
   private $result; // for select etc. a result set.
   static public $lastQuery = null; // for debugging
   static public $lastNonSelectResult = null; // for insert, update etc.
@@ -38,27 +40,27 @@ class dbMysqli extends dbAbstract {
    * as a side effect opens the database, that is connects the database
    */
 
-  public function __construct(object $dbinfo) { 
-    // BLP BLP 2022-01-14 -- In almost all cases the Database password is now in
-    // /home/barton/database-password on bartonlp.org
+  public function __construct(object $siteInfo) {
+    set_exception_handler("dbMysqli::my_exceptionhandler"); // Set up the exception handler
 
-    // BLP 2023-06-24 - use extract instead of the foreach().
-    //foreach($dbinfo as $k=>$v) {
-    //  $$k = $v; // $k=host,user,password,database, so $$k has the values, so later I can say $host.
-    //}
+    // BLP 2023-10-02 - ask for sec headers
+    
+    header("Accept-CH: Sec-Ch-Ua-Platform,Sec-Ch-Ua-Platform-Version,Sec-CH-UA-Full-Version-List,Sec-CH-UA-Arch,Sec-CH-UA-Model"); 
 
-    // extract the $host, $user, $password and $database.
+    // Extract the items from dbinfo. This is $host, $user and maybe $password and $port.
     
-    extract((array)$dbinfo); // Cast the $dbinfo object into an array
-    
+    extract((array)$siteInfo->dbinfo); // Cast the $dbinfo object into an array
+      
     // BLP 2023-01-15 - START. For PHP 8 and above.
     $driver = new mysqli_driver();
     $driver->report_mode = MYSQLI_REPORT_OFF;
     // BLP 2023-01-15 - END
 
+    // $password is almost never present, but it can be under some conditions.
+    
     $password = $password ?? require("/home/barton/database-password");
 
-    // If we use the 4th param to the constructor we don't need to do a $db->select_db()!
+    // If we use the 4th param ($database) to the constructor we don't need to do a $db->select_db()!
     // public mysqli::__construct(
     //   string $hostname = ini_get("mysqli.default_host"),
     //   string $username = ini_get("mysqli.default_user"),
@@ -68,7 +70,7 @@ class dbMysqli extends dbAbstract {
     //   string $socket = ini_get("mysqli.default_socket")
     // )
     
-    $db = new mysqli($host, $user, $password, $database, $port);
+    $db = new mysqli($host, $user, $password, $database, $port); // $port is usually null.
 
     if($db->connect_errno) {
       $this->errno = $db->connect_errno;
@@ -80,40 +82,48 @@ class dbMysqli extends dbAbstract {
     $db->query("set time_zone='EST5EDT'");
     $this->db = $db;
     $this->db->database = $database;
-  }
+  } // End of constructor.
 
+  /*
+   * getVersion.
+   * @return the version of the mysql class.
+   */
+  
   public static function getVersion() {
     return MYSQL_CLASS_VERSION;
   }
-  
-  /**
-   * Connects and selects the database
-   * @return resource MySQL link identifier
-   * On Error outputs message and exits.
+
+  /*
+   * getDbErrno
+   * @returns $this->db-errno from mysqli.
    */
   
-  private function opendb() {
-    // Only do one open
-
-    if($this->db) {
-      return $this->db;
-    }
-    throw new SqlException(__CLASS__ . " " . __LINE__ .": $this->siteName ", $this);
+  public function getDbErrno() {
+    return $this->db->errno;
   }
 
+  /*
+   * getDbError
+   * @returns $this->db->error from mysqli
+   */
+  
+  public function getDbError() {
+    return $this->db->error;
+  }
+  
   /**
    * query()
    * Query database table
    * BLP 2016-11-20 -- Query is for a SINGLE query ONLY. Don't do multiple querys!
-   *  mysqli has a multi_query() but I have not written a method for it!
+   * mysqli has a multi_query() but I have not written a method for it!
    * @param string $query SQL statement.
    * @return: if $result === true returns the number of affected_rows (delete, insert, etc). Else ruturns num_rows.
-   * if $result === false calls SqlError() and exits.
+   * if $result === false throws SqlException().
    */
 
   public function query($query) {
-    $db = $this->opendb();
-
+    $db = $this->db;
+    
     self::$lastQuery = $query; // for debugging
 
     $result = $db->query($query);
@@ -121,7 +131,6 @@ class dbMysqli extends dbAbstract {
     // If $result is false then exit
     
     if($result === false) {
-      //echo "Throw<br>"; // BLP 2023-01-15 - to test PHP 8.1
       throw new SqlException($query, $this);
     }
 
@@ -129,7 +138,7 @@ class dbMysqli extends dbAbstract {
     
     if($result === true) { // did not return a result object. NOTE can't be false as we covered that above.
       $numrows = $db->affected_rows;
-      self::$lastNonSelectResult = $result;
+      self::$lastNonSelectResult = $result; // for debugging
     } else {
       // NOTE: we don't change result for inserts etc. only for selects etc.
       $this->result = $result;
@@ -155,7 +164,7 @@ class dbMysqli extends dbAbstract {
    */
   
   public function prepare($query) {
-    $db = $this->opendb();
+    $db = $this->db;
     $stm = $db->prepare($query);
     return $stm;
   }
@@ -199,7 +208,7 @@ class dbMysqli extends dbAbstract {
       $rows[] = $row;
     }
 
-    return ($returnarray) ? array('rows'=>$rows, 'numrows'=>$numrows) : $rows;
+    return ($returnarray) ? ['rows'=>$rows, 'numrows'=>$numrows] : $rows;
   }
 
   /**
@@ -254,7 +263,7 @@ class dbMysqli extends dbAbstract {
    */
 
   public function getLastInsertId() {
-    $db = $this->opendb();
+    $db = $this->db;
     return $db->insert_id;
   }
   
@@ -271,16 +280,6 @@ class dbMysqli extends dbAbstract {
       return $result->num_rows;
     }
   }
-  
-  /**
-   * Get the Database Resource Link Identifier
-   * @return resource link identifier
-   */
-/*  
-  public function getDb():Database {
-    return $this->db;
-  }
-*/
 
   /**
    * getResult()
@@ -320,5 +319,173 @@ class dbMysqli extends dbAbstract {
 
   public function __toString() {
     return __CLASS__;
+  }
+
+  /*
+   * my_exceptionhandler
+   * Must be a static
+   * BLP 2023-11-12 - moved from ErrorClas.class.php to here.
+   */
+
+  public static function my_exceptionhandler($e) {
+    $from =  get_class($e);
+
+    $error = $e; // get the full error message
+
+    // If this is a SqlException then the formating etc. was done by the class
+
+    if($from != "SqlException") {
+      // NOT SqlException
+
+      // Get Trace information
+
+      $traceback = '';
+
+      foreach($e->getTrace() as $v) {
+        // The key here is a numeric and
+        // $v is an assoc array with keys 'file', 'line', 'function', 'class' and 'args'.
+
+        $args = ''; // This will hold the $v2 values
+
+        foreach($v as $k=>$v1) {
+          // $v is an assoc array 'file, line, ...'
+          // most $v1's are strings. 'args' is an array
+          switch($k) {
+            case 'file':
+            case 'line':
+            case 'function':
+            case 'class':
+              $$k = $v1;
+              break;
+            case 'args':
+              foreach($v1 as $v2) {
+                //cout("type of v2: " .gettype($v2));
+                if(is_object($v2)) {
+                  $v2 = get_class($v2);
+                } elseif(is_array($v2)) {
+                  $v2 = print_r($v2, true);
+                }
+                $$k .= "\"$v2\", ";
+              }
+              break;
+          }
+        }
+        $args = rtrim($args, ", "); // $$k was $args so remove the trailing comma.
+
+        // $$k is $file, $line, etc. So we use the referenced values below.
+
+        $traceback .= " file: $file<br> line: $line<br> class: $from<br>\n".
+                      "function: $function($args)<br><br>";
+      }
+
+      if($traceback) {
+        $traceback = "Trace back:<br>\n$traceback";
+      }
+
+      $error = <<<EOF
+<div style="text-align: center; width: 85%; margin: auto auto; background-color: white; border: 1px solid black; padding: 10px;">
+Class: <b>$from</b><br>\n<b>{$e->getMessage()}</b>
+in file <b>{$e->getFile()}</b><br> on line {$e->getLine()} $traceback
+</div>
+EOF;
+    }
+
+    // Remove all html tags.
+
+    $err = html_entity_decode(preg_replace("/<.*?>/", '', $error));
+    $err = preg_replace("/^\s*$/", '', $err); // remove blank lines
+
+    // Callback to get the user ID if the callback exists
+
+    $userId = '';
+
+    if(function_exists('ErrorGetId')) {
+      $userId = "User: " . ErrorGetId();
+    }
+
+    if(!$userId) $userId = "agent: ". $_SERVER['HTTP_USER_AGENT'] . "\n";
+
+    // Email error information to webmaster
+    // During debug set the Error class's $noEmail to ture
+
+    if(ErrorClass::getNoEmail() !== true) {
+      $s = $GLOBALS["_site"];
+
+      $recipients = "{\"address\": {\"email\": \"$s->EMAILADDRESS\",\"header_to\": \"$s->EMAILADDRESS\"}}";
+      $contents = preg_replace(["~\"~", "~\\n~"], ['','<br>'], "$err<br>$userId");
+
+      $post =<<<EOF
+{"recipients": [
+  $recipients
+],
+  "content": {
+    "from": "SqlException@mail.bartonphillips.com",
+    "reply_to": "Barton Phillips<barton@bartonphillips.com>",
+    "subject": "$from",
+    "text": "View This in HTML Mode",
+    "html": "$contents"
+  }
+}
+EOF;
+
+      $apikey = file_get_contents("https://bartonphillips.net/sparkpost_api_key.txt"); //("SPARKPOST_API_KEY");
+
+      $options = [
+                  CURLOPT_URL=>"https://api.sparkpost.com/api/v1/transmissions", //?num_rcpt_errors",
+                  CURLOPT_HEADER=>0,
+                  CURLOPT_HTTPHEADER=>[
+                                       "Authorization:$apikey",
+                                       "Content-Type:application/json"
+                                      ],
+                  CURLOPT_POST=>true,
+                  CURLOPT_RETURNTRANSFER=>true,
+                  CURLOPT_POSTFIELDS=>$post
+                                     ];
+      //error_log("SqlException: options=" . print_r($options, true));
+
+      $ch = curl_init();
+      curl_setopt_array($ch, $options);
+
+      $result = curl_exec($ch);
+      error_log("dbAbstract.class.php, SqlException: Send To ME (".$s->EMAILADDRESS."). RESULT: $result"); // This should stay!!!
+    }
+
+    // Log the raw error info.
+    // BLP 2021-03-06 -- New server is in New York
+    date_default_timezone_set('America/New_York');
+
+    // This error_log should always stay in!! *****************
+    error_log("dbAbstract.class.php: $from\n$err\n$userId");
+    // ********************************************************
+
+    if(ErrorClass::getDevelopment() !== true) {
+      // Minimal error message
+      $error = <<<EOF
+<p>The webmaster has been notified of this error and it should be fixed shortly. Please try again in
+a couple of hours.</p>
+
+EOF;
+      $err = " The webmaster has been notified of this error and it should be fixed shortly." .
+      " Please try again in a couple of hours.";
+    }
+
+    if(ErrorClass::getNoHtml() === true) {
+      $error = "$from: $err";
+    } else {
+      $error = <<<EOF
+<div style="text-align: center; background-color: white; border: 1px solid black; width: 85%; margin: auto auto; padding: 10px;">
+<h1 style="color: red">$from</h1>
+$error
+</div>
+EOF;
+    }
+
+    if(ErrorClass::getNoOutput() !== true) {
+      //************************
+      // Don't remove this echo
+      echo $error; // BLP 2022-01-28 -- on CLI this outputs to the console, on apache it goes to the client screen.
+      //***********************
+    }
+    return;
   }
 }

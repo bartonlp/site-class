@@ -3,7 +3,7 @@
 // BLP 2023-10-02 - Note that the constructor calls the Database constructor which in turn call the
 // dbAbstract constructor which does all of the heavy lifting.
 
-define("SITE_CLASS_VERSION", "3.8.0"); // BLP 2023-08-08 - updated. New tracker.js and tracker.php. Added desktopImg and phoneImg.
+define("SITE_CLASS_VERSION", "4.0.0"); // BLP 2023-08-08 - updated. New tracker.js and tracker.php. Added desktopImg and phoneImg.
 
 // One class for all my sites
 // This version has been generalized to not have anything about my sites in it!

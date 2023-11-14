@@ -6,7 +6,7 @@
  * Extends Exception
  */
 
-define("SQLEXCEPTION_CLASS_VERSION", "2.1.2exception"); // BLP 2023-06-23 - 
+define("SQLEXCEPTION_CLASS_VERSION", "4.0.0exception"); // BLP 2023-06-23 - 
 
 class SqlException extends Exception {
   /**
@@ -18,10 +18,8 @@ class SqlException extends Exception {
   public function __construct($msg, $self=null) {
     // If the caller was a database class then $this->db should be the database resorce.
 
-    //vardump("\$self", $self);
-    //echo "constructor: \$msg=$msg<br>";
     [$message, $code] = $this->SqlError($msg, $self); // private helper method.
-    //echo "constructor: \$message=$message, \$code=$code<br>";
+
     // Do the Exception constructor which has $message and $code as arguments.
 
     parent::__construct($message, $code);
@@ -52,8 +50,8 @@ class SqlException extends Exception {
       $Errno = -9999;
       $Error = "No valid \$self->errno or \$self->error.";
     } else {
-      $Error = $self->getDbError() ?? $self->error;
-      $Errno = $self->getDbErrno() ?? $self->errno;
+      $Error = $self->db->error;
+      $Errno = $self->db->errno;
     }
     
     if(($size = strlen($msg)) > 500) {

@@ -1,7 +1,7 @@
 <?php
 /* MAINTAINED and WELL TESTED */
 
-define("ERROR_CLASS_VERSION", "2.0.0error");
+define("ERROR_CLASS_VERSION", "4.0.0error");
 
 // Error class.
 
