@@ -488,4 +488,21 @@ EOF;
     }
     return;
   }
+
+  /*
+   * debug
+   * Displays $msg
+   * if $exit is true throw an exception.
+   * else error_log and return.
+   */
+  
+  public function debug($msg, $exit=null) {
+    if($exit === true) {
+      throw new Exception($msg);
+    } else {
+      error_log("dbMysqli.class.php Error: $msg");
+      return;
+    }
+  }
 }
+
