@@ -53,7 +53,8 @@ class Database extends dbMysqli {
     
     parent::__construct($this); // dbMysqli constructor.
 
-    // BLP 2023-01-26 - currently there is only ONE viable engine and that is dbMysqli
+    // The dbMysqli does not need or use myIp but Database does.
+    // If the user is not 'barton' then then noTrack should be set.
     
     if($this->noTrack !== false && ($this->dbinfo->user == "barton" || $this->user == "barton")) { // make sure its the 'barton' user!
       $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp

@@ -585,8 +585,8 @@ if($type = $_GET['page']) {
 
   header("Content-Type: $imageType");
 
-  $js |= $or;
-  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
+  $java |= $or;
+  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, time=" . (new DateTime)->format('H:i:s:v'));
 
   echo $imgFinal;
   exit();
