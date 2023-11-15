@@ -4,7 +4,7 @@
 
 # Make .html files from .md files
 pagetitle="Main Readme file";
-/usr/bin/pandoc -Vpagetitle="$pagetitle" --css=pandoc.css --standalone -f gfm -t html5 README.md -o README.html
+/usr/bin/pandoc -Vpagetitle="$pagetitle" --css=pandoc.css --standalone -f gfm -t html5 README.md -o README.html -o index.html
 
 # Create 'git log >~/www/bartonlp.com/gitlog
 git log --all > ~/www/bartonlp.com/gitlog

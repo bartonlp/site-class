@@ -23,7 +23,7 @@ SiteClass class mini framework for my websites.
   </nav>
 <section>
 
-# SiteClass Version 3.8.0
+# SiteClass Version 4.0.0
   
 **SiteClass** is a PHP mini framework for my websites.
 
