@@ -3,7 +3,7 @@
 **SiteClass** is a PHP mini framework for my websites. It is customized for my websites and will be hard for someone else to use it.
 I have a new class, **SimpleSiteClass** that is designed for anyone. 
 It is at [https://github.com/bartonlp/simple-site-class](https://github.com/bartonlp/simple-site-class). 
-Documentation for the [SimpleSiteClassIt](https://bartonlp.github.io/site-class/).
+Documentation for the [SimpleSiteClass](https://bartonlp.github.io/simple-site-class/).
 
 If you are still interested in exploring **SiteClass**, read on.
 
