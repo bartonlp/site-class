@@ -1,7 +1,7 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
 // BLP 2023-10-02 - Note that the constructor calls the Database constructor which in turn call the
-// dbAbstract constructor which does all of the heavy lifting.
+// dbMysqli constructor which does all of the heavy lifting.
 
 define("SITE_CLASS_VERSION", "4.0.0"); // BLP 2023-08-08 - updated. New tracker.js and tracker.php. Added desktopImg and phoneImg.
 
@@ -45,9 +45,9 @@ class SiteClass extends Database {
    */
   
   public function __construct(object $s) {
-    // Do the parent Database constructor which does the dbAbstract constructor.
+    // Do the parent Database constructor which does the dbMysqli constructor.
     
-    parent::__construct($s, true); // BLP 2023-03-04 - second arg is true because this is called from SiteClass!
+    parent::__construct($s);
 
     // BLP 2018-07-01 -- Add the date to the copyright notice if one exists
 

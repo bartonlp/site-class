@@ -193,8 +193,6 @@ class Database extends dbMysqli {
 
   /*
    * isBot(string $agent):bool
-   * *** This is ONLY called from checkIfBot() in the dbAbstract constructor!
-   * *** However, it can be called by applications using $S.
    * Determines if an agent is a bot or not.
    * @return bool
    * Side effects:
@@ -348,13 +346,6 @@ class Database extends dbMysqli {
     
     preg_match("~iPhone|Android~i", $this->agent, $m);
 
-    // BLP 2023-10-25 - NOTE foundBotAs is set by checkIfBot() which is called by the constructor
-    // in dbAbstract.
-    
-    // error log info.
-
-    //error_log("Database getserver() ip=$this->ip, site=$this->siteName, page=$this->self, phone=$m[0], bot=$this->foundBotAs, info: $info");
-        
     $this->info = rtrim($info, ',');
 
     // $m[0] is iPhone or Andriod or null.
@@ -661,7 +652,6 @@ class Database extends dbMysqli {
 
   /**
    * checkIfBot() before we do any of the other protected functions in SiteClass.
-   * *** This is ONLY called by the constructor in dbAbstract!
    * Calls the public isBot().
    * Checks if the user-agent looks like a bot or if the ip is in the bots table
    * or previous tracker records had something other than zero or 0x2000.
@@ -702,7 +692,7 @@ class Database extends dbMysqli {
 
   private function CheckIfTablesExist():array {
     // Do all of the table checks once here.
-    // NOTE: $this->debug() function is declared in dbAbstract.class.php.
+    // NOTE: $this->debug() function is declared in dbMysqli.class.php.
     
     if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots')")) {
       $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);

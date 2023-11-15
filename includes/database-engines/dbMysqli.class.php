@@ -447,7 +447,7 @@ EOF;
       curl_setopt_array($ch, $options);
 
       $result = curl_exec($ch);
-      error_log("dbAbstract.class.php, SqlException: Send To ME (".$s->EMAILADDRESS."). RESULT: $result"); // This should stay!!!
+      error_log("dbMysqli.class.php, SqlException: Send To ME (".$s->EMAILADDRESS."). RESULT: $result"); // This should stay!!!
     }
 
     // Log the raw error info.
@@ -455,7 +455,7 @@ EOF;
     date_default_timezone_set('America/New_York');
 
     // This error_log should always stay in!! *****************
-    error_log("dbAbstract.class.php: $from\n$err\n$userId");
+    error_log("dbMysqli.class.php: $from\n$err\n$userId");
     // ********************************************************
 
     if(ErrorClass::getDevelopment() !== true) {

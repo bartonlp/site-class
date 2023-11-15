@@ -86,7 +86,7 @@ $_site = require_once(getenv("SITELOADNAME"));
 
 if($_POST) {
   // Here isMeFalse is a string '1'.
-  if($_POST['isMeFalse']) $S->isMeFalse = true;
+  if($_POST['isMeFalse']) $_site->isMeFalse = true;
 
   // BLP 2023-08-11 - This allow us to keep the tracker.php at bartonlp.com/otherpages with a
   // symlink to vendor/bartonlp/site-class/includes/tracker.php
