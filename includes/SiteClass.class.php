@@ -1,12 +1,11 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
-// BLP 2023-10-02 - Note that the constructor calls the Database constructor which in turn call the
+// Note that the constructor calls the Database constructor which in turn call the
 // dbMysqli constructor which does all of the heavy lifting.
 
-define("SITE_CLASS_VERSION", "4.0.0"); // BLP 2023-08-08 - updated. New tracker.js and tracker.php. Added desktopImg and phoneImg.
+define("SITE_CLASS_VERSION", "4.0.0");
 
 // One class for all my sites
-// This version has been generalized to not have anything about my sites in it!
 /**
  * SiteClass
  *
@@ -22,7 +21,7 @@ define("SITE_CLASS_VERSION", "4.0.0"); // BLP 2023-08-08 - updated. New tracker.
  * This class can be extended to handle special issues and add methods.
  */
 
-// BLP 2023-09-08 - make an alias for getinfo.
+// Make an alias for getinfo.
 
 use \bartonlp\siteload\getinfo as load;
 
@@ -47,7 +46,7 @@ class SiteClass extends Database {
   public function __construct(object $s) {
     // Do the parent Database constructor which does the dbMysqli constructor.
     
-    parent::__construct($s);
+    parent::__construct($s); // Turns everything in $s into $this.
 
     // BLP 2018-07-01 -- Add the date to the copyright notice if one exists
 
@@ -84,6 +83,7 @@ class SiteClass extends Database {
 
   /**
    * getPageTopBottom()
+   * This is the MOST used method. All of the other getPage... methods usually get called from here.
    * Get Page Top (<head> and <header> ie banner) and Footer
    * @return array top, footer
    */
@@ -93,11 +93,9 @@ class SiteClass extends Database {
 
     $top = $this->getPageTop();
 
-    // BLP 2022-04-09 - We can pass in a footer via $h.
-    
-    $footer = $this->footer ?? $this->getPageFooter();
+    $footer = $this->footer ?? $this->getPageFooter(); // We could have a different pageFooter.
 
-    // return the array which we usually get via '[$top, $footer] = $S->getPageTopBottom($h, $b)'
+    // return the array which we usually get via '[$top, $footer] = $S->getPageTopBottom()'
 
     return [$top, $footer];
   }
@@ -123,16 +121,14 @@ class SiteClass extends Database {
 
   /**
    * getPageHead()
-   * Get the page <head></head> stuff including the doctype etc.
+   * Get the page <head></head> stuff including the doctype and the beginning <body> tag.
    * @return string $pageHead
    */
 
   public function getPageHead():string {
-    $this->getPageHead = true; // BLP 2023-01-31 -
+    // Instantiate a stdClass so we can pass things to the headFile.
     
     $h = new stdClass;
-
-    // use either $h or $this values or a constant
 
     $dtype = $this->doctype; // note that $this->doctype could also be from mysitemap.json see the constructor.
 
@@ -149,7 +145,7 @@ class SiteClass extends Database {
     $h->viewport = $this->viewport ? "<meta name='viewport' content='$this->viewport'>" :
                    "<meta name='viewport' content='width=device-width, initial-scale=1'>";
     $h->canonical = $this->canonical ? "<link rel='canonical' href='$this->canonical'>" : null;
-    $h->meta = $this->meta;
+    $h->meta = $this->meta; // This needs a fully filled out <meta ...>. The whole thing.
     
     // link tags
     
@@ -162,20 +158,14 @@ class SiteClass extends Database {
       $h->defaultCss = $this->defaultCss ? "<link rel='stylesheet' href='$this->defaultCss' title='default'>" :
                        "<link rel='stylesheet' href='https://bartonphillips.net/css/blp.css' title='default'>";
     }
-    
-    // $h->css is a special case. If the style is not already there incase the text in <style> tags.
 
-    $h->css = $this->css;
+    // These need to have the <style> or <script> tabs added.
     
-    if($this->css && preg_match("~<style~", $this->css) == 0) {
-      $h->css = "<style>\n$this->css\n</style>";
-    }
-
-    // We set the $h->inlineScript here with h_inlineScript
-    
+    $h->css = $this->css ? "<style>\n$this->css\n</style>" : null;
     $h->inlineScript = $this->h_inlineScript ? "<script>\n$this->h_inlineScript\n</script>" : null;
     
-    // The rest, $h->link, $h->script and $h->extra need the full '<link' or '<script' text.
+    // The rest, $h->link, $h->script and $h->extra need to have the full '<link' or '<script' tags
+    // in the variables.
 
     $h->script = $this->h_script;
     $h->link = $this->link;
@@ -185,7 +175,7 @@ class SiteClass extends Database {
     $lang = $this->lang ?? 'en';
     $htmlextra = $this->htmlextra; // Must be full html
     
-    // If nojquery is true then don't add $trackerStr
+    // If nojquery is true then don't add $trackerStr at all.
 
     if($this->nojquery !== true) {
       $jQuery = <<<EOF
@@ -212,9 +202,8 @@ EOF;
         $logoImgLocation = $this->logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-08 -
         $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-10 -
 
-        // BLP 2023-08-10 - Here we want the images to be real or null so we can check them in
-        // tracker.js
-
+        // The trackerImg... can start with http or https. If so use the full url.
+        
         if(strpos($this->trackerImg1, "http") === 0) {
           $desktopImg = $this->trackerImg1;
         } else {
@@ -236,14 +225,21 @@ EOF;
           $phoneImg2 = $this->trackerImgPhone2 ? "$headerImg2Location$this->trackerImgPhone2" : null; // BLP 2023-08-10 - 
         }
 
-        // BLP 2023-09-08 - load is an alias for getinfo() in siteload.php. See the top of this
+        // 'load' is an alias for getinfo() in siteload.php. See the top of this
         // program for the 'use' alias.
         // I use $mysitemap in tracker.php to be able to not have symlinks in all of my domains.
 
         $mysitemap = load::$mysitemap;
 
-        $trackerStr =<<<EOF
-  <script data-lastid="$this->LAST_ID" src="$this->trackerLocationJs"></script>
+        // If not noTrack or nbdb add the tracker.js location.
+        
+        $trackerStr = "  <script data-lastid='$this->LAST_ID' src='$this->trackerLocationJs'></script>\n";
+      }
+
+      // Now fill in the rest of $trackerStr.
+      // If noTrack or nodb then many of the items will be empty.
+      
+      $trackerStr .=<<<EOF
   <script>
     var thesite = "$this->siteName",
     theip = "$this->ip",
@@ -251,14 +247,13 @@ EOF;
     trackerUrl = "$trackerLocation",
     beaconUrl = "$beaconLocation",
     noCssLastId = "$this->noCssLastId",
-    desktopImg = "$desktopImg", // BLP 2023-08-08 - 
-    phoneImg = "$phoneImg"; // BLP 2023-08-08 -
-    desktopImg2 = "$desktopImg2"; // BLP 2023-08-10 - 
-    phoneImg2 = "$phoneImg2", // BLP 2023-08-10 -
-    mysitemap = "$mysitemap" // BLP 2023-08-11 - pass it into javascript
+    desktopImg = "$desktopImg", 
+    phoneImg = "$phoneImg"; 
+    desktopImg2 = "$desktopImg2";
+    phoneImg2 = "$phoneImg2", 
+    mysitemap = "$mysitemap" 
   </script>
 EOF;
-      }
     }
     
     $html = '<html lang="' . $lang . '" ' . $htmlextra . ">"; // stuff like manafest etc.
@@ -323,18 +318,14 @@ EOF;
     $bodytag = $this->bodytag ?? "<body>";
     $mainTitle = $this->banner ?? $this->mainTitle;
 
-    // BLP 2022-04-09 - if we have nodb or noTrack then there will be no tracker.js or tracker.php
+    // If we have nodb or noTrack then there will be no tracker.js or tracker.php
     // so we can't set the images at all.
 
     if($this->nodb !== true && $this->noTrack !== true) {
-      // BLP 2022-03-24 -- Add alt and add src='blank.gif'
-      // BLP 2022-04-09 - for now I am leaving trackerImg1 and trackerImg2 only on $this.
-
       $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
 
-      // BLP 2023-08-10 - We start out with the <img id='headerImage2'> having the NO SCRIPT logo, because this will
+      // We start out with the <img id='headerImage2'> having the NO SCRIPT logo, because this will
       // be changed by tracker.js if the user has Javascript.
-      // I have a png and an svg of the NO SCRIPT, but the svg does not work?
 
       $image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal&amp;id=$this->LAST_ID&amp;image=/images/noscript.svg' alt='NO SCRIPT'>";
 
@@ -377,10 +368,8 @@ EOF;
    */
   
   public function getPageFooter():string {
-    // BLP 2022-01-02 -- if nofooter is true just return an empty footer
+    // If nofooter is true just return an empty footer
 
-    $b = new stdClass;
-    
     if($this->nofooter === true) {
       return <<<EOF
 <footer>
@@ -389,9 +378,9 @@ EOF;
 </html>
 EOF;
     }
-    
-    // BLP 2022-02-23 -- added the following.
-    
+
+    $b = new stdClass;
+
     $b->ctrmsg = $this->ctrmsg;
     $b->msg = $this->msg;
     $b->msg1 = $this->msg1;
@@ -416,19 +405,18 @@ EOF;
     $b->script = $this->b_script;
 
     // counterWigget is available to the footerFile to use if wanted.
-    // BLP 2022-01-02 -- if count is set then use the counter
     
     if($this->noCounter !== true) {
       $counterWigget = $this->getCounterWigget($this->ctrmsg); // ctrmsg may be null which is OK
     }
 
-    // BLP 2021-10-24 -- lastmod is also available to footerFile to use if wanted.
+    // Lastmod is also available to footerFile to use if wanted.
 
     if($this->noLastmod !== true) {
       $lastmod = "Last Modified: " . date("M j, Y H:i", getlastmod());
     }
 
-    // BLP 2022-01-28 -- add noGeo
+    // Add noGeo
 
     if($this->noGeo !== true) {
       $geo = $this->gioLocation ?? "https://bartonphillips.net/js";
@@ -436,7 +424,7 @@ EOF;
       $geo = "<script src='$geo/geo.js'></script>";
     }
 
-    // BLP 2022-04-09 - We can put the footerFile into $b or use it from mysitemap.json
+    // We can put the footerFile into $S or use it from mysitemap.json
     // If either is set to 'false' then use the default footer, else use $this->footerFile unless
     // it is false.
     
@@ -461,27 +449,22 @@ EOF;
   }
 
   /**
-   * __toString();
-   */
-
-  public function __toString() {
-    return __CLASS__;
-  }
-
-  /**
    * getCounterWigget()
    */
 
   public function getCounterWigget(?string $msg="Page Hits"):?string {
     // Counter at bottom of page
-    // hitCount is updated by 'counter()'
+    // hitCount is updated by 'counter()' in Database.
 
     $hits = number_format($this->hitCount);
 
-    // Let the redered appearance be up to the pages css!
-    // #F5DEB3==rgb(245,222,179) is 'wheat' for the background
-    // rgb(123, 16, 66) is a burgundy for the number
-    // We place the counter in the center of the page in a div, in a table
+    // Let the appearance be up to the pages css!
+    // However, the defaultCss is bartonphillipsnet/css/blp.css it includes hitcounter.css which
+    // sets the following values.
+    // #hitCounter, #hitCountertbl, #hitCountertr and #hitCounterth.
+    // See bartonphillipsnet/css/hitcounter.css for all the info.
+    // So to override the values enter the css AFTER the defaultCss and change the values of the ids.
+    
     return <<<EOF
 <div id="hitCounter">
 $msg
@@ -494,5 +477,13 @@ $hits
 </table>
 </div>
 EOF;
+  }
+
+  /**
+   * __toString();
+   */
+
+  public function __toString() {
+    return __CLASS__;
   }
 } // End of Class

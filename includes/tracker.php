@@ -124,6 +124,9 @@ if($_POST) {
   //if($ip != "195.252.232.86") error_log("*** tracker.php: mysite=$mysite, site=$_site->siteName, ip=$ip, host=$tmp");
 }  
 
+$_site->noTrack = true; // Don't track or do geo!
+$_site->noGeo = true;
+
 $S = new Database($_site); // BLP 2023-10-02 - because we use Database noTrack is set and we do not do any tracking.
 
 //$DEBUG_START = true; // start

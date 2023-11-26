@@ -127,11 +127,11 @@ jQuery(document).ready(function($) {
   
   let date = new Date();
   let value = date.toGMTString();
-  date.setTime(date.getTime() + (60 * 10 * 1000));
-  value += "|" + date.toGMTString();
+  date.setTime(date.getTime() + (60 * 10 * 1000)); // 10 minutes
+  value += "|" + date.toGMTString(); // the current time | time + 10 min.
 
   console.log("mytime cookie value="+value);
-  document.cookie = "mytime=" + value + "; expires=" + date.toGMTString() + ";path=/";
+  document.cookie = "mytime=" + value + "; expires=" + date.toGMTString() + ";path=/"; // expires in 10 min.
 
   // Usually the image stuff (normal and noscript) will
   // happen before 'start' or 'load'.
@@ -258,7 +258,8 @@ jQuery(document).ready(function($) {
   });
 
   // Now lets do timer to update the endtime
-
+  // This triggers tracker.php 'timer'.
+  
   let cnt = 0;
   let time = 0;
   let difftime = 10000; // We miss the first ajax so the next time will be 10sec + 10sec.

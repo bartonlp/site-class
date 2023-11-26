@@ -15,6 +15,9 @@ if($_site || $__VERSION_ONLY === true) {
 // inportant information is passed to this program via 'php://input'
 
 $_site = require_once(getenv("SITELOADNAME"));
+$_site->noTrack = true;
+$_site->noGeo = true;
+
 $S = new Database($_site);
 
 //$DEBUG1 = true; // COUNTED real+1 bots-1
