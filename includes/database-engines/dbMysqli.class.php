@@ -29,7 +29,7 @@ define("MYSQL_CLASS_VERSION", "4.0.0mysqli");
  * The password is optional and if not pressent is picked up form my $HOME.
  */
 
-class dbMysqli {
+class dbMysqli extends mysqli {
   private $result; // for select etc. a result set.
   static public $lastQuery = null; // for debugging
   static public $lastNonSelectResult = null; // for insert, update etc.
@@ -69,19 +69,12 @@ class dbMysqli {
     //   int $port = ini_get("mysqli.default_port"),
     //   string $socket = ini_get("mysqli.default_socket")
     // )
-    
-    $db = new mysqli($host, $user, $password, $database, $port); // $port is usually null.
 
-    if($db->connect_errno) {
-      $this->errno = $db->connect_errno;
-      $this->error = $db->connect_error;
-      throw new SqlException(__METHOD__ . ": Can't connect to database", $this);
-    }
+    parent::__construct($host, $user, $password, $database, $port); // $port is usually null.
 
     // BLP 2021-12-31 -- EST/EDT New York
-    $db->query("set time_zone='EST5EDT'");
-    $this->db = $db;
-    $this->db->database = $database;
+    $this->query("set time_zone='EST5EDT'");
+    $this->database = $database;
   } // End of constructor.
 
   /*
@@ -99,7 +92,7 @@ class dbMysqli {
    */
   
   public function getDbErrno() {
-    return $this->db->errno;
+    return $this->errno;
   }
 
   /*
@@ -108,7 +101,7 @@ class dbMysqli {
    */
   
   public function getDbError() {
-    return $this->db->error;
+    return $this->error;
   }
   
   /**
@@ -120,13 +113,11 @@ class dbMysqli {
    * @return: if $result === true returns the number of affected_rows (delete, insert, etc). Else ruturns num_rows.
    * if $result === false throws SqlException().
    */
-
+/*
   public function query($query) {
-    $db = $this->db;
-    
     self::$lastQuery = $query; // for debugging
 
-    $result = $db->query($query);
+    $result = $this->query($query);
 
     // If $result is false then exit
     
@@ -137,7 +128,7 @@ class dbMysqli {
     // result is a mixed result-set for select etc, true for insert etc.
     
     if($result === true) { // did not return a result object. NOTE can't be false as we covered that above.
-      $numrows = $db->affected_rows;
+      $numrows = $this->affected_rows;
       self::$lastNonSelectResult = $result; // for debugging
     } else {
       // NOTE: we don't change result for inserts etc. only for selects etc.
@@ -147,7 +138,8 @@ class dbMysqli {
 
     return $numrows;
   }
-
+*/
+  
   /**
    * prepare()
    * mysqli::prepare()
@@ -164,8 +156,7 @@ class dbMysqli {
    */
   
   public function prepare($query) {
-    $db = $this->db;
-    $stm = $db->prepare($query);
+    $stm = $this->prepare($query);
     return $stm;
   }
 
@@ -263,8 +254,7 @@ class dbMysqli {
    */
 
   public function getLastInsertId() {
-    $db = $this->db;
-    return $db->insert_id;
+    return $this->insert_id;
   }
   
   /**
@@ -274,8 +264,7 @@ class dbMysqli {
   public function getNumRows($result=null) {
     if(!$result) $result = $this->result;
     if($result === true) {
-      $db = $this->getDb();
-      return $db->affected_rows;
+      return $this->affected_rows;
     } else {
       return $result->num_rows;
     }
@@ -303,7 +292,7 @@ class dbMysqli {
   // real_escape_string
   
   public function escape($string) {
-    return @$this->db->real_escape_string($string);
+    return @$this->real_escape_string($string);
   }
 
   public function escapeDeep($value) {
