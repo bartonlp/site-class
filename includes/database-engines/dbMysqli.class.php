@@ -11,7 +11,7 @@
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
  */
 
-define("MYSQL_CLASS_VERSION", "4.0.0mysqli"); 
+define("MYSQL_CLASS_VERSION", "5.0.0mysqli"); 
 
 /**
  * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.
@@ -105,7 +105,7 @@ class dbMysqli extends mysqli {
   }
   
   /**
-   * query()
+   * sql()
    * Query database table
    * BLP 2016-11-20 -- Query is for a SINGLE query ONLY. Don't do multiple querys!
    * mysqli has a multi_query() but I have not written a method for it!
@@ -113,8 +113,8 @@ class dbMysqli extends mysqli {
    * @return: if $result === true returns the number of affected_rows (delete, insert, etc). Else ruturns num_rows.
    * if $result === false throws SqlException().
    */
-/*
-  public function query($query) {
+
+  public function sql($query) {
     self::$lastQuery = $query; // for debugging
 
     $result = $this->query($query);
@@ -138,7 +138,6 @@ class dbMysqli extends mysqli {
 
     return $numrows;
   }
-*/
   
   /**
    * prepare()

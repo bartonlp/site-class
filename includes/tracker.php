@@ -70,7 +70,7 @@ CREATE TABLE `dayrecords` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("TRACKER_VERSION", "3.2.1tracker"); // BLP 2023-09-10 - 
+define("TRACKER_VERSION", "4.0.0tracker"); // BLP 2023-09-10 - 
 
 // If you want the version defined ONLY and no other information.
 
@@ -78,7 +78,17 @@ if($_site || $__VERSION_ONLY === true) {
   return TRACKER_VERSION;
 }
 
-$_site = require_once(getenv("SITELOADNAME"));
+// If this is my home server try the autoload.php which should be off this directory
+
+if($_SERVER['REMOTE_ADDR'] == '195.252.232.86') {
+  error_log("*** tracker.php HP-Envy Server, use autoload.php");
+  $_site = require_once("autoload.php"); // We are at ~/bartonphillips.org/site-class/includes.
+  $_site->trackerLocationJs =  'https://bartonphillips.org/site-class/includes/tracker.js';
+  $_site->trackerLocation = 'https://bartonphillips.org/site-class/includes/tracker.php';
+  $_site->beaconLocation = 'https://bartonphillips.org/site-class/includes/beacon.php';
+} else {
+  $_site = require_once(getenv("SITELOADNAME"));
+}
 
 // BLP 2023-09-10 - If this is a POST from tracker.js via ajax get the $_site via a
 // file_get_contents($_POST['mysitemap']) but use the host from $_site->dbinfo->host above. See
@@ -94,7 +104,7 @@ if($_POST) {
   // Every thing on the server can use require.
 
   $mysite = $_POST['mysitemap'];
-  
+
   $tmp = $_site->dbinfo->host; // BLP 2023-09-10 -
 
   unset($_site);
@@ -104,10 +114,10 @@ if($_POST) {
     if(str_contains($mysite, ":8000")) {
       $port = ":8000";
     }
-    $mysite = preg_replace("~/var/www/(.*?)/~", "https://bartonphillips.org$port/", $_POST['mysitemap']);
+    $mysite = preg_replace("~/var/www/(.*?)/~", "https://bartonphillips.org$port/", $mysite);
   }
-  
-  //error_log("*** tracker.php: mysite=$mysite");
+
+  if($mysite == "mysitemap.json") $mysite = "https://bartonphillips.org/$mysite";
   
   $_site = json_decode(stripComments(file_get_contents($mysite)));
 
@@ -122,12 +132,13 @@ if($_POST) {
   $_site->dbinfo->host = $tmp; // BLP 2023-09-10 -
 
   //if($ip != "195.252.232.86") error_log("*** tracker.php: mysite=$mysite, site=$_site->siteName, ip=$ip, host=$tmp");
-}  
+}
 
 $_site->noTrack = true; // Don't track or do geo!
 $_site->noGeo = true;
 
 $S = new Database($_site); // BLP 2023-10-02 - because we use Database noTrack is set and we do not do any tracking.
+//error_log("*** tracker.php \$S=" . var_export($S, true));
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -185,7 +196,7 @@ if($_POST['page'] == 'start') {
     $visits = 0;
   }
 
-  if($S->query("select botAs, isJavaScript, hex(isJavaScript) from $S->masterdb.tracker where id=$id")) {
+  if($S->sql("select botAs, isJavaScript, hex(isJavaScript) from $S->masterdb.tracker where id=$id")) {
     [$botAs, $java, $js] = $S->fetchrow('num');
   } else { // BLP 2023-02-10 - add for debug
     error_log("tracker: $id, $ip, $site, $thispage,  Select of id=$id failed, time=" . (new DateTime)->format('H:I:s:v'));
@@ -208,7 +219,7 @@ if($_POST['page'] == 'start') {
            "on duplicate key update isJavaScript='$java', lasttime=now()";
   }
   
-  $S->query($sql);
+  $S->sql($sql);
   echo "Start OK, java=$js";
   exit();
 }
@@ -227,7 +238,7 @@ if($_POST['page'] == 'load') {
     exit();
   }
 
-  if($S->query("select botAs, isJavaScript, hex(isJavaScript) from $S->masterdb.tracker where id=$id")) {
+  if($S->sql("select botAs, isJavaScript, hex(isJavaScript) from $S->masterdb.tracker where id=$id")) {
     [$botAs, $java, $js] = $S->fetchrow('num');
   }
 
@@ -239,7 +250,7 @@ if($_POST['page'] == 'load') {
 
   // BLP 2023-03-25 - This should maybe be insert/update?
   
-  $S->query("update $S->masterdb.tracker set isJavaScript='$java', lasttime=now() where id='$id'");
+  $S->sql("update $S->masterdb.tracker set isJavaScript='$java', lasttime=now() where id='$id'");
   echo "Load OK, java=$js";
   exit();
 }
@@ -258,7 +269,7 @@ if($_POST['page'] == 'onexit') {
   $thepage = $_POST['thepage'];
   $type = $_POST['type'];
 
-  if($S->query("select botAs, isJavaScript, difftime, agent from $S->masterdb.tracker where id=$id")) {
+  if($S->sql("select botAs, isJavaScript, difftime, agent from $S->masterdb.tracker where id=$id")) {
     [$botAs, $java, $difftime, $agent] = $S->fetchrow('num');
   } else {
     error_log("tracker onexit: NO record for $id, line=" . __LINE__);
@@ -289,7 +300,7 @@ if($_POST['page'] == 'onexit') {
   $botAs = empty($botAs) ? "Tor?" : "$botAs,Tor?";
   $java |= $onexit;
   
-  $S->query("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
+  $S->sql("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
             "isJavaScript='$java', lasttime=now() where id=$id");
 
   error_log("tracker onexit: $id, $site, $ip, $thepage, $msg, $botAs, Maybe Tor?");
@@ -313,7 +324,10 @@ if($_POST['page'] == 'timer') {
     exit();
   }
 
-  $S->query("select botAs, isJavaScript, hex(isJavaScript), finger, agent from $S->masterdb.tracker where id=$id");
+  if(!$S->sql("select botAs, isJavaScript, hex(isJavaScript), finger, agent from $S->masterdb.tracker where id=$id")) {
+    error_log("*** tracker.php: No record for id=$id, $site, $thispage");
+  }
+
   [$botAs, $java, $js, $finger, $agent] = $S->fetchrow('num');
 
   $java |= TRACKER_TIMER; // Or in TIMER
@@ -326,7 +340,7 @@ if($_POST['page'] == 'timer') {
       exit(); // If this is a bot don't bother
     }
   } else {
-    error_log("tracker, timer: $id, $ip, $site, $thepage, 'EMPTY_AGENT', botAs=$botAs");
+    error_log("tracker, timer: $id, $ip, $site, $thepage, java=$js2, 'EMPTY_AGENT', botAs=$botAs");
   }
 
   // $botAs could have any or all of these: counted as well as  match, robot, sitemap or zbot
@@ -353,19 +367,19 @@ if($_POST['page'] == 'timer') {
     // It is not me, and $botAs does not conatin counted. It may have any of the other values.
     
     try {
-      $S->query("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
+      $S->sql("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
       [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
       $dayreal++;
       $dayvisits += $visits;
       $daybots = empty($daybots) ? 0 : $daybots; // BLP 2023-01-07 -
       
       $sql = "update $S->masterdb.daycounts set `real`='$dayreal', bots='$daybots', visits='$dayvisits' where date=current_date() and site='$site'";
-      $S->query($sql);
+      $S->sql($sql);
       if($DEBUG_DAYCOUNT) error_log("tracker: $id, $ip, $site, $thepage, COUNTED_TIMER, real+1, visits=$visits, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, time=" . (new DateTime)->format('H:i:s:v'));
 
       // BLP 2022-12-06 - Added rcount and bcount
       
-      $S->query("insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, dayvisits, visits, lasttime) ".
+      $S->sql("insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, dayvisits, visits, lasttime) ".
                 "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', '$dayreal', 1, '$daybots', '$dayvisits', '$visits', now()) ".
                 "on duplicate key update finger='$finger', dayreal='$dayreal', rcount=rcount+1, daybots='$daybots', ".
                 "dayvisits='$dayvisits', visits='$visits', lasttime=now()");
@@ -386,7 +400,7 @@ if($_POST['page'] == 'timer') {
   $sql = "update $S->masterdb.tracker set botAs='$botAs', isJavaScript='$java', endtime=now(), ".
          "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id";
 
-  $S->query($sql);
+  $S->sql($sql);
 
   if(!$S->isMyIp($ip) && $DEBUG_TIMER) error_log("tracker: $id, $ip, $site, $thepage, TIMER2, botAs=$botAs, visits: $visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
 
@@ -455,7 +469,7 @@ if($type = $_GET['page']) {
 
     error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, agent=$S->agent");
 
-    $S->query($sql);
+    $S->sql($sql);
     goto GOAWAYNOW;
   }
   
@@ -478,7 +492,7 @@ if($type = $_GET['page']) {
   try {
     $sql = "select site, ip, page, finger, hex(isJavaScript), agent from $S->masterdb.tracker where id=$id";
     
-    if($S->query($sql)) {
+    if($S->sql($sql)) {
       [$site, $ip, $thepage, $finger, $js, $agent] = $S->fetchrow('num');
     } else {
       throw new Exception("tracker: NO RECORD for id=$id, type=$msg", -100); // This will be caught below.
@@ -498,7 +512,7 @@ if($type = $_GET['page']) {
              "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
              "on duplicate key update error='Update, Select failed $ip $msg', lasttime=now()";
       
-      $S->query($sql);
+      $S->sql($sql);
 
       error_log("tracker: $id, \$S->ip=$S->ip, \$S->siteName=$S->siteName,  $S->self, SELECT_FAILED_INSERT_OK_{$ip}_{$msg}, ".
                 "err=$errno, errmsg=$errmsg, time=" . (new DateTime)->format('H:i:s:v'));
@@ -513,7 +527,7 @@ if($type = $_GET['page']) {
              "values('$S->ip', $id, '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
              "on duplicate key update count=count+1, errmsg=errmsg . '::$errmsg', lasttime=now()";
         
-      if(!$S->query($sql)) {
+      if(!$S->sql($sql)) {
         error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip badplayer - could not do insert/update");
       }       
       goto GOAWAYNOW;
@@ -533,7 +547,7 @@ if($type = $_GET['page']) {
 
     // We know that there is an ID but is there a record with that ID?
 
-    $S->query("insert into $S->masterdb.tracker (id, ip, site, page, agent, isJavaScript, error, starttime, lasttime) ".
+    $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, agent, isJavaScript, error, starttime, lasttime) ".
                 "values($id, '$ip', '$site', '$thepage', '$agent', '$java', 'ISABOT_$msg', now(), now()) ".
                 "on duplicate key update error='ISABOT_UPDATE_$msg', lasttime=now()");
 
@@ -553,7 +567,7 @@ if($type = $_GET['page']) {
            "on duplicate key update isJavaScript=isJavaScript|$or, lasttime=now()";
   }
 
-  $S->query($sql);
+  $S->sql($sql);
   
   // If this is csstest we are done.
   
@@ -608,13 +622,13 @@ if(!$id) {
   
   // No id
   
-  $S->query("insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
+  $S->sql("insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
             "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAY NO ID', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
             "on duplicate key update count=count+1, lasttime=now()");
 } else {
   // If this ID is not in the table add it with TRACKER_GOAWAY.
   
-  $S->query("insert into $S->masterdb.tracker (id, site, ip, agent, isJavaScript, starttime, lasttime) ".
+  $S->sql("insert into $S->masterdb.tracker (id, site, ip, agent, isJavaScript, starttime, lasttime) ".
             "values($id, '$S->ip', '$S->siteName', '$S->agent', " . TRACKER_GOAWAY . ", now(), now()) ".
             "on duplicate key update isJavaScript=isJavaScript|" . TRACKER_GOAWAY . ", lasttime=now()");
 
@@ -622,7 +636,7 @@ if(!$id) {
   $errmsg = "No tracker logic triggered";
   $botAs = BOTAS_COUNTED;
   
-  $S->query("insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
+  $S->sql("insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
             "values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
             "on duplicate key update count=count+1, lasttime=now()");
 }
@@ -631,7 +645,7 @@ if(!$id) {
 
 if($id) {
   $sql = "select finger from tracker where id=$id";
-  $S->query($sql);
+  $S->sql($sql);
   $finger = $S->fetchrow('num')[0] ?? "NONE";
 }
 $request = $_REQUEST ? ", \$_REQUEST: " . print_r($_REQUEST, true) : '';

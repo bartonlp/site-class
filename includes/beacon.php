@@ -1,7 +1,7 @@
 <?php
 // Beacon from tracker.js
 
-define("BEACON_VERSION", "3.1.0beacon"); // BLP 2023-01-30 - Add check for $_site.
+define("BEACON_VERSION", "4.0.0beacon"); // BLP 2023-01-30 - Add check for $_site.
 
 // BLP 2023-01-30 - If you want the version defined ONLY and no other information.
 // If we have a valid $_site or the $__VERSION_ONLY, then just return the version info.
@@ -14,11 +14,24 @@ if($_site || $__VERSION_ONLY === true) {
 // NOTE: we can get $_site from the mysitemap.json at bartonlp.com/otherpages because all of the
 // inportant information is passed to this program via 'php://input'
 
-$_site = require_once(getenv("SITELOADNAME"));
+// If $_site is null try the autoload.php which should be off this directory
+
+if($_SERVER['REMOTE_ADDR'] == '195.252.232.86') {
+  error_log("*** beacon.php HP-Envy Server, use autoload.php");  
+  $_site = require_once("autoload.php"); // We are at ~/bartonphillips.org/site-class/includes.
+  $_site->trackerLocationJs =  'https://bartonphillips.org/site-class/includes/tracker.js';
+  $_site->trackerLocation = 'https://bartonphillips.org/site-class/includes/tracker.php';
+  $_site->beaconLocation = 'https://bartonphillips.org/site-class/includes/beacon.php';
+} else {
+  $_site = require_once(getenv("SITELOADNAME"));
+}
+
 $_site->noTrack = true;
 $_site->noGeo = true;
 
 $S = new Database($_site);
+//error_log("*** beacon.php \$S=" . var_export($S, true));
+          
 
 //$DEBUG1 = true; // COUNTED real+1 bots-1
 //$DEBUG2 = true; // After update tracker table
@@ -53,7 +66,7 @@ if(!$id || $visits === null) {
   if(!$msg) $msg = "NO_TYPE_NO_VISITS";
   error_log("beacon:  NO ID, $ip, $site, $msg -- visits=$visits, \$S->ip=$S->ip, \$S->self=$S->self, \$S->agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
   
-  $S->query("insert into $S->masterdb.badplayer (ip, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
+  $S->sql("insert into $S->masterdb.badplayer (ip, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
             "values('$S->ip', '$site', '$S->self', 'counted', '{$msg}_BEACON_GOAWAY', 1, '-104', 'NO ID Go away', '$S->agent', now(), now()) ".
             "on duplicate key update count=count+1, lasttime=now()");
 
@@ -63,7 +76,7 @@ if(!$id || $visits === null) {
 
 // Now get botAs and isJavaScrip etc. from the tracker table.
 
-if($S->query("select botAs, isJavaScript, hex(isJavaScript), difftime, finger, agent from $S->masterdb.tracker where id=$id")) {
+if($S->sql("select botAs, isJavaScript, hex(isJavaScript), difftime, finger, agent from $S->masterdb.tracker where id=$id")) {
   [$botAs, $java, $js, $difftime, $finger, $agent] = $S->fetchrow('num');
 } else {
   error_log("beacon: NO record for $id, line=" . __LINE__);
@@ -115,12 +128,12 @@ if(!str_contains($botAs, BOTAS_COUNTED)) {
 }
 
 if(!$S->isMyIp($ip) && !str_contains($botAs, BOTAS_COUNTED)) { // it is not ME and it has not been counted yet.
-  $S->query("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
+  $S->sql("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
   [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
   $dayreal++;
   $dayvisits += $visits;
 
-  $S->query("update $S->masterdb.daycounts set `real`=$dayreal, visits=$dayvisits where date=current_date() and site='$site'");
+  $S->sql("update $S->masterdb.daycounts set `real`=$dayreal, visits=$dayvisits where date=current_date() and site='$site'");
 
   if($DEBUG1) error_log("beacon:  $id, $ip, $site, $thepage, COUNTED_{$msg}1, real+1, botAs=$botAs, state=$state, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, visits: $visits, time=" . (new DateTime)->format('H:i:s:v'));
 }
@@ -133,7 +146,7 @@ if(empty($botAs)) {
 
 // Now update tracker. $botAs should have BOTS_COUNTED!
 
-$S->query("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
+$S->sql("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
           "isJavaScript='$java', lasttime=now() where id=$id");
 
 if(!$S->isMyIp($ip) && $DEBUG2)

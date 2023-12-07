@@ -2,7 +2,7 @@
 /* Well tested and maintained */
 // All of the tracking and counting logic that is in this file.
 
-define("DATABASE_CLASS_VERSION", "4.0.0database"); // BLP 2023-02-24 -
+define("DATABASE_CLASS_VERSION", "5.0.0database"); // BLP 2023-02-24 -
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 /**
@@ -155,22 +155,6 @@ class Database extends dbMysqli {
     return __CLASS__;
   }
 
-  public function getDb() {
-    return $this->db;
-  }
-
-  public function setDb($db) {
-    $this->db = $db;
-  }
-
-  public function getDbError() {
-    return $this->db->error;
-  }
-
-  public function getDbErrno() {
-    return $this->db->errno;
-  }
-  
   /**
    * getVersion()
    * @return string version number
@@ -226,7 +210,7 @@ class Database extends dbMysqli {
 
     // BLP 2023-10-27 - at this point isBot may have true and either 'match' or 'no-agent'.
     
-    if($this->query("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Is it in the bots table?
+    if($this->sql("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Is it in the bots table?
       // Yes it is in the bots table.
 
       $tmp = '';
@@ -352,7 +336,7 @@ class Database extends dbMysqli {
     // $m[0] is iPhone or Andriod or null.
     // Add into to the server table.
     
-    $this->query("insert into $this->masterdb.server (ip, site, page, bot, info, phone, lasttime) " .
+    $this->sql("insert into $this->masterdb.server (ip, site, page, bot, info, phone, lasttime) " .
                  "values('$this->ip', '$this->siteName', '$this->self', '$this->foundBotAs', '$info', '$m[0]', now())");
   }
 
@@ -392,13 +376,13 @@ class Database extends dbMysqli {
       $agent = $this->agent;
 
       try {
-        $this->query("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
+        $this->sql("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
                      "values('$this->ip', '$agent', 1, " . BOTS_SITECLASS . ", '$this->siteName', now(), now())");
       } catch(SqlException $e) {
         if($e->getCode() == 1062) { // duplicate key
           // We need the site info first. This can be one or multiple sites seperated by commas.
 
-          $this->query("select site from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
+          $this->sql("select site from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
 
           $who = $this->fetchrow('num')[0]; // get the site which could have multiple sites seperated by commas.
 
@@ -409,7 +393,7 @@ class Database extends dbMysqli {
             $who .= ", $this->siteName";
           }
 
-          $this->query("update $this->masterdb.bots set robots=robots | " . BOTS_SITECLASS . ", site='$who', count=count+1, lasttime=now() ".
+          $this->sql("update $this->masterdb.bots set robots=robots | " . BOTS_SITECLASS . ", site='$who', count=count+1, lasttime=now() ".
                        "where ip='$this->ip' and agent='$agent'");
         } else {
           throw new SqlException(__CLASS__ . " " . __LINE__ . ":$e", $this);
@@ -418,7 +402,7 @@ class Database extends dbMysqli {
 
       // Now do bots2
 
-      $this->query("insert into $this->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
+      $this->sql("insert into $this->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
                    "values('$this->ip', '$agent', '$this->self', now(), '$this->siteName', " . BOTS_SITECLASS . ", 1, now())".
                    "on duplicate key update count=count+1, lasttime=now()");
     }
@@ -528,7 +512,7 @@ class Database extends dbMysqli {
     // BLP 2023-10-19 - here foundBotAs could be BOTAS_ZERO ('zero') and java could be TRACKER_ZERO
     // (0). If that is the case then this is not going to be found in checktracker2.php.
     
-    $this->query("insert into $this->masterdb.tracker (botAs, site, page, ip, browser, agent, starttime, isJavaScript, lasttime) ".
+    $this->sql("insert into $this->masterdb.tracker (botAs, site, page, ip, browser, agent, starttime, isJavaScript, lasttime) ".
                  "values('$this->foundBotAs', '$this->siteName', '$this->self', '$this->ip', '$name', '$agent', now(), $java, now())");
 
     $this->LAST_ID = $this->getLastInsertId();
@@ -547,7 +531,7 @@ class Database extends dbMysqli {
     $filename = $this->self; // get the name of the file
 
     try {
-      $this->query("insert into $this->masterdb.counter (site, filename, count, lasttime) values('$this->siteName', '$filename', 1, now())");
+      $this->sql("insert into $this->masterdb.counter (site, filename, count, lasttime) values('$this->siteName', '$filename', 1, now())");
     } catch(SqlException $e) {
       if($e->getCode() != 1062) {
         error_log("Error: code=" . $e->getCode() . ", Message=" . $e->getMessage() . ", e=|" .print_r($e, true)."|");
@@ -567,7 +551,7 @@ class Database extends dbMysqli {
       $sql = "update $this->masterdb.counter set count=count+1, realcnt=realcnt+$realcnt, lasttime=now() ".
              "where site='$this->siteName' and filename='$filename'";
 
-      $this->query($sql);
+      $this->sql($sql);
     }
 
     // Now retreive the hit count value after it may have been incremented above. NOTE, I am NOT
@@ -575,7 +559,7 @@ class Database extends dbMysqli {
 
     $sql = "select realcnt from $this->masterdb.counter where site='$this->siteName' and filename='$filename'";
 
-    $this->query($sql);
+    $this->sql($sql);
 
     $this->hitCount = ($this->fetchrow('num')[0]) ?? 0; // This is the number of REAL (non BOT) accesses and NOT Me.
   }
@@ -593,7 +577,7 @@ class Database extends dbMysqli {
            "values('$this->siteName', now(), left('$this->self', 254), $real , $bot, now()) ".
            "on duplicate key update `real`=`real`+$real, bots=bots+$bot, lasttime=now()";
 
-    $this->query($sql);
+    $this->sql($sql);
   }
 
   /*
@@ -615,7 +599,7 @@ class Database extends dbMysqli {
     try {
       // This will create the very first daycounts entry for the day.
       
-      $this->query("insert into $this->masterdb.daycounts (site, `date`, lasttime) values('$this->siteName', current_date(), now())");
+      $this->sql("insert into $this->masterdb.daycounts (site, `date`, lasttime) values('$this->siteName', current_date(), now())");
     } catch(SqlException $e) {
       if($e->getCode() != 1062) { // I expect this to fail for dupkey after the first insert per day.
         throw new SqlException(__CLASS__ . "$e", $this);
@@ -626,7 +610,7 @@ class Database extends dbMysqli {
 
     // Only count bots here.
     
-    $this->query("update $this->masterdb.daycounts set bots=bots+1, lasttime=now() where date=current_date() and site='$this->siteName'");
+    $this->sql("update $this->masterdb.daycounts set bots=bots+1, lasttime=now() where date=current_date() and site='$this->siteName'");
   }
   
   /**
@@ -644,7 +628,7 @@ class Database extends dbMysqli {
            "values('$this->siteName', '$this->ip', '$this->agent', '1', now(), now()) ".
            "on duplicate key update count=count+1, lasttime=now()";
 
-    $this->query($sql);
+    $this->sql($sql);
   }
 
   // ************
@@ -686,7 +670,7 @@ class Database extends dbMysqli {
     
     $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
 
-    if(!$this->query($sql)) {
+    if(!$this->sql($sql)) {
       $this->debug("SiteClass $this->siteName: update of myip failed, ip: $this->ip, " .__LINE__, true); // this should not happen
     }
   }
@@ -695,28 +679,28 @@ class Database extends dbMysqli {
     // Do all of the table checks once here.
     // NOTE: $this->debug() function is declared in dbMysqli.class.php.
     
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots')")) {
+    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots')")) {
       $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
     }
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots2')"))  {
+    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots2')"))  {
       $this->debug("Database $this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database: ". __LINE__, true);
     }
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'tracker')")) {
+    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'tracker')")) {
       $this->debug("Database $this->siteName: $this->self: table tracker does not exist in the $this->masterdb database: ". __LINE__, true);
     }
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
+    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
       $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
     }
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter')")) {
+    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter')")) {
       $this->debug("Database $this->siteName: $this->self: table counter does not exist in the $this->masterdb database: ". __LINE__, true);
     }      
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter2')")) {
+    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter2')")) {
       $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
     }
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'daycounts')")) {
+    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'daycounts')")) {
       $this->debug("Database $this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database: ". __LINE__, true);
     }
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'logagent')")) {
+    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'logagent')")) {
       $this->debug("Database $this->siteName: $this->self: table logagent does not exist in the $this->masterdb database: " . __LINE__, true);
     }
 
@@ -727,11 +711,11 @@ class Database extends dbMysqli {
     // In general all databases that are going to do anything with counters etc. must have a user
     // of 'barton' and $this->nodb false. The program without 'barton' can NOT do any calls via masterdb!
 
-    if(!$this->query("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
+    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
       $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
     }
 
-    $this->query("select myIp from $this->masterdb.myip");
+    $this->sql("select myIp from $this->masterdb.myip");
 
     while([$ip] = $this->fetchrow('num')) {
       $myIp[] = $ip;

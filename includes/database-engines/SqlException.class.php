@@ -50,8 +50,8 @@ class SqlException extends Exception {
       $Errno = -9999;
       $Error = "No valid \$self->errno or \$self->error.";
     } else {
-      $Error = $self->db->error;
-      $Errno = $self->db->errno;
+      $Error = $self->error;
+      $Errno = $self->errno;
     }
     
     if(($size = strlen($msg)) > 500) {

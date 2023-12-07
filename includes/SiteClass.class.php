@@ -229,8 +229,12 @@ EOF;
         // program for the 'use' alias.
         // I use $mysitemap in tracker.php to be able to not have symlinks in all of my domains.
 
-        $mysitemap = load::$mysitemap;
-
+        try {
+          $mysitemap = load::$mysitemap;
+        } catch(Throwable $e) {
+          $mysitemap = "mysitemap.json";
+        }
+        
         // If not noTrack or nbdb add the tracker.js location.
         
         $trackerStr = "  <script data-lastid='$this->LAST_ID' src='$this->trackerLocationJs'></script>\n";
