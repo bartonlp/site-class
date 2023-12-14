@@ -3,7 +3,9 @@
 // Note that the constructor calls the Database constructor which in turn call the
 // dbMysqli constructor which does all of the heavy lifting.
 
-define("SITE_CLASS_VERSION", "4.0.0");
+// This is using PDO.
+
+define("SITE_CLASS_VERSION", "5.0.0");
 
 // One class for all my sites
 /**
