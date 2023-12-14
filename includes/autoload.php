@@ -18,6 +18,8 @@ require("database-engines/helper-functions.php");
 
 ErrorClass::setDevelopment(true);
 
+date_default_timezone_set('America/New_York'); // Done here and in dbPdo.class.php constructor.
+
 return json_decode(stripComments(file_get_contents("https://bartonphillips.org/mysitemap.json")));
 
 

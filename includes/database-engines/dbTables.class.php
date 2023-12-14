@@ -45,7 +45,7 @@ class dbTables {
    */
   
   public function makeresultrows(string $query, string $rowdesc, array $extra=array()):mixed {
-    $num = $this->db->query($query); // $num is mysql_num_rows() result
+    $num = $this->db->sql($query); // $num is mysql_num_rows() result
 
     if($this->db->dbinfo->engine == 'mysqli' && !$num) {
       return false; // Query found NO rows.

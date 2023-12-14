@@ -1,7 +1,7 @@
 <?php
 /* MAINTAINED and WELL TESTED. This is the default Database and has received extensive testing */
 /**
- * dbMysqli Class
+ * dbPdo Class
  *
  * Wrapper around MySqli Database Class. 
  * @package dbMysqli
@@ -11,69 +11,56 @@
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
  */
 
-define("MYSQL_CLASS_VERSION", "5.0.0mysqli"); 
+define("PDO_CLASS_VERSION", "1.0.0pdo"); 
 
 /**
- * See http://www.php.net/manual/en/mysqli.overview.php for more information on the Improved API.
- * The mysqli extension allows you to access the functionality provided by MySQL 4.1 and above.
- * More information about the MySQL Database server can be found at http://www.mysql.com/
- * An overview of software available for using MySQL from PHP can be found at Overview
- * Documentation for MySQL can be found at http://dev.mysql.com/doc/.
- * Parts of this documentation included from MySQL manual with permissions of Oracle Corporation.
- */
-
-/**
- * @package Mysqli Database
+ * @package PDO Database
  * This is the base class for Database. SiteClass extends Database.
  * This class can also be used standalone. $siteInfo must have a dbinfo with host, user, database and optionally port.
  * The password is optional and if not pressent is picked up form my $HOME.
  */
 
-class dbMysqli extends mysqli {
+class dbPdo extends PDO {
   private $result; // for select etc. a result set.
   static public $lastQuery = null; // for debugging
   static public $lastNonSelectResult = null; // for insert, update etc.
 
   /**
    * Constructor
-   * @param object $dbinfo. Has host, user, database and maybe password.
+   * @param object $siteInfo. Has the mysitemap.json info
    * as a side effect opens the database, that is connects the database
    */
 
   public function __construct(object $siteInfo) {
-    set_exception_handler("dbMysqli::my_exceptionhandler"); // Set up the exception handler
+    set_exception_handler("dbPdo::my_exceptionhandler"); // Set up the exception handler
+
+    // BLP 2021-03-06 -- New server is in New York
+
+    date_default_timezone_set('America/New_York');
 
     // BLP 2023-10-02 - ask for sec headers
     
     header("Accept-CH: Sec-Ch-Ua-Platform,Sec-Ch-Ua-Platform-Version,Sec-CH-UA-Full-Version-List,Sec-CH-UA-Arch,Sec-CH-UA-Model"); 
 
     // Extract the items from dbinfo. This is $host, $user and maybe $password and $port.
+
+    foreach($siteInfo as $k=>$v) {
+      $this->$k = $v;
+    }
     
     extract((array)$siteInfo->dbinfo); // Cast the $dbinfo object into an array
       
-    // BLP 2023-01-15 - START. For PHP 8 and above.
-    $driver = new mysqli_driver();
-    $driver->report_mode = MYSQLI_REPORT_OFF;
-    // BLP 2023-01-15 - END
-
     // $password is almost never present, but it can be under some conditions.
     
     $password = $password ?? require("/home/barton/database-password");
 
-    // If we use the 4th param ($database) to the constructor we don't need to do a $db->select_db()!
-    // public mysqli::__construct(
-    //   string $hostname = ini_get("mysqli.default_host"),
-    //   string $username = ini_get("mysqli.default_user"),
-    //   string $password = ini_get("mysqli.default_pw"),
-    //   string $database = "",
-    //   int $port = ini_get("mysqli.default_port"),
-    //   string $socket = ini_get("mysqli.default_socket")
-    // )
+    if($engine == "sqlite") {
+      parent::__construct("$engine:$database");
+    } else {
+      parent::__construct("$engine:dbname=$database; host=$host; user=$user; password=$password");
+    }
+    $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    parent::__construct($host, $user, $password, $database, $port); // $port is usually null.
-
-    // BLP 2021-12-31 -- EST/EDT New York
-    date_default_timezone_set("America/New_York");
     $this->database = $database;
   } // End of constructor.
 
@@ -83,12 +70,12 @@ class dbMysqli extends mysqli {
    */
   
   public static function getVersion() {
-    return MYSQL_CLASS_VERSION;
+    return PDO_CLASS_VERSION;
   }
 
   /*
    * getDbErrno
-   * @returns $this->db-errno from mysqli.
+   * @returns $this->db-errno from PDO.
    */
   
   public function getDbErrno() {
@@ -97,7 +84,7 @@ class dbMysqli extends mysqli {
 
   /*
    * getDbError
-   * @returns $this->db->error from mysqli
+   * @returns $this->db->error from PDO
    */
   
   public function getDbError() {
@@ -108,39 +95,51 @@ class dbMysqli extends mysqli {
    * sql()
    * Query database table
    * BLP 2016-11-20 -- Query is for a SINGLE query ONLY. Don't do multiple querys!
-   * mysqli has a multi_query() but I have not written a method for it!
    * @param string $query SQL statement.
    * @return: if $result === true returns the number of affected_rows (delete, insert, etc). Else ruturns num_rows.
-   * if $result === false throws SqlException().
+   * if $result === false throws Exception().
    */
 
   public function sql($query) {
     self::$lastQuery = $query; // for debugging
 
-    $result = $this->query($query);
+    $m = null;
+    preg_match("~^(\w+).*$~", $query, $m);
+    $m = $m[1];
 
-    // If $result is false then exit
-    
-    if($result === false) {
-      throw new SqlException($query, $this);
-    }
+    //echo "m=$m<br>";
 
-    // result is a mixed result-set for select etc, true for insert etc.
-    
-    if($result === true) { // did not return a result object. NOTE can't be false as we covered that above.
-      $numrows = $this->affected_rows;
-      self::$lastNonSelectResult = $result; // for debugging
-    } else {
-      // NOTE: we don't change result for inserts etc. only for selects etc.
+    if($m == 'insert' || $m == 'delete' || $m == 'update') {
+      $numrows = $this->exec($query);
+      if($numrows === false) {
+        throw new Exception($query);
+      }
+    } else { // could be select, create, etc.
+      $result = $this->query($query);
+
+      // If $result is false then exit
+
+      if($result === false) {
+        throw new Exception($query);
+      }
+
       $this->result = $result;
-      $numrows = $result->num_rows;
-    }
 
+      if($this->dbinfo->engine == 'mysql') {
+        $numrows = $result->rowCount();
+      } elseif($m == 'select') {
+        $last = self::$lastQuery;
+        $last = preg_replace("~^(select) .*?(from .*)$~", "$1 count(*) $2", $last);
+        $stm = $this->query($last);
+        $numrows = $stm->fetchColumn();
+        //echo "numrows=$numrows<br>";
+      } else $numrows = 0;
+    }
     return $numrows;
   }
   
   /**
-   * prepare()
+   * sqlPrepare()
    * mysqli::prepare()
    * used as follows:
    * 1) $username="bob"; $query = "select one, two from test where name=?";
@@ -154,7 +153,7 @@ class dbMysqli extends mysqli {
    * You will have to use the native PHP functions with the returned $stm.
    */
   
-  public function prepare($query) {
+  public function sqlPrepare($query) {
     $stm = $this->prepare($query);
     return $stm;
   }
@@ -174,7 +173,7 @@ class dbMysqli extends mysqli {
   
   public function queryfetch($query, $type=null, $returnarray=null) {
     if(stripos($query, 'select') === false) { // Can't be anything but 'select'
-      throw new SqlException($query, $this);
+      throw new Exception($query, $this);
     }
 
     // queryfetch() can be
@@ -213,29 +212,28 @@ class dbMysqli extends mysqli {
     if(is_string($result)) { // a string like num, assoc, obj or both
       $type = $result;
       $result = $this->result;
-    } elseif(get_class($result) != "mysqli_result") { // BLP 2022-01-17 -- use get_class() not get_debug_type() as it is only PHP8
-      throw new SqlException("dbMysqli.class.php " .__LINE__. "get_class() is not an 'mysqli_result'", $this); // BLP 2023-06-24 - add $this
-    } 
-
+    }
+    
     if(!$result) {
-      throw new SqlException(__METHOD__ . ": result is null", $this);
+      throw new Exception(__METHOD__ . ": result is null");
     }
 
     switch($type) {
       case "assoc": // associative array
-        $row = $result->fetch_assoc();
+        $row = $result->fetch(PDO::FETCH_ASSOC);
         break;
       case "num":  // numerical array
-        $row = $result->fetch_row();
+        $row = $result->fetch(PDO::FETCH_NUM);
         break;
       case "obj": // object BLP 2021-12-11 -- added
-        $row = $result->fetch_object();
+        $row = $result->fetch(PDO::FETCH_OBJ);
         break;
       case "both":
       default:
-        $row = $result->fetch_array();
+        $row = $result->fetch(PDO::FETCH_BOTH); // This is the default
         break;
     }
+    //error_log("dbPdo: fetchrow, query=" . self::$lastQuery . ", row=" . var_export($row, true));
     return $row;
   }
   
@@ -253,7 +251,7 @@ class dbMysqli extends mysqli {
    */
 
   public function getLastInsertId() {
-    return $this->insert_id;
+    return $this->lastInsertId();
   }
   
   /**
@@ -291,7 +289,7 @@ class dbMysqli extends mysqli {
   // real_escape_string
   
   public function escape($string) {
-    return @$this->real_escape_string($string);
+    return $this->quote($string);
   }
 
   public function escapeDeep($value) {
@@ -320,10 +318,10 @@ class dbMysqli extends mysqli {
 
     $error = $e; // get the full error message
 
-    // If this is a SqlException then the formating etc. was done by the class
+    // If this is a Exception then the formating etc. was done by the class
 
-    if($from != "SqlException") {
-      // NOT SqlException
+    if($from != "PDOException") {
+      // NOT PDOException
 
       // Get Trace information
 
@@ -407,7 +405,7 @@ EOF;
   $recipients
 ],
   "content": {
-    "from": "SqlException@mail.bartonphillips.com",
+    "from": "Exception@mail.bartonphillips.com",
     "reply_to": "Barton Phillips<barton@bartonphillips.com>",
     "subject": "$from",
     "text": "View This in HTML Mode",
@@ -429,21 +427,18 @@ EOF;
                   CURLOPT_RETURNTRANSFER=>true,
                   CURLOPT_POSTFIELDS=>$post
                                      ];
-      //error_log("SqlException: options=" . print_r($options, true));
+      //error_log("Exception: options=" . print_r($options, true));
 
       $ch = curl_init();
       curl_setopt_array($ch, $options);
 
       $result = curl_exec($ch);
-      error_log("dbMysqli.class.php, SqlException: Send To ME (".$s->EMAILADDRESS."). RESULT: $result"); // This should stay!!!
+      error_log("dbPdo.class.php, PDOException: Send To ME (".$s->EMAILADDRESS."). RESULT: $result"); // This should stay!!!
     }
 
     // Log the raw error info.
-    // BLP 2021-03-06 -- New server is in New York
-    //date_default_timezone_set('America/New_York');
-
     // This error_log should always stay in!! *****************
-    error_log("dbMysqli.class.php: $from\n$err\n$userId");
+    error_log("dbPdo.class.php: $from\n$err\n$userId");
     // ********************************************************
 
     if(ErrorClass::getDevelopment() !== true) {
@@ -488,7 +483,7 @@ EOF;
     if($exit === true) {
       throw new Exception($msg);
     } else {
-      error_log("dbMysqli.class.php Error: $msg");
+      error_log("dbPdo.class.php Error: $msg");
       return;
     }
   }

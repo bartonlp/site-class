@@ -1,15 +1,16 @@
 <?php
 /* Well tested and maintained */
 // All of the tracking and counting logic that is in this file.
+// BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "5.0.0database"); // BLP 2023-02-24 -
+define("DATABASE_CLASS_VERSION", "1.0.0database"); // BLP 2023-02-24 -
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 /**
  * Database wrapper class
  */
 
-class Database extends dbMysqli {
+class Database extends dbPdo {
   /**
    * constructor
    * @param $s object. $isSiteClass bool.
@@ -31,27 +32,25 @@ class Database extends dbMysqli {
     $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
     $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
 
-    // Put all of the $s values into $this.
-    
-    foreach($s as $k=>$v) {
-      $this->$k = $v;
-    }
-    
     // If no 'dbinfo' (no database) in mysitemap.json set everything so the database is not loaded.
     
-    if($this->nodb === true || is_null($this->dbinfo)) {
-      $this->count = false;
-      $this->noTrack = true; // If nodb then noTrack is true also.
-      $this->nodb = true;    // Maybe $this->dbinfo was null
-      $this->dbinfo = null;  // Maybe nodb was set
+    if($s->nodb === true || is_null($s->dbinfo)) {
+      $s->count = false;
+      $s->noTrack = true; // If nodb then noTrack is true also.
+      $s->nodb = true;    // Maybe $this->dbinfo was null
+      $s->dbinfo = null;  // Maybe nodb was set
+      // Put all of the $s values into $this.
+    
+      foreach($s as $k=>$v) {
+      $this->$k = $v;
+      }
+    
       return; // If we have NO DATABASE just return.
     }
 
-    $db = null;
-
     // BLP 2023-11-13 - we can pass $this which is esentially $_site with some stuff added.
     
-    parent::__construct($this); // dbMysqli constructor.
+    parent::__construct($s); // dbMysqli constructor.
 
     // The dbMysqli does not need or use myIp but Database does.
     // If the user is not 'barton' then then noTrack should be set.
@@ -62,7 +61,7 @@ class Database extends dbMysqli {
 
     // Escapte the agent in case it has something like an apostraphy in it.
     
-    $this->agent = $this->escape($this->agent);
+    // BLP 2023-12-12 - $this->agent = $this->escape($this->agent);
     
     // These all use database 'barton' ($this->masterdb)
     // and are always done regardless of 'count'!
@@ -99,7 +98,6 @@ class Database extends dbMysqli {
         }
       }
     }
-    date_default_timezone_set("America/New_York");
   } // END Construct
 
   /**
@@ -378,8 +376,8 @@ class Database extends dbMysqli {
       try {
         $this->sql("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
                      "values('$this->ip', '$agent', 1, " . BOTS_SITECLASS . ", '$this->siteName', now(), now())");
-      } catch(SqlException $e) {
-        if($e->getCode() == 1062) { // duplicate key
+      } catch(Exception $e) {
+        if($e->getCode() == 23000) { // duplicate key
           // We need the site info first. This can be one or multiple sites seperated by commas.
 
           $this->sql("select site from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
@@ -503,7 +501,7 @@ class Database extends dbMysqli {
     // The primary key is id which is auto incrementing so every time we come here we create a
     // new record.
 
-    $agent = $this->escape($agent);
+    // BLP 2023-12-12 - $agent = $this->escape($agent);
 
     // BLP 2023-10-05 - added `browser` and $name.
 
@@ -532,13 +530,13 @@ class Database extends dbMysqli {
 
     try {
       $this->sql("insert into $this->masterdb.counter (site, filename, count, lasttime) values('$this->siteName', '$filename', 1, now())");
-    } catch(SqlException $e) {
-      if($e->getCode() != 1062) {
+    } catch(Exception $e) {
+      if($e->getCode() != 23000) {
         error_log("Error: code=" . $e->getCode() . ", Message=" . $e->getMessage() . ", e=|" .print_r($e, true)."|");
-        throw new SqlException(__CLASS__ . " " . __LINE__ . ":$e", $this);
+        throw new Exception(__CLASS__ . " " . __LINE__ . ":$e", $this);
       }
     }
-    
+
     // Is it me?
     
     if(!$this->isMe()) { // No it is NOT me.
@@ -600,8 +598,8 @@ class Database extends dbMysqli {
       // This will create the very first daycounts entry for the day.
       
       $this->sql("insert into $this->masterdb.daycounts (site, `date`, lasttime) values('$this->siteName', current_date(), now())");
-    } catch(SqlException $e) {
-      if($e->getCode() != 1062) { // I expect this to fail for dupkey after the first insert per day.
+    } catch(Exception $e) {
+      if($e->getCode() != 23000) { // I expect this to fail for dupkey after the first insert per day.
         throw new SqlException(__CLASS__ . "$e", $this);
       }
     }
@@ -678,45 +676,24 @@ class Database extends dbMysqli {
   private function CheckIfTablesExist():array {
     // Do all of the table checks once here.
     // NOTE: $this->debug() function is declared in dbMysqli.class.php.
+
+    // BLP 2023-12-13 - This replaces the mysqli logic.
+    // We look at the tables and compare them to a list of tables we should have.
     
-    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots')")) {
-      $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'bots2')"))  {
-      $this->debug("Database $this->siteName: $this->self: table bots2 does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'tracker')")) {
-      $this->debug("Database $this->siteName: $this->self: table tracker does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
-      $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter')")) {
-      $this->debug("Database $this->siteName: $this->self: table counter does not exist in the $this->masterdb database: ". __LINE__, true);
-    }      
-    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'counter2')")) {
-      $this->debug("Database $this->siteName: $this->self: table bots does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'daycounts')")) {
-      $this->debug("Database $this->siteName: $this->self: table daycounts does not exist in the $this->masterdb database: ". __LINE__, true);
-    }
-    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'logagent')")) {
-      $this->debug("Database $this->siteName: $this->self: table logagent does not exist in the $this->masterdb database: " . __LINE__, true);
+    $n = $this->sql("show tables from $this->masterdb"); // Request all the tables
+    $tbls = [];
+
+    while($tbl = $this->fetchrow('num')[0]) {
+      $tbls[] = $tbl;
     }
 
-    // The masterdb must be owned by 'barton'. That is the dbinfo->user must be
-    // 'barton'. There is one database where this is not true. The 'test' database has a
-    // mysitemap.json file that has dbinfo->user as 'test'. It is in the
-    // bartonphillips.com/exmples.js/user-test directory.
-    // In general all databases that are going to do anything with counters etc. must have a user
-    // of 'barton' and $this->nodb false. The program without 'barton' can NOT do any calls via masterdb!
-
-    if(!$this->sql("select TABLE_NAME from information_schema.tables where (table_schema = '$this->masterdb') and (table_name = 'myip')")) {
-      $this->debug("Database $this->siteName: $this->self: table myip does not exist in the $this->masterdb database: ". __LINE__, true);
+    $ar = array_diff(['badplayer', 'bots', 'bots2', 'counter', 'counter2', 'daycounts', 'myip', 'logagent', 'dayrecords', 'geo', 'server'], $tbls);
+    if(!empty($ar)) {
+      throw new Exception("Database.class.php: Missing tables -- " . implode(',', $ar));
     }
-
+    
     $this->sql("select myIp from $this->masterdb.myip");
-
+        
     while([$ip] = $this->fetchrow('num')) {
       $myIp[] = $ip;
     }
