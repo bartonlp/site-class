@@ -49,7 +49,7 @@ console.log("navigator.userAgentData: ", navigator.userAgentData);
 // phoneImg.
 
 jQuery(document).ready(function($) {
-  if(noCssLastId !== true) {
+  if(noCssLastId !== "1") {
     $("script[data-lastid]").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
   }
   

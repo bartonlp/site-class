@@ -184,47 +184,44 @@ class SiteClass extends Database {
   <script src="https://code.jquery.com/jquery-migrate-3.4.0.min.js" integrity="sha256-mBCu5+bVfYzOqpYyK4jm30ZxAZRomuErKEFJFIyrwvM=" crossorigin="anonymous"></script>
   <script>jQuery.migrateMute = false; jQuery.migrateTrace = false;</script>
 EOF;
-      // Should we use tracker.js? If either noTrack or nodb are set in mysitemap.json then don't
 
-      if($this->noTrack === true || $this->nodb === true) {
-        $trackerStr = '';
+      // BLP 2023-02-20 - trackerLocationJs needs to be part of $this for whatisloaded.class.php.
+
+      $this->trackerLocationJs = $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
+
+      // BLP 2023-08-09 - tracker.php and beacon.php MUST be symlinked into the parents
+      // directory!
+
+      $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php"; // BLP 2023-08-09 - a symlink
+      $beaconLocation = $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php"; // BLP 2023-08-09 - a symlink
+
+      $logoImgLocation = $this->logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-08 -
+      $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-10 -
+
+      // The trackerImg... can start with http or https. If so use the full url.
+
+      if(strpos($this->trackerImg1, "http") === 0) {
+        $desktopImg = $this->trackerImg1;
       } else {
-        // BLP 2023-02-20 - trackerLocationJs needs to be part of $this for whatisloaded.class.php.
-      
-        $this->trackerLocationJs = $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
+        $desktopImg = $this->trackerImg1 ? "$logoImgLocation$this->trackerImg1" : null; // BLP 2023-08-08 -
+      }
+      if(strpos($this->trackerImgPhone, "http") === 0) {
+        $phoneImg = $this->trackerImgPhone;
+      } else {
+        $phoneImg = $this->trackerImgPhone ? "$logoImgLocation$this->trackerImgPhone" : null; // BLP 2023-08-08 - 
+      }
+      if(strpos($this->trackerImg2, "http") === 0 ) {
+        $desktopImg2 = $this->trackerImg2;
+      } else {
+        $desktopImg2 = $this->trackerImg2 ? "$headerImg2Location$this->trackerImg2" : null; // BLP 2023-08-10 -
+      }
+      if(strpos($this->trackerImgPhone2, "http") === 0) {
+        $phoneImg2 = $this->trackerImgPhone2;
+      } else {
+        $phoneImg2 = $this->trackerImgPhone2 ? "$headerImg2Location$this->trackerImgPhone2" : null; // BLP 2023-08-10 - 
+      }
 
-        // BLP 2023-08-09 - tracker.php and beacon.php MUST be symlinked into the parents
-        // directory!
-        
-        $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php"; // BLP 2023-08-09 - a symlink
-        $beaconLocation = $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php"; // BLP 2023-08-09 - a symlink
-
-        $logoImgLocation = $this->logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-08 -
-        $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-10 -
-
-        // The trackerImg... can start with http or https. If so use the full url.
-        
-        if(strpos($this->trackerImg1, "http") === 0) {
-          $desktopImg = $this->trackerImg1;
-        } else {
-          $desktopImg = $this->trackerImg1 ? "$logoImgLocation$this->trackerImg1" : null; // BLP 2023-08-08 -
-        }
-        if(strpos($this->trackerImgPhone, "http") === 0) {
-          $phoneImg = $this->trackerImgPhone;
-        } else {
-          $phoneImg = $this->trackerImgPhone ? "$logoImgLocation$this->trackerImgPhone" : null; // BLP 2023-08-08 - 
-        }
-        if(strpos($this->trackerImg2, "http") === 0 ) {
-          $desktopImg2 = $this->trackerImg2;
-        } else {
-          $desktopImg2 = $this->trackerImg2 ? "$headerImg2Location$this->trackerImg2" : null; // BLP 2023-08-10 -
-        }
-        if(strpos($this->trackerImgPhone2, "http") === 0) {
-          $phoneImg2 = $this->trackerImgPhone2;
-        } else {
-          $phoneImg2 = $this->trackerImgPhone2 ? "$headerImg2Location$this->trackerImgPhone2" : null; // BLP 2023-08-10 - 
-        }
-
+      if($this->noTrack !== true && $this->nodb !== true) {
         // 'load' is an alias for getinfo() in siteload.php. See the top of this
         // program for the 'use' alias.
         // I use $mysitemap in tracker.php to be able to not have symlinks in all of my domains.

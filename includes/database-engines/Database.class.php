@@ -52,10 +52,9 @@ class Database extends dbPdo {
     
     parent::__construct($s); // dbMysqli constructor.
 
-    // The dbMysqli does not need or use myIp but Database does.
-    // If the user is not 'barton' then then noTrack should be set.
+    // If the user is not 'barton' then noTrack should be set.
     
-    if($this->noTrack !== false && ($this->dbinfo->user == "barton" || $this->user == "barton")) { // make sure its the 'barton' user!
+    if($this->dbinfo->engine != "sqlite" && $this->dbinfo->user == "barton") { // make sure its the 'barton' user!
       $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
     }
 
@@ -673,7 +672,19 @@ class Database extends dbPdo {
     }
   }
 
+  /*
+   * CheckIfTablesExist()
+   * Uses 'show table;' and array_deff() to determin if the table we need are there.
+   * @return: myIp
+   */
+  
   private function CheckIfTablesExist():array {
+    // If we are NOT using the sqlite driver we can do a show.
+    
+    if($this->dbinfo->engine == "sqlite") {
+      throw new Exception("Can not use CheckIfTablesExist method with sqlite driver");
+    }
+
     // Do all of the table checks once here.
     // NOTE: $this->debug() function is declared in dbMysqli.class.php.
 
