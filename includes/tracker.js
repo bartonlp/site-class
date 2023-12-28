@@ -49,36 +49,39 @@ console.log("navigator.userAgentData: ", navigator.userAgentData);
 // phoneImg.
 
 jQuery(document).ready(function($) {
-  if(noCssLastId !== "1") {
+  if(noCssLastId !== '1') {
     $("script[data-lastid]").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
   }
   
-  // BLP 2023-08-08 - desktopImg and phoneImg are supplied by SiteClass::getPageHead();
+  // BLP 2023-08-08 - desktopImg and phoneImg are supplied by
+  // SiteClass::getPageHead(); They are trackerImg1 and trackerImgPhone
   // BLP 2023-08-10 - Same logic as Img2
 
-  let picture;
+  // If I do not have a phoneImg then I can just do a normal <img>
 
-  if(phoneImg || desktopImg) {
+  let picture = '';
+
+  //console.log("phoneImg="+phoneImg+", desktopImg="+desktopImg+", phoneImg2="+phoneImg2+", desktopImg2="+desktopImg2);
+  
+  if(!phoneImg) {
+    picture += "<img id='logo' src=" + desktopImg + " alt='desktopImage'>";
+  } else if(!desktopImg) {
+    picture += "<img id='logo' src=" + phoneImg + " alt='phoneImage'>";
+  } else { // We have a phone and desktop image.
     picture = "<picture id='logo'>";
-    
-    if(phoneImg) {
-      picture += "<source srcset=" + phoneImg + " media='((hover: none) and (pointer: coarse))' alt='phoneImage'>";
-    }
-
-    if(desktopImg) {
-      picture += "<img src=" + desktopImg + " alt='desktopImage'>"
-    } else {
-      picture += "<img src=" + phoneImg + " alt='phoneImage'>";
-    }
-    
+    picture += "<source srcset=" + phoneImg + " media='((hover: none) and (pointer: coarse))' alt='phoneImage'>";
+    picture += "<source srcset=" + desktopImg + " media='((hover: hover) and (pointer: fine))' alt='desktopImage'>";
+    picture += "<img src=" + phoneImg + " alt='phoneImage'>";
     picture += "</picture>";
-
-    // BLP 2023-08-10 - This will remove the <img> tag and replace it
-    // with the <picture> tag.
-    
-    $("header a:first-of-type").first().html(picture);
   }
 
+  // BLP 2023-08-10 - This will remove the <img> tag and replace it
+  // with the <picture> tag.
+
+  if(phoneImg || desktopImg) {
+    $("header a:first-of-type").first().html(picture);
+  }
+  
   // BLP 2023-08-10 - Here we need to remove the <img
   // id='headerImage2'> before we replave it with a posible <picture>
   // tag.
@@ -87,30 +90,24 @@ jQuery(document).ready(function($) {
 
   // BLP 2023-08-10 - look to see if we have any Img2 items.
 
-  if(phoneImg2 || desktopImg2) {
+  picture = '';
+  
+  if(!phoneImg2) {
+    picture += "<img id='headerImage2' src=" + desktopImg2 + " alt='desktopImage2'>";
+  } else if(!desktopImg2) {
+    picture += "<img id='headerImage2' src=" + phoneImg2 + " alt='phoneImage2'>";
+  } else {
     picture = "<picture id='headerImage2'>";
-
-    // BLP 2023-08-10 - Do we have a phoneImg2?
-    
-    if(phoneImg2) {
-      picture += "<source srcset=" + phoneImg2 + " media='((hover: none) and (pointer: coarse))' alt='phoneImage'>";
-    } 
-
-    // BLP 2023-08-10 - Do we have a desktopImg2?
-    
-    if(desktopImg2) {
-      picture += "<img src=" + desktopImg2 + " alt='desktopImage'>"
-    } else {
-      picture += "<img src=" + phoneImg2 + " alt='phoneImage'>";
-    }
-      
-    // BLP 2023-08-10 - If we have either finish off the picture tag.
-    
+    picture += "<source srcset=" + phoneImg2 + " media='((hover: none) and (pointer: coarse))' alt='phoneImage2'>";
+    picture += "<source srcset=" + desktopImg2 + " media='((hover: hover) and (pointer: fine))' alt='desktopImage2'>";
+    picture += "<img src=" + phoneImg2 + " alt='phoneImage'>";
     picture += "</picture>";
-    
-    $("header a:first-of-type").after(picture);
   } 
 
+  if(phoneImg2 || desktopImg2) {
+    $("header a:first-of-type").after(picture);
+  }
+  
   // BLP 2023-08-10 - At this point we may or may not have a second
   // item in header.
   
@@ -286,7 +283,6 @@ jQuery(document).ready(function($) {
 
     // After 10 seconds we should probably have a 'finger'.
 
-    console.log(`tracker timer: ${trackerUrl}, ${theip}, ${thesite}, ${thepage}`);
     $.ajax({
       url: trackerUrl,
       data: {page: 'timer', id: lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse, mysitemap: mysitemap},
