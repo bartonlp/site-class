@@ -23,12 +23,10 @@ class Database extends dbPdo {
   protected $hitCount = 0;
 
   public function __construct(object $s, ?bool $isSiteClass=null) {
-    global $__info; // BLP 2023-01-24 - added for node programs has [0]=ip, [1]=agent. See /examples/node-programs/server.js
-
     // If we have $s items use them otherwise get the defaults
 
-    $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'] ?? "$__info[0]"; // BLP 2023-01-18 - Added for NODE with php view.
-    $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'] ?? "$__info[1]"; // BLP 2022-01-28 -- CLI agent is NULL and $__info[1] wil be null
+    $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
+    $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'];
     $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
     $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
 
@@ -69,8 +67,7 @@ class Database extends dbPdo {
     
     if($this->noTrack !== true) {
       // BLP 2023-10-02 - get all of the $_SERVER info.
-      $this->getserver();
-      
+            
       $this->logagent();   // This logs Me and everybody else! This is done regardless of $this->isBot or $this->isMe().
 
       // checkIfBot() must be done before the rest because everyone uses $this->isBot.
@@ -262,82 +259,6 @@ class Database extends dbPdo {
   // **************
 
   /**
-   * BLP 2023-10-02 - new expermental. 
-   * getserver()
-   * Save all of the sec-ch info from the apache request header into the server table.
-   */
-
-  protected function getserver():void {
-    $req = apache_request_headers();  // get headers
-
-    // Only save sec-ch headers
-
-    $info = '';
-    
-    foreach($req as $k=>$v) {
-      if(strpos($k, "sec-ch") === false) continue;
-
-      $tmp = preg_replace("~v=\"(.*?)\"~", '$1', $v); // everything except sec-ch-ua and sec-ua-mobile
-      
-      switch($k) {
-        case 'sec-ch-ua':
-          $ua = explode(",", $v);
-
-          $tmp = $secname = trim((explode(";", $ua[0]))[0], " \n\r\t\v\x00\""); // Get $ua[0]. It might be 'Not A'.
-
-          If(preg_match("~.*?Not.*?A~", $secname) === 1) {
-            $secname = trim((explode(";", $ua[1]))[0], " \n\r\t\v\x00\""); // Get $ua[1]
-          }
-          $info .= "ua=$v,";
-          $this->secname = "$secname,";
-          break;
-        case 'sec-ch-ua-mobile':
-//          if($v == "?0") {
-//            $info .= "phone,";
-//          } else {
-//            $info .= "not-phone,";
-//          }
-          $info .= "$v,";
-          break;
-        case 'sec-ch-ua-arch':
-          $info .= "arch=$tmp,";
-          break;
-        case 'sec-ch-ua-platform':
-          $info .= "platform=$tmp,";
-          break;
-        case 'sec-ch-ua-platform-version':
-          $info .= "Version=$tmp,";
-          break;
-        case 'sec-ch-ua-model':
-          $info .= "Model=$tmp,";
-        default:
-          continue;
-      }
-    }
-    $info = rtrim($info, ',');
-
-    if($this->isMe()) return;
-
-    // If we didn't find any return.
-    
-    if(empty($info)) {
-      return; // BLP 2023-10-25 - if empty don't log anything.
-    }
-
-    // Check to see if this is iPhone or Android
-    
-    preg_match("~iPhone|Android~i", $this->agent, $m);
-
-    $this->info = rtrim($info, ',');
-
-    // $m[0] is iPhone or Andriod or null.
-    // Add into to the server table.
-    
-    $this->sql("insert into $this->masterdb.server (ip, site, page, bot, info, phone, lasttime) " .
-                 "values('$this->ip', '$this->siteName', '$this->self', '$this->foundBotAs', '$info', '$m[0]', now())");
-  }
-
-  /**
    * trackbots()
    * Track both bots and bots2
    * This sets $this->isBot unless the 'bots' table is not found.
@@ -437,7 +358,6 @@ class Database extends dbPdo {
 
   protected function tracker():void {
     $agent = $this->agent;
-    $secname = $this->secname;
 
     // BLP 2023-10-05 - This is the `browser` logic. It sets $name.
 
@@ -501,10 +421,6 @@ class Database extends dbPdo {
     // new record.
 
     // BLP 2023-12-12 - $agent = $this->escape($agent);
-
-    // BLP 2023-10-05 - added `browser` and $name.
-
-    $name = "$secname$name";
 
     // BLP 2023-10-19 - here foundBotAs could be BOTAS_ZERO ('zero') and java could be TRACKER_ZERO
     // (0). If that is the case then this is not going to be found in checktracker2.php.
