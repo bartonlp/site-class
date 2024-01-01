@@ -13,16 +13,15 @@ require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER
 class Database extends dbPdo {
   /**
    * constructor
-   * @param $s object. $isSiteClass bool.
+   * @param $s object.
    * $s should have all of the $this from SiteClass or $_site from mysitemap.json
    * To just pass in the required database options set $s->dbinfo = (object) $ar
    * where $ar is an assocative array with ["host"=>"localhost",...]
-   * $isSiteClass is true if this is from SiteClass.
    */
 
   protected $hitCount = 0;
 
-  public function __construct(object $s, ?bool $isSiteClass=null) {
+  public function __construct(object $s) {
     // If we have $s items use them otherwise get the defaults
 
     $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
@@ -40,7 +39,7 @@ class Database extends dbPdo {
       // Put all of the $s values into $this.
     
       foreach($s as $k=>$v) {
-      $this->$k = $v;
+        $this->$k = $v;
       }
     
       return; // If we have NO DATABASE just return.
