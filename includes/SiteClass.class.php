@@ -5,7 +5,7 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.0.0");
+define("SITE_CLASS_VERSION", "5.0.0pdo");
 
 // One class for all my sites
 /**
