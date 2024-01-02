@@ -3,8 +3,8 @@
 /**
  * dbPdo Class
  *
- * Wrapper around MySqli Database Class. 
- * @package dbMysqli
+ * Wrapper around PDO Database Class. 
+ * @package dbPdo
  * @author Barton Phillips <barton@bartonphillips.com>
  * @link http://www.bartonphillips.com
  * @copyright Copyright (c) 2010, Barton Phillips
@@ -140,10 +140,9 @@ class dbPdo extends PDO {
   
   /**
    * sqlPrepare()
-   * mysqli::prepare()
    * used as follows:
    * 1) $username="bob"; $query = "select one, two from test where name=?";
-   * 2) $stm = mysqli::prepare($query);
+   * 2) $stm = PDO::prepare($query);
    * 3) $stm->bind_param("s", $username);
    * 4) $stm->execute();
    * 5) $stm->bind_result($one, $two);
