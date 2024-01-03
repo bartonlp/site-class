@@ -5,7 +5,7 @@
 
 namespace bartonlp\whatisloaded;
 
-define("WHATISLOADED_VERSION", "3.0.0whatis");
+define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
 
 (function() {
   class WhatIsLoaded {
@@ -13,7 +13,8 @@ define("WHATISLOADED_VERSION", "3.0.0whatis");
     private $site;
     private $siteClass;
     private $database;
-    private $dbMysqli;    
+    private $dbMysqli;
+    private $dbPdo;
     private $helper;
     private $tracker;
     private $beacon;
@@ -25,15 +26,15 @@ define("WHATISLOADED_VERSION", "3.0.0whatis");
     public function __construct() {
       $__VERSION_ONLY = true; // also used by siteload.php, tracker.php, beacon.php.
 
-      $this->site = require(getenv("SITELOADNAME"));
-      //require("/var/www/vendor/autoload.php");
+      //$this->site = require(getenv("SITELOADNAME"));
+      $this->site = require("/var/www/tysonweb/docs/site-class/includes/autoload.php");
       
       $this->site = SITELOAD_VERSION;
 
       $this->siteClass = \SiteClass::getVersion();
-      $this->siteClass = \SiteClass::getVersion();
       $this->database = \Database::getVersion();
       $this->dbMysqli = \dbMysqli::getVersion();
+      $this->dbPdo = \dbPdo::getVersion();
       $this->helper = HELPER_FUNCTION_VERSION;
 
       $this->tracker = require(SITECLASS_DIR . "/tracker.php");
@@ -57,6 +58,7 @@ define("WHATISLOADED_VERSION", "3.0.0whatis");
 <tr><td>SiteClass.class.php</td><td>$this->siteClass</td></tr>
 <tr><td>Database.class.php</td><td>$this->database</td></tr>
 <tr><td>dbMysqli.class.php</td><td>$this->dbMysqli</td></tr>
+<tr><td>dbPdo.class.php</td><td>$this->dbPdo</td></tr>
 <tr><td>dbTables.class.php</td><td>$this->dbTables</td></tr>
 <tr><td>ErrorClass.class.php</td><td>$this->ErrorClass</td></tr>
 <tr><td>SqlException.class.php</td><td>$this->SqlException</td></tr>
@@ -70,6 +72,7 @@ EOF;
 
       return [$tbl, "siteload.php"=>$this->site, "SiteClass.class.php"=>$this->siteClass,
       "Database.class.php"=>$this->database, "dbMysqli.class.php"=>$this->dbMysqli,
+      "dbPdo.class.php"=>$this->dbPdo,
       "dbTables.class.php"=>$this->dbTables, "ErrorClass.class.php"=>$this->ErrorClass,
       "SqlException.class.php"=>$this->SqlException, 
       "whatisloaded.class.php"=>$whatis,

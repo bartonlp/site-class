@@ -2,40 +2,40 @@
  * run through the json_decode() function after the comments are
  * removed so it should be valid json sans comments!
  * 
- * This file is for the 'examples' but must live above 'examples' and
- * 'includes' because 'includes/siteload.php' looks up the paths not horizontally.
+ * This is for whatisloaded.class.php. It does not instantiate a class
+ * so this is almost not needed.
  */
 {
   "siteDomain": "localhost", // Change these name to work with your servers
-  "siteName": "Examples",
-  "mainTitle": "<h1>Examples</h1>",
-  "title": "Examples", // this is the <title> item
-  "desc": "Examples showing how to use SiteClass", // meta description
-  "keywords": "SiteClass Examples", // meta keywords
+  "siteName": "site-class",
+  "mainTitle": "<h1>site-class/includes</h1>",
+  "title": "site-class", // this is the <title> item
+  //"desc": "", // meta description
+  //"keywords": "SiteClass Examples", // meta keywords
   // we could define a doctype and a preheadcomment
   //"doctype": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN' 'http://www.w3.org/TR/html4/loose.dtd'>",
-  "preheadcomment": "<!-- This is for examples -->", // This must be an HTML comment <!-- -->
+  //"preheadcomment": "<!-- This is for examples -->", // This must be an HTML comment <!-- -->
   //"noTrack": true, // If true no tracking is done.
   //"nodb": true, // If true then no database actions can happen.
   //"emailDomain": "Your email domain",
-  "path": "/var/www/bartonphillips.org/vendor/bartonlp/site-class/examples", // Change this to your server 
+  "path": "/var/www/tysonweb/docs/site-class/includes", // Change this to your server 
   "className": "SiteClass", // This could be a child class that extends SiteClass
   "copyright": "Barton L. Phillips",
   "author": "Barton L. Phillips, mailto:bartonphillips@gmail.com",
   "address": "New Bern, North Carolina",
   // "defaultCss": true // If true no default, else if null the
   // standard default blp.css, else the value of defaultCss.
-  "defaultCss": "css/style.css",
-  "favicon": "images/favicon.ico",
+  //"defaultCss": "css/style.css",
+  //"favicon": "images/favicon.ico",
   // aboutwebsite, change the site and domain to something that make
   // sense to you. Right now it is blank.
-  "aboutwebsite": "", //"<h2><a target='_blank' href='aboutwebsite.php?site=Example&domain=bartonphillips.org'>About This Site</a></h2>",
+  //"aboutwebsite": "", //"<h2><a target='_blank' href='aboutwebsite.php?site=Example&domain=bartonphillips.org'>About This Site</a></h2>",
   "masterdb": "barton", // This is the master database that has all the counter and trackers.
   "dbinfo": {
     "host": "localhost",
     "user": "barton", // You can change this sute yourself
     "database": "barton", // Same here.
-    "engine": "mysqli" // Currently there is only ONE PHP database and it is mysql
+    "engine": "mysql" // Only if using PDO
   },
   // errorMode controls how exceptions and error are displayed. See
   // ErrorClass.class.php and SqlException.class.php for more details.
@@ -48,25 +48,26 @@
     "noHtml": false,     // Don't display HTML, just plain text if true
     "noOutput": false    // Don't output anything if true
   },
-  "headFile": "includes/head.i.php", // location of the head, banner, and footer files
-  "bannerFile": "includes/banner.i.php",
-  "footerFile": "includes/footer.i.php",
+  "headFile": "/var/www/bartonphillips.com/includes/head.i.php", // location of the head, banner, and footer files
+  "bannerFile": "/var/www/bartonphillips.com/includes/banner.i.php",
+  "footerFile": "/var/www/bartonphillips.com/includes/footer.i.php",
   // Count real users (not me)
-  "count": true,
-  "ctrmsg": "Counter Reset: August 1, 2022", // When the counters were reset. Pick the time you created the database
+  //"count": true,
+  //"ctrmsg": "Counter Reset: August 1, 2022", // When the counters were reset. Pick the time you created the database
   "trackerImg1": "/images/CIRCULA.gif", // these must be either absolute values with http or https at the start
-  "trackerImg2": "/images/146624.png",  // or they MUST have a leading slash (/).
+  //"trackerImg2": "/images/146624.png",  // or they MUST have a leading slash (/).
   // This group is used for the examples
-  "noGeo": true, // Don't do geo location logic. You could set the following to provide a location for geo.js
+  //"noGeo": true, // Don't do geo location logic. You could set the following to provide a location for geo.js
   //"geoLocation": "Your location", // you can find geo.js and
   //geoAjax.php at github.com/bartonlp/bartonphillips.net
   //"imagesLocation": "https://bartonphillips.org/vendor/bartonlp/site-class/examples",
-  "defaultImage": "./images/146624.png",
-  "trackerLocation": "../includes/tracker.php",
-  "trackerLocationJs": "../includes/tracker.js",
-  "beaconLocation": "../includes/beacon.php",
+  //"defaultImage": "./images/146624.png",
+  //"trackerLocation": "../includes/tracker.php",
+  //"trackerLocationJs": "../includes/tracker.js",
+  //"beaconLocation": "../includes/beacon.php",
   // End of example section
-  "EMAILADDRESS": "", // Change these to your liking.
-  "EMAILRETURN": "", // but for now don't bother me.
-  "EMAILFROM": ""
+  //"EMAILADDRESS": "", // Change these to your liking.
+  //"EMAILRETURN": "", // but for now don't bother me.
+  //"EMAILFROM": ""
+  "DUMMY": ""
 }

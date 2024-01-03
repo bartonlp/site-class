@@ -16,7 +16,7 @@ if($_site || $__VERSION_ONLY === true) {
 
 // If $_site is null try the autoload.php which should be off this directory
 
-if($_SERVER['REMOTE_ADDR'] == '195.252.232.86') {
+if($_SERVER['HTML_HOST'] == 'bartonphillips.org') {
   $_site = require_once("autoload.php"); // We are at ~/bartonphillips.org/site-class/includes.
   error_log("*** beacon.php HP-Envy Server, use autoload.php");  
   $_site->trackerLocationJs =  'https://bartonphillips.org/site-class/includes/tracker.js';
