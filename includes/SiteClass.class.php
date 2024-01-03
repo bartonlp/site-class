@@ -154,7 +154,7 @@ class SiteClass extends Database {
     $h->favicon = $this->favicon ? "<link rel='shortcut icon' href='$this->favicon'>" :
                   "<link rel='shortcut icon' href='https://bartonphillips.net/images/favicon.ico'>";
 
-    if($this->defaultCss === false) { // If this is false NO default
+    if($this->defaultCss === false || $this->defaultCss === true) { 
       $h->defaultCss = null;
     } else { // Else either add the value or the default.
       $h->defaultCss = $this->defaultCss ? "<link rel='stylesheet' href='$this->defaultCss' title='default'>" :

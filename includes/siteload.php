@@ -11,9 +11,9 @@
 
 namespace bartonlp\siteload;
 
-define("SITELOAD_VERSION", "2.1.0siteload"); // BLP 2023-08-11 - add static $mysitemap
+define("SITELOAD_VERSION", "2.2.1siteload-pdo"); // BLP 2023-08-11 - add static $mysitemap
 define("SITECLASS_DIR", __DIR__);
-require_once(__DIR__ ."/../../../autoload.php");
+require_once("/var/www/vendor/autoload.php");
 
 //\ErrorClass::setErrorType(ini_get("error_reporting"));
 

@@ -18,7 +18,7 @@ if($_site || $__VERSION_ONLY === true) {
 
 if($_SERVER['HTML_HOST'] == 'bartonphillips.org') {
   $_site = require_once("autoload.php"); // We are at ~/bartonphillips.org/site-class/includes.
-  error_log("*** beacon.php HP-Envy Server, use autoload.php");  
+  //error_log("*** beacon.php HP-Envy Server, use autoload.php");  
   $_site->trackerLocationJs =  'https://bartonphillips.org/site-class/includes/tracker.js';
   $_site->trackerLocation = 'https://bartonphillips.org/site-class/includes/tracker.php';
   $_site->beaconLocation = 'https://bartonphillips.org/site-class/includes/beacon.php';

@@ -26,14 +26,13 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
     public function __construct() {
       $__VERSION_ONLY = true; // also used by siteload.php, tracker.php, beacon.php.
 
-      //$this->site = require(getenv("SITELOADNAME"));
-      $this->site = require("/var/www/tysonweb/docs/site-class/includes/autoload.php");
+      $this->site = require(getenv("SITELOADNAME"));
+      //$this->site = require("/var/www/tysonweb/docs/site-class/includes/autoload.php");
       
       $this->site = SITELOAD_VERSION;
 
       $this->siteClass = \SiteClass::getVersion();
       $this->database = \Database::getVersion();
-      $this->dbMysqli = \dbMysqli::getVersion();
       $this->dbPdo = \dbPdo::getVersion();
       $this->helper = HELPER_FUNCTION_VERSION;
 
@@ -57,7 +56,6 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
 <tr><td>siteload.php</td><td>$this->site</td></tr>
 <tr><td>SiteClass.class.php</td><td>$this->siteClass</td></tr>
 <tr><td>Database.class.php</td><td>$this->database</td></tr>
-<tr><td>dbMysqli.class.php</td><td>$this->dbMysqli</td></tr>
 <tr><td>dbPdo.class.php</td><td>$this->dbPdo</td></tr>
 <tr><td>dbTables.class.php</td><td>$this->dbTables</td></tr>
 <tr><td>ErrorClass.class.php</td><td>$this->ErrorClass</td></tr>
@@ -71,7 +69,7 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
 EOF;
 
       return [$tbl, "siteload.php"=>$this->site, "SiteClass.class.php"=>$this->siteClass,
-      "Database.class.php"=>$this->database, "dbMysqli.class.php"=>$this->dbMysqli,
+      "Database.class.php"=>$this->database,
       "dbPdo.class.php"=>$this->dbPdo,
       "dbTables.class.php"=>$this->dbTables, "ErrorClass.class.php"=>$this->ErrorClass,
       "SqlException.class.php"=>$this->SqlException, 
