@@ -66,7 +66,7 @@ class dbPdo extends PDO {
 
   /*
    * getVersion.
-   * @return the version of the mysql class.
+   * @return the version of the pdo class.
    */
   
   public static function getVersion() {

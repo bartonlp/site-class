@@ -27,7 +27,7 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
       $__VERSION_ONLY = true; // also used by siteload.php, tracker.php, beacon.php.
 
       $this->site = require(getenv("SITELOADNAME"));
-      //$this->site = require("/var/www/tysonweb/docs/site-class/includes/autoload.php");
+      //$this->site = require("/var/www/site-class/includes/autoload.php");
       
       $this->site = SITELOAD_VERSION;
 

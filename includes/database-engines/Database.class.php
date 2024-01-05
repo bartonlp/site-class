@@ -36,6 +36,7 @@ class Database extends dbPdo {
       $s->noTrack = true; // If nodb then noTrack is true also.
       $s->nodb = true;    // Maybe $this->dbinfo was null
       $s->dbinfo = null;  // Maybe nodb was set
+
       // Put all of the $s values into $this.
     
       foreach($s as $k=>$v) {
@@ -45,7 +46,7 @@ class Database extends dbPdo {
       return; // If we have NO DATABASE just return.
     }
 
-    // BLP 2023-11-13 - we can pass $this which is esentially $_site with some stuff added.
+    // We pass $s which is esentially $_site with some stuff added.
     
     parent::__construct($s); // dbPdo constructor.
 
@@ -55,18 +56,12 @@ class Database extends dbPdo {
       $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
     }
 
-    // Escapte the agent in case it has something like an apostraphy in it.
-    
-    // BLP 2023-12-12 - $this->agent = $this->escape($this->agent);
-    
     // These all use database 'barton' ($this->masterdb)
     // and are always done regardless of 'count'!
     // If $this->nodb or there is no $this->dbinfo we have made $this->noTrack true and
     // $this->count false
     
     if($this->noTrack !== true) {
-      // BLP 2023-10-02 - get all of the $_SERVER info.
-            
       $this->logagent();   // This logs Me and everybody else! This is done regardless of $this->isBot or $this->isMe().
 
       // checkIfBot() must be done before the rest because everyone uses $this->isBot.
@@ -191,7 +186,7 @@ class Database extends dbPdo {
         $this->foundBotAs = BOTAS_MATCH;
       } elseif($x === false) { // false is error
         // This is an unexplained ERROR
-        throw new SqlExceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", $this);
+        throw new PdoExceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", $this);
       }
     } else {
       // BLP 2023-10-27 - If the agent is empty then this is a BOT
@@ -313,7 +308,7 @@ class Database extends dbPdo {
           $this->sql("update $this->masterdb.bots set robots=robots | " . BOTS_SITECLASS . ", site='$who', count=count+1, lasttime=now() ".
                        "where ip='$this->ip' and agent='$agent'");
         } else {
-          throw new SqlException(__CLASS__ . " " . __LINE__ . ":$e", $this);
+          throw new PdoException(__CLASS__ . " " . __LINE__ . ":$e", $this);
         }
       }
 
@@ -514,7 +509,7 @@ class Database extends dbPdo {
       $this->sql("insert into $this->masterdb.daycounts (site, `date`, lasttime) values('$this->siteName', current_date(), now())");
     } catch(Exception $e) {
       if($e->getCode() != 23000) { // I expect this to fail for dupkey after the first insert per day.
-        throw new SqlException(__CLASS__ . "$e", $this);
+        throw new PdoException(__CLASS__ . "$e", $this);
       }
     }
     

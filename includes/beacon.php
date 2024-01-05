@@ -1,7 +1,7 @@
 <?php
 // Beacon from tracker.js
 
-define("BEACON_VERSION", "4.0.0beacon"); // BLP 2023-01-30 - Add check for $_site.
+define("BEACON_VERSION", "4.0.1beacon-pdo"); // BLP 2023-01-30 - Add check for $_site.
 
 // BLP 2023-01-30 - If you want the version defined ONLY and no other information.
 // If we have a valid $_site or the $__VERSION_ONLY, then just return the version info.

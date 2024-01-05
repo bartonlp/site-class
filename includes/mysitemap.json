@@ -18,7 +18,7 @@
   //"noTrack": true, // If true no tracking is done.
   //"nodb": true, // If true then no database actions can happen.
   //"emailDomain": "Your email domain",
-  "path": "/var/www/tysonweb/docs/site-class/includes", // Change this to your server 
+  "path": "/var/www/site-class/includes", // Change this to your server 
   "className": "SiteClass", // This could be a child class that extends SiteClass
   "copyright": "Barton L. Phillips",
   "author": "Barton L. Phillips, mailto:bartonphillips@gmail.com",

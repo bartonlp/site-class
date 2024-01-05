@@ -5,7 +5,7 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.0trackerjs"; // BLP 2023-08-08 - 
+const TRACKERJS_VERSION = "3.1.1trackerjs-pdo"; // BLP 2023-08-08 - 
 
 let visits = 0;
 

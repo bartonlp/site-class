@@ -2,7 +2,7 @@
 /* HELPER FUNCTIONS. Well tested and maintained */
 // BLP 2023-10-04 - added varexport() functions.
 
-define("HELPER_FUNCTION_VERSION", "1.1.2helper"); // BLP 2023-10-04 - 
+define("HELPER_FUNCTION_VERSION", "1.1.2helper-pdo"); // BLP 2023-10-04 - 
 
 /**
  * Helper Functions
@@ -125,23 +125,6 @@ if(!function_exists('stripSlashesDeep')) {
   }
 }
 
-// There are methods for this in dbMysqli.class.php and dbSqlite.class.php
-// Those methods should be used instead of this function!!!
-/*
-if(!function_exists('mysqlEscapeDeep')) {
-  function mysqlEscapeDeep($db, $value) {
-    if(is_array($value)) {
-      foreach($value as $k=>$v) {
-        $val[$k] = mysqlEscapeDeep($db, $v);
-      }
-      return $val;
-    } else {
-      return $db->real_escape_string($value);
-    }
-  }
-}
-*/
-
 // This does a deep conversion from an object to an array
 
 if(!function_exists('objectToArrayDeep')) {
@@ -190,23 +173,20 @@ if(!function_exists('escapeltgt')) {
   }
 }
 
-// Callback to get the user id for SqlException SqlError()
+// This is called from dbPdo.class.php at my_exceptionhandler($e)
 
 if(!function_exists('ErrorGetId')) {
   function ErrorGetId() {
     if($_COOKIE['SiteId']) {
-      //$email = explode(":", $_COOKIE['SiteId'])[1];
-      $siteId = $_COOKIE['SiteId']; // BLP 2023-06-22 - Get full SiteId
+      $siteId = $_COOKIE['SiteId'];
     }
-    // do we have an id?
+
     if(empty($siteId)) {
-      // NO email this is the generic version
+      // This is the generic version
       $id = "IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
     } else {
       // This is for members
-      //$id = "CookieEmail=$email, IP={$_SERVER['REMOTE_ADDR']}
-      //\nAGENT={$_SERVER['HTTP_USER_AGENT']}";
-      $id = "SiteId=$siteId, IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}"; // BLP 2023-06-22 - use siteId
+      $id = "SiteId=$siteId, IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
     }
     return $id;
   }

@@ -2,7 +2,7 @@
 // Defines for tables.
 // BLP 2023-10-20 - removed, define("BOTAS_TABLE", "table");
 
-define("DEFINES_VERSION", "1.1.0defines"); // BLP 2023-08-08 - 
+define("DEFINES_VERSION", "1.1.0defines-pdo"); // BLP 2023-08-08 - 
 
 // Bots and bots2 Tables.
 // These are all done via SiteClass trackbots() which does both the bots and bots2 tables.

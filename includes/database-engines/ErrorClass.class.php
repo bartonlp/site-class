@@ -1,7 +1,7 @@
 <?php
 /* MAINTAINED and WELL TESTED */
 
-define("ERROR_CLASS_VERSION", "4.0.0error");
+define("ERROR_CLASS_VERSION", "4.0.1error-pdo");
 
 // Error class.
 

@@ -2,7 +2,7 @@
 /* WELL TESTED and MAINTAINED */
 // BLP 2023-01-31 - added $db->dbTables and made $db a reference.
 
-define("DBTABLE_CLASS_VERSION", "1.0.1dbTables"); // BLP 2023-01-31 - 
+define("DBTABLE_CLASS_VERSION", "1.0.1dbTables-pdo"); // BLP 2023-01-31 - 
 
 // Make database tables given either a SiteClass or Database class object.
 
@@ -45,9 +45,9 @@ class dbTables {
    */
   
   public function makeresultrows(string $query, string $rowdesc, array $extra=array()):mixed {
-    $num = $this->db->sql($query); // $num is mysql_num_rows() result
+    $num = $this->db->sql($query); 
 
-    if($this->db->dbinfo->engine == 'mysqli' && !$num) {
+    if(!$num) {
       return false; // Query found NO rows.
     }
 

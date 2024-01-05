@@ -2,13 +2,13 @@
 /*
  * Maintained and well tested.
  *
- * @package SqlException
+ * @package PdoException
  * Extends Exception
  */
 
-define("SQLEXCEPTION_CLASS_VERSION", "4.0.0exception"); // BLP 2023-06-23 - 
+define("PDOEXCEPTION_CLASS_VERSION", "1.0.0exception-pdo"); // BLP 2023-06-23 - 
 
-class SqlException extends Exception {
+class PdoException extends Exception {
   /**
    * Constructor
    * @param string $message: text which tells what went wrong
@@ -18,12 +18,11 @@ class SqlException extends Exception {
   public function __construct($msg, $self=null) {
     // If the caller was a database class then $this->db should be the database resorce.
 
-    [$message, $code] = $this->SqlError($msg, $self); // private helper method.
+    [$message, $code] = $this->PdoError($msg, $self); // private helper method.
 
     // Do the Exception constructor which has $message and $code as arguments.
 
     parent::__construct($message, $code);
-    //echo "constructor: After call to parent:getMessage={$this->getMessage()}<br>";
   }
 
   /**
@@ -38,14 +37,14 @@ class SqlException extends Exception {
   /* Private Methods */
   
   /**
-   * SqlError
+   * PdoError
    * Private
-   * @param string $msg error message (mysql_error($db))
+   * @param string $msg error message
    * @param object $self is the $this where the error occured
    * @return array([html error text], [error number]);
    */
 
-  private function SqlError($msg="NO MESSAGE PROVIDED", $self) {
+  private function PdoError($msg="NO MESSAGE PROVIDED", $self) {
     if(is_null($self)) {
       $Errno = -9999;
       $Error = "No valid \$self->errno or \$self->error.";
@@ -64,8 +63,8 @@ class SqlException extends Exception {
 
     $caller = $backtrace[1]; // Get caller information
 
-    array_shift($backtrace); // SqlError
-    array_shift($backtrace); // SqlException
+    array_shift($backtrace); // PdoError
+    array_shift($backtrace); // PdoException
 
     // BLP 2023-06-22 - START
     
@@ -119,7 +118,7 @@ class SqlException extends Exception {
     $cwd = getcwd();
 
     $error = <<<EOF
-\n<p>SQL: <i>$msg</i><br>
+\n<p>PDO: <i>$msg</i><br>
 error=<i>$Error</i>;, \$Errno=<i>$Errno</i><br>
 cwd=$cwd<br>
 called from <strong>{$caller['file']}</strong><br> on line <strong>{$caller['line']}</strong><br>
@@ -135,6 +134,6 @@ EOF;
   }
 
   public static function getVersion() {
-    return SQLEXCEPTION_CLASS_VERSION;
+    return PDOEXCEPTION_CLASS_VERSION;
   }
-} // End SqlException Class
+} // End PdoException Class

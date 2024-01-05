@@ -1,7 +1,7 @@
 <?php
 // SITE_CLASS_VERSION must change when the GitHub Release version changes.
 // Note that the constructor calls the Database constructor which in turn call the
-// dbMysqli constructor which does all of the heavy lifting.
+// dbPdoconstructor which does all of the heavy lifting.
 
 // This is using PDO.
 
@@ -46,7 +46,7 @@ class SiteClass extends Database {
    */
   
   public function __construct(object $s) {
-    // Do the parent Database constructor which does the dbMysqli constructor.
+    // Do the parent Database constructor which does the dbPdo constructor.
     
     parent::__construct($s); // Turns everything in $s into $this.
 
@@ -267,7 +267,7 @@ EOF;
       if(($p = require_once($this->headFile)) != 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
-        throw new SqlException(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1", $this);
+        throw new PdoException(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1", $this);
       }
     } else {
       // Make a default <head>

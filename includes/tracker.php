@@ -70,7 +70,7 @@ CREATE TABLE `dayrecords` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("TRACKER_VERSION", "4.0.0tracker"); // BLP 2023-09-10 - 
+define("TRACKER_VERSION", "4.0.1tracker-pdo"); // BLP 2023-09-10 - 
 
 // If you want the version defined ONLY and no other information.
 
