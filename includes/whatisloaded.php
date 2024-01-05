@@ -13,7 +13,6 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
     private $site;
     private $siteClass;
     private $database;
-    private $dbMysqli;
     private $dbPdo;
     private $helper;
     private $tracker;
@@ -21,7 +20,7 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
     private $javaScript;
     private $dbTables;
     private $ErrorClass;
-    private $SqlException;
+    private $PdoException;
         
     public function __construct() {
       $__VERSION_ONLY = true; // also used by siteload.php, tracker.php, beacon.php.
@@ -44,7 +43,7 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
       }
       $this->dbTables = \dbTables::getVersion();
       $this->ErrorClass= \ErrorClass::getVersion();
-      $this->SqlException = \SqlException::getVersion();
+      $this->PdoException = \PdoException::getVersion();
     }
 
     public function getWhatIsInfo() {
@@ -72,7 +71,7 @@ EOF;
       "Database.class.php"=>$this->database,
       "dbPdo.class.php"=>$this->dbPdo,
       "dbTables.class.php"=>$this->dbTables, "ErrorClass.class.php"=>$this->ErrorClass,
-      "SqlException.class.php"=>$this->SqlException, 
+      "PdoException.class.php"=>$this->PdoException, 
       "whatisloaded.class.php"=>$whatis,
       "tracker.php"=>$this->tracker, "beacon.php"=>$this->beacon,
       "tracker.js"=>$this->javaScript, "helper-functions.php"=>$this->helper];
