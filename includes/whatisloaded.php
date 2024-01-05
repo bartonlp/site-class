@@ -59,7 +59,7 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
 <tr><td>dbPdo.class.php</td><td>$this->dbPdo</td></tr>
 <tr><td>dbTables.class.php</td><td>$this->dbTables</td></tr>
 <tr><td>ErrorClass.class.php</td><td>$this->ErrorClass</td></tr>
-<tr><td>SqlException.class.php</td><td>$this->SqlException</td></tr>
+<tr><td>PdoException.class.php</td><td>$this->PdoException</td></tr>
 <tr><td>whatisloaded.class.php</td><td>$whatis</td></tr>
 <tr><td>tracker.php</td><td>$this->tracker</td></tr>
 <tr><td>beacon.php</td><td>$this->beacon</td></tr>
