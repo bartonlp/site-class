@@ -6,7 +6,7 @@
  * Extends Exception
  */
 
-define("PDOEXCEPTION_CLASS_VERSION", "1.0.0exception-pdo"); // BLP 2023-06-23 - 
+define("PDOEXCEPTION_CLASS_VERSION", "1.0.0exception-pdo");
 
 class PdoException extends Exception {
   /**
