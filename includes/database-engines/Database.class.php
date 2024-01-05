@@ -47,7 +47,7 @@ class Database extends dbPdo {
 
     // BLP 2023-11-13 - we can pass $this which is esentially $_site with some stuff added.
     
-    parent::__construct($s); // dbMysqli constructor.
+    parent::__construct($s); // dbPdo constructor.
 
     // If the user is not 'barton' then noTrack should be set.
     
@@ -601,9 +601,6 @@ class Database extends dbPdo {
     }
 
     // Do all of the table checks once here.
-    // NOTE: $this->debug() function is declared in dbMysqli.class.php.
-
-    // BLP 2023-12-13 - This replaces the mysqli logic.
     // We look at the tables and compare them to a list of tables we should have.
     
     $n = $this->sql("show tables from $this->masterdb"); // Request all the tables
@@ -613,7 +610,7 @@ class Database extends dbPdo {
       $tbls[] = $tbl;
     }
 
-    $ar = array_diff(['badplayer', 'bots', 'bots2', 'counter', 'counter2', 'daycounts', 'myip', 'logagent', 'dayrecords', 'geo', 'server'], $tbls);
+    $ar = array_diff(['badplayer', 'bots', 'bots2', 'counter', 'counter2', 'daycounts', 'myip', 'logagent', 'dayrecords', 'geo'], $tbls);
     if(!empty($ar)) {
       throw new Exception("Database.class.php: Missing tables -- " . implode(',', $ar));
     }
