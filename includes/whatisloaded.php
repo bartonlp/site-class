@@ -20,16 +20,15 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
     private $javaScript;
     private $dbTables;
     private $ErrorClass;
-    private $PdoException;
+    private $dbPdoException;
         
     public function __construct() {
       $__VERSION_ONLY = true; // also used by siteload.php, tracker.php, beacon.php.
 
       $this->site = require(getenv("SITELOADNAME"));
-      //$this->site = require("/var/www/site-class/includes/autoload.php");
+      //$this->site = require("/var/www/site-class/includes/autoload.php"); // USE site-class for
+      //TESTING!
       
-      $this->site = SITELOAD_VERSION;
-
       $this->siteClass = \SiteClass::getVersion();
       $this->database = \Database::getVersion();
       $this->dbPdo = \dbPdo::getVersion();
@@ -43,7 +42,7 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
       }
       $this->dbTables = \dbTables::getVersion();
       $this->ErrorClass= \ErrorClass::getVersion();
-      $this->PdoException = \PdoException::getVersion();
+      $this->dbPdoException = \dbPdoException::getVersion();
     }
 
     public function getWhatIsInfo() {
@@ -58,7 +57,7 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
 <tr><td>dbPdo.class.php</td><td>$this->dbPdo</td></tr>
 <tr><td>dbTables.class.php</td><td>$this->dbTables</td></tr>
 <tr><td>ErrorClass.class.php</td><td>$this->ErrorClass</td></tr>
-<tr><td>PdoException.class.php</td><td>$this->PdoException</td></tr>
+<tr><td>dbPdoException.class.php</td><td>$this->dbPdoException</td></tr>
 <tr><td>whatisloaded.class.php</td><td>$whatis</td></tr>
 <tr><td>tracker.php</td><td>$this->tracker</td></tr>
 <tr><td>beacon.php</td><td>$this->beacon</td></tr>
@@ -71,7 +70,7 @@ EOF;
       "Database.class.php"=>$this->database,
       "dbPdo.class.php"=>$this->dbPdo,
       "dbTables.class.php"=>$this->dbTables, "ErrorClass.class.php"=>$this->ErrorClass,
-      "PdoException.class.php"=>$this->PdoException, 
+      "dbPdoException.class.php"=>$this->dbPdoException, 
       "whatisloaded.class.php"=>$whatis,
       "tracker.php"=>$this->tracker, "beacon.php"=>$this->beacon,
       "tracker.js"=>$this->javaScript, "helper-functions.php"=>$this->helper];

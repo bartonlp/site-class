@@ -8,7 +8,7 @@
 
 define("PDOEXCEPTION_CLASS_VERSION", "1.0.0exception-pdo");
 
-class PdoException extends Exception {
+class dbPdoException extends Exception {
   /**
    * Constructor
    * @param string $message: text which tells what went wrong
