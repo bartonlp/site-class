@@ -29,6 +29,6 @@ This project has several parts that can function standalone or combined.
 
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
 [My Website](http://www.bartonphillips.com)  
-Copyright &copy; 2023 Barton Phillips  
-Last Modified December 14, 2023
+Copyright &copy; 2024 Barton Phillips  
+Last Modified January 6, 2024
 

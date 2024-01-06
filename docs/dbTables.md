@@ -145,6 +145,6 @@ $extra['footer'] a footer string
 ## Contact Me
 
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
-Copyright &copy; 2023 Barton Phillips  
+Copyright &copy; 2024 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)
-Last Modified November 8, 2023
+Last Modified January 6, 2024

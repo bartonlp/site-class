@@ -132,6 +132,6 @@ Creating the special files make the tedious boiler plate simple and yet configur
 ## Contact Me
 
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
-Copyright &copy; 2023 Barton Phillips  
+Copyright &copy; 2024 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)   
-Last Modified November 8, 2023
+Last Modified January 6, 2024
