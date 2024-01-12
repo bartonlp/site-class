@@ -6,9 +6,9 @@
  * Extends Exception
  */
 
-define("PDOEXCEPTION_CLASS_VERSION", "1.0.0exception-pdo");
+define("SQLEXCEPTION_CLASS_VERSION", "1.0.1exception-pdo"); // BLP 2024-01-12 - Change dbPdo back to Sql.
 
-class dbPdoException extends Exception {
+class SqlException extends Exception {
   /**
    * Constructor
    * @param string $message: text which tells what went wrong
@@ -37,14 +37,14 @@ class dbPdoException extends Exception {
   /* Private Methods */
   
   /**
-   * PdoError
+   * SqlError
    * Private
    * @param string $msg error message
    * @param object $self is the $this where the error occured
    * @return array([html error text], [error number]);
    */
 
-  private function PdoError($msg="NO MESSAGE PROVIDED", $self) {
+  private function SqlError($msg="NO MESSAGE PROVIDED", $self) {
     if(is_null($self)) {
       $Errno = -9999;
       $Error = "No valid \$self->errno or \$self->error.";
@@ -63,8 +63,8 @@ class dbPdoException extends Exception {
 
     $caller = $backtrace[1]; // Get caller information
 
-    array_shift($backtrace); // PdoError
-    array_shift($backtrace); // PdoException
+    array_shift($backtrace); // SqlError
+    array_shift($backtrace); // SqlException
 
     // BLP 2023-06-22 - START
     
@@ -118,7 +118,7 @@ class dbPdoException extends Exception {
     $cwd = getcwd();
 
     $error = <<<EOF
-\n<p>PDO: <i>$msg</i><br>
+\n<p>SQL: <i>$msg</i><br>
 error=<i>$Error</i>;, \$Errno=<i>$Errno</i><br>
 cwd=$cwd<br>
 called from <strong>{$caller['file']}</strong><br> on line <strong>{$caller['line']}</strong><br>
@@ -134,6 +134,6 @@ EOF;
   }
 
   public static function getVersion() {
-    return PDOEXCEPTION_CLASS_VERSION;
+    return SqlEXCEPTION_CLASS_VERSION;
   }
-} // End PdoException Class
+} // End SqlException Class

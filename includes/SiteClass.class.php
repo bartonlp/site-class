@@ -5,7 +5,7 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.0.0pdo");
+define("SITE_CLASS_VERSION", "5.0.1pdo"); // BLP 2024-01-12 - Pdo back to SqlExc...
 
 // One class for all my sites
 /**
@@ -267,7 +267,7 @@ EOF;
       if(($p = require_once($this->headFile)) != 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
-        throw new PdoException(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1", $this);
+        throw new SqlException(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1", $this);
       }
     } else {
       // Make a default <head>

@@ -5,7 +5,7 @@
 
 namespace bartonlp\whatisloaded;
 
-define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
+define("WHATISLOADED_VERSION", "1.0.1whatis-pdo"); // BLP 2024-01-12 - Pdo back to Sql
 
 (function() {
   class WhatIsLoaded {
@@ -20,7 +20,7 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
     private $javaScript;
     private $dbTables;
     private $ErrorClass;
-    private $dbPdoException;
+    private $sqlException;
         
     public function __construct() {
       $__VERSION_ONLY = true; // also used by siteload.php, tracker.php, beacon.php.
@@ -42,7 +42,7 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
       }
       $this->dbTables = \dbTables::getVersion();
       $this->ErrorClass= \ErrorClass::getVersion();
-      $this->dbPdoException = \dbPdoException::getVersion();
+      $this->sqlException = \SqlException::getVersion();
     }
 
     public function getWhatIsInfo() {
@@ -57,7 +57,7 @@ define("WHATISLOADED_VERSION", "1.0.0whatis-pdo");
 <tr><td>dbPdo.class.php</td><td>$this->dbPdo</td></tr>
 <tr><td>dbTables.class.php</td><td>$this->dbTables</td></tr>
 <tr><td>ErrorClass.class.php</td><td>$this->ErrorClass</td></tr>
-<tr><td>dbPdoException.class.php</td><td>$this->dbPdoException</td></tr>
+<tr><td>SqlException.class.php</td><td>$this->sqlException</td></tr>
 <tr><td>whatisloaded.class.php</td><td>$whatis</td></tr>
 <tr><td>tracker.php</td><td>$this->tracker</td></tr>
 <tr><td>beacon.php</td><td>$this->beacon</td></tr>
@@ -70,7 +70,7 @@ EOF;
       "Database.class.php"=>$this->database,
       "dbPdo.class.php"=>$this->dbPdo,
       "dbTables.class.php"=>$this->dbTables, "ErrorClass.class.php"=>$this->ErrorClass,
-      "dbPdoException.class.php"=>$this->dbPdoException, 
+      "SqlException.class.php"=>$this->sqlException, 
       "whatisloaded.class.php"=>$whatis,
       "tracker.php"=>$this->tracker, "beacon.php"=>$this->beacon,
       "tracker.js"=>$this->javaScript, "helper-functions.php"=>$this->helper];
