@@ -22,12 +22,17 @@ ErrorClass::setDevelopment(true);
 
 date_default_timezone_set('America/New_York'); // Done here and in dbPdo.class.php constructor.
 
-define("SITELOAD_VERSION", "1.1.1autoload-pdo"); // BLP 2023-08-11 - add static $mysitemap
+define("SITELOAD_VERSION", "1.1.2autoload-pdo"); // BLP 2024-01-16 - add bartonphillips.org logic
 define("SITECLASS_DIR", __DIR__);
 
 if($__VERSION_ONLY) {
   return SITELOAD_VERSION;
 } else {
-  return json_decode(stripComments(file_get_contents(__DIR__ . "/mysitemap.json")));
+  if($_SERVER['HTTP_HOST'] == "bartonphillips.org") {
+    if(file_exists("../bartonphillips.org:8000")) $port = ":8000";
+    return json_decode(stripComments(file_get_contents("https://bartonphillips.org$port/mysitemap.json")));
+  } else {
+    return json_decode(stripComments(file_get_contents(__DIR__ . "/mysitemap.json")));
+  }
 }
 
