@@ -70,7 +70,7 @@ CREATE TABLE `dayrecords` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("TRACKER_VERSION", "4.0.1tracker-pdo"); // BLP 2023-09-10 - 
+define("TRACKER_VERSION", "4.0.2tracker-pdo"); // BLP 2024-01-12 - comment out error_log autoload
 
 // If you want the version defined ONLY and no other information.
 
@@ -82,7 +82,7 @@ if($_site || $__VERSION_ONLY === true) {
 
 if($_SERVER['HTML_HOST'] == 'bartonphillips.org') {
   $_site = require_once("autoload.php"); // We are at ~/bartonphillips.org/site-class/includes.
-  error_log("*** tracker.php HP-Envy Server, use autoload.php");
+  //error_log("*** tracker.php HP-Envy Server, use autoload.php");
   $_site->trackerLocationJs =  'https://bartonphillips.org/site-class/includes/tracker.js';
   $_site->trackerLocation = 'https://bartonphillips.org/site-class/includes/tracker.php';
   $_site->beaconLocation = 'https://bartonphillips.org/site-class/includes/beacon.php';

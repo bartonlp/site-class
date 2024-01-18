@@ -284,7 +284,7 @@ class Database extends dbPdo {
    */
 
   protected function trackbots():void {
-    if(!empty($this->foundBotAs)) {
+    if(!empty($this->foundBotAs) && $this->dbinfo->engine != "sqlite") {
       $agent = $this->agent;
 
       try {
@@ -315,8 +315,8 @@ class Database extends dbPdo {
       // Now do bots2
 
       $this->sql("insert into $this->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
-                   "values('$this->ip', '$agent', '$this->self', now(), '$this->siteName', " . BOTS_SITECLASS . ", 1, now())".
-                   "on duplicate key update count=count+1, lasttime=now()");
+                 "values('$this->ip', '$agent', '$this->self', now(), '$this->siteName', " . BOTS_SITECLASS . ", 1, now())".
+                 "on duplicate key update count=count+1, lasttime=now()");
     }
   }
    
@@ -480,11 +480,13 @@ class Database extends dbPdo {
   protected function counter2():void {
     [$real, $bot] = $this->isBot ? [0,1] : [1,0];
 
-    $sql = "insert into $this->masterdb.counter2 (site, date, filename, `real`, bots, lasttime) ".
-           "values('$this->siteName', now(), left('$this->self', 254), $real , $bot, now()) ".
-           "on duplicate key update `real`=`real`+$real, bots=bots+$bot, lasttime=now()";
-
-    $this->sql($sql);
+    if($this->dbinfo->engine != "sqlite") {
+      $sql = "insert into $this->masterdb.counter2 (site, date, filename, `real`, bots, lasttime) ".
+             "values('$this->siteName', now(), left('$this->self', 254), $real , $bot, now()) ".
+             "on duplicate key update `real`=`real`+$real, bots=bots+$bot, lasttime=now()";
+      
+      $this->sql($sql);
+    }
   }
 
   /*
@@ -531,11 +533,13 @@ class Database extends dbPdo {
     // site, ip and agent(256) are the primary key. Note, agent is a text field so we look at the
     // first 256 characters here (I don't think this will make any difference).
 
-    $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime) " .
-           "values('$this->siteName', '$this->ip', '$this->agent', '1', now(), now()) ".
-           "on duplicate key update count=count+1, lasttime=now()";
+    if($this->dbinfo->engine != "sqlite") {
+      $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime) " .
+             "values('$this->siteName', '$this->ip', '$this->agent', '1', now(), now()) ".
+             "on duplicate key update count=count+1, lasttime=now()";
 
-    $this->sql($sql);
+      $this->sql($sql);
+    }
   }
 
   // ************
