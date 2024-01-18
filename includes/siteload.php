@@ -11,7 +11,9 @@
 
 namespace bartonlp\siteload;
 
-define("SITELOAD_VERSION", "2.2.1siteload-pdo"); // BLP 2023-08-11 - add static $mysitemap
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
+
+define("SITELOAD_VERSION", "2.2.2siteload-pdo"); 
 define("SITECLASS_DIR", __DIR__);
 require_once("/var/www/vendor/autoload.php");
 
@@ -30,8 +32,6 @@ if(!class_exists("getinfo")) {
     public static $mysitemap; // BLP 2023-08-11 - This is used by tracker.js and tracker.php to get the right $_site.
     
     public function __construct() {
-      $old = error_reporting(E_ALL & ~(E_NOTICE | E_WARNING | E_STRICT));
-
       // Now check to see if we have a DOCUMENT_ROOT or VIRTUALHOST_DOCUMENT_ROOT.
       // If we DON't we will use PWD which should be and if SCRIPT_FILENAME is not dot (.)
       // then we add it to PWD.
@@ -104,8 +104,6 @@ if(!class_exists("getinfo")) {
           \ErrorClass::setErrlast(true);
         }
       }
-
-      error_reporting($old);
     }
 
     public static function getVersion() {
