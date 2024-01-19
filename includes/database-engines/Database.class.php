@@ -31,7 +31,7 @@ class Database extends dbPdo {
 
     // If no 'dbinfo' (no database) in mysitemap.json set everything so the database is not loaded.
     
-    if($s->nodb === true || is_null($s->dbinfo)) {
+    if($s->dbinfo->engine == "sqlite" || $s->nodb === true || is_null($s->dbinfo)) {
       $s->count = false;
       $s->noTrack = true; // If nodb then noTrack is true also.
       $s->nodb = true;    // Maybe $this->dbinfo was null
@@ -54,6 +54,8 @@ class Database extends dbPdo {
     
     if($this->dbinfo->engine != "sqlite" && $this->dbinfo->user == "barton") { // make sure its the 'barton' user!
       $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
+    } else {
+      $this->myIp = ['195.252.232.86'];
     }
 
     // These all use database 'barton' ($this->masterdb)
