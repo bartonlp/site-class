@@ -62,31 +62,37 @@ class Database extends dbPdo {
     // and are always done regardless of 'count'!
     // If $this->nodb or there is no $this->dbinfo we have made $this->noTrack true and
     // $this->count false
-    
-    if($this->noTrack !== true) {
-      $this->logagent();   // This logs Me and everybody else! This is done regardless of $this->isBot or $this->isMe().
 
-      // checkIfBot() must be done before the rest because everyone uses $this->isBot.
+    if($this->dbinfo->engine == "sqlite") {
+      if($this->noTrack !== true) {
+        $this->logagent();
+      }
+    } else {
+      if($this->noTrack !== true) {
+        $this->logagent();   // This logs Me and everybody else! This is done regardless of $this->isBot or $this->isMe().
 
-      $this->checkIfBot(); // This set $this->isBot. Does a isMe() so I never get set as a bot!
+        // checkIfBot() must be done before the rest because everyone uses $this->isBot.
 
-      // Now do all of the rest.
+        $this->checkIfBot(); // This set $this->isBot. Does a isMe() so I never get set as a bot!
 
-      $this->trackbots();  // both 'bots' and 'bots2'. This also does a isMe() so never get put into the 'bots*' tables.
-      $this->tracker();    // This logs Me and everybody else but uses the $this->isBot! Note this is done before daycount()
-      $this->updatemyip(); // Update myip if it is ME
+        // Now do all of the rest.
 
-      // If 'count' is false we don't do these counters
+        $this->trackbots();  // both 'bots' and 'bots2'. This also does a isMe() so never get put into the 'bots*' tables.
+        $this->tracker();    // This logs Me and everybody else but uses the $this->isBot! Note this is done before daycount()
+        $this->updatemyip(); // Update myip if it is ME
 
-      if($this->count) {
-        // Get the count for hitCount. The hitCount is always
-        // updated (unless the counter table does not exist).
+        // If 'count' is false we don't do these counters
 
-        $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
+        if($this->count) {
+          // Get the count for hitCount. The hitCount is always
+          // updated (unless the counter table does not exist).
 
-        if(!$this->isMe()) { //If it is NOT ME do counter2 and daycount
-          $this->counter2(); // in 'masterdb' database
-          $this->daycount(); // in 'masterdb' database
+          $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
+
+          if(!$this->isMe()) { //If it is NOT ME do counter2 and daycount
+            $this->counter2(); // in 'masterdb' database
+            $this->daycount(); // in 'masterdb' database
+          }
         }
       }
     }
