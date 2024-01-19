@@ -23,9 +23,6 @@
     "classmap": [
       "includes",
       "includes/database-engines"
-    ],
-    "files": [
-      "includes/database-engines/helper-functions.php"
     ]
   }    
 }
