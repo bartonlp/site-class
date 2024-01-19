@@ -31,7 +31,7 @@ class Database extends dbPdo {
 
     // If no 'dbinfo' (no database) in mysitemap.json set everything so the database is not loaded.
     
-    if($s->dbinfo->engine == "sqlite" || $s->nodb === true || is_null($s->dbinfo)) {
+    if($s->nodb === true || is_null($s->dbinfo)) {
       $s->count = false;
       $s->noTrack = true; // If nodb then noTrack is true also.
       $s->nodb = true;    // Maybe $this->dbinfo was null
