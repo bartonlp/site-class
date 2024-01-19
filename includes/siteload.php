@@ -16,6 +16,7 @@ error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
 define("SITELOAD_VERSION", "2.2.2siteload-pdo"); 
 define("SITECLASS_DIR", __DIR__);
 require_once("/var/www/vendor/autoload.php");
+require_once("/var/www/vendor/bartonlp/site-class/includes/database-engines/helper-functions.php");
 
 //\ErrorClass::setErrorType(ini_get("error_reporting"));
 
