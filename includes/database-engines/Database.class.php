@@ -547,6 +547,19 @@ class Database extends dbPdo {
              "on duplicate key update count=count+1, lasttime=now()";
 
       $this->sql($sql);
+    } else {
+      $sql = "insert into logagent (site, ip, agent, count, created, lasttime) " .
+             "values('$this->siteName', '$this->ip', '$this->agent', '1', datetime('now'), datetime('now'))";
+      try {
+        $this->sql($sql);
+      } catch(Exception $e) {
+        if($e->getCode() == "23000") {
+          $this->sql("update logagent set count=count+1, lasttime=datetime('now') ".
+                     "where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
+        } else {
+          throw $e;
+        }
+      }
     }
   }
 
