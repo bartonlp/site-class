@@ -23,19 +23,18 @@ define("WHATISLOADED_VERSION", "1.0.1whatis-pdo"); // BLP 2024-01-12 - Pdo back 
     private $sqlException;
         
     public function __construct() {
-      $__VERSION_ONLY = true; // also used by siteload.php, tracker.php, beacon.php.
+      // BLP 2024-01-20 - both siteload.php and autoload.php have 'namespace bartonlp\siteload'.
+      $this->site = \bartonlp\siteload\getSiteloadVersion();
 
-      $this->site = require(getenv("SITELOADNAME"));
-      //$this->site = require("/var/www/site-class/includes/autoload.php"); // USE site-class for
-      //TESTING!
-      
       $this->siteClass = \SiteClass::getVersion();
       $this->database = \Database::getVersion();
       $this->dbPdo = \dbPdo::getVersion();
       $this->helper = HELPER_FUNCTION_VERSION;
 
-      $this->tracker = require(SITECLASS_DIR . "/tracker.php");
-      $this->beacon = require(SITECLASS_DIR . "/beacon.php");
+      $__VERSION_ONLY = true;
+      
+      $this->tracker = require(SITECLASS_DIR . "/tracker.php"); // With $__VERSION_ONLY only returns the version
+      $this->beacon = require(SITECLASS_DIR . "/beacon.php");   // same here
       $javaScript = file_get_contents(SITECLASS_DIR . "/tracker.js");
       if(preg_match("~const TRACKERJS_VERSION[ \t]*=[ \t]*[\"'](.*?)[\"']~", $javaScript, $m)) {
         $this->javaScript = $m[1];

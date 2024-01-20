@@ -6,22 +6,22 @@
 // For example DOCUMENT_ROOT + /path/target
 // So we take this and if we do not find the files at first we do a $mysite = dirname($mysite) and
 // then do a chdir($mysite); This may not be DOCUMENT_ROOT + ... but may the REAL path.
-// BLP 2023-08-11 - added getinfo::$mysitemap and logic to set it. I do this so I don't need
-// symlinks for tracker.php in my sites.
 
 namespace bartonlp\siteload;
 
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
 
-define("SITELOAD_VERSION", "2.2.2siteload-pdo"); 
+define("SITELOAD_VERSION", "2.2.3siteload-pdo"); 
 define("SITECLASS_DIR", __DIR__);
 require_once("/var/www/vendor/autoload.php");
 require_once("/var/www/vendor/bartonlp/site-class/includes/database-engines/helper-functions.php");
 
-//\ErrorClass::setErrorType(ini_get("error_reporting"));
-
 // If we only want the version info $__VERSION is set. We do this in whatisloaded.class.php.
 // It can also be done to get the versions of beacon.php and tracker.php.
+
+function getSiteloadVersion() {
+  return SITELOAD_VERSION;
+}
 
 if($__VERSION_ONLY) return SITELOAD_VERSION;
 

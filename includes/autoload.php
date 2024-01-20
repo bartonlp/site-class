@@ -1,10 +1,23 @@
 <?php
 // Auto load classes
 
+namespace bartonlp\siteload;
+
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
+
+define("SITELOAD_VERSION", "1.1.3autoload-pdo");
+define("SITECLASS_DIR", __DIR__);
+
+function getSiteloadVersion() {
+  return SITELOAD_VERSION;
+}
 
 if(!function_exists("_callback")) { // In case we call autoload twice.
   function _callback($class) {
+    // BLP 2024-01-20 - remove the namespace from the start of the class.
+    $class = preg_replace("~^bartonlp\\\siteload\\\~", '', $class);
+    //echo "class=$class<br>";
+    
     switch($class) {
       case "SiteClass":
         require(__DIR__."/$class.class.php");
@@ -16,16 +29,13 @@ if(!function_exists("_callback")) { // In case we call autoload twice.
   }
 }
 
-if(spl_autoload_register("_callback") === false) exit("Can't Autoload");
+if(spl_autoload_register("\bartonlp\siteload\_callback") === false) exit("Can't Autoload");
 
 require(__DIR__."/database-engines/helper-functions.php");
 
-ErrorClass::setDevelopment(true);
-
 date_default_timezone_set('America/New_York'); // Done here and in dbPdo.class.php constructor.
 
-define("SITELOAD_VERSION", "1.1.3autoload-pdo");
-define("SITECLASS_DIR", __DIR__);
+\ErrorClass::setDevelopment(true);
 
 if($__VERSION_ONLY) {
   return SITELOAD_VERSION;
@@ -37,4 +47,3 @@ if($__VERSION_ONLY) {
     return json_decode(stripComments(file_get_contents(__DIR__ . "/mysitemap.json")));
   }
 }
-

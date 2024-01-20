@@ -6,7 +6,7 @@
  * Extends Exception
  */
 
-define("SQLEXCEPTION_CLASS_VERSION", "1.0.1exception-pdo"); // BLP 2024-01-12 - Change dbPdo back to Sql.
+define("SQLEXCEPTION_CLASS_VERSION", "1.0.2exception-pdo");
 
 class SqlException extends Exception {
   /**
@@ -134,6 +134,6 @@ EOF;
   }
 
   public static function getVersion() {
-    return SqlEXCEPTION_CLASS_VERSION;
+    return SQLEXCEPTION_CLASS_VERSION;
   }
-} // End SqlException Class
+} 
