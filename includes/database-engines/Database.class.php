@@ -182,7 +182,7 @@ class Database extends dbPdo {
    * These side effects are used by checkIfBot():void see below.
    */
   
-  public function isBot(string $agent):bool {
+  public function isBot(?string $agent):bool {
     $this->isBot = false;
     $this->foundBotAs = ''; // These two will be set in isBot().
     
