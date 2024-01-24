@@ -110,17 +110,25 @@ class dbPdo extends PDO {
     //echo "m=$m<br>";
 
     if($m == 'insert' || $m == 'delete' || $m == 'update') {
-      $numrows = $this->exec($query);
-      if($numrows === false) {
-        throw new Exception($query);
+      try {
+        $numrows = $this->exec($query);
+        if($numrows === false) {
+          error_log("dbPdo.class.php: 'exec() returned false: $query");
+        }
+      } catch (Exception $e) {
+        throw $e;
       }
     } else { // could be select, create, etc.
-      $result = $this->query($query);
+      try {
+        $result = $this->query($query);
 
-      // If $result is false then exit
+        // If $result is false then exit
 
-      if($result === false) {
-        throw new Exception($query);
+        if($result === false) {
+          error_log("dbPdo.class.php: query returned false: $query");
+        }
+      } catch(Exception $e) {
+        throw $e;
       }
 
       $this->result = $result;
@@ -286,9 +294,10 @@ class dbPdo extends PDO {
   }
   
   // real_escape_string
+  // BLP 2024-01-24 - Just escape '.
   
   public function escape($string) {
-    return $this->quote($string);
+    return str_replace("'", "\\'", $string);
   }
 
   public function escapeDeep($value) {
