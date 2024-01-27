@@ -11,7 +11,7 @@
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
  */
 
-define("PDO_CLASS_VERSION", "1.0.1pdo"); // BLP 2024-01-12 - Pdo back to Sql
+define("PDO_CLASS_VERSION", "1.0.2pdo"); // BLP 2024-01-26 - modify sqlPrepare()
 
 /**
  * @package PDO Database
@@ -112,21 +112,12 @@ class dbPdo extends PDO {
     if($m == 'insert' || $m == 'delete' || $m == 'update') {
       try {
         $numrows = $this->exec($query);
-        if($numrows === false) {
-          error_log("dbPdo.class.php: 'exec() returned false: $query");
-        }
       } catch (Exception $e) {
         throw $e;
       }
     } else { // could be select, create, etc.
       try {
         $result = $this->query($query);
-
-        // If $result is false then exit
-
-        if($result === false) {
-          error_log("dbPdo.class.php: query returned false: $query");
-        }
       } catch(Exception $e) {
         throw $e;
       }
@@ -148,7 +139,13 @@ class dbPdo extends PDO {
   
   /**
    * sqlPrepare()
-   * used as follows:
+   * This method works with fully formed queries! That is no :name or =? that need to be prepared!
+   * It also seems to work with =|<|>|<=|>=|!=|like. It also seems to work with 'between'.
+   * It only worked with ':named' parameters but not with '?' parameters.
+   * This method can be used with $this->fetchrow(..).
+   *
+   * If you have a complicated queries or '?' parameters use the RAW PDO prepare(), bind_params(), execute(), bind_result() and fetch().
+   * Used as follows with bound params:
    * 1) $username="bob"; $query = "select one, two from test where name=?";
    * 2) $stm = PDO::prepare($query);
    * 3) $stm->bind_param("s", $username);
@@ -156,13 +153,67 @@ class dbPdo extends PDO {
    * 5) $stm->bind_result($one, $two);
    * 6) $stm->fetch();
    * 7) echo "one=$one, two=$two<br>";
-   * BLP 2021-12-11 -- NOTE: we do not have a bind_param(), execute(), bind_result() or fetch() functions in this module.
+   * NOTE: we do not have a bind_param(), execute(), bind_result() or fetch() functions in this module.
    * You will have to use the native PHP functions with the returned $stm.
+   * NOTE: As of PHP 8 PDO uses exception as the default: PDO::ERRMODE_EXCEPTION.
    */
   
-  public function sqlPrepare($query) {
-    $stm = $this->prepare($query);
-    return $stm;
+  public function sqlPrepare(string $query, ?array $values=null) {
+    self::$lastQuery = $query; // for debugging
+    
+    try {
+      $stm = $this->prepare($query);
+    } catch(Exception $e) {
+      throw $e;
+    }
+
+    if($values !== null) {
+      if(preg_match_all("~between\s*?(:.+?)\s*?\S+?\s*?(:.+?)(?:\s+|$)~", $query, $mm) === false) {
+        echo "Error1: " . preg_last_error_msg() . "<br>";
+        return false;
+      }
+
+      // remove the first element of the array
+      
+      array_shift($mm);
+      
+      $mm = array_merge(...$mm); // This fattens the array one layer.
+     
+      if(preg_match_all("~(?:=|<|>|<=|>=|!=|like).*?(:.+?)(?: |$)~", $query, $m) === false) {
+        echo "Error2 " . preg_last_error_msg() . "<br>";
+        return false;
+      }
+      $m = $m[1];
+
+      $m = array_merge($m, $mm); // both arrays should look the same so merge them.
+
+      // Check if we have thte same number of named params as values.
+      
+      if(count($m) != count($values)) {
+        echo "Error3 Count error<br>";
+        return false;
+      }
+      for($i=0; $i<count($values); ++$i) {
+        $params[$m[$i]] = $values[$i];
+      }
+    }
+    
+    $stm->execute($params);
+
+    $this->result = $stm;
+
+    if($this->dbinfo->engine == 'mysql') {
+      $numrows = $stm->rowCount();
+    } elseif($m == 'select') {
+      $last = self::$lastQuery;
+      $last = preg_replace("~^(select) .*?(from .*)$~", "$1 count(*) $2", $last);
+      $stm = $this->query($last);
+      $numrows = $stm->fetchColumn();
+    } else {
+      $numrows = 0;
+    }
+
+    return $numrows;
   }
 
   /**
@@ -225,20 +276,24 @@ class dbPdo extends PDO {
       throw new Exception(__METHOD__ . ": result is null");
     }
 
-    switch($type) {
-      case "assoc": // associative array
-        $row = $result->fetch(PDO::FETCH_ASSOC);
-        break;
-      case "num":  // numerical array
-        $row = $result->fetch(PDO::FETCH_NUM);
-        break;
-      case "obj": // object BLP 2021-12-11 -- added
-        $row = $result->fetch(PDO::FETCH_OBJ);
-        break;
-      case "both":
-      default:
-        $row = $result->fetch(PDO::FETCH_BOTH); // This is the default
-        break;
+    try {
+      switch($type) {
+        case "assoc": // associative array
+          $row = $result->fetch(PDO::FETCH_ASSOC);
+          break;
+        case "num":  // numerical array
+          $row = $result->fetch(PDO::FETCH_NUM);
+          break;
+        case "obj": // object BLP 2021-12-11 -- added
+          $row = $result->fetch(PDO::FETCH_OBJ);
+          break;
+        case "both":
+        default:
+          $row = $result->fetch(PDO::FETCH_BOTH); // This is the default
+          break;
+      }
+    } catch(Exception $e) {
+      throw $e;
     }
     //error_log("dbPdo: fetchrow, query=" . self::$lastQuery . ", row=" . var_export($row, true));
     return $row;
