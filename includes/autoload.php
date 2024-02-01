@@ -1,5 +1,5 @@
 <?php
-// Auto load classes
+// Auto load classes for SiteClass
 
 namespace bartonlp\siteload;
 
@@ -12,20 +12,14 @@ function getSiteloadVersion() {
   return SITELOAD_VERSION;
 }
 
-if(!function_exists("_callback")) { // In case we call autoload twice.
-  function _callback($class) {
-    // BLP 2024-01-20 - remove the namespace from the start of the class.
-    $class = preg_replace("~^bartonlp\\\siteload\\\~", '', $class);
-    //echo "class=$class<br>";
-    
-    switch($class) {
-      case "SiteClass":
-        require(__DIR__."/$class.class.php");
-        break;
-      default:
-        require(__DIR__."/database-engines/$class.class.php");
-        break;
-    }
+function _callback($class) {
+  switch($class) {
+    case "SiteClass":
+      require(__DIR__."/$class.class.php");
+      break;
+    default:
+      require(__DIR__."/database-engines/$class.class.php");
+      break;
   }
 }
 
@@ -33,9 +27,13 @@ if(spl_autoload_register("\bartonlp\siteload\_callback") === false) exit("Can't 
 
 require(__DIR__."/database-engines/helper-functions.php");
 
+\ErrorClass::setDevelopment(true);
+
 date_default_timezone_set('America/New_York'); // Done here and in dbPdo.class.php constructor.
 
-\ErrorClass::setDevelopment(true);
+// BLP 2024-01-31 -  If this is /var/www/html just return and get the info from mysitemap.json.
+
+if($_SERVER['HTTP_HOST'] == "195.252.232.86") return; 
 
 if($__VERSION_ONLY) {
   return SITELOAD_VERSION;
@@ -44,6 +42,6 @@ if($__VERSION_ONLY) {
     if(file_exists("../bartonphillips.org:8000")) $port = ":8000";
     return json_decode(stripComments(file_get_contents("https://bartonphillips.org$port/mysitemap.json")));
   } else {
-    return json_decode(stripComments(file_get_contents(__DIR__ . "/mysitemap.json")));
+    return json_decode(stripComments(file_get_contents("./mysitemap.json")));
   }
 }
