@@ -189,7 +189,7 @@ class Database extends dbPdo {
     if(!empty($agent)) { // BLP 2023-10-27 - Check agent.
       if(($x = preg_match("~\+*https?://|@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
                           "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
-                          "http client|PECL::HTTP~i", $agent)) === 1) { // 1 means a match
+                          "http client|PECL::HTTP~i|Go-", $agent)) === 1) { // 1 means a match
         $this->isBot = true;
         $this->foundBotAs = BOTAS_MATCH;
       } elseif($x === false) { // false is error
