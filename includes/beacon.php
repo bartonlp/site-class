@@ -149,8 +149,19 @@ if(empty($botAs)) {
 $S->sql("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
           "isJavaScript='$java', lasttime=now() where id=$id");
 
-if(!$S->isMyIp($ip) && $DEBUG2)
+if(!$S->isMyIp($ip) && $DEBUG2) {
   error_log("beacon:  $id, $ip, $site, $thepage, {$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
-
-if(!$S->isMyIp($ip) && $DEBUG3 && $type == 'visibilitychange')
+}
+if(!$S->isMyIp($ip) && $DEBUG3 && $type == 'visibilitychange') {
   error_log("beacon:  $id, $ip, $site, $thepage, {$msg}3, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+}
+
+// Do mongo
+
+if(file_exists(__DIR__ ."/mongo.i.php") && !$S->isMe()) {
+  $S->sql("select difftime from $S->masterdb.tracker where id=$id");
+  $diff = $S->fetchrow('num')[0];
+  //error_log("beacon.php diff: $diff");
+  $from = "beacon.php, ";
+  require "mongo.i.php";
+}

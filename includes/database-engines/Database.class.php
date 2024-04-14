@@ -3,7 +3,7 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.0.3database-pdo"); // BLP 2024-02-14 - add Go- to isBot.
+define("DATABASE_CLASS_VERSION", "1.0.4database-pdo"); // BLP 2024-02-14 - add Go- to isBot.
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 /**
@@ -316,7 +316,7 @@ class Database extends dbPdo {
           $this->sql("update $this->masterdb.bots set robots=robots | " . BOTS_SITECLASS . ", site='$who', count=count+1, lasttime=now() ".
                        "where ip='$this->ip' and agent='$agent'");
         } else {
-          throw new SqlException(__CLASS__ . " " . __LINE__ . ":$e", $this);
+          throw new Exception(__CLASS__ . " " . __LINE__ . ":$e");
         }
       }
 
@@ -519,7 +519,7 @@ class Database extends dbPdo {
       $this->sql("insert into $this->masterdb.daycounts (site, `date`, lasttime) values('$this->siteName', current_date(), now())");
     } catch(Exception $e) {
       if($e->getCode() != 23000) { // I expect this to fail for dupkey after the first insert per day.
-        throw new SqlException(__CLASS__ . "$e", $this);
+        throw new Exception(__CLASS__ . "$e");
       }
     }
     

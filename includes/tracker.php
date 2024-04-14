@@ -137,6 +137,8 @@ if($_POST) {
 $_site->noTrack = true; // Don't track or do geo!
 $_site->noGeo = true;
 
+//$_site->isMeFalse = true; // DEBUG
+
 $S = new Database($_site); // BLP 2023-10-02 - because we use Database noTrack is set and we do not do any tracking.
 //error_log("*** tracker.php \$S=" . var_export($S, true));
 
@@ -196,8 +198,8 @@ if($_POST['page'] == 'start') {
     $visits = 0;
   }
 
-  if($S->sql("select botAs, isJavaScript, hex(isJavaScript) from $S->masterdb.tracker where id=$id")) {
-    [$botAs, $java, $js] = $S->fetchrow('num');
+  if($S->sql("select botAs, isJavaScript, hex(isJavaScript), agent from $S->masterdb.tracker where id=$id")) {
+    [$botAs, $java, $js, $agent] = $S->fetchrow('num');
   } else { // BLP 2023-02-10 - add for debug
     error_log("tracker: $id, $ip, $site, $thispage,  Select of id=$id failed, time=" . (new DateTime)->format('H:I:s:v'));
   }
@@ -220,6 +222,13 @@ if($_POST['page'] == 'start') {
   }
   
   $S->sql($sql);
+
+  if(file_exists(__DIR__ ."/mongo.i.php") && !$S->isMe()) {
+    $from = "tracker.php,";
+    $type = "start";
+    require "mongo.i.php";
+  }
+
   echo "Start OK, java=$js";
   exit();
 }
@@ -238,8 +247,8 @@ if($_POST['page'] == 'load') {
     exit();
   }
 
-  if($S->sql("select botAs, isJavaScript, hex(isJavaScript) from $S->masterdb.tracker where id=$id")) {
-    [$botAs, $java, $js] = $S->fetchrow('num');
+  if($S->sql("select botAs, isJavaScript, hex(isJavaScript), agent from $S->masterdb.tracker where id=$id")) {
+    [$botAs, $java, $js, $agent] = $S->fetchrow('num');
   }
 
   $java |= TRACKER_LOAD;
@@ -251,6 +260,13 @@ if($_POST['page'] == 'load') {
   // BLP 2023-03-25 - This should maybe be insert/update?
   
   $S->sql("update $S->masterdb.tracker set isJavaScript='$java', lasttime=now() where id='$id'");
+
+  if(file_exists(__DIR__ ."/mongo.i.php") && !$S->isMe()) {
+    $from = "tracker.php,";
+    $type = "load";
+    require "mongo.i.php";
+  }
+  
   echo "Load OK, java=$js";
   exit();
 }
@@ -324,11 +340,11 @@ if($_POST['page'] == 'timer') {
     exit();
   }
 
-  if(!$S->sql("select botAs, isJavaScript, hex(isJavaScript), finger, agent from $S->masterdb.tracker where id=$id")) {
+  if(!$S->sql("select botAs, isJavaScript, hex(isJavaScript), finger, agent, difftime from $S->masterdb.tracker where id=$id")) {
     error_log("*** tracker.php: No record for id=$id, $site, $thispage");
   }
 
-  [$botAs, $java, $js, $finger, $agent] = $S->fetchrow('num');
+  [$botAs, $java, $js, $finger, $agent, $difftime] = $S->fetchrow('num');
 
   $java |= TRACKER_TIMER; // Or in TIMER
   $js2 = strtoupper(dechex($java));
@@ -402,6 +418,15 @@ if($_POST['page'] == 'timer') {
 
   $S->sql($sql);
 
+  if(file_exists(__DIR__ ."/mongo.i.php") && !$S->isMe()) {
+    $S->sql("select difftime from $S->masterdb.tracker where id=$id");
+    $diff = $S->fetchrow('num')[0];
+    //error_log("tracker.php diff: $diff");
+    $from = "tracker.php,";
+    $type = "timer";
+    require "mongo.i.php";
+  }
+  
   if(!$S->isMyIp($ip) && $DEBUG_TIMER) error_log("tracker: $id, $ip, $site, $thepage, TIMER2, botAs=$botAs, visits: $visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
 
   echo "Timer OK, visits: $visits, java=$js, finger=$finger";
@@ -490,10 +515,10 @@ if($type = $_GET['page']) {
   }
 
   try {
-    $sql = "select site, ip, page, finger, hex(isJavaScript), agent from $S->masterdb.tracker where id=$id";
+    $sql = "select site, ip, page, finger, hex(isJavaScript), agent, botAs from $S->masterdb.tracker where id=$id";
     
     if($S->sql($sql)) {
-      [$site, $ip, $thepage, $finger, $js, $agent] = $S->fetchrow('num');
+      [$site, $ip, $thepage, $finger, $js, $agent, $botAs] = $S->fetchrow('num');
     } else {
       throw new Exception("tracker: NO RECORD for id=$id, type=$msg", -100); // This will be caught below.
     }
@@ -540,16 +565,21 @@ if($type = $_GET['page']) {
      error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
   
   
-  $java = hexdec($js);
+  $java = hexdec($js); // $java is decimal, $js is HEX.
+
+  if(!str_contains($botAs, BOTAS_COUNTED)) {
+    $botAs = BOTAS_COUNTED . "," . $botAs; // BLP 2024-03-21 - added
+    $botAs = rtrim($botAs, ',');
+  }
   
   if(empty($agent) || $S->isBot($agent)) {
-    if($DEBUG_ISABOT2) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, image=$image, time=" . (new DateTime)->format('H:i:s:v'));
+    if($DEBUG_ISABOT2) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, botAs=$botAs, image=$image, time=" . (new DateTime)->format('H:i:s:v'));
 
     // We know that there is an ID but is there a record with that ID?
 
-    $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, agent, isJavaScript, error, starttime, lasttime) ".
-                "values($id, '$ip', '$site', '$thepage', '$agent', '$java', 'ISABOT_$msg', now(), now()) ".
-                "on duplicate key update error='ISABOT_UPDATE_$msg', lasttime=now()");
+    $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
+                "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', '$java', 'ISABOT_$msg', now(), now()) ".
+                "on duplicate key update error='ISABOT_UPDATE_$msg', botAs='$botAs', lasttime=now()");
 
     // BLP 2023-01-18 - If this is a bot change the image.
     //$image = "/images/bot.jpg"; // Image of a bad bot!
@@ -558,17 +588,22 @@ if($type = $_GET['page']) {
   if($DEBUG_GET2) error_log("tracker: $id, $ip, $site, $thepage, $msg -- referer=$ref");
 
   if($ref) {
-    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, agent, referer, isJavaScript, error, starttime, lasttime) ".
-           "values($id, '$ip', '$site', '$thepage', '$agent', {$referer1}'$java', 'NO_UPDATE_$msg', now(), now()) ".
-           "on duplicate key update isJavaScript=isJavaScript|$or, {$referer2}lasttime=now()";
+    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, referer, isJavaScript, error, starttime, lasttime) ".
+           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', {$referer1}'$java', 'NO_UPDATE_$msg', now(), now()) ".
+           "on duplicate key update isJavaScript=isJavaScript|$or, botAs='$botAs', {$referer2}lasttime=now()";
   } else {
-    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, agent, isJavaScript, error, starttime, lasttime) ".
-           "values($id, '$ip', '$site', '$thepage', '$agent', '$java', 'NO_UPDATE_$msg', now(), now()) ".
-           "on duplicate key update isJavaScript=isJavaScript|$or, lasttime=now()";
+    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
+           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', '$java', 'NO_UPDATE_$msg', now(), now()) ".
+           "on duplicate key update isJavaScript=isJavaScript|$or, botAs='$botAs', lasttime=now()";
   }
 
   $S->sql($sql);
-  
+
+  if(file_exists(__DIR__ ."/mongo.i.php") && !$S->isMe()) {
+    $from = "tracker.php,";
+    require "mongo.i.php";
+  }
+
   // If this is csstest we are done.
   
   if($type == "csstest") {

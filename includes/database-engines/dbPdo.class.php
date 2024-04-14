@@ -11,7 +11,7 @@
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
  */
 
-define("PDO_CLASS_VERSION", "1.0.2pdo"); // BLP 2024-01-26 - modify sqlPrepare()
+define("PDO_CLASS_VERSION", "1.0.3pdo"); // BLP 2024-01-26 - modify sqlPrepare()
 
 /**
  * @package PDO Database
@@ -381,64 +381,6 @@ class dbPdo extends PDO {
 
     $error = $e; // get the full error message
 
-    // If this is a Exception then the formating etc. was done by the class
-
-    if($from != "SqlException") {
-      // NOT SqlException
-
-      // Get Trace information
-
-      $traceback = '';
-
-      foreach($e->getTrace() as $v) {
-        // The key here is a numeric and
-        // $v is an assoc array with keys 'file', 'line', 'function', 'class' and 'args'.
-
-        $args = ''; // This will hold the $v2 values
-
-        foreach($v as $k=>$v1) {
-          // $v is an assoc array 'file, line, ...'
-          // most $v1's are strings. 'args' is an array
-          switch($k) {
-            case 'file':
-            case 'line':
-            case 'function':
-            case 'class':
-              $$k = $v1;
-              break;
-            case 'args':
-              foreach($v1 as $v2) {
-                //cout("type of v2: " .gettype($v2));
-                if(is_object($v2)) {
-                  $v2 = get_class($v2);
-                } elseif(is_array($v2)) {
-                  $v2 = print_r($v2, true);
-                }
-                $$k .= "\"$v2\", ";
-              }
-              break;
-          }
-        }
-        $args = rtrim($args, ", "); // $$k was $args so remove the trailing comma.
-
-        // $$k is $file, $line, etc. So we use the referenced values below.
-
-        $traceback .= " file: $file<br> line: $line<br> class: $from<br>\n".
-                      "function: $function($args)<br><br>";
-      }
-
-      if($traceback) {
-        $traceback = "Trace back:<br>\n$traceback";
-      }
-
-      $error = <<<EOF
-<div style="text-align: center; width: 85%; margin: auto auto; background-color: white; border: 1px solid black; padding: 10px;">
-Class: <b>$from</b><br>\n<b>{$e->getMessage()}</b>
-in file <b>{$e->getFile()}</b><br> on line {$e->getLine()} $traceback
-</div>
-EOF;
-    }
-
     // Remove all html tags.
 
     $err = html_entity_decode(preg_replace("/<.*?>/", '', $error));
@@ -496,7 +438,7 @@ EOF;
       curl_setopt_array($ch, $options);
 
       $result = curl_exec($ch);
-      error_log("dbPdo.class.php, SqlException: Send To ME (".$s->EMAILADDRESS."). RESULT: $result"); // This should stay!!!
+      error_log("dbPdo.class.php, Exception: Send To ME (".$s->EMAILADDRESS."). RESULT: $result"); // This should stay!!!
     }
 
     // Log the raw error info.

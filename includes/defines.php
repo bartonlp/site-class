@@ -1,6 +1,9 @@
 <?php
 // Defines for tables.
-// BLP 2023-10-20 - removed, define("BOTAS_TABLE", "table");
+// BLP 2024-04-12 - add and update defines for myip and digitalocean
+
+define("DO_SERVER", "192.241.132.229"); // My server IP address through DigitalOcean: 192.241.132.229
+define("MY_IP", "195.252.232.86"); // My personal static IP address through MetroNet: 195.252.232.86
 
 define("DEFINES_VERSION", "1.1.0defines-pdo"); // BLP 2023-08-08 - 
 
@@ -50,6 +53,3 @@ define("BOTAS_ZERO", "zero");
 define("BOTAS_ZBOT", "zbot"); // BLP 2023-11-04 - 
 define("BOTAS_COUNTED", "counted");
 define("BOTAS_NOAGENT", "no-agent"); // BLP 2023-10-27 - added
-
-// Define the DigitalOcean Server
-define("DO_SERVER", "157.245.129.4");
