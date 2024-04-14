@@ -42,6 +42,6 @@ if($__VERSION_ONLY) {
     if(file_exists("../bartonphillips.org:8000")) $port = ":8000";
     return json_decode(stripComments(file_get_contents("https://bartonphillips.org$port/mysitemap.json")));
   } else {
-    return json_decode(stripComments(file_get_contents("./mysitemap.json")));
+    return json_decode(stripComments(file_get_contents(__DIR__ ."/mysitemap.json")));
   }
 }
