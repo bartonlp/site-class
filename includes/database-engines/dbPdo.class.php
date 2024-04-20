@@ -10,8 +10,9 @@
  * @copyright Copyright (c) 2010, Barton Phillips
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
  */
+// BLP 2024-04-20 - set mysql timezone!
 
-define("PDO_CLASS_VERSION", "1.0.3pdo"); // BLP 2024-01-26 - modify sqlPrepare()
+define("PDO_CLASS_VERSION", "1.0.4pdo"); // BLP 2024-01-26 - modify sqlPrepare()
 
 /**
  * @package PDO Database
@@ -61,6 +62,8 @@ class dbPdo extends PDO {
     }
     $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+    $this->sql("set time_zone='US/Eastern'"); // BLP 2024-04-20 - We must set the mysql time zone
+    
     $this->database = $database;
   } // End of constructor.
 
