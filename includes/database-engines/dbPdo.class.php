@@ -122,6 +122,10 @@ class dbPdo extends PDO {
       try {
         $result = $this->query($query);
       } catch(Exception $e) {
+        if(str_contains($query, "by+lasttime")) {
+          error_log("dbPdo.class.php, by+lasttime: $this->siteName, ip=$this->ip, page=$this->self,  agent=$this->agent");
+          return;
+        }
         throw $e;
       }
 

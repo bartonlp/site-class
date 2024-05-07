@@ -5,7 +5,7 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.0.2pdo"); // BLP 2024-01-12 - Pdo back to SqlExc...
+define("SITE_CLASS_VERSION", "5.0.3pdo"); // BLP 2024-04-26 - change base to href from src.
 
 // One class for all my sites
 /**
@@ -134,7 +134,7 @@ class SiteClass extends Database {
 
     $dtype = $this->doctype; // note that $this->doctype could also be from mysitemap.json see the constructor.
 
-    $h->base = $this->base ? "<base src='$this->base'>" : null;
+    $h->base = $this->base ? "<base href='$this->base'>" : null;
 
     // All meta tags
 
