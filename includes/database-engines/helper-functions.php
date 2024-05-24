@@ -17,6 +17,7 @@ if(!function_exists("getVersion")) {
 }
 
 // vardump makes value readable
+// BLP 2024-05-24 - This now uses PHP_SAPI to determin if we should use <pre> for websites.
 
 if(!function_exists('vardump')) {
   function vardump() {
@@ -24,16 +25,21 @@ if(!function_exists('vardump')) {
 
     if(count($args) > 1 && is_string($args[0])) {
       $msg = array_shift($args);
-      $msg = "<b>$msg:</b>\n";
+      //$msg = "<b>$msg:</b>\n";
     }
     for($i=0; $i < count($args); ++$i) {
-      $v .= escapeltgt(print_r($args[$i], true));
+      $v .= print_r($args[$i], true);
     }
-    echo "<pre class='vardump'>$msg$v</pre>";
+    if(PHP_SAPI === 'cli') {
+      echo "$msg:\n$v\n";
+    } else {
+      echo "<pre class='vardump'><b>$msg:</b><br>" . escapeltgt($v) . "</pre>";
+    }
   }
 } 
 
 // As above but does not escape the lt/gt or do any HTML.
+// BLP 2024-05-24 - left this for backward compatability
 
 if(!function_exists('vardumpNoEscape')) {
   function vardumpNoEscape() {
@@ -51,6 +57,7 @@ if(!function_exists('vardumpNoEscape')) {
 }
 
 // BLP 2023-10-04 - varexport makes value readable
+// BLP 2024-05-24 -
 
 if(!function_exists('varexport')) {
   function varexport() {
@@ -58,16 +65,21 @@ if(!function_exists('varexport')) {
 
     if(count($args) > 1 && is_string($args[0])) {
       $msg = array_shift($args);
-      $msg = "<b>$msg:</b>\n";
+      //$msg = "<b>$msg:</b>\n";
     }
     for($i=0; $i < count($args); ++$i) {
-      $v .= escapeltgt(var_export($args[$i], true));
+      $v .= var_export($args[$i], true);
     }
-    echo "<pre class='vardump'>$msg$v</pre>";
+    if(PHP_SAPI === 'cli') {
+      echo "$msg:\n$v\n";
+    } else {
+      echo "<pre class='vardump'><b>$msg:</b><br>" . escapeltgt($v) . "</pre>";
+    }
   }
 } 
 
 // BLP 2023-10-04 - As above but does not escape the lt/gt or do any HTML.
+// BLP 2024-05-24 - left this for backward compatability
 
 if(!function_exists('varexportNoEscape')) {
   function varexportNoEscape() {

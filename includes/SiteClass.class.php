@@ -154,6 +154,8 @@ class SiteClass extends Database {
     $h->favicon = $this->favicon ? "<link rel='shortcut icon' href='$this->favicon'>" :
                   "<link rel='shortcut icon' href='https://bartonphillips.net/images/favicon.ico'>";
 
+    // The default css should be a URL (relative or absolute) or if true or false it is set to null
+    
     if($this->defaultCss === false || $this->defaultCss === true) { 
       $h->defaultCss = null;
     } else { // Else either add the value or the default.
@@ -174,7 +176,9 @@ class SiteClass extends Database {
     $h->extra = $this->extra;
     
     $preheadcomment = $this->preheadcomment; // Must be a real html comment ie <!-- ... -->
+
     $lang = $this->lang ?? 'en';
+
     $htmlextra = $this->htmlextra; // Must be full html
     
     // If nojquery is true then don't add $trackerStr at all.
@@ -191,14 +195,14 @@ EOF;
 
       $this->trackerLocationJs = $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
 
-      // BLP 2023-08-09 - tracker.php and beacon.php MUST be symlinked into the parents
-      // directory!
+      // tracker.php and beacon.php MUST be symlinked in bartonlp.com/otherpages
+      // to the SiteClass 'includes' directory.
 
       $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php"; // BLP 2023-08-09 - a symlink
       $beaconLocation = $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php"; // BLP 2023-08-09 - a symlink
 
-      $logoImgLocation = $this->logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-08 -
-      $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation ?? "https://bartonphillips.net"; // BLP 2023-08-10 -
+      $logoImgLocation = $this->logoImgLocation ?? "https://bartonphillips.net";
+      $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation ?? "https://bartonphillips.net";
 
       // The trackerImg... can start with http or https. If so use the full url.
 
