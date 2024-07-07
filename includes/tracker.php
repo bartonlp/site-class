@@ -70,7 +70,7 @@ CREATE TABLE `dayrecords` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("TRACKER_VERSION", "4.0.2tracker-pdo"); // BLP 2024-01-12 - comment out error_log autoload
+define("TRACKER_VERSION", "4.0.3tracker-pdo");
 
 // If you want the version defined ONLY and no other information.
 
@@ -78,17 +78,7 @@ if($_site || $__VERSION_ONLY === true) {
   return TRACKER_VERSION;
 }
 
-// If this is my home server try the autoload.php which should be off this directory
-
-if($_SERVER['HTML_HOST'] == 'bartonphillips.org') {
-  $_site = require_once("autoload.php"); // We are at ~/bartonphillips.org/site-class/includes.
-  //error_log("*** tracker.php HP-Envy Server, use autoload.php");
-  $_site->trackerLocationJs =  'https://bartonphillips.org/site-class/includes/tracker.js';
-  $_site->trackerLocation = 'https://bartonphillips.org/site-class/includes/tracker.php';
-  $_site->beaconLocation = 'https://bartonphillips.org/site-class/includes/beacon.php';
-} else {
-  $_site = require_once(getenv("SITELOADNAME"));
-}
+$_site = require_once getenv("SITELOADNAME");
 
 // BLP 2023-09-10 - If this is a POST from tracker.js via ajax get the $_site via a
 // file_get_contents($_POST['mysitemap']) but use the host from $_site->dbinfo->host above. See

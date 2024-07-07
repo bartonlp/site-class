@@ -12,6 +12,8 @@
  */
 // BLP 2024-04-20 - set mysql timezone!
 
+use SendGrid\Mail\Mail; // Use SendGrid for email
+
 define("PDO_CLASS_VERSION", "1.0.4pdo"); // BLP 2024-01-26 - modify sqlPrepare()
 
 /**
@@ -380,7 +382,7 @@ class dbPdo extends PDO {
   /*
    * my_exceptionhandler
    * Must be a static
-   * BLP 2023-11-12 - moved from ErrorClas.class.php to here.
+   * BLP 2024-07-07 - Uses New SendGrid version for email
    */
 
   public static function my_exceptionhandler($e) {
@@ -403,51 +405,34 @@ class dbPdo extends PDO {
 
     if(!$userId) $userId = "agent: ". $_SERVER['HTTP_USER_AGENT'] . "\n";
 
-    // Email error information to webmaster
-    // During debug set the Error class's $noEmail to ture
+    /* BLP 2024-07-01 - NEW VERSION using sendgrid */
 
     if(ErrorClass::getNoEmail() !== true) {
       $s = $GLOBALS["_site"];
 
-      $recipients = "{\"address\": {\"email\": \"$s->EMAILADDRESS\",\"header_to\": \"$s->EMAILADDRESS\"}}";
+      $email = new Mail();
+
+      $email->setFrom("ErrorMessage@bartonphillips.com");
+      $email->setSubject($from);
+      $email->addTo($s->EMAILADDRESS);
+  
+      $email->addContent("text/plain", 'View this in HTML mode');
+
       $contents = preg_replace(["~\"~", "~\\n~"], ['','<br>'], "$err<br>$userId");
 
-      $post =<<<EOF
-{"recipients": [
-  $recipients
-],
-  "content": {
-    "from": "Exception@mail.bartonphillips.com",
-    "reply_to": "Barton Phillips<barton@bartonphillips.com>",
-    "subject": "$from",
-    "text": "View This in HTML Mode",
-    "html": "$contents"
-  }
-}
-EOF;
+      $email->addContent("text/html", $contents);
 
-      $apikey = file_get_contents("https://bartonphillips.net/sparkpost_api_key.txt"); //("SPARKPOST_API_KEY");
+      $sendgrid = new \SendGrid(getenv('SENDGRID_API_KEY'));
 
-      $options = [
-                  CURLOPT_URL=>"https://api.sparkpost.com/api/v1/transmissions", //?num_rcpt_errors",
-                  CURLOPT_HEADER=>0,
-                  CURLOPT_HTTPHEADER=>[
-                                       "Authorization:$apikey",
-                                       "Content-Type:application/json"
-                                      ],
-                  CURLOPT_POST=>true,
-                  CURLOPT_RETURNTRANSFER=>true,
-                  CURLOPT_POSTFIELDS=>$post
-                                     ];
-      //error_log("Exception: options=" . print_r($options, true));
+      $response = $sendgrid->send($email);
 
-      $ch = curl_init();
-      curl_setopt_array($ch, $options);
-
-      $result = curl_exec($ch);
-      error_log("dbPdo.class.php, Exception: Send To ME (".$s->EMAILADDRESS."). RESULT: $result"); // This should stay!!!
+      if($response->statusCode() > 299) {
+        error_log("dbPod sendgrid error: $response->statusCode(), response header: " . print_r($response->headers()));
+      }
     }
 
+    /* BLP 2024-07-01 - END NEW VERSION */
+    
     // Log the raw error info.
     // This error_log should always stay in!! *****************
     error_log("dbPdo.class.php: $from\n$err\n$userId");
