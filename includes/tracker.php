@@ -70,7 +70,7 @@ CREATE TABLE `dayrecords` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("TRACKER_VERSION", "4.0.3tracker-pdo");
+define("TRACKER_VERSION", "4.0.4tracker-pdo"); // BLP 2024-07-29 - update for Spin, removed mongoDB logic
 
 // If you want the version defined ONLY and no other information.
 
@@ -99,11 +99,18 @@ if($_POST) {
 
   unset($_site);
 
+  // BLP 2024-07-29 - extend logic for my Acer Spine.
+  
   if(str_contains($mysite, "bartonphillips.org")) {
     $port = null;
     if(str_contains($mysite, ":8000")) {
       $port = ":8000";
+    } elseif(str_contains($mystie, ":8080")) {
+      $port = ":8080";
+    } else {
+      throw new Exception("tracker.php bad port for bartonphillips.org, $mysite");
     }
+    
     $mysite = preg_replace("~/var/www/(.*?)/~", "https://bartonphillips.org$port/", $mysite);
   }
 
@@ -119,9 +126,7 @@ if($_POST) {
     exit();
   }
   
-  $_site->dbinfo->host = $tmp; // BLP 2023-09-10 -
-
-  //if($ip != "195.252.232.86") error_log("*** tracker.php: mysite=$mysite, site=$_site->siteName, ip=$ip, host=$tmp");
+  $_site->dbinfo->host = $tmp; // Still use the original dbinfo->host
 }
 
 $_site->noTrack = true; // Don't track or do geo!
@@ -130,7 +135,6 @@ $_site->noGeo = true;
 //$_site->isMeFalse = true; // DEBUG
 
 $S = new Database($_site); // BLP 2023-10-02 - because we use Database noTrack is set and we do not do any tracking.
-//error_log("*** tracker.php \$S=" . var_export($S, true));
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -213,12 +217,6 @@ if($_POST['page'] == 'start') {
   
   $S->sql($sql);
 
-  if(file_exists(__DIR__ ."/mongo.i.php") && !$S->isMe()) {
-    $from = "tracker.php,";
-    $type = "start";
-    require "mongo.i.php";
-  }
-
   echo "Start OK, java=$js";
   exit();
 }
@@ -251,12 +249,6 @@ if($_POST['page'] == 'load') {
   
   $S->sql("update $S->masterdb.tracker set isJavaScript='$java', lasttime=now() where id='$id'");
 
-  if(file_exists(__DIR__ ."/mongo.i.php") && !$S->isMe()) {
-    $from = "tracker.php,";
-    $type = "load";
-    require "mongo.i.php";
-  }
-  
   echo "Load OK, java=$js";
   exit();
 }
@@ -408,15 +400,6 @@ if($_POST['page'] == 'timer') {
 
   $S->sql($sql);
 
-  if(file_exists(__DIR__ ."/mongo.i.php") && !$S->isMe()) {
-    $S->sql("select difftime from $S->masterdb.tracker where id=$id");
-    $diff = $S->fetchrow('num')[0];
-    //error_log("tracker.php diff: $diff");
-    $from = "tracker.php,";
-    $type = "timer";
-    require "mongo.i.php";
-  }
-  
   if(!$S->isMyIp($ip) && $DEBUG_TIMER) error_log("tracker: $id, $ip, $site, $thepage, TIMER2, botAs=$botAs, visits: $visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
 
   echo "Timer OK, visits: $visits, java=$js, finger=$finger";
@@ -588,11 +571,6 @@ if($type = $_GET['page']) {
   }
 
   $S->sql($sql);
-
-  if(file_exists(__DIR__ ."/mongo.i.php") && !$S->isMe()) {
-    $from = "tracker.php,";
-    require "mongo.i.php";
-  }
 
   // If this is csstest we are done.
   

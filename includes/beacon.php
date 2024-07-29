@@ -1,7 +1,9 @@
 <?php
 // Beacon from tracker.js
 
-define("BEACON_VERSION", "4.0.1beacon-pdo"); // BLP 2023-01-30 - Add check for $_site.
+// BLP 2024-07-29 - remove if($_SERVER['HTML_HOST'] == 'bartonphillips.org') { logic. Removed
+// mogoDB logic.
+define("BEACON_VERSION", "4.0.2beacon-pdo"); 
 
 // BLP 2023-01-30 - If you want the version defined ONLY and no other information.
 // If we have a valid $_site or the $__VERSION_ONLY, then just return the version info.
@@ -11,28 +13,14 @@ if($_site || $__VERSION_ONLY === true) {
 }
 
 // The normal beacon starts here.
-// NOTE: we can get $_site from the mysitemap.json at bartonlp.com/otherpages because all of the
-// inportant information is passed to this program via 'php://input'
 
-// If $_site is null try the autoload.php which should be off this directory
-
-if($_SERVER['HTML_HOST'] == 'bartonphillips.org') {
-  $_site = require_once("autoload.php"); // We are at ~/bartonphillips.org/site-class/includes.
-  //error_log("*** beacon.php HP-Envy Server, use autoload.php");  
-  $_site->trackerLocationJs =  'https://bartonphillips.org/site-class/includes/tracker.js';
-  $_site->trackerLocation = 'https://bartonphillips.org/site-class/includes/tracker.php';
-  $_site->beaconLocation = 'https://bartonphillips.org/site-class/includes/beacon.php';
-} else {
-  $_site = require_once(getenv("SITELOADNAME"));
-}
+$_site = require_once(getenv("SITELOADNAME"));
 
 $_site->noTrack = true;
 $_site->noGeo = true;
 
 $S = new Database($_site);
-//error_log("*** beacon.php \$S=" . var_export($S, true));
           
-
 //$DEBUG1 = true; // COUNTED real+1 bots-1
 //$DEBUG2 = true; // After update tracker table
 //$DEBUG3 = true; // visablechange
@@ -154,14 +142,4 @@ if(!$S->isMyIp($ip) && $DEBUG2) {
 }
 if(!$S->isMyIp($ip) && $DEBUG3 && $type == 'visibilitychange') {
   error_log("beacon:  $id, $ip, $site, $thepage, {$msg}3, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
-}
-
-// Do mongo
-
-if(file_exists(__DIR__ ."/mongo.i.php") && !$S->isMe()) {
-  $S->sql("select difftime from $S->masterdb.tracker where id=$id");
-  $diff = $S->fetchrow('num')[0];
-  //error_log("beacon.php diff: $diff");
-  $from = "beacon.php, ";
-  require "mongo.i.php";
 }
