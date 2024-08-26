@@ -14,7 +14,7 @@
 
 use SendGrid\Mail\Mail; // Use SendGrid for email
 
-define("PDO_CLASS_VERSION", "1.0.4pdo"); // BLP 2024-01-26 - modify sqlPrepare()
+define("PDO_CLASS_VERSION", "1.0.5pdo"); // BLP 2024-08-26 - fix sendgrid key at line 425
 
 /**
  * @package PDO Database
@@ -422,7 +422,8 @@ class dbPdo extends PDO {
 
       $email->addContent("text/html", $contents);
 
-      $sendgrid = new \SendGrid(getenv('SENDGRID_API_KEY'));
+      $apiKey = require "/var/www/PASSWORDS/sendgrid-api-key";
+      $sendgrid = new \SendGrid($apiKey);
 
       $response = $sendgrid->send($email);
 
