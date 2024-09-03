@@ -14,7 +14,7 @@
 
 use SendGrid\Mail\Mail; // Use SendGrid for email
 
-define("PDO_CLASS_VERSION", "1.0.5pdo"); // BLP 2024-08-26 - fix sendgrid key at line 425
+define("PDO_CLASS_VERSION", "1.0.6pdo"); // BLP 2024-09-02 - add lastQuery to my_exceptionhandler
 
 /**
  * @package PDO Database
@@ -382,7 +382,6 @@ class dbPdo extends PDO {
   /*
    * my_exceptionhandler
    * Must be a static
-   * BLP 2024-07-07 - Uses New SendGrid version for email
    */
 
   public static function my_exceptionhandler($e) {
@@ -395,6 +394,10 @@ class dbPdo extends PDO {
     $err = html_entity_decode(preg_replace("/<.*?>/", '', $error));
     $err = preg_replace("/^\s*$/", '', $err); // remove blank lines
 
+    // BLP 2024-09-02 - Get dbPdo::$lastQuery
+
+    $last = dbPdo::$lastQuery;
+    
     // Callback to get the user ID if the callback exists
 
     $userId = '';
@@ -418,7 +421,7 @@ class dbPdo extends PDO {
   
       $email->addContent("text/plain", 'View this in HTML mode');
 
-      $contents = preg_replace(["~\"~", "~\\n~"], ['','<br>'], "$err<br>$userId");
+      $contents = preg_replace(["~\"~", "~\\n~"], ['','<br>'], "$err<br>lastQuery: $last<br>$userId");
 
       $email->addContent("text/html", $contents);
 
@@ -436,7 +439,7 @@ class dbPdo extends PDO {
     
     // Log the raw error info.
     // This error_log should always stay in!! *****************
-    error_log("dbPdo.class.php: $from\n$err\n$userId");
+    error_log("dbPdo.class.php: $from\n$err\nlastQuery: $last\n$userId");
     // ********************************************************
 
     if(ErrorClass::getDevelopment() !== true) {
