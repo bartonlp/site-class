@@ -3,7 +3,7 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.0.4database-pdo"); // BLP 2024-02-14 - add Go- to isBot.
+define("DATABASE_CLASS_VERSION", "1.0.5database-pdo"); // BLP 2024-09-05 - moved ip, agent, self and requestUri to dbPdo
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 /**
@@ -22,16 +22,21 @@ class Database extends dbPdo {
   protected $hitCount = 0;
 
   public function __construct(object $s) {
-    // If we have $s items use them otherwise get the defaults
-
-    $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
-    $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'];
-    $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
-    $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
-
     // If no 'dbinfo' (no database) in mysitemap.json set everything so the database is not loaded.
+
+    // BLP 2024-09-05 - moved ip, agent, self and requestUrl to dbPdo and into the nodb section
+    // below if we don't instantiate dbPdo.
     
     if($s->nodb === true || is_null($s->dbinfo)) {
+      // Use the $s values or defaults
+      
+      $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
+      $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'];
+      $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
+      $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
+
+      // Because $s->nodb or $s->dbinfo is null, set up the rest of these
+      
       $s->count = false;
       $s->noTrack = true; // If nodb then noTrack is true also.
       $s->nodb = true;    // Maybe $this->dbinfo was null

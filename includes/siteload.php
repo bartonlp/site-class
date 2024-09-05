@@ -11,10 +11,10 @@ namespace bartonlp\siteload;
 
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
 
-define("SITELOAD_VERSION", "2.2.3siteload-pdo"); 
+define("SITELOAD_VERSION", "2.2.4siteload-pdo"); // BLP 2024-09-05 - use SITECLASS_DIR in require of helper-functions.php
 define("SITECLASS_DIR", __DIR__);
 require_once("/var/www/vendor/autoload.php");
-require_once("/var/www/vendor/bartonlp/site-class/includes/database-engines/helper-functions.php");
+require_once(SITECLASS_DIR . "/database-engines/helper-functions.php");
 
 // If we only want the version info $__VERSION is set. We do this in whatisloaded.class.php.
 // It can also be done to get the versions of beacon.php and tracker.php.

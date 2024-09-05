@@ -14,7 +14,7 @@
 
 use SendGrid\Mail\Mail; // Use SendGrid for email
 
-define("PDO_CLASS_VERSION", "1.0.6pdo"); // BLP 2024-09-02 - add lastQuery to my_exceptionhandler
+define("PDO_CLASS_VERSION", "1.0.7pdo"); // BLP 2024-09-05 - move $s info from Database. BLP 2024-09-02 - add lastQuery to my_exceptionhandler
 
 /**
  * @package PDO Database
@@ -34,7 +34,7 @@ class dbPdo extends PDO {
    * as a side effect opens the database, that is connects the database
    */
 
-  public function __construct(object $siteInfo) {
+  public function __construct(object $s) {
     set_exception_handler("dbPdo::my_exceptionhandler"); // Set up the exception handler
 
     // BLP 2021-03-06 -- New server is in New York
@@ -45,13 +45,20 @@ class dbPdo extends PDO {
     
     header("Accept-CH: Sec-Ch-Ua-Platform,Sec-Ch-Ua-Platform-Version,Sec-CH-UA-Full-Version-List,Sec-CH-UA-Arch,Sec-CH-UA-Model"); 
 
-    // Extract the items from dbinfo. This is $host, $user and maybe $password and $port.
-
-    foreach($siteInfo as $k=>$v) {
+    // BLP 2024-09-05 - Moved from Database
+    $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
+    $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'];
+    $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
+    $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
+    // End Moved
+    
+    foreach($s as $k=>$v) {
       $this->$k = $v;
     }
-    
-    extract((array)$siteInfo->dbinfo); // Cast the $dbinfo object into an array
+
+    // Extract the items from dbinfo. This is $host, $user and maybe $password and $port.
+
+    extract((array)$s->dbinfo); // Cast the $dbinfo object into an array
       
     // $password is almost never present, but it can be under some conditions.
     
