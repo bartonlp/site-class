@@ -5,7 +5,7 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.0.3pdo"); // BLP 2024-04-26 - change base to href from src.
+define("SITE_CLASS_VERSION", "5.0.4pdo"); // BLP 2024-09-07 - remove once form require.
 
 // One class for all my sites
 /**
@@ -41,7 +41,7 @@ class SiteClass extends Database {
    *  The $s is almost always from mysitemap.json.
    *  Once in a while they can be changed by the program instantiating the class.
    *  'count' is default true.
-   *  $s has the values from $_site = require_once(getenv("SITELOADNAME"));
+   *  $s has the values from $_site = require_once getenv("SITELOADNAME");
    *  which uses siteload.php to gets values from mysitemap.json.
    */
   
@@ -268,7 +268,7 @@ EOF;
     // What if headFile is null? Use the Default Head.
 
     if(!is_null($this->headFile)) {
-      if(($p = require_once($this->headFile)) != 1) {
+      if(($p = require($this->headFile)) != 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
         throw new Exception(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1");
