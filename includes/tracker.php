@@ -51,23 +51,15 @@ CREATE TABLE `badplayer` (
   PRIMARY KEY (`ip`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-// BLP 2022-12-06 - Added rcount and bcount
+// BLP 2024-10-02 - removed `real` and visits.
 
-CREATE TABLE `dayrecords` (
-  `fid` int DEFAULT NULL,
-  `ip` varchar(20) DEFAULT NULL,
-  `site` varchar(20) DEFAULT NULL,
-  `page` varchar(255) DEFAULT NULL,
-  `finger` varchar(20) DEFAULT NULL,
-  `jsin` varchar(10) DEFAULT NULL,
-  `jsout` varchar(20) DEFAULT NULL,
-  `dayreal` int DEFAULT NULL,
-  `rcount` int DEFAULT '0',
-  `daybots` int DEFAULT NULL,
-  `dayvisits` int DEFAULT NULL,
-  `visits` smallint DEFAULT '0',
-  `lasttime` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `daycounts` (
+  `site` varchar(50) NOT NULL DEFAULT '',
+  `date` date NOT NULL,
+  `bots` int DEFAULT '0',
+  `lasttime` datetime DEFAULT NULL,
+  PRIMARY KEY (`site`,`date`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 */
 
 define("TRACKER_VERSION", "4.0.4tracker-pdo"); // BLP 2024-07-29 - update for Spin, removed mongoDB logic
