@@ -14,7 +14,7 @@
 
 use SendGrid\Mail\Mail; // Use SendGrid for email
 
-define("PDO_CLASS_VERSION", "1.0.7pdo"); // BLP 2024-09-05 - move $s info from Database. BLP 2024-09-02 - add lastQuery to my_exceptionhandler
+define("PDO_CLASS_VERSION", "1.0.8pdo"); // BLP 2024-10-29 - remove apostrophies in agent 
 
 /**
  * @package PDO Database
@@ -47,7 +47,7 @@ class dbPdo extends PDO {
 
     // BLP 2024-09-05 - Moved from Database
     $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
-    $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'];
+    $s->agent = preg_replace("~'~", '', $s->agent) ?? $_SERVER['HTTP_USER_AGENT']; // BLP 2024-10-29 - remove apostrophies
     $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
     $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
     // End Moved
