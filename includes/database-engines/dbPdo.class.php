@@ -47,9 +47,13 @@ class dbPdo extends PDO {
 
     // BLP 2024-09-05 - Moved from Database
     $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
+<<<<<<< HEAD
     $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'];
     $s->agent = preg_replace("~'~", "", $s->agent); // BLP 2024-10-29 - remove appostrophies.
 
+=======
+    $s->agent = preg_replace("~'~", '', $s->agent) ?? $_SERVER['HTTP_USER_AGENT']; // BLP 2024-10-29 - remove apostrophies
+>>>>>>> 1a9e37f02eb90dcd00109ee8f89bbc4086f6e5be
     $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
     $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
     // End Moved
