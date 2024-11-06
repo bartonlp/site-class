@@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 */
 
-define("TRACKER_VERSION", "4.0.4tracker-pdo"); // BLP 2024-07-29 - update for Spin, removed mongoDB logic
+define("TRACKER_VERSION", "4.0.5tracker-pdo"); // BLP 2024-11-06 - removed the else from if(str_contains($mysite...
 
 // If you want the version defined ONLY and no other information.
 
@@ -95,13 +95,12 @@ if($_POST) {
   
   if(str_contains($mysite, "bartonphillips.org")) {
     $port = null;
+
     if(str_contains($mysite, ":8000")) {
       $port = ":8000";
     } elseif(str_contains($mystie, ":8080")) {
       $port = ":8080";
-    } else {
-      throw new Exception("tracker.php bad port for bartonphillips.org, $mysite");
-    }
+    } // BLP 2024-11-06 - removed the else with a throw.
     
     $mysite = preg_replace("~/var/www/(.*?)/~", "https://bartonphillips.org$port/", $mysite);
   }
