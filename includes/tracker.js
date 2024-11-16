@@ -5,7 +5,7 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.1trackerjs-pdo"; // BLP 2023-08-08 - 
+const TRACKERJS_VERSION = "3.1.2trackerjs-pdo"; // BLP 2024-11-16 - remove mytime logic!
 
 let visits = 0;
 
@@ -115,21 +115,6 @@ jQuery(document).ready(function($) {
               ", isMeFalse: " + isMeFalse + ", phoneImg: " + phoneImg + ", desktopImg: " + desktopImg +
               ", phoneImg2: " + phoneImg2 + ", desktopImg2: " + desktopImg2 + ", mysitemap: " + mysitemap);
   
-  // Get the cookie. If it has 'mytime' we set 'visits' to zero.
-  // Always reset cookie for 10 min.
-
-  visits = (document.cookie.match(/(mytime)=/)) ? 0 : 1; // visits is now set for the rest of the visit.
-  
-  console.log(`cookie mytime: visits=${visits}`);
-  
-  let date = new Date();
-  let value = date.toGMTString();
-  date.setTime(date.getTime() + (60 * 10 * 1000)); // 10 minutes
-  value += "|" + date.toGMTString(); // the current time | time + 10 min.
-
-  console.log("mytime cookie value="+value);
-  document.cookie = "mytime=" + value + "; expires=" + date.toGMTString() + ";path=/"; // expires in 10 min.
-
   // Usually the image stuff (normal and noscript) will
   // happen before 'start' or 'load'.
   // 'start' is done weather or not 'load' happens. As long as
@@ -154,10 +139,10 @@ jQuery(document).ready(function($) {
   /* Lifestyle Events */
   
   const getState = () => {
-    if (document.visibilityState === 'hidden') {
+    if(document.visibilityState === 'hidden') {
       return 'hidden';
     }
-    if (document.hasFocus()) {
+    if(document.hasFocus()) {
       return 'active';
     }
     return 'passive';
@@ -211,7 +196,6 @@ jQuery(document).ready(function($) {
   // On the load event
   
   $(window).on("load", function(e) {
-
     $.ajax({
       url: trackerUrl,
       data: {page: e.type, 'id': lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, mysitemap: mysitemap},
@@ -225,7 +209,7 @@ jQuery(document).ready(function($) {
     });
   });
 
-  // Check for pagehide unload beforeunload nd visibilitychange
+  // Check for pagehide unload beforeunload and visibilitychange
   // These are the exit codes as the page disapears.
 
   $(window).on("visibilitychange pagehide unload beforeunload", function(e) {
@@ -272,10 +256,8 @@ jQuery(document).ready(function($) {
     
     if(tflag) {
       // Don't do the first time. Wait until finger is set.
-      // Wait the then next time which will be in 10 seconds.
+      // Wait for the next time which will be in 10 seconds.
 
-      //console.log("Don't do first time. Set time for 10sec.");
-      
       setTimeout(runtimer, time);
       tflag = false;
       return;
