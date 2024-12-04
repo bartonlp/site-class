@@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 */
 
-define("TRACKER_VERSION", "4.0.5tracker-pdo"); // BLP 2024-11-06 - removed the else from if(str_contains($mysite...
+define("TRACKER_VERSION", "4.0.6tracker-pdo"); // BLP 2024-12-04 - remove $java, replace with $js. See below for date.
 
 // If you want the version defined ONLY and no other information.
 
@@ -183,14 +183,16 @@ if($_POST['page'] == 'start') {
     $visits = 0;
   }
 
-  if($S->sql("select botAs, isJavaScript, hex(isJavaScript), agent from $S->masterdb.tracker where id=$id")) {
-    [$botAs, $java, $js, $agent] = $S->fetchrow('num');
+  // BLP 2024-12-04 - use hex value for $js, remove $java.
+  
+  if($S->sql("select botAs, hex(isJavaScript), agent from $S->masterdb.tracker where id=$id")) {
+    [$botAs, $js, $agent] = $S->fetchrow('num');
   } else { // BLP 2023-02-10 - add for debug
     error_log("tracker: $id, $ip, $site, $thispage,  Select of id=$id failed, time=" . (new DateTime)->format('H:I:s:v'));
   }
   
-  $java |= TRACKER_START; 
-  $js2 = strtoupper(dechex($java));
+  $jj |= TRACKER_START; 
+  $js2 = $js;
 
   if(!$S->isMyIp($ip) && $DEBUG_START) {
     error_log("tracker: $id, $ip, $site, $thepage, START1, botAs=$botAs, referer=$ref, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
@@ -226,12 +228,14 @@ if($_POST['page'] == 'load') {
     exit();
   }
 
-  if($S->sql("select botAs, isJavaScript, hex(isJavaScript), agent from $S->masterdb.tracker where id=$id")) {
-    [$botAs, $java, $js, $agent] = $S->fetchrow('num');
+  // BLP 2024-12-04 - use hex value for $js, remove $java.
+
+  if($S->sql("select botAs, hex(isJavaScript), agent from $S->masterdb.tracker where id=$id")) {
+    [$botAs, $js, $agent] = $S->fetchrow('num');
   }
 
-  $java |= TRACKER_LOAD;
-  $js2 = strtoupper(dechex($java));
+  $js |= TRACKER_LOAD;
+  $js2 = $js;
 
   if(!$S->isMyIp($ip) && $DEBUG_LOAD && strpos($botAs, BOTAS_COUNTED) === false)
     error_log("tracker: $id, $ip, $site, $thepage, LOAD2, botAs=$botAs, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
@@ -258,7 +262,7 @@ if($_POST['page'] == 'onexit') {
   $thepage = $_POST['thepage'];
   $type = $_POST['type'];
 
-  if($S->sql("select botAs, isJavaScript, difftime, agent from $S->masterdb.tracker where id=$id")) {
+  if($S->sql("select botAs, hex(isJavaScript), difftime, agent from $S->masterdb.tracker where id=$id")) {
     [$botAs, $java, $difftime, $agent] = $S->fetchrow('num');
   } else {
     error_log("tracker onexit: NO record for $id, line=" . __LINE__);
@@ -313,14 +317,16 @@ if($_POST['page'] == 'timer') {
     exit();
   }
 
-  if(!$S->sql("select botAs, isJavaScript, hex(isJavaScript), finger, agent, difftime from $S->masterdb.tracker where id=$id")) {
+  // BLP 2024-12-04 - use hex value for $js, remove $java.
+  
+  if(!$S->sql("select botAs, hex(isJavaScript), finger, agent, difftime from $S->masterdb.tracker where id=$id")) {
     error_log("*** tracker.php: No record for id=$id, $site, $thispage");
   }
 
-  [$botAs, $java, $js, $finger, $agent, $difftime] = $S->fetchrow('num');
+  [$botAs, $js, $finger, $agent, $difftime] = $S->fetchrow('num');
 
-  $java |= TRACKER_TIMER; // Or in TIMER
-  $js2 = strtoupper(dechex($java));
+  $js |= TRACKER_TIMER; // Or in TIMER
+  $js2 = $js;
 
   if(!empty($agent)) {
     if($S->isBot($agent)) {
@@ -479,6 +485,8 @@ if($type = $_GET['page']) {
   }
 
   try {
+    // BLP 2024-12-04 - use hex value for $js, remove $java.
+    
     $sql = "select site, ip, page, finger, hex(isJavaScript), agent, botAs from $S->masterdb.tracker where id=$id";
     
     if($S->sql($sql)) {
@@ -528,9 +536,6 @@ if($type = $_GET['page']) {
   if($DEBUG_GET1)
      error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
   
-  
-  $java = hexdec($js); // $java is decimal, $js is HEX.
-
   if(!str_contains($botAs, BOTAS_COUNTED)) {
     $botAs = BOTAS_COUNTED . "," . $botAs; // BLP 2024-03-21 - added
     $botAs = rtrim($botAs, ',');
@@ -542,7 +547,7 @@ if($type = $_GET['page']) {
     // We know that there is an ID but is there a record with that ID?
 
     $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
-                "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', '$java', 'ISABOT_$msg', now(), now()) ".
+                "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', '$js', 'ISABOT_$msg', now(), now()) ".
                 "on duplicate key update error='ISABOT_UPDATE_$msg', botAs='$botAs', lasttime=now()");
 
     // BLP 2023-01-18 - If this is a bot change the image.
@@ -553,11 +558,11 @@ if($type = $_GET['page']) {
 
   if($ref) {
     $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, referer, isJavaScript, error, starttime, lasttime) ".
-           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', {$referer1}'$java', 'NO_UPDATE_$msg', now(), now()) ".
+           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', {$referer1}'$js', 'NO_UPDATE_$msg', now(), now()) ".
            "on duplicate key update isJavaScript=isJavaScript|$or, botAs='$botAs', {$referer2}lasttime=now()";
   } else {
     $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
-           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', '$java', 'NO_UPDATE_$msg', now(), now()) ".
+           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', '$js', 'NO_UPDATE_$msg', now(), now()) ".
            "on duplicate key update isJavaScript=isJavaScript|$or, botAs='$botAs', lasttime=now()";
   }
 
@@ -596,8 +601,8 @@ if($type = $_GET['page']) {
 
   header("Content-Type: $imageType");
 
-  $java |= $or;
-  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, time=" . (new DateTime)->format('H:i:s:v'));
+  $js |= $or;
+  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
 
   echo $imgFinal;
   exit();
