@@ -375,7 +375,7 @@ if($_POST['page'] == 'timer') {
       // BLP 2022-12-06 - Added rcount and bcount
       
       $S->sql("insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, dayvisits, visits, lasttime) ".
-                "values($id, '$ip', '$site', '$thepage', '$finger', '$js', '$js2', '$dayreal', 1, '$daybots', '$dayvisits', '$visits', now()) ".
+                "values($id, '$ip', '$site', '$thepage', '$finger', $js, $js2, '$dayreal', 1, '$daybots', '$dayvisits', '$visits', now()) ".
                 "on duplicate key update finger='$finger', dayreal='$dayreal', rcount=rcount+1, daybots='$daybots', ".
                 "dayvisits='$dayvisits', visits='$visits', lasttime=now()");
     } catch(Exception $e) {
@@ -547,7 +547,7 @@ if($type = $_GET['page']) {
     // We know that there is an ID but is there a record with that ID?
 
     $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
-                "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', '$js', 'ISABOT_$msg', now(), now()) ".
+                "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
                 "on duplicate key update error='ISABOT_UPDATE_$msg', botAs='$botAs', lasttime=now()");
 
     // BLP 2023-01-18 - If this is a bot change the image.
@@ -558,11 +558,11 @@ if($type = $_GET['page']) {
 
   if($ref) {
     $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, referer, isJavaScript, error, starttime, lasttime) ".
-           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', {$referer1}'$js', 'NO_UPDATE_$msg', now(), now()) ".
+           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', {$referer1}, $js, 'NO_UPDATE_$msg', now(), now()) ".
            "on duplicate key update isJavaScript=isJavaScript|$or, botAs='$botAs', {$referer2}lasttime=now()";
   } else {
     $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
-           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', '$js', 'NO_UPDATE_$msg', now(), now()) ".
+           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'NO_UPDATE_$msg', now(), now()) ".
            "on duplicate key update isJavaScript=isJavaScript|$or, botAs='$botAs', lasttime=now()";
   }
 
