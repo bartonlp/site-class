@@ -191,7 +191,7 @@ if($_POST['page'] == 'start') {
     error_log("tracker: $id, $ip, $site, $thispage,  Select of id=$id failed, time=" . (new DateTime)->format('H:I:s:v'));
   }
   
-  $jj |= TRACKER_START; 
+  $js |= TRACKER_START; 
   $js2 = $js;
 
   if(!$S->isMyIp($ip) && $DEBUG_START) {
@@ -200,12 +200,12 @@ if($_POST['page'] == 'start') {
 
   if($ref) {
     $sql = "insert into $S->masterdb.tracker (id, botAs, site, page, ip, agent, referer, starttime, isJavaScript, lasttime) ".
-           "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', '$ref', now(), '$java', now()) ".
-           "on duplicate key update isJavaScript='$java', referer='$ref', lasttime=now()";
+           "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', '$ref', now(), '$js', now()) ".
+           "on duplicate key update isJavaScript='$js', referer='$ref', lasttime=now()";
   } else {
     $sql = "insert into $S->masterdb.tracker (id, botAs, site, page, ip, agent, starttime, isJavaScript, lasttime) ".
-           "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', now(), '$java', now()) ".
-           "on duplicate key update isJavaScript='$java', lasttime=now()";
+           "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', now(), '$js', now()) ".
+           "on duplicate key update isJavaScript='$js', lasttime=now()";
   }
   
   $S->sql($sql);
@@ -242,7 +242,7 @@ if($_POST['page'] == 'load') {
 
   // BLP 2023-03-25 - This should maybe be insert/update?
   
-  $S->sql("update $S->masterdb.tracker set isJavaScript='$java', lasttime=now() where id='$id'");
+  $S->sql("update $S->masterdb.tracker set isJavaScript='$js', lasttime=now() where id='$id'");
 
   echo "Load OK, java=$js";
   exit();
@@ -263,7 +263,7 @@ if($_POST['page'] == 'onexit') {
   $type = $_POST['type'];
 
   if($S->sql("select botAs, hex(isJavaScript), difftime, agent from $S->masterdb.tracker where id=$id")) {
-    [$botAs, $java, $difftime, $agent] = $S->fetchrow('num');
+    [$botAs, $js, $difftime, $agent] = $S->fetchrow('num');
   } else {
     error_log("tracker onexit: NO record for $id, line=" . __LINE__);
   }
@@ -291,10 +291,10 @@ if($_POST['page'] == 'onexit') {
   }
 
   $botAs = empty($botAs) ? "Tor?" : "$botAs,Tor?";
-  $java |= $onexit;
+  $js |= $onexit;
   
   $S->sql("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
-            "isJavaScript='$java', lasttime=now() where id=$id");
+            "isJavaScript='$js', lasttime=now() where id=$id");
 
   error_log("tracker onexit: $id, $site, $ip, $thepage, $msg, $botAs, Maybe Tor?");
   exit();
@@ -392,7 +392,7 @@ if($_POST['page'] == 'timer') {
     $botAs = BOTAS_COUNTED . "," . $botAs;
   }
   
-  $sql = "update $S->masterdb.tracker set botAs='$botAs', isJavaScript='$java', endtime=now(), ".
+  $sql = "update $S->masterdb.tracker set botAs='$botAs', isJavaScript='$js', endtime=now(), ".
          "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id";
 
   $S->sql($sql);
