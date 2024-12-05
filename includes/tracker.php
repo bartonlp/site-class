@@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 */
 
-define("TRACKER_VERSION", "4.0.6tracker-pdo"); // BLP 2024-12-04 - remove $java, replace with $js. See below for date.
+define("TRACKER_VERSION", "4.0.7tracker-pdo"); // BLP 2024-12-05 - BLP 2024-12-04 - remove $java, replace with $js. See below for date.
 
 // If you want the version defined ONLY and no other information.
 
@@ -333,7 +333,7 @@ if($_POST['page'] == 'timer') {
 
   if(!empty($agent)) {
     if($S->isBot($agent)) {
-      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits: $visits, jsin=$java, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
       echo "Timer1: This is a BOT, $id, $ip, $site, $thepage";
       exit(); // If this is a bot don't bother
     }
@@ -349,7 +349,7 @@ if($_POST['page'] == 'timer') {
     if(!empty($botAs)) {
       // This must have match, no-agent, robot, sitemap, or zbot
 
-      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER2, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER2, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
 
       echo "Timer2 This is a BOT, $id, $ip, $site, $thepage, $botAs";
       exit();
@@ -400,7 +400,7 @@ if($_POST['page'] == 'timer') {
 
   $S->sql($sql);
 
-  if(!$S->isMyIp($ip) && $DEBUG_TIMER) error_log("tracker: $id, $ip, $site, $thepage, TIMER2, botAs=$botAs, visits: $visits, jsin=$java, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+  if(!$S->isMyIp($ip) && $DEBUG_TIMER) error_log("tracker: $id, $ip, $site, $thepage, TIMER2, botAs=$botAs, visits: $visits, jsin=$java, jsout=$js2, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
 
   echo "Timer OK, visits: $visits, java=$js, finger=$finger";
   exit();
@@ -489,11 +489,12 @@ if($type = $_GET['page']) {
 
   try {
     // BLP 2024-12-04 - use hex value for $js, remove $java.
+    // BLP 2024-12-05 - Add difftime
     
-    $sql = "select site, ip, page, finger, isJavaScript, agent, botAs from $S->masterdb.tracker where id=$id";
+    $sql = "select site, ip, page, finger, isJavaScript, agent, botAs, difftime from $S->masterdb.tracker where id=$id";
     
     if($S->sql($sql)) {
-      [$site, $ip, $thepage, $finger, $js, $agent, $botAs] = $S->fetchrow('num');
+      [$site, $ip, $thepage, $finger, $js, $agent, $botAs, $difftime] = $S->fetchrow('num');
     } else {
       throw new Exception("tracker: NO RECORD for id=$id, type=$msg", -100); // This will be caught below.
     }
@@ -607,7 +608,10 @@ if($type = $_GET['page']) {
   header("Content-Type: $imageType");
 
   $js |= $or;
-  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, time=" . (new DateTime)->format('H:i:s:v'));
+
+  // BLP 2024-12-05 - use difftime
+  
+  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, difftime=$difftime, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
 
   echo $imgFinal;
   exit();
