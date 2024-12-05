@@ -185,17 +185,18 @@ if($_POST['page'] == 'start') {
 
   // BLP 2024-12-04 - use hex value for $js, remove $java.
   
-  if($S->sql("select botAs, hex(isJavaScript), agent from $S->masterdb.tracker where id=$id")) {
+  if($S->sql("select botAs, isJavaScript, agent from $S->masterdb.tracker where id=$id")) {
     [$botAs, $js, $agent] = $S->fetchrow('num');
   } else { // BLP 2023-02-10 - add for debug
     error_log("tracker: $id, $ip, $site, $thispage,  Select of id=$id failed, time=" . (new DateTime)->format('H:I:s:v'));
   }
-  
+
+  $java = dechex($js);
   $js |= TRACKER_START; 
-  $js2 = $js;
+  $js2 = dechex($js);
 
   if(!$S->isMyIp($ip) && $DEBUG_START) {
-    error_log("tracker: $id, $ip, $site, $thepage, START1, botAs=$botAs, referer=$ref, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+    error_log("tracker: $id, $ip, $site, $thepage, START1, botAs=$botAs, referer=$ref, jsin=$java, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
   }
 
   if($ref) {
@@ -230,15 +231,16 @@ if($_POST['page'] == 'load') {
 
   // BLP 2024-12-04 - use hex value for $js, remove $java.
 
-  if($S->sql("select botAs, hex(isJavaScript), agent from $S->masterdb.tracker where id=$id")) {
+  if($S->sql("select botAs, isJavaScript, agent from $S->masterdb.tracker where id=$id")) {
     [$botAs, $js, $agent] = $S->fetchrow('num');
   }
 
+  $java = dechex($js);
   $js |= TRACKER_LOAD;
-  $js2 = $js;
+  $js2 = dechex($js);
 
   if(!$S->isMyIp($ip) && $DEBUG_LOAD && strpos($botAs, BOTAS_COUNTED) === false)
-    error_log("tracker: $id, $ip, $site, $thepage, LOAD2, botAs=$botAs, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+    error_log("tracker: $id, $ip, $site, $thepage, LOAD2, botAs=$botAs, jsin=$java, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
 
   // BLP 2023-03-25 - This should maybe be insert/update?
   
@@ -262,7 +264,7 @@ if($_POST['page'] == 'onexit') {
   $thepage = $_POST['thepage'];
   $type = $_POST['type'];
 
-  if($S->sql("select botAs, hex(isJavaScript), difftime, agent from $S->masterdb.tracker where id=$id")) {
+  if($S->sql("select botAs, isJavaScript, difftime, agent from $S->masterdb.tracker where id=$id")) {
     [$botAs, $js, $difftime, $agent] = $S->fetchrow('num');
   } else {
     error_log("tracker onexit: NO record for $id, line=" . __LINE__);
@@ -319,18 +321,19 @@ if($_POST['page'] == 'timer') {
 
   // BLP 2024-12-04 - use hex value for $js, remove $java.
   
-  if(!$S->sql("select botAs, hex(isJavaScript), finger, agent, difftime from $S->masterdb.tracker where id=$id")) {
+  if(!$S->sql("select botAs, isJavaScript, finger, agent, difftime from $S->masterdb.tracker where id=$id")) {
     error_log("*** tracker.php: No record for id=$id, $site, $thispage");
   }
 
   [$botAs, $js, $finger, $agent, $difftime] = $S->fetchrow('num');
 
+  $java = dechex($js);
   $js |= TRACKER_TIMER; // Or in TIMER
-  $js2 = $js;
+  $js2 = dechex($js);
 
   if(!empty($agent)) {
     if($S->isBot($agent)) {
-      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits: $visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits: $visits, jsin=$java, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
       echo "Timer1: This is a BOT, $id, $ip, $site, $thepage";
       exit(); // If this is a bot don't bother
     }
@@ -346,7 +349,7 @@ if($_POST['page'] == 'timer') {
     if(!empty($botAs)) {
       // This must have match, no-agent, robot, sitemap, or zbot
 
-      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER2, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
 
       echo "Timer2 This is a BOT, $id, $ip, $site, $thepage, $botAs";
       exit();
@@ -370,12 +373,12 @@ if($_POST['page'] == 'timer') {
       
       $sql = "update $S->masterdb.daycounts set `real`='$dayreal', bots='$daybots', visits='$dayvisits' where date=current_date() and site='$site'";
       $S->sql($sql);
-      if($DEBUG_DAYCOUNT) error_log("tracker: $id, $ip, $site, $thepage, COUNTED_TIMER, real+1, visits=$visits, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, time=" . (new DateTime)->format('H:i:s:v'));
+      if($DEBUG_DAYCOUNT) error_log("tracker: $id, $ip, $site, $thepage, COUNTED_TIMER, real+1, visits=$visits, jsin=$java, jsout=$js2, real=$dayreal, bots=$daybots, time=" . (new DateTime)->format('H:i:s:v'));
 
       // BLP 2022-12-06 - Added rcount and bcount
       
       $S->sql("insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, dayvisits, visits, lasttime) ".
-                "values($id, '$ip', '$site', '$thepage', '$finger', $js, $js2, '$dayreal', 1, '$daybots', '$dayvisits', '$visits', now()) ".
+                "values($id, '$ip', '$site', '$thepage', '$finger', $java, $js2, '$dayreal', 1, '$daybots', '$dayvisits', '$visits', now()) ".
                 "on duplicate key update finger='$finger', dayreal='$dayreal', rcount=rcount+1, daybots='$daybots', ".
                 "dayvisits='$dayvisits', visits='$visits', lasttime=now()");
     } catch(Exception $e) {
@@ -397,7 +400,7 @@ if($_POST['page'] == 'timer') {
 
   $S->sql($sql);
 
-  if(!$S->isMyIp($ip) && $DEBUG_TIMER) error_log("tracker: $id, $ip, $site, $thepage, TIMER2, botAs=$botAs, visits: $visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+  if(!$S->isMyIp($ip) && $DEBUG_TIMER) error_log("tracker: $id, $ip, $site, $thepage, TIMER2, botAs=$botAs, visits: $visits, jsin=$java, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
 
   echo "Timer OK, visits: $visits, java=$js, finger=$finger";
   exit();
@@ -487,7 +490,7 @@ if($type = $_GET['page']) {
   try {
     // BLP 2024-12-04 - use hex value for $js, remove $java.
     
-    $sql = "select site, ip, page, finger, hex(isJavaScript), agent, botAs from $S->masterdb.tracker where id=$id";
+    $sql = "select site, ip, page, finger, isJavaScript, agent, botAs from $S->masterdb.tracker where id=$id";
     
     if($S->sql($sql)) {
       [$site, $ip, $thepage, $finger, $js, $agent, $botAs] = $S->fetchrow('num');
@@ -531,10 +534,12 @@ if($type = $_GET['page']) {
     }
   }
 
+  $java = dechex($js);
+  
   // If we get here the $ip, $site, $thepage and $agent are all valid.
 
   if($DEBUG_GET1)
-     error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
+     error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, time=" . (new DateTime)->format('H:i:s:v'));
   
   if(!str_contains($botAs, BOTAS_COUNTED)) {
     $botAs = BOTAS_COUNTED . "," . $botAs; // BLP 2024-03-21 - added
@@ -602,7 +607,7 @@ if($type = $_GET['page']) {
   header("Content-Type: $imageType");
 
   $js |= $or;
-  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$js, time=" . (new DateTime)->format('H:i:s:v'));
+  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, time=" . (new DateTime)->format('H:i:s:v'));
 
   echo $imgFinal;
   exit();
