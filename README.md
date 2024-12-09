@@ -1,4 +1,4 @@
-# SiteClass Verion 5.0.0 PDO
+# SiteClass Verion 5+ PDO
 
 **SiteClass** is a PHP mini framework for my websites. It is customized for my websites and will be hard for someone else to use it.
 I have a new class, **SimpleSiteClass** that is designed for anyone. 
@@ -29,6 +29,6 @@ This project has several parts that can function standalone or combined.
 
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
 [My Website](http://www.bartonphillips.com)  
-Copyright &copy; 2024 Barton Phillips  
-Last Modified January 6, 2024
+Copyright &copy; 2025 Barton Phillips  
+Last Modified January 1, 2025
 
