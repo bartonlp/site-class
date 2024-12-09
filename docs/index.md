@@ -11,8 +11,8 @@ SiteClass class mini framework for my websites.
 <div class="downloads">
   <span>Downloads:</span>
   <ul>
-    <li><a href="https://github.com/bartonlp/site-class/zipball/master" class="button">ZIP</a></li>
-    <li><a href="https://github.com/bartonlp/site-class/tarball/master" class="button">TAR</a></li>
+    <li><a href="https://github.com/bartonlp/site-class/zipball/main" class="button">ZIP</a></li>
+    <li><a href="https://github.com/bartonlp/site-class/tarball/main" class="button">TAR</a></li>
   </ul>
 </div>
 </div><!-- end banner -->
@@ -23,7 +23,7 @@ SiteClass class mini framework for my websites.
   </nav>
 <section>
 
-# SiteClass Version 4.0.0
+# SiteClass Version 5.0.4pdo
   
 **SiteClass** is a PHP mini framework for my websites.
 
@@ -40,7 +40,7 @@ Documentation for
 
 This project has several parts that can function standalone or combined.
 
-- Database.class.php : provides a wrapper for several different database
+- Database.class.php : provides a wrapper for twp different database (MySql, Sqlite3)
   engines.
 - dbTables.class.php : uses the functionality of Database.class.php to
   make creating tables easy.
@@ -48,17 +48,17 @@ This project has several parts that can function standalone or combined.
 - SiteClass.class.php : tools for making creating a site a little
   easier. The class provides methods to help with headers, banners,
   footers and more.
-- dbMysqli.class.php : provides a wrapper for the PHP mysqli class and
-  has been rigorously tested.
+- dbPdo.class.php : provides a wrapper for the MySqli and Sqlite3 and has been rigorously tested.
 
 ## Disclamer
 
 To start, this framework is meant for Linux not Windows. I don't use
 Windows, like it or have it, so nothing has been tried on a Windows
-server.
+server. Everything will run on the Chrome, Firefox and Safari browsers for Windows.
 
 I use Linux Ubuntu 22.04 which is a Debian derivative. I have not tried
-this package on any distributions that do not evolve from Debian.
+this package on any distributions that do not evolve from Debian. I use Apache and have not tried
+the framework on any other HTTP server. This framework is designed to work with PHP 8+.
 
 ## Install
 
@@ -97,7 +97,7 @@ following:
 echo "
 {
     "require": {
-        "bartonlp/site-class": "dev-master"
+        "bartonlp/site-class": "dev-main"
     }
 }" > composer.json
 ```
@@ -107,33 +107,29 @@ composer install
 ```
 **OR** you can just run
 ``` sourceCode
-composer require bartonlp/site-class:dev-master
+composer require bartonlp/site-class:dev-main
 ```
 which will create the *composer.json* for you and load the package like
 *composer install* above.  
 In your PHP file add
 ``` sourceCode
-$_site = require_once($PATH_TO_VENDOR . '/vendor/bartonlp/site-class/includes/siteload.php');
+$_site = require_once "$PATH_TO_VENDOR" . "/vendor/bartonlp/site-class/includes/siteload.php";
 ```
-where *\$PATH_TO_VENDOR* is the path to the *vendor* directory.
+where *\$PATH_TO_VENDOR* is the path to the *vendor* directory that composer creates.
 
-There are some example files in the *examples* directory at
-*\$PATH_TO_VENDOR/vendor/bartonlp/site-class/examples*. There is more
-documentation in the */docs* directory.
+There is more documentation in the */docs* directory.
 
 ## Further Documentation
 
 - [dbTables Documentation](dbTables.html)
 - [SiteClass and Database Methods](siteclass.html)
 - [Additional Files User by SiteClass](files.html)
-- [Page Counting, Analysis and Tracking](analysis.html)
-- [Examples Readme](examplereadme.html)
 
 ## Contact me
 
 Barton Phillips : <bartonphillips@gmail.com>  
-Copyright © 2024 Barton Phillips  
-Last modified January 6, 2024
+Copyright © 2025 Barton Phillips  
+Last modified January 1, 2025
 </section>
 <footer>
 Project maintained by [Barton Phillips](https://github.com/bartonlp)

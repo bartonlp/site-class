@@ -206,7 +206,7 @@ class dbPdo extends PDO {
 
       $m = array_merge($m, $mm); // both arrays should look the same so merge them.
 
-      // Check if we have thte same number of named params as values.
+      // Check if we have the same number of named params as values.
       
       if(count($m) != count($values)) {
         echo "Error3 Count error<br>";

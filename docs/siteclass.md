@@ -1,4 +1,4 @@
-# SiteClass and Database Methods (version 3.8.0 and 3.0.0)
+# SiteClass (version 5.0.4pdo), Database and dbPdo Methods
 
 ---
 
@@ -11,7 +11,8 @@ The ones most used have some documentation with them.
 * public function setSiteCookie(string $cookie, string $value, int $expire, string $path="/", ?string $thedomain=null,  
 ?bool $secure=null, ?bool $httponly=null, ?string $samesite=null):bool
 * public function getIp():string
-* public function getPageTopBottom():array   
+* public function getPageTopBottom():array
+
 I usually have this code at the top of my page:
 ```php
 $_site = require_once(getenv("SITELOADNAME"));
@@ -39,7 +40,7 @@ getPageTopBottom() calls getPageHead(), getPageBanner(), getPageFooter().
 * public function \__toString():string  
 * There are a number of 'protected' methods and properties that can be used in a child class.
 
-## Database methods:
+## Database and dbPdo methods:
 
 * constructor
 * public function getDb():object. Get the database object.
@@ -65,27 +66,18 @@ After an 'insert' this method returns the new row's primary key id.
 * public function getResult()  
 Returns the result object from the last 'query'. Usually not needed.
 * public function escape($string)
-* public function escapeDeep($value)
 * public function getNumRows($result=null)
-* public function prepare($query)  
-I hardly ever use prepare(), bindParam(), bindResults() or execute() so they are not as well tested as the other methods.
-* public function bindParam($format)
-* public function bindResults($format)
-* public function execute()
 * public function getErrorInfo()
 
 ---
 
-[Examples](examplereadme.html)  
 [dbTables](dbTables.html)  
-[SiteClass Methods](siteclass.html)  
 [Additional Files](files.html)  
-[Analysis and Tracking](analysis.html)  
 [Index](index.html)
 
 ## Contact Me
 
 Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a>
-Copyright &copy; 2024 Barton Phillips  
+Copyright &copy; 2025 Barton Phillips  
 Project maintained by [bartonlp](https://github.com/bartonlp)  
-Last modified January 6, 2024
+Last modified January 1, 2025

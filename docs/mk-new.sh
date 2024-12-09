@@ -18,10 +18,10 @@ pagetitle="SiteClass Methods";
 pagetitle="Additional Files";
 echo "files";
 /usr/bin/pandoc -f gfm -t html5 -Vpagetitle="$pagetitle" --css=pandoc.css --standalone files.md -o files.html
-pagetitle="Analysis";
-echo "analysis";
-/usr/bin/pandoc -f gfm -t html5 -Vpagetitle="$pagetitle" --css=pandoc.css --standalone analysis.md -o analysis.html
-pagetitle="examplereadme";
-echo "examplereadme";
-/usr/bin/pandoc -f gfm -t html5 -Vpagetitle="$pagetitle" --css=pandoc.css --standalone examplereadme.md -o examplereadme.html
+#pagetitle="Analysis";
+#echo "analysis";
+#/usr/bin/pandoc -f gfm -t html5 -Vpagetitle="$pagetitle" --css=pandoc.css --standalone analysis.md -o analysis.html
+#pagetitle="examplereadme";
+#echo "examplereadme";
+#/usr/bin/pandoc -f gfm -t html5 -Vpagetitle="$pagetitle" --css=pandoc.css --standalone examplereadme.md -o examplereadme.html
 

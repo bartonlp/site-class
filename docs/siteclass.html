@@ -8,24 +8,13 @@
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
-    /* CSS for syntax highlighting */
+    ul.task-list{list-style: none;}
     pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
     pre > code.sourceCode > span:empty { height: 1.2em; }
-    .sourceCode { overflow: visible; }
     code.sourceCode > span { color: inherit; text-decoration: inherit; }
     div.sourceCode { margin: 1em 0; }
     pre.sourceCode { margin: 0; }
@@ -60,7 +49,7 @@
     code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
     code span.at { color: #7d9029; } /* Attribute */
     code span.bn { color: #40a070; } /* BaseN */
-    code span.bu { color: #008000; } /* BuiltIn */
+    code span.bu { } /* BuiltIn */
     code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
     code span.ch { color: #4070a0; } /* Char */
     code span.cn { color: #880000; } /* Constant */
@@ -73,7 +62,7 @@
     code span.ex { } /* Extension */
     code span.fl { color: #40a070; } /* Float */
     code span.fu { color: #06287e; } /* Function */
-    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.im { } /* Import */
     code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
     code span.kw { color: #007020; font-weight: bold; } /* Keyword */
     code span.op { color: #666666; } /* Operator */
@@ -87,44 +76,34 @@
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
   <link rel="stylesheet" href="pandoc.css" />
-  <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
-  <![endif]-->
 </head>
 <body>
-<h1 id="siteclass-and-database-methods-version-380-and-300">SiteClass
-and Database Methods (version 3.8.0 and 3.0.0)</h1>
+<h1 id="siteclass-version-504pdo-database-and-dbpdo-methods">SiteClass (version 5.0.4pdo), Database and dbPdo Methods</h1>
 <hr />
 <h2 id="siteclass-methods">SiteClass methods:</h2>
-<p>While there are a number of methods for each of the major classes
-there are really only a small handful you will use on a regular bases.
-The ones most used have some documentation with them.</p>
+<p>While there are a number of methods for each of the major classes there are really only a small handful you will use on a regular bases. The ones most used have some documentation with them.</p>
 <ul>
 <li>constructor</li>
-<li>public function setSiteCookie(string $cookie, string $value, int
-$expire, string $path="/", ?string $thedomain=null,<br />
-?bool $secure=null, ?bool $httponly=null, ?string
-$samesite=null):bool</li>
+<li>public function setSiteCookie(string $cookie, string $value, int $expire, string $path="/", ?string $thedomain=null,<br />
+?bool $secure=null, ?bool $httponly=null, ?string $samesite=null):bool</li>
 <li>public function getIp():string</li>
-<li>public function getPageTopBottom():array<br />
-I usually have this code at the top of my page:</li>
+<li>public function getPageTopBottom():array</li>
 </ul>
-<div class="sourceCode" id="cb1"><pre
-class="sourceCode php"><code class="sourceCode php"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">$_site</span> <span class="op">=</span> <span class="kw">require_once</span>(<span class="fu">getenv</span>(<span class="st">&quot;SITELOADNAME&quot;</span>))<span class="ot">;</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="va">$S</span> <span class="op">=</span> <span class="kw">new</span> <span class="cn">S</span>iteClass(<span class="va">$_site</span>)<span class="ot">;</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Set the properties of $S</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="va">$S</span>-&gt;title <span class="op">=</span> <span class="st">&quot;test page&quot;</span><span class="ot">;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="va">$S</span>-&gt;banner <span class="op">=</span> <span class="st">&quot;&lt;h1&gt;</span><span class="va">$S</span>-&gt;title<span class="st">&lt;/h1&gt;&quot;</span><span class="ot">;</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="va">$S</span>-&gt;css <span class="op">=</span> <span class="st">&quot;h1 { color: red; }&quot;</span><span class="ot">;</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="va">$S</span>-&gt;b_inlineScript <span class="op">=</span> <span class="st">&quot;console.log(&#39;this is a test&#39;)&quot;</span><span class="ot">;</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>[<span class="va">$top</span><span class="ot">,</span> <span class="va">$footer</span>] <span class="op">=</span> <span class="va">$S</span>-&gt;getPageTopBottom()<span class="ot">;</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">echo</span> <span class="ss">&lt;&lt;&lt;EOF</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="va">$top</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="st">&lt;p&gt;Some test stuff&lt;/p&gt;</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="va">$footer</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="ss">EOF</span>;</span></code></pre></div>
-<p>getPageTopBottom() calls getPageHead(), getPageBanner(),
-getPageFooter().</p>
+<p>I usually have this code at the top of my page:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">$_site</span> = <span class="kw">require_once</span><span class="ot">(</span><span class="fu">getenv</span><span class="ot">(</span><span class="st">&quot;SITELOADNAME&quot;</span><span class="ot">));</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="kw">$S</span> = <span class="kw">new</span> SiteClass<span class="ot">(</span><span class="kw">$_site</span><span class="ot">);</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="co">// Set the properties of $S</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a><span class="kw">$S</span>-&gt;title = <span class="st">&quot;test page&quot;</span><span class="ot">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="kw">$S</span>-&gt;banner = <span class="st">&quot;&lt;h1&gt;</span><span class="kw">$S</span><span class="st">-&gt;title&lt;/h1&gt;&quot;</span><span class="ot">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="kw">$S</span>-&gt;css = <span class="st">&quot;h1 { color: red; }&quot;</span><span class="ot">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a><span class="kw">$S</span>-&gt;b_inlineScript = <span class="st">&quot;console.log(&#39;this is a test&#39;)&quot;</span><span class="ot">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a><span class="ot">[</span><span class="kw">$top</span><span class="ot">,</span> <span class="kw">$footer</span><span class="ot">]</span> = <span class="kw">$S</span>-&gt;getPageTopBottom<span class="ot">();</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a><span class="kw">echo</span> <span class="kw">&lt;&lt;&lt;EOF</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a><span class="kw">$top</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a><span class="st">&lt;p&gt;Some test stuff&lt;/p&gt;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a><span class="kw">$footer</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a><span class="st">EOF;</span></span></code></pre></div>
+<p>getPageTopBottom() calls getPageHead(), getPageBanner(), getPageFooter().</p>
 <ul>
 <li>public function getPageTop():string</li>
 <li>public function getPageHead():string</li>
@@ -132,60 +111,38 @@ getPageFooter().</p>
 <li>public function getPageFooter():string</li>
 <li>public function getDoctype():string</li>
 <li>public function __toString():string</li>
-<li>There are a number of 'protected' methods and properties that can be
-used in a child class.</li>
+<li>There are a number of 'protected' methods and properties that can be used in a child class.</li>
 </ul>
-<h2 id="database-methods">Database methods:</h2>
+<h2 id="database-and-dbpdo-methods">Database and dbPdo methods:</h2>
 <ul>
 <li>constructor</li>
 <li>public function getDb():object. Get the database object.</li>
 <li>public function setDb($db). Set the database object.</li>
-<li>public function query(<span
-class="math inline"><em>s</em><em>q</em><em>l</em>)<em>T</em><em>h</em><em>i</em><em>s</em><em>i</em><em>s</em><em>t</em><em>h</em><em>e</em><em>w</em><em>o</em><em>r</em><em>k</em><em>h</em><em>o</em><em>u</em><em>r</em><em>s</em><em>e</em><em>o</em><em>f</em><em>t</em><em>h</em><em>e</em><em>d</em><em>a</em><em>t</em><em>a</em><em>b</em><em>a</em><em>s</em><em>e</em>.<em>I</em><em>t</em><em>i</em><em>s</em><em>u</em><em>s</em><em>e</em><em>d</em><em>f</em><em>o</em><em>r</em>′<em>s</em><em>e</em><em>l</em><em>e</em><em>c</em><em>t</em>′, ′<em>u</em><em>p</em><em>d</em><em>a</em><em>t</em><em>e</em>′, ′<em>i</em><em>n</em><em>s</em><em>e</em><em>r</em><em>t</em>′<em>a</em><em>n</em><em>d</em><em>b</em><em>a</em><em>s</em><em>i</em><em>c</em><em>a</em><em>l</em><em>l</em><em>y</em><em>a</em><em>n</em><em>y</em><em>t</em><em>h</em><em>i</em><em>n</em><em>g</em><em>y</em><em>o</em><em>u</em><em>n</em><em>e</em><em>e</em><em>d</em><em>t</em><em>o</em><em>d</em><em>o</em><em>l</em><em>i</em><em>k</em><em>e</em>′<em>d</em><em>r</em><em>o</em><em>p</em>′, ′<em>a</em><em>l</em><em>t</em><em>e</em><em>r</em>′<em>e</em><em>t</em><em>c</em>.*</span>sql*
-is the sql statement.</li>
+<li>public function query($sql)<br />
+This is the workhourse of the database. It is used for 'select', 'update', 'insert' and basically anything you need to do like 'drop', 'alter' etc. <em>$sql</em> is the sql statement.</li>
 <li>public function fetchrow($result=null, $type="both")<br />
-Probably the second most used method. If it follows the 'query' the
-$result is not needed. The only time $result is needed is if there are
-other queries in a while loop. In that case you need to get the result
-of the query by calling the getResult() method before running the while
-loop.<br />
-The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only
-an associative array, while 'num' return a numeric array.<br />
+Probably the second most used method. If it follows the 'query' the $result is not needed. The only time $result is needed is if there are other queries in a while loop. In that case you need to get the result of the query by calling the getResult() method before running the while loop.<br />
+The $type can be 'assoc', 'num' or default 'both'. 'assoc' returns only an associative array, while 'num' return a numeric array.<br />
 I usually use a numeric array with</li>
 </ul>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode php"><code class="sourceCode php"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span>([<span class="va">$name</span><span class="ot">,</span> <span class="va">$email</span>] <span class="op">=</span> <span class="va">$S</span>-&gt;fetchrow(<span class="st">&#39;num&#39;</span>)) { ... }</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode php"><code class="sourceCode php"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="kw">while</span><span class="ot">([</span><span class="kw">$name</span><span class="ot">,</span> <span class="kw">$email</span><span class="ot">]</span> = <span class="kw">$S</span>-&gt;fetchrow<span class="ot">(</span><span class="st">&#39;num&#39;</span><span class="ot">))</span> { <span class="st">...</span> }</span></code></pre></div>
 <ul>
 <li>public function queryfetch($query, $retarray=false)</li>
 <li>public function getLastInsertId()<br />
 After an 'insert' this method returns the new row's primary key id.</li>
 <li>public function getResult()<br />
-Returns the result object from the last 'query'. Usually not
-needed.</li>
+Returns the result object from the last 'query'. Usually not needed.</li>
 <li>public function escape($string)</li>
-<li>public function escapeDeep($value)</li>
 <li>public function getNumRows($result=null)</li>
-<li>public function prepare($query)<br />
-I hardly ever use prepare(), bindParam(), bindResults() or execute() so
-they are not as well tested as the other methods.</li>
-<li>public function bindParam($format)</li>
-<li>public function bindResults($format)</li>
-<li>public function execute()</li>
 <li>public function getErrorInfo()</li>
 </ul>
 <hr />
-<p><a href="examplereadme.html">Examples</a><br />
-<a href="dbTables.html">dbTables</a><br />
-<a href="siteclass.html">SiteClass Methods</a><br />
+<p><a href="dbTables.html">dbTables</a><br />
 <a href="files.html">Additional Files</a><br />
-<a href="analysis.html">Analysis and Tracking</a><br />
 <a href="index.html">Index</a></p>
 <h2 id="contact-me">Contact Me</h2>
-<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com"><a
-href="mailto:bartonphillips@gmail.com">bartonphillips@gmail.com</a></a>
-Copyright © 2024 Barton Phillips<br />
-Project maintained by <a
-href="https://github.com/bartonlp">bartonlp</a><br />
-Last modified January 6, 2024</p>
+<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com"><a href="mailto:bartonphillips@gmail.com">bartonphillips@gmail.com</a></a> Copyright © 2025 Barton Phillips<br />
+Project maintained by <a href="https://github.com/bartonlp">bartonlp</a><br />
+Last modified January 1, 2025</p>
 </body>
 </html>

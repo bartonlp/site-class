@@ -8,24 +8,14 @@
   <style>
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: min(4vw, 1.5em);}
-    div.column{flex: auto; overflow-x: auto;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    /* The extra [class] is a hack that increases specificity enough to
-       override a similar rule in reveal.js */
-    ul.task-list[class]{list-style: none;}
-    ul.task-list li input[type="checkbox"] {
-      font-size: inherit;
-      width: 0.8em;
-      margin: 0 0.8em 0.2em -1.6em;
-      vertical-align: middle;
-    }
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    ul.task-list{list-style: none;}
   </style>
-  <link rel="stylesheet" href="./stylesheets/styles.css" />
-  <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
-  <![endif]-->
+  <link rel="stylesheet" href="stylesheets/styles.css" />
+  <script src="https://code.jquery.com/jquery-3.6.3.js"</script>
+  <script src="javascripts/main.js"></script>
 </head>
 <body>
 <header>
@@ -40,8 +30,8 @@
 <div class="downloads">
   <span>Downloads:</span>
   <ul>
-    <li><a href="https://github.com/bartonlp/site-class/zipball/master" class="button">ZIP</a></li>
-    <li><a href="https://github.com/bartonlp/site-class/tarball/master" class="button">TAR</a></li>
+    <li><a href="https://github.com/bartonlp/site-class/zipball/main" class="button">ZIP</a></li>
+    <li><a href="https://github.com/bartonlp/site-class/tarball/main" class="button">TAR</a></li>
   </ul>
 </div>
 </div><!-- end banner -->
@@ -52,99 +42,60 @@
   </nav>
 <section>
 
-<h1 id="siteclass-version-400">SiteClass Version 4.0.0</h1>
-<p><strong>SiteClass</strong> is a PHP mini framework for my
-websites.</p>
-<p>I have another class called <strong>SimpleSiteClass</strong> that is
-intended for general use. It has most of the features without being
-designed just for my websites.</p>
-<p>It is located at <a
-href="https://github.com/bartonlp/simple-site-class">githum.com/bartonlp/simple-site-class</a>.<br />
-Documentation for <a
-href="https://bartonlp.github.io/simple-site-class/"><strong>SimpleSiteClass</strong></a>.</p>
-<h2 id="still-interested-in-siteclass-read-on">Still Interested In
-<strong>SiteClass</strong>? Read On.</h2>
-<p>This project has several parts that can function standalone or
-combined.</p>
+<h1 id="siteclass-version-504pdo">SiteClass Version 5.0.4pdo</h1>
+<p><strong>SiteClass</strong> is a PHP mini framework for my websites.</p>
+<p>I have another class called <strong>SimpleSiteClass</strong> that is intended for general use. It has most of the features without being designed just for my websites.</p>
+<p>It is located at <a href="https://github.com/bartonlp/simple-site-class">githum.com/bartonlp/simple-site-class</a>.<br />
+Documentation for <a href="https://bartonlp.github.io/simple-site-class/"><strong>SimpleSiteClass</strong></a>.</p>
+<h2 id="still-interested-in-siteclass-read-on">Still Interested In <strong>SiteClass</strong>? Read On.</h2>
+<p>This project has several parts that can function standalone or combined.</p>
 <ul>
-<li>Database.class.php : provides a wrapper for several different
-database engines.</li>
-<li>dbTables.class.php : uses the functionality of Database.class.php to
-make creating tables easy.</li>
+<li>Database.class.php : provides a wrapper for twp different database (MySql, Sqlite3) engines.</li>
+<li>dbTables.class.php : uses the functionality of Database.class.php to make creating tables easy.</li>
 <li>ErrorClass.class.php : Error and Exception classes</li>
-<li>SiteClass.class.php : tools for making creating a site a little
-easier. The class provides methods to help with headers, banners,
-footers and more.</li>
-<li>dbMysqli.class.php : provides a wrapper for the PHP mysqli class and
-has been rigorously tested.</li>
+<li>SiteClass.class.php : tools for making creating a site a little easier. The class provides methods to help with headers, banners, footers and more.</li>
+<li>dbPdo.class.php : provides a wrapper for the MySqli and Sqlite3 and has been rigorously tested.</li>
 </ul>
 <h2 id="disclamer">Disclamer</h2>
-<p>To start, this framework is meant for Linux not Windows. I don't use
-Windows, like it or have it, so nothing has been tried on a Windows
-server.</p>
-<p>I use Linux Ubuntu 22.04 which is a Debian derivative. I have not
-tried this package on any distributions that do not evolve from
-Debian.</p>
+<p>To start, this framework is meant for Linux not Windows. I don't use Windows, like it or have it, so nothing has been tried on a Windows server. Everything will run on the Chrome, Firefox and Safari browsers for Windows.</p>
+<p>I use Linux Ubuntu 22.04 which is a Debian derivative. I have not tried this package on any distributions that do not evolve from Debian. I use Apache and have not tried the framework on any other HTTP server. This framework is designed to work with PHP 8+.</p>
 <h2 id="install">Install</h2>
 <p>There are several ways to install this project.</p>
 <h3 id="download-the-zip-file">Download The ZIP File</h3>
-<p>Download the ZIP file from GitHub. Expand it and move the
-<em>includes</em> directory somewhere. On a system with Apache2, I
-usually put the <em>includes</em> directory in the <em>/var/www</em>
-directory that Apache creates. Apache also usually creates
-<em>/var/www/html</em> and makes this the default DocumentRoot. I put
-the <em>includes</em> directory just outside of the DocumentRoot. In my
-servers I have <em>/var/www</em> and then have my virtual hosts off that
-directory. That way the <em>includes</em> directory is easily available
-to all of my virtual hosts.</p>
-<p>If you are testing with the PHP server, I put a <em>www</em>
-directory off my <em>$HOME</em> and put the <em>includes</em> directory
-there. I then make my test DocumentRoot off <em>www</em> like
-<em>www/test</em>. I <em>cd</em> to the test directory and do <em>php -S
-localhost:8080</em>. I can then use my browser and goto
-<em>localhost:8080</em> and see my <em>index.php</em> file.</p>
+<p>Download the ZIP file from GitHub. Expand it and move the <em>includes</em> directory somewhere. On a system with Apache2, I usually put the <em>includes</em> directory in the <em>/var/www</em> directory that Apache creates. Apache also usually creates <em>/var/www/html</em> and makes this the default DocumentRoot. I put the <em>includes</em> directory just outside of the DocumentRoot. In my servers I have <em>/var/www</em> and then have my virtual hosts off that directory. That way the <em>includes</em> directory is easily available to all of my virtual hosts.</p>
+<p>If you are testing with the PHP server, I put a <em>www</em> directory off my <em>$HOME</em> and put the <em>includes</em> directory there. I then make my test DocumentRoot off <em>www</em> like <em>www/test</em>. I <em>cd</em> to the test directory and do <em>php -S localhost:8080</em>. I can then use my browser and goto <em>localhost:8080</em> and see my <em>index.php</em> file.</p>
 <h3 id="use-composer">Use Composer</h3>
-<p>If you have Apache installed, it has created <em>/var/www</em>. You
-should create your project in that directory. Apache also creates
-<em>/var/www/html</em> by default, and if you do not change that, you
-should create your project within <em>/var/www/html</em>. Or if you want
-to make a separate Apache virtual host with a registered domain name you
-can create your new project in <em>/var/www/YOUR_DOMAIN_NAME</em>.</p>
-<p>If you do not already have a <em>composer.json</em> file just cut and
-past the following:</p>
+<p>If you have Apache installed, it has created <em>/var/www</em>. You should create your project in that directory. Apache also creates <em>/var/www/html</em> by default, and if you do not change that, you should create your project within <em>/var/www/html</em>. Or if you want to make a separate Apache virtual host with a registered domain name you can create your new project in <em>/var/www/YOUR_DOMAIN_NAME</em>.</p>
+<p>If you do not already have a <em>composer.json</em> file just cut and past the following:</p>
 <pre class="sourceCode"><code>echo &quot;
 {
     &quot;require&quot;: {
-        &quot;bartonlp/site-class&quot;: &quot;dev-master&quot;
+        &quot;bartonlp/site-class&quot;: &quot;dev-main&quot;
     }
-}&quot; &gt; composer.json</code></pre>
+}&quot; &gt; composer.json
+</code></pre>
 <p>Then run</p>
-<pre class="sourceCode"><code>composer install</code></pre>
+<pre class="sourceCode"><code>composer install
+</code></pre>
 <p><strong>OR</strong> you can just run</p>
-<pre class="sourceCode"><code>composer require bartonlp/site-class:dev-master</code></pre>
-<p>which will create the <em>composer.json</em> for you and load the
-package like <em>composer install</em> above.<br />
+<pre class="sourceCode"><code>composer require bartonlp/site-class:dev-main
+</code></pre>
+<p>which will create the <em>composer.json</em> for you and load the package like <em>composer install</em> above.<br />
 In your PHP file add</p>
-<pre class="sourceCode"><code>$_site = require_once($PATH_TO_VENDOR . &#39;/vendor/bartonlp/site-class/includes/siteload.php&#39;);</code></pre>
-<p>where <em>$PATH_TO_VENDOR</em> is the path to the <em>vendor</em>
-directory.</p>
-<p>There are some example files in the <em>examples</em> directory at
-<em>$PATH_TO_VENDOR/vendor/bartonlp/site-class/examples</em>. There is
-more documentation in the <em>/docs</em> directory.</p>
+<pre class="sourceCode"><code>$_site = require_once &quot;$PATH_TO_VENDOR&quot; . &quot;/vendor/bartonlp/site-class/includes/siteload.php&quot;;
+</code></pre>
+<p>where <em>$PATH_TO_VENDOR</em> is the path to the <em>vendor</em> directory that composer creates.</p>
+<p>There is more documentation in the <em>/docs</em> directory.</p>
 <h2 id="further-documentation">Further Documentation</h2>
 <ul>
 <li><a href="dbTables.html">dbTables Documentation</a></li>
 <li><a href="siteclass.html">SiteClass and Database Methods</a></li>
 <li><a href="files.html">Additional Files User by SiteClass</a></li>
-<li><a href="analysis.html">Page Counting, Analysis and
-Tracking</a></li>
-<li><a href="examplereadme.html">Examples Readme</a></li>
 </ul>
 <h2 id="contact-me">Contact me</h2>
-<p>Barton Phillips : <a
-href="mailto:bartonphillips@gmail.com">bartonphillips@gmail.com</a><br />
-Copyright © 2024 Barton Phillips<br />
-Last modified January 6, 2024</p>
+<p>Barton Phillips : <a href="mailto:bartonphillips@gmail.com">bartonphillips@gmail.com</a><br />
+Copyright © 2025 Barton Phillips<br />
+Last modified January 1, 2025</p>
 </section>
 <footer>
 Project maintained by [Barton Phillips](https://github.com/bartonlp)
