@@ -132,6 +132,7 @@ Copyright © 2025 Barton Phillips
 Last modified January 1, 2025
 </section>
 <footer>
+
 Project maintained by [Barton Phillips](https://github.com/bartonlp)
 
 <span class="small">Hosted on GitHub Pages &mdash; Theme by  
