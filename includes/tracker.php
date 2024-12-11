@@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 */
 
-define("TRACKER_VERSION", "4.0.7tracker-pdo"); // BLP 2024-12-05 - BLP 2024-12-04 - remove $java, replace with $js. See below for date.
+define("TRACKER_VERSION", "4.0.8tracker-pdo"); // BLP 2024-12-11 - in GET images force $js = 0 if empty. See date.
 
 // If you want the version defined ONLY and no other information.
 
@@ -535,6 +535,7 @@ if($type = $_GET['page']) {
     }
   }
 
+  $js = $js ?? 0; // BLP 2024-12-11 - 
   $java = dechex($js);
   
   // If we get here the $ip, $site, $thepage and $agent are all valid.
