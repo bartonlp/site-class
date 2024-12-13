@@ -1,0 +1,49 @@
+// Example json file. NOTE this is not true json because I allow
+// comments. They are removed by the siteload.php file and then the
+// results are passed to json_decode(). If the json is not valid json
+// an error occurs.
+{
+  "siteDomain": "localhost",
+  "siteName": "Examples",
+  "mainTitle": "Examples",
+  //"emailDomain": "bartonlp.org",
+  //"path": "/var/www/simple-site-class/examples", // This needs to be changes to your directory.
+  "className": "SiteClass",
+  "copyright": "Barton L. Phillips",
+  "author": "Barton L. Phillips, mailto:bartonphillips@gmail.com",
+  "address": "New Bern, North Carolina",
+  "noTrack": false, // set this to true to keep the class from logging visitor activity in the logagent table. 
+  "masterdb": "barton",
+  "dbinfo": {
+    "host": "localhost",
+    "user": "barton",
+    "database": "barton",
+    "engine": "mysql"
+  },
+  "errorMode": {
+    "development": true, // development automatically sets email to true.
+                         // If development is true then noEmail will be
+                         // set to true unless noEmail is set to false!
+                         // Only false not null or just missing.
+    "noEmail": null, 
+    "noHtml": false,
+    "noOutput": false
+  },
+  // These next two lines are needed if you don't want to use the
+  // default domain of https://bartonphillips.net. These can be an
+  // absolute URL. The trackerImg... entries can also be an absolute
+  // URL starting with 'http' or 'https'.
+  // If logoImgLocation and headerImg2Location are "" blank then the
+  // website domin is used.
+  "logoImgLocation": "", // Override the default of https://bartonphillips.net and causes the domain to be used.
+  "headerImg2Location": "",  // This will be your website's domain, like 'https://example.com'
+  "trackerImg1": "examples/images/blp-image.png", // These should be the path after the domain.
+  "trackerImgPhone": "examples/images/KIM-1-phone.jpg", // This could be a smaller image.
+  "aboutwebsite": "", // Don't add an aboutwebsite.php to the footer.
+  "headFile": "includes/head.i.php", // The full or relative path. I use 'require' to load these.
+  "bannerFile": "includes/banner.i.php",
+  "footerFile": "includes/footer.i.php",
+  "EMAILADDRESS": "bartonphillips@gmail.com",
+  "EMAILRETURN": "bartonphillips@gmail.com",
+  "EMAILFROM": "webmaster@bartonlp.com"
+}

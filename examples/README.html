@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>README</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <link rel="stylesheet" href="pandoc.css" />
+</head>
+<body>
+<h1 id="examples">Examples</h1>
+<p><strong>INPORTANT NOTE:</strong> you can disable the log function by either setting <code>$_site-&gt;noTrack=true</code> or adding <code>"noTrack":true,</code> to the mysitemap.json. Doing either of those things will keep the <strong>SiteClass</strong> from using the any tables to log visitors. This will also mean that example2.php programs will not work.</p>
+<p>You will need to install <em>sqlite3</em> for the OS and the <em>pdo_sqlite</em> for PHP, or install <em>mysql</em> for the OS and <em>pdo_mysql</em> for PHP.</p>
+<p>The <strong>SiteClass</strong> code runs with <strong>PHP 8+</strong>, and it may not work with older versions of PHP.</p>
+<p>These examples use a database called <em>barton</em> with user <em>barton</em>. There is a file in this directory called <em>schema.sql</em> if you want a MySql database. You can run it in mysql and create the table.</p>
+<p>If you are using <em>sqlite</em> a database named <em>barton</em> will be created when you run the examples.</p>
+<p>Now that the database is set up you can run the examples.</p>
+<p>I have included twp examples to show how to use the <strong>SiteClass</strong>. If you set up your directory structure as:<br />
+<code>/var/www/</code><br />
+<code>/var/www/html</code><br />
+and used <strong>composer</strong> to create a <em>/var/www/vendor/bartonlp/site-class</em> directory.</p>
+<p>You can also <em>clone</em> the repository from <a href="https://github.com/bartonlp/site-class">https://github.com/bartonlp/-site-class</a>.</p>
+<p>In either case, from the <em>examples</em> directory in the downloaded location, do:<br />
+<code>php -S localhost:3000</code><br />
+Then open your browser and enter:<br />
+<code>localhost:3000/example1.php</code></p>
+<p>When you do this you should see the following message:</p>
+<div style='border: solid black 2px; padding: 5px; display: inline-block'>
+   <h1 style='margin-top: 0px;'>You Must Fill in $home!</h1>
+   <p>Open the example file and fill in the $home variable.<br>
+   You can also add a query: ?home=&lt;your home directory&gt;.<br>
+   For example, the query string would be ?home=/var/www, if you cloned the repository into your /var/www directory.</p>
+</div>
+
+<p>Each example has a link to the other example.</p>
+<p>Note, that when running with the PHP server it does not use the <strong>apache</strong> <em>.htaccess</em> file.</p>
+<p>You can run both sets of examples from a browser if you have the <strong>apache</strong> server running on your machine. In that case you should copy the the <em>examples</em> directory to your <strong>apache</strong> server page.</p>
+<p>Any questions can be directed to Barton Phillips at <a href="mail-to:bartonphillips@gmail.com">bartonphillips@gmail.com</a></p>
+<p>Have fun</p>
+<h2 style='margin-top: 0px;margin-bottom: 0px;'>Contact Me</h2>
+
+<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a><br />
+Copyright © 2025 Barton Phillips<br />
+Project maintained by <a href="https://github.com/bartonlp">Barton Phillips</a><br />
+Last Modified January 1, 2025</p>
+</body>
+</html>

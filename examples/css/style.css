@@ -1,0 +1,62 @@
+/* Barton Phillips CSS */
+/* This file is used by bartonphillips.com and by bartonlp.com */
+
+/* This is a 'Reset' css */
+
+/*
+:root
+If you have another css file with the same var but different values that will take precidence 
+(just like everything else)
+*/
+:root {
+  --blpBodyBgColor:  hsla(144, 100%, 95%, 0.6); /*#e6fff0;*/
+  --blpHitcntrBgColor: #F5DEB3;
+  --blpHitcntrBorder: 8px ridge yellow;
+  --blpHitcntrColor: rgb(123, 16, 66);
+  --blpFontSize: calc(16px + .3vw);
+}
+@font-face {
+  font-family: 'FontFace';
+  src: url(../fonts/IBMPlexSans-Regular.otf);
+}
+* {
+  box-sizing: border-box;
+}
+/* Get RID of the blue border around the following */
+/* If you really want it add it in your css! */
+input:focus, button:focus, a:focus, textarea:focus {
+  outline: none;
+}
+html {
+  margin: auto;
+  font-size: var(--blpFontSize);
+}
+body {
+  background-color: var(--blpBodyBgColor); /*#e6fff0;*/
+  font-family: 'FontFace'; 
+  padding: .5rem;
+}
+header {
+  text-align: center;
+}      
+footer {
+  text-align: center;
+}
+.center {
+  text-align: center;
+}
+ul {
+  line-height: 150%;
+}
+/* for BIG screens */
+@media (min-width: 1600px) {
+  html {
+    font-size: calc(22px + .4vw);
+  }
+}
+/* BLP 2021-10-13 -- Need to add this at some point
+@media (hover: none) and (pointer: coarse) {
+}
+@media (hover: hover) and (pointer: fine) and (max-width: 1000px) {
+}
+*/
