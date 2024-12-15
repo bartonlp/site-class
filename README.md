@@ -14,7 +14,7 @@ For small websites I feel that frameworks like Laravel or Meteor etc. are just t
 See the *dbPdo.class.php* file for more information.
 
 See [github.com/bartonlp/site-class](https://github.com/bartonlp/site-class) for a full list of changes.
-There is now only one branches: *main*.
+There is now only one branch: *main*.
 
 You can check the versions of the framework: [Get Versions](https://bartonphillips.com/articles/showVersions.php)  
 Or [Get Versions](https://bartonlp.com/otherpages/getVersions.php)
