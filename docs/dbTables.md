@@ -10,7 +10,7 @@ The **dbTables** makes creating tables simple.
 
 $_site = require_once getenv("SITELOADNAME");
 
-$S = new $_site->className($_site);
+$S = new SiteClass($_site);
 $T = new dbTables($S);
 
 // Pass some info to getPageTopBottom method
