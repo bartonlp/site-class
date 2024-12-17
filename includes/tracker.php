@@ -62,15 +62,275 @@ CREATE TABLE `daycounts` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 */
 
-define("TRACKER_VERSION", "4.0.8tracker-pdo"); // BLP 2024-12-11 - in GET images force $js = 0 if empty. See date.
+define("TRACKER_VERSION", "4.0.10tracker-pdo"); // BLP 2024-12-17 - Moved GET to top. Removed 'use'.  See date.
+
+//$DEBUG_START = true; // start
+//$DEBUG_LOAD = true; // load
+//$DEBUG_TIMER = true; // Timer
+//$DEBUG_DAYCOUNT = true; // Timer real+1
+//$DEBUG_MSG = true; // AjaxMsg
+//$DEBUG_GET1 = true;
+//$DEBUG_ISABOT = true; // This is in the 'timer' logic
+//$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
+$DEBUG_NOSCRIPT = true; // no script
 
 // If you want the version defined ONLY and no other information.
+// BLP 2024-12-17 - removed check for $_site.
 
-if($_site || $__VERSION_ONLY === true) {
+if($__VERSION_ONLY === true) {
   return TRACKER_VERSION;
 }
 
-$_site = require_once getenv("SITELOADNAME");
+//BLP 2024-12-17 - Move GET to top of page.
+// START OF IMAGE and CSSTEST FUNCTIONS These are NOT javascript but rather use $_GET.
+// NOTE: The image functions are GET calls from the original php file.
+//       THESE ARE NOT DONE BY tracker.js!
+
+// Here is an example of the banner.i.php in bartonphillips.com/includes:
+/*
+if(!class_exists('Database')) header("location: https://bartonlp.com/otherpages/NotAuthorized.php");
+
+return <<<EOF
+<header>
+  <!-- bartonphillips.com/includes/banner.i.php -->
+  <a href="$h->logoAnchor">$image1</a>
+  $image2
+  $mainTitle
+  <noscript>
+    <p style='color: red; background-color: #FFE4E1; padding: 10px'>
+      $image3
+      Your browser either does not support <b>JavaScripts</b> or you have JavaScripts disabled, in either case your browsing
+      experience will be significantly impaired. If your browser supports JavaScripts but you have it disabled consider enabaling
+      JavaScripts conditionally if your browser supports that. Sorry for the inconvienence.</p>
+    <p>The rest of this page will not be displayed.</p>
+    <style>#content { display: none; }</style>
+  </noscript>
+</header>
+<div id="content"> <!-- BLP 2024-12-16 - See footer.i.php for ending </div>. -->
+EOF;
+*/
+//
+// In the 'ready' function tracker.js creates:
+// <picture id='logo'><source srcset={phoneImg} media='((hover: none) and
+// (pointer: course))' alt='photoImage'><img src={desktopImg} alt='desktopImage'></picture>
+//
+// The {phoneImg} and {disktopImg} are the two javascript variables.
+//
+// When tracker.php is called to get the image, 'page' has the values 'normal', 'noscript' or
+// 'csstest'.
+// 'csstest' happens via .htaccess REWRITERULE. See .htaccess for more details.
+
+// IMPORTANT *************************
+// BLP 2024-12-17 - $_GET['mysitemap'] is the mysitemap.json from the original page not from the tracker
+// location. That is, if the original page was https://bartonphillips.com, the mysitemap.json at
+// that location is passed as $_GET['mysitemap'], it is NOT from the location of tracker.php. This
+// is usually a symlink in https://bartonlp.com/otherpages.
+// If you need things like 'trackerImg1' etc. or 'trackerLocation' etc. they must be set in the
+// page that call tracker.php.
+// When you are using '/var/www/site-class/includes/autoload.php' you will need to add
+// 'trackerLocation' and 'trackerLocationJs'.
+// If you are using the standard /var/www/vendor/bartonlp/site-class/includes/siteload.php, there
+// is no need for the 'trackerLocation' and 'trackerLocationJs'.
+// **********************************
+
+if($type = $_GET['page']) {
+  // BLP 2024-12-17 - use the new mysitemap variable.
+  
+  $mysitemap = $_GET['mysitemap']; // This was passed from the original $image2 or $image3. The image is changed here.
+
+  require_once "/var/www/site-class/includes/autoload.php";
+  
+  $_site = json_decode(stripComments(file_get_contents($mysitemap)));
+
+  $_site->noTrack = true;
+  $_site->noGeo = true;
+  
+  $S = new Database($_site);
+
+  // BLP 2024-12-17 - end of mysitemap addition
+  // $S values are from the original pages mysitemap.json.
+  
+  $msg = strtoupper($type);
+  
+  $id = $_GET['id'];
+  $image = $_GET['image'];
+
+  if(!$id) {
+    error_log("tracker: type=$msg, NO ID, $S->siteName, $S->ip, $S->agent");
+    exit();
+  }
+
+  if(!is_numeric($id)) {
+    $errno = -99;
+    $errmsg = "ID is not numeric: $id";
+
+    // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
+    
+    $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
+           "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+           "on duplicate key update errmsg='UPDATE_ID_NOT_NUMERIC::$errmsg', count=count+1, lasttime=now()";
+
+    error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, agent=$S->agent");
+
+    $S->sql($sql);
+    goto GOAWAYNOW;
+  }
+  
+  switch($type) {
+    case "normal":
+      $or = TRACKER_NORMAL;
+      break;
+    case "noscript":
+      $or = TRACKER_NOSCRIPT;
+      break;
+    case "csstest":
+      $or = TRACKER_CSS;
+      break;
+    default:
+      error_log("tracker Switch Error: $S->ip, $S->siteName, type=$type, time=" . (new DateTime)->format('H:i:s:v'));
+      goto GOAWAY;
+  }
+
+  try {
+    $sql = "select site, ip, page, finger, isJavaScript, agent, botAs, difftime from $S->masterdb.tracker where id=$id";
+    
+    if($S->sql($sql)) {
+      [$site, $ip, $thepage, $finger, $js, $agent, $botAs, $difftime] = $S->fetchrow('num');
+    } else {
+      throw new Exception("tracker: NO RECORD for id=$id, type=$msg", -100); // This will be caught below.
+    }
+  } catch(Exception $e) { // catches the throw above.
+    // At this point $site, $ip, $thepage and $agent are NOT VALID.
+    
+    $errno = $e->getCode();
+    $errmsg = $e->getMessage();
+
+    // try to insert into the id that was passed in.
+
+    try {
+      $ip = $ip ?? "NO_IP";
+      
+      $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
+             "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
+             "on duplicate key update error='Update, Select failed $ip $msg', lasttime=now()";
+      
+      $S->sql($sql);
+
+      error_log("tracker: $id, \$S->ip=$S->ip, \$S->siteName=$S->siteName,  $S->self, SELECT_FAILED_INSERT_OK_{$ip}_{$msg}, ".
+                "err=$errno, errmsg=$errmsg, time=" . (new DateTime)->format('H:i:s:v'));
+    } catch(Exception $e) {
+      $errno = $e->getCode();
+      $errmsg .= "::" . $e->getMessage();
+
+      // ADD an entry to badplayer and mark it with BOTAS_COUNTED.
+      // The primary key is ip and type
+
+      $sql = "insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
+             "values('$S->ip', $id, '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+             "on duplicate key update count=count+1, errmsg=errmsg . '::$errmsg', lasttime=now()";
+        
+      if(!$S->sql($sql)) {
+        error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip badplayer - could not do insert/update");
+      }       
+      goto GOAWAYNOW;
+    }
+  }
+
+  $js |= $or; 
+  $java = dechex($js);
+  
+  // If we get here the $ip, $site, $thepage and $agent are all valid.
+
+  if($DEBUG_GET1)
+     error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, time=" . (new DateTime)->format('H:i:s:v'));
+  
+  if(!str_contains($botAs, BOTAS_COUNTED)) {
+    $botAs = BOTAS_COUNTED . "," . $botAs; // BLP 2024-03-21 - added
+    $botAs = rtrim($botAs, ',');
+  }
+  
+  if(empty($agent) || $S->isBot($agent)) {
+    if($DEBUG_ISABOT2) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, botAs=$botAs, image=$image, time=" . (new DateTime)->format('H:i:s:v'));
+
+    // We know that there is an ID but is there a record with that ID?
+
+    $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
+                "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
+                "on duplicate key update error='ISABOT_UPDATE_$msg', botAs='$botAs', lasttime=now()");
+
+    // BLP 2023-01-18 - If this is a bot change the image.
+    //$image = "/images/bot.jpg"; // Image of a bad bot!
+  }
+
+  $ref = $_SERVER["HTTP_REFERER"];
+
+  if($DEBUG_GET2) error_log("tracker: $id, $ip, $site, $thepage, $msg -- referer=$ref");
+
+  // BLP 2024-12-17 - fixed update $js and referer='$ref'.
+  
+  if($ref) {
+    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, referer, isJavaScript, error, starttime, lasttime) ".
+           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', '$ref', $js, '$msg', now(), now()) ".
+           "on duplicate key update isJavaScript=$js, botAs='$botAs', referer='$ref', lasttime=now()";
+  } else {
+    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
+           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, '$msg', now(), now()) ".
+           "on duplicate key update isJavaScript=$js, botAs='$botAs', lasttime=now()";
+  }
+
+  $S->sql($sql);
+
+  // If this is csstest we are done.
+  
+  if($type == "csstest") {
+    header("Content-Type: text/css");
+    echo "/* csstest.css */";
+    exit();
+  }
+
+  // BLP 2024-12-17 - $S->defaultImage is from the mysitemap.json before anything in the original
+  // page has done things to $_site. So NOTHING you do in the original page will affect these $S
+  // values!!!
+  
+  $img = $S->defaultImage ?? "https://bartonphillips.net/images/blank.png";
+
+  // script and normal may have an image but
+  // noscript has NO IMAGE
+
+  if($image) {
+    $pos = strpos($image, "http"); // does $image start with http?
+    if($pos !== false && $pos == 0) { 
+      $img = $image; // $image has the full url starting with http (could be https)
+    } else {
+      $trackerLocation = $S->trackerLocation ?? "https://bartonphillips.net/";
+      $img = "$trackerLocation/$image";
+    }
+  }
+    
+  $imageType = pathinfo($img, PATHINFO_EXTENSION); //preg_replace("~.*\.(.*)$~", "$1", $img);
+
+  $imgFinal = file_get_contents($img);
+
+  if($imageType == 'svg') $imageType = "image/svg+xml";
+
+  header("Content-Type: $imageType");
+
+  // BLP 2024-12-05 - use difftime
+  
+  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, difftime=$difftime, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
+
+  echo $imgFinal;
+  exit();
+}
+// END OF GET LOGIC
+
+// BLP 2024-12-17 - Moved all of the JavaScript POST logic after the GET.
+// ****************************************************************
+// All of the following are the result of a javascript interactionl
+// ****************************************************************
+
+$_site = require_once getenv("SITELOADNAME"); // This is from vendor/bartonlp/site-class
+//$_site = require_once "/var/www/site-class/includes/autoload.php";
 
 // BLP 2023-09-10 - If this is a POST from tracker.js via ajax get the $_site via a
 // file_get_contents($_POST['mysitemap']) but use the host from $_site->dbinfo->host above. See
@@ -123,23 +383,7 @@ if($_POST) {
 $_site->noTrack = true; // Don't track or do geo!
 $_site->noGeo = true;
 
-//$_site->isMeFalse = true; // DEBUG
-
 $S = new Database($_site); // BLP 2023-10-02 - because we use Database noTrack is set and we do not do any tracking.
-
-//$DEBUG_START = true; // start
-//$DEBUG_LOAD = true; // load
-//$DEBUG_TIMER = true; // Timer
-//$DEBUG_DAYCOUNT = true; // Timer real+1
-//$DEBUG_MSG = true; // AjaxMsg
-//$DEBUG_GET1 = true;
-//$DEBUG_ISABOT = true; // This is in the 'timer' logic
-//$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
-$DEBUG_NOSCRIPT = true; // no script
-
-// ****************************************************************
-// All of the following are the result of a javascript interactionl
-// ****************************************************************
 
 // Post an ajax error message
 
@@ -202,11 +446,11 @@ if($_POST['page'] == 'start') {
   if($ref) {
     $sql = "insert into $S->masterdb.tracker (id, botAs, site, page, ip, agent, referer, starttime, isJavaScript, lasttime) ".
            "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', '$ref', now(), '$js', now()) ".
-           "on duplicate key update isJavaScript='$js', referer='$ref', lasttime=now()";
+           "on duplicate key update isJavaScript=$js, referer='$ref', lasttime=now()";
   } else {
     $sql = "insert into $S->masterdb.tracker (id, botAs, site, page, ip, agent, starttime, isJavaScript, lasttime) ".
            "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', now(), '$js', now()) ".
-           "on duplicate key update isJavaScript='$js', lasttime=now()";
+           "on duplicate key update isJavaScript=$js, lasttime=now()";
   }
   
   $S->sql($sql);
@@ -244,7 +488,7 @@ if($_POST['page'] == 'load') {
 
   // BLP 2023-03-25 - This should maybe be insert/update?
   
-  $S->sql("update $S->masterdb.tracker set isJavaScript='$js', lasttime=now() where id='$id'");
+  $S->sql("update $S->masterdb.tracker set isJavaScript=$js, lasttime=now() where id='$id'");
 
   echo "Load OK, java=$js";
   exit();
@@ -296,7 +540,7 @@ if($_POST['page'] == 'onexit') {
   $js |= $onexit;
   
   $S->sql("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
-            "isJavaScript='$js', lasttime=now() where id=$id");
+            "isJavaScript=$js, lasttime=now() where id=$id");
 
   error_log("tracker onexit: $id, $site, $ip, $thepage, $msg, $botAs, Maybe Tor?");
   exit();
@@ -395,7 +639,7 @@ if($_POST['page'] == 'timer') {
     $botAs = BOTAS_COUNTED . "," . $botAs;
   }
   
-  $sql = "update $S->masterdb.tracker set botAs='$botAs', isJavaScript='$js', endtime=now(), ".
+  $sql = "update $S->masterdb.tracker set botAs='$botAs', isJavaScript=$js, endtime=now(), ".
          "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id";
 
   $S->sql($sql);
@@ -405,219 +649,9 @@ if($_POST['page'] == 'timer') {
   echo "Timer OK, visits: $visits, java=$js, finger=$finger";
   exit();
 }
-
 // *********************************************
 // This is the END of the javascript AJAX calls.
 // *********************************************
-
-// START OF IMAGE and CSSTEST FUNCTIONS These are NOT javascript but rather use $_GET.
-// NOTE: The image functions are GET calls from the original php file.
-//       THESE ARE NOT DONE BY tracker.js!
-
-// Here is an example of the banner.i.php:
-// <header>
-//   <!-- bartonphillips.com/includes/banner.i.php -->
-//   <a href="$h->logoAnchor">
-//    <!-- The logo line is changed by tracker.js -->
-// $image2
-// $mainTitle
-// <noscript>
-// <p style='color: red; background-color: #FFE4E1; padding: 10px'>
-// $image3
-// Your browser either does not support <b>JavaScripts</b> or you have JavaScripts disabled, in either case your browsing
-// experience will be significantly impaired. If your browser supports JavaScripts but you have it disabled consider enabaling
-// JavaScripts conditionally if your browser supports that. Sorry for the inconvienence.</p>
-// </noscript>
-// </header>
-//
-// $image2 and $image3 look like this:
-// <img id={headerImg2 or noscript} alt={headerImg2, noscriptImg}
-// src='{the url for tracker.php}?page={normal or noscript}&id={$lastId}&image={image url}'> 
-//
-// In the 'ready' function tracker.js creates:
-// <picture id='logo'><source srcset={phoneImg} media='((hover: none) and
-// (pointer: course))' alt='photoImage'><img src={desktopImg} alt='desktopImage'></picture>
-//
-// The {phoneImg} and {disktopImg} are the two javascript variables.
-//
-// When tracker.php is called to get the image, 'page' has the values 'normal', 'noscript' or
-// 'csstest'.
-// 'csstest' happens via .htaccess REWRITERULE. See .htaccess for more details.
-
-if($type = $_GET['page']) {
-  $msg = strtoupper($type);
-  
-  $id = $_GET['id'];
-  $image = $_GET['image'];
-
-  if(!$id) {
-    error_log("tracker: type=$msg, NO ID, $S->siteName, $S->ip, $S->agent");
-    exit();
-  }
-
-  if(!is_numeric($id)) {
-    $errno = -99;
-    $errmsg = "ID is not numeric: $id";
-
-    // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
-    
-    $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
-           "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-           "on duplicate key update errmsg='UPDATE_ID_NOT_NUMERIC::$errmsg', count=count+1, lasttime=now()";
-
-    error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, agent=$S->agent");
-
-    $S->sql($sql);
-    goto GOAWAYNOW;
-  }
-  
-  switch($type) {
-    case "normal":
-      $or = TRACKER_NORMAL;
-      break;
-    case "noscript":
-      $or = TRACKER_NOSCRIPT;
-      break;
-    case "csstest":
-      $or = TRACKER_CSS;
-      $image = $image ?? "NONE";
-      break;
-    default:
-      error_log("tracker Switch Error: $S->ip, $S->siteName, type=$type, time=" . (new DateTime)->format('H:i:s:v'));
-      goto GOAWAY;
-  }
-
-  try {
-    // BLP 2024-12-04 - use hex value for $js, remove $java.
-    // BLP 2024-12-05 - Add difftime
-    
-    $sql = "select site, ip, page, finger, isJavaScript, agent, botAs, difftime from $S->masterdb.tracker where id=$id";
-    
-    if($S->sql($sql)) {
-      [$site, $ip, $thepage, $finger, $js, $agent, $botAs, $difftime] = $S->fetchrow('num');
-    } else {
-      throw new Exception("tracker: NO RECORD for id=$id, type=$msg", -100); // This will be caught below.
-    }
-  } catch(Exception $e) { // catches the throw above.
-    // At this point $site, $ip, $thepage and $agent are NOT VALID.
-    
-    $errno = $e->getCode();
-    $errmsg = $e->getMessage();
-
-    // try to insert into the id that was passed in.
-
-    try {
-      $ip = $ip ?? "NO_IP";
-      
-      $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
-             "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
-             "on duplicate key update error='Update, Select failed $ip $msg', lasttime=now()";
-      
-      $S->sql($sql);
-
-      error_log("tracker: $id, \$S->ip=$S->ip, \$S->siteName=$S->siteName,  $S->self, SELECT_FAILED_INSERT_OK_{$ip}_{$msg}, ".
-                "err=$errno, errmsg=$errmsg, time=" . (new DateTime)->format('H:i:s:v'));
-    } catch(Exception $e) {
-      $errno = $e->getCode();
-      $errmsg .= "::" . $e->getMessage();
-
-      // ADD an entry to badplayer and mark it with BOTAS_COUNTED.
-      // The primary key is ip and type
-
-      $sql = "insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
-             "values('$S->ip', $id, '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-             "on duplicate key update count=count+1, errmsg=errmsg . '::$errmsg', lasttime=now()";
-        
-      if(!$S->sql($sql)) {
-        error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip badplayer - could not do insert/update");
-      }       
-      goto GOAWAYNOW;
-    }
-  }
-
-  $js = $js ?? 0; // BLP 2024-12-11 - 
-  $java = dechex($js);
-  
-  // If we get here the $ip, $site, $thepage and $agent are all valid.
-
-  if($DEBUG_GET1)
-     error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, time=" . (new DateTime)->format('H:i:s:v'));
-  
-  if(!str_contains($botAs, BOTAS_COUNTED)) {
-    $botAs = BOTAS_COUNTED . "," . $botAs; // BLP 2024-03-21 - added
-    $botAs = rtrim($botAs, ',');
-  }
-  
-  if(empty($agent) || $S->isBot($agent)) {
-    if($DEBUG_ISABOT2) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, botAs=$botAs, image=$image, time=" . (new DateTime)->format('H:i:s:v'));
-
-    // We know that there is an ID but is there a record with that ID?
-
-    $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
-                "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
-                "on duplicate key update error='ISABOT_UPDATE_$msg', botAs='$botAs', lasttime=now()");
-
-    // BLP 2023-01-18 - If this is a bot change the image.
-    //$image = "/images/bot.jpg"; // Image of a bad bot!
-  }
-  
-  if($DEBUG_GET2) error_log("tracker: $id, $ip, $site, $thepage, $msg -- referer=$ref");
-
-  if($ref) {
-    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, referer, isJavaScript, error, starttime, lasttime) ".
-           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', {$referer1}, $js, 'NO_UPDATE_$msg', now(), now()) ".
-           "on duplicate key update isJavaScript=isJavaScript|$or, botAs='$botAs', {$referer2}lasttime=now()";
-  } else {
-    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
-           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'NO_UPDATE_$msg', now(), now()) ".
-           "on duplicate key update isJavaScript=isJavaScript|$or, botAs='$botAs', lasttime=now()";
-  }
-
-  $S->sql($sql);
-
-  // If this is csstest we are done.
-  
-  if($type == "csstest") {
-    header("Content-Type: text/css");
-    echo "/* csstest.css */";
-    exit();
-  }
-
-  $img = $S->defaultImage ?? "https://bartonphillips.net/images/blank.png";
-
-  // script and normal may have an image but
-  // noscript has NO IMAGE
-
-  if($image) {
-    $pos = strpos($image, "http"); // does $image start with http?
-    if($pos !== false && $pos == 0) { 
-      $img = $image; // $image has the full url starting with http (could be https)
-    } else {
-      // BLP 2023-08-09 - If we don't have an full url then force this to be from
-      // bartonphillips.net. We can't use $S->imageLocation.
-      
-      $img = "https://bartonphillips.net$image";
-    }
-  }
-    
-  $imageType = pathinfo($img, PATHINFO_EXTENSION); //preg_replace("~.*\.(.*)$~", "$1", $img);
-
-  $imgFinal = file_get_contents($img);
-
-  if($imageType == 'svg') $imageType = "image/svg+xml";
-
-  header("Content-Type: $imageType");
-
-  $js |= $or;
-
-  // BLP 2024-12-05 - use difftime
-  
-  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, difftime=$difftime, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
-
-  echo $imgFinal;
-  exit();
-}
-// END OF GET LOGIC
 
 // Go Away logic
 

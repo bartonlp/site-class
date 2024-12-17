@@ -5,7 +5,7 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.0.4pdo"); // BLP 2024-09-07 - remove once form require.
+define("SITE_CLASS_VERSION", "5.0.6pdo"); // BLP 2024-12-17 - add <!-- comments -->. See date.
 
 // One class for all my sites
 /**
@@ -23,9 +23,10 @@ define("SITE_CLASS_VERSION", "5.0.4pdo"); // BLP 2024-09-07 - remove once form r
  * This class can be extended to handle special issues and add methods.
  */
 
-// Make an alias for getinfo.
-
+/*
+BLP 2024-12-17 - this has been removed from siteload.php
 use \bartonlp\siteload\getinfo as load;
+*/
 
 class SiteClass extends Database {
   // Give these default values incase they are not mentioned in mysitemap.json.
@@ -232,12 +233,10 @@ EOF;
         // program for the 'use' alias.
         // I use $mysitemap in tracker.php to be able to not have symlinks in all of my domains.
 
-        try {
-          $mysitemap = load::$mysitemap;
-        } catch(Throwable $e) {
-          $mysitemap = "mysitemap.json";
-        }
+        // BLP 2024-12-17 - remove try below and use $this->mysitemap.
         
+        $mysitemap = $this->mysitemap;
+
         // If not noTrack or nbdb add the tracker.js location.
         
         $trackerStr = "  <script data-lastid='$this->LAST_ID' src='$this->trackerLocationJs'></script>\n";
@@ -398,12 +397,19 @@ EOF;
     if($this->nodb !== true && $this->noTrack !== true) {
       $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
 
+      // BLP 2024-12-17 - 
+      $image1 = "<!-- Image1 is provided by tracker.js if JavaScropt is not disabled -->";
       // We start out with the <img id='headerImage2'> having the NO SCRIPT logo, because this will
       // be changed by tracker.js if the user has Javascript.
 
-      $image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal&amp;id=$this->LAST_ID&amp;image=/images/noscript.svg' alt='NO SCRIPT'>";
+      // BLP 2024-12-17 - add mysitemap to image2 and image3 and <!-- comment.
+      
+      $image2 = "<!-- This is originally set to noscript.svg in SiteClass via 'image=noscriript.svg'. ".
+                "If JavaScript is enabled then tracker.js add the images from mysitemap.json, 'trackerImg1 or 2 etc. -->\n".
+                "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal".
+                "&amp;id=$this->LAST_ID&amp;image=/images/noscript.svg&amp;mysitemap=$this->mysitemap' alt='NO SCRIPT'>";
 
-      $image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?page=noscript&amp;id=$this->LAST_ID'>";
+      $image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?page=noscript&amp;id=$this->LAST_ID&amp;mysitemap=$this->mysitemap'>";
     }
 
     $h->logoAnchor = $this->logoAnchor ?? "https://www.$this->siteDomain";
@@ -468,7 +474,8 @@ EOF;
     }
     
     $b->aboutwebsite = $this->aboutwebsite ??
-                       "<h2><a target='_blank' href='https://bartonlp.com/otherpages/aboutwebsite.php?site=$this->siteName&domain=$this->siteDomain'>About This Site</a></h2>";
+                       "<h2><a target='_blank' href='https://bartonlp.com/otherpages/aboutwebsite.php?" .
+                       "site=$this->siteName&domain=$this->siteDomain'>About This Site</a></h2>";
     
     $b->emailAddress = $this->noEmailAddress ? null : ($this->emailAddress ?? $this->EMAILADDRESS);
     $b->emailAddress = $this->emailAddress ? "<a href='mailto:$this->emailAddress'>$this->emailAddress</a>" : null;

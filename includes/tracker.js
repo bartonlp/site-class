@@ -5,7 +5,7 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.2trackerjs-pdo"; // BLP 2024-11-16 - remove mytime logic!
+const TRACKERJS_VERSION = "3.1.3trackerjs-pdo"; // BLP 2024-12-17 - add <!-- comments. See date.
 
 let visits = 0;
 
@@ -49,6 +49,7 @@ console.log("navigator.userAgentData: ", navigator.userAgentData);
 // phoneImg.
 
 jQuery(document).ready(function($) {
+  console.log("tracker.js: in /var/www/site-class/includes/tracker.js");
   if(noCssLastId !== '1') {
     $("script[data-lastid]").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
   }
@@ -75,11 +76,11 @@ jQuery(document).ready(function($) {
     picture += "</picture>";
   }
 
-  // BLP 2023-08-10 - This will remove the <img> tag and replace it
-  // with the <picture> tag.
+  // BLP 2024-12-17 - add <!-- commet.
 
   if(phoneImg || desktopImg) {
     $("header a:first-of-type").first().html(picture);
+    $("header a:first-of-type").first().prepend("<!-- JavaScript enabled. tracker.js providing images -->\n");
   }
   
   // BLP 2023-08-10 - Here we need to remove the <img

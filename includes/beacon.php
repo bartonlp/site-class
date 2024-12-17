@@ -1,14 +1,12 @@
 <?php
 // Beacon from tracker.js
 
-// BLP 2024-07-29 - remove if($_SERVER['HTML_HOST'] == 'bartonphillips.org') { logic. Removed
-// mogoDB logic.
-define("BEACON_VERSION", "4.0.2beacon-pdo"); 
+define("BEACON_VERSION", "4.0.3beacon-pdo"); // BLP 2024-12-17 - See date.
 
 // BLP 2023-01-30 - If you want the version defined ONLY and no other information.
 // If we have a valid $_site or the $__VERSION_ONLY, then just return the version info.
 
-if($_site || $__VERSION_ONLY === true) {
+if($__VERSION_ONLY === true) {
   return BEACON_VERSION;
 }
 
@@ -63,9 +61,10 @@ if(!$id || $visits === null) {
 }
 
 // Now get botAs and isJavaScrip etc. from the tracker table.
+// BLP 2024-12-17 - remove $java and hex(isJavaScript).
 
-if($S->sql("select botAs, isJavaScript, hex(isJavaScript), difftime, finger, agent from $S->masterdb.tracker where id=$id")) {
-  [$botAs, $java, $js, $difftime, $finger, $agent] = $S->fetchrow('num');
+if($S->sql("select botAs, isJavaScript, difftime, finger, agent from $S->masterdb.tracker where id=$id")) {
+  [$botAs, $js, $difftime, $finger, $agent] = $S->fetchrow('num');
 } else {
   error_log("beacon: NO record for $id, line=" . __LINE__);
 }
@@ -90,18 +89,19 @@ switch($type) {
     exit();
 }
 
-$java |= $beacon;
-$js2 = strtoupper(dechex($java));
+$java = strtoupper(dechex($js))
+$js |= $beacon;
+$js2 = strtoupper(dechex($js));
 
 if($DEBUG_IPS && ($ip != $S->ip)) {
-  error_log("beacon:  $id, $ip, $site, $thepage, IP_MISMATCH_{$msg}, \$ip != \$S->ip -- \$S->ip=$S->ip, botAs=$botAs, jsin=$js, jsout=$js2, visits=$visits");
+  error_log("beacon:  $id, $ip, $site, $thepage, IP_MISMATCH_{$msg}, \$ip != \$S->ip -- \$S->ip=$S->ip, botAs=$botAs, jsin=$java, jsout=$js2, visits=$visits");
 }
 
 // Is this a bot?
 
 if($agent && $S->isBot($agent)) {
-  if($DEBUG_ISABOT) error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}1, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
-  exit(); // If this is a bot don't bother
+  if($DEBUG_ISABOT) error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}1, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+  //exit(); // If this is a bot don't bother
 }
 
 if(!str_contains($botAs, BOTAS_COUNTED)) {
@@ -110,7 +110,7 @@ if(!str_contains($botAs, BOTAS_COUNTED)) {
   if(!empty($botAs)) {
     // This must have robot, sitemap, or zero
     
-    if($DEBUG_ISABOT) error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+    if($DEBUG_ISABOT) error_log("beacon:  $id, $ip, $site, $thepage, ISABOT_{$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
     exit();
   }
 }
@@ -123,7 +123,7 @@ if(!$S->isMyIp($ip) && !str_contains($botAs, BOTAS_COUNTED)) { // it is not ME a
 
   $S->sql("update $S->masterdb.daycounts set `real`=$dayreal, visits=$dayvisits where date=current_date() and site='$site'");
 
-  if($DEBUG1) error_log("beacon:  $id, $ip, $site, $thepage, COUNTED_{$msg}1, real+1, botAs=$botAs, state=$state, jsin=$js, jsout=$js2, real=$dayreal, bots=$daybots, visits: $visits, time=" . (new DateTime)->format('H:i:s:v'));
+  if($DEBUG1) error_log("beacon:  $id, $ip, $site, $thepage, COUNTED_{$msg}1, real+1, botAs=$botAs, state=$state, jsin=$java, jsout=$js2, real=$dayreal, bots=$daybots, visits: $visits, time=" . (new DateTime)->format('H:i:s:v'));
 }
 
 if(empty($botAs)) {
@@ -135,11 +135,11 @@ if(empty($botAs)) {
 // Now update tracker. $botAs should have BOTS_COUNTED!
 
 $S->sql("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
-          "isJavaScript='$java', lasttime=now() where id=$id");
+          "isJavaScript='$js', lasttime=now() where id=$id");
 
 if(!$S->isMyIp($ip) && $DEBUG2) {
-  error_log("beacon:  $id, $ip, $site, $thepage, {$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+  error_log("beacon:  $id, $ip, $site, $thepage, {$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
 }
 if(!$S->isMyIp($ip) && $DEBUG3 && $type == 'visibilitychange') {
-  error_log("beacon:  $id, $ip, $site, $thepage, {$msg}3, state=$state, botAs=$botAs, visits=$visits, jsin=$js, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+  error_log("beacon:  $id, $ip, $site, $thepage, {$msg}3, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
 }

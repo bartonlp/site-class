@@ -14,7 +14,7 @@
 
 use SendGrid\Mail\Mail; // Use SendGrid for email
 
-define("PDO_CLASS_VERSION", "1.0.8pdo"); // BLP 2024-10-29 - remove apostrophies in agent 
+define("PDO_CLASS_VERSION", "1.0.9pdo"); // BLP 2024-12-17 - see date
 
 /**
  * @package PDO Database
@@ -440,8 +440,11 @@ class dbPdo extends PDO {
 
       $response = $sendgrid->send($email);
 
-      if($response->statusCode() > 299) {
-        error_log("dbPod sendgrid error: $response->statusCode(), response header: " . print_r($response->headers()));
+      // BLP 2024-12-17 - add $resp and use it below. I had in error_log $response->statusCode()
+      // instead of response and that caused an error.
+      
+      if(($resp = $response->statusCode()) > 299) {
+        error_log("dbPod sendgrid error: $resp, response header: " . print_r($response->headers()));
       }
     }
 

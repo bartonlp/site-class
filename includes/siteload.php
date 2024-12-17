@@ -11,7 +11,7 @@ namespace bartonlp\siteload;
 
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
 
-define("SITELOAD_VERSION", "2.2.4siteload-pdo"); // BLP 2024-09-05 - use SITECLASS_DIR in require of helper-functions.php
+define("SITELOAD_VERSION", "2.2.6siteload-pdo"); // BLP 2024-12-17 - add mysitemap to returned value
 define("SITECLASS_DIR", __DIR__);
 require_once("/var/www/vendor/autoload.php");
 require_once(SITECLASS_DIR . "/database-engines/helper-functions.php");
@@ -30,7 +30,8 @@ if(!class_exists("getinfo")) {
     private $docroot;
     private $mydir;
     private $_site;
-    public static $mysitemap; // BLP 2023-08-11 - This is used by tracker.js and tracker.php to get the right $_site.
+    // BLP 2024-12-17 - remove static
+    //public static $mysitemap; // BLP 2023-08-11 - This is used by tracker.js and tracker.php to get the right $_site.
     
     public function __construct() {
       // Now check to see if we have a DOCUMENT_ROOT or VIRTUALHOST_DOCUMENT_ROOT.
@@ -66,10 +67,7 @@ if(!class_exists("getinfo")) {
 
       $this->_site = json_decode($this->findsitemap());
 
-      // BLP 2023-08-17 - $this->mydir has the actual location of the mysitemap.json after the call
-      // to $this->findsitemap().
-      
-      self::$mysitemap = "$this->mydir/mysitemap.json";
+      $this->_site->mysitemap = "$this->mydir/mysitemap.json";
       
       // Set the siteloadVersion and siteClassDir
 

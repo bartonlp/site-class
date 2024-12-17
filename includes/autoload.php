@@ -43,12 +43,14 @@ $mydir = dirname($_SERVER['SCRIPT_FILENAME']);
 if($__VERSION_ONLY) {
   return SITELOAD_VERSION;
 } else {
-  if($_SERVER['HTTP_HOST'] == "bartonphillips.org") {
+/*  if($_SERVER['HTTP_HOST'] == "bartonphillips.org") {
     if(file_exists("../bartonphillips.org:8000")) $port = ":8000";
     return json_decode(stripComments(file_get_contents("https://bartonphillips.org$port/mysitemap.json")));
   } else {
     return findsitemap(); // BLP 2024-10-30 - use ne findsitmap() function borowed from siteload.php with modifications
   }
+*/
+  return findsitemap();
 }
 
 // Find the mysitemap.json. $mydir is a global. This is borrowed from siteload.php with
@@ -60,7 +62,10 @@ function findsitemap() {
   if(file_exists($mydir . "/mysitemap.json")) {
     // BLP 2023-08-17 - use the stripComments() from the helperfunctions.php
 
-    return json_decode(stripComments(file_get_contents($mydir . "/mysitemap.json")));
+    $ret = json_decode(stripComments(file_get_contents($mydir . "/mysitemap.json")));
+    $ret->mysitemap = "$mydir/mysitemap.json";
+    return $ret;
+    //return json_decode(stripComments(file_get_contents($mydir . "/mysitemap.json")));
   } else {
     // If we didn't find the mysitemap.json then have we reached to docroot? Or have we reached the
     // root. We should actually never reach the root.
