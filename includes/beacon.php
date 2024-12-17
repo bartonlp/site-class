@@ -89,7 +89,7 @@ switch($type) {
     exit();
 }
 
-$java = strtoupper(dechex($js))
+$java = strtoupper(dechex($js));
 $js |= $beacon;
 $js2 = strtoupper(dechex($js));
 
