@@ -111,7 +111,7 @@ In the 'mysitemap.json' just add the relitive or full path to the file. For exam
     "siteDomain": "localhost",
     "siteName": "YourSiteName",
     "className": "SiteClass",
-    "copyright": "2016 Barton L. Phillips",
+    "copyright": "Barton L. Phillips", // The copyrite date is filled in by SiteClass
     "memberTable": "members",
     "noTrack": true,
     "dbinfo": {

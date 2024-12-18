@@ -86,7 +86,7 @@
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a><span class="kw">$_site</span> = <span class="kw">require_once</span> <span class="fu">getenv</span><span class="ot">(</span><span class="st">&quot;SITELOADNAME&quot;</span><span class="ot">);</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="kw">$S</span> = <span class="kw">new</span> <span class="kw">$_site</span>-&gt;className<span class="ot">(</span><span class="kw">$_site</span><span class="ot">);</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="kw">$S</span> = <span class="kw">new</span> SiteClass<span class="ot">(</span><span class="kw">$_site</span><span class="ot">);</span></span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a><span class="kw">$T</span> = <span class="kw">new</span> dbTables<span class="ot">(</span><span class="kw">$S</span><span class="ot">);</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a></span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a><span class="co">// Pass some info to getPageTopBottom method</span></span>
