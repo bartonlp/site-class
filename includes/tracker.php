@@ -138,44 +138,54 @@ if($type = $_GET['page']) {
   
   $mysitemap = $_GET['mysitemap']; // This was passed from the original $image2 or $image3. The image is changed here.
 
-  require_once "/var/www/site-class/includes/autoload.php";
-  
-  $_site = json_decode(stripComments(file_get_contents($mysitemap)));
+  if(!empty($mysitemap)) {
+    require_once "/var/www/site-class/includes/autoload.php";
 
-  $_site->noTrack = true;
-  $_site->noGeo = true;
-  
-  $S = new Database($_site);
+    ob_start();
+    require $mysitemap;
+    $tmp = ob_get_contents();
+    ob_end_clean();
 
+    $_site = json_decode(stripComments($tmp));
+
+    $id = $_GET['id'];
+    $image = $_GET['image'];
+    
+    $_site->noTrack = true;
+    $_site->noGeo = true;
+
+    $S = new Database($_site);
+
+    if(!$id) {
+      error_log("tracker: type=$msg, NO ID, $S->siteName, $S->ip, $S->agent");
+      exit();
+    }
+
+    if(!is_numeric($id)) {
+      $errno = -99;
+      $errmsg = "ID is not numeric: $id";
+
+      // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
+
+      $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
+             "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+             "on duplicate key update errmsg='UPDATE_ID_NOT_NUMERIC::$errmsg', count=count+1, lasttime=now()";
+
+      error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, agent=$S->agent");
+
+      $S->sql($sql);
+      goto GOAWAYNOW;
+    }
+  } else {
+    $_site = require_once getenv("SITELOADNAME");
+    $S = new Database($_site);
+  }
   // BLP 2024-12-17 - end of mysitemap addition
-  // $S values are from the original pages mysitemap.json.
+
+  // $S values are from the original pages mysitemap.json for every thing exept type 'csstest'..
   
   $msg = strtoupper($type);
-  
-  $id = $_GET['id'];
-  $image = $_GET['image'];
 
-  if(!$id) {
-    error_log("tracker: type=$msg, NO ID, $S->siteName, $S->ip, $S->agent");
-    exit();
-  }
-
-  if(!is_numeric($id)) {
-    $errno = -99;
-    $errmsg = "ID is not numeric: $id";
-
-    // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
-    
-    $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
-           "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-           "on duplicate key update errmsg='UPDATE_ID_NOT_NUMERIC::$errmsg', count=count+1, lasttime=now()";
-
-    error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, agent=$S->agent");
-
-    $S->sql($sql);
-    goto GOAWAYNOW;
-  }
-  
   switch($type) {
     case "normal":
       $or = TRACKER_NORMAL;
@@ -190,7 +200,7 @@ if($type = $_GET['page']) {
       error_log("tracker Switch Error: $S->ip, $S->siteName, type=$type, time=" . (new DateTime)->format('H:i:s:v'));
       goto GOAWAY;
   }
-
+  
   try {
     $sql = "select site, ip, page, finger, isJavaScript, agent, botAs, difftime from $S->masterdb.tracker where id=$id";
     
@@ -202,32 +212,27 @@ if($type = $_GET['page']) {
   } catch(Exception $e) { // catches the throw above.
     // At this point $site, $ip, $thepage and $agent are NOT VALID.
     
-    $errno = $e->getCode();
-    $errmsg = $e->getMessage();
-
     // try to insert into the id that was passed in.
 
     try {
       $ip = $ip ?? "NO_IP";
+      $id = $id ?? 0;
       
       $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
              "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
              "on duplicate key update error='Update, Select failed $ip $msg', lasttime=now()";
       
       $S->sql($sql);
-
-      error_log("tracker: $id, \$S->ip=$S->ip, \$S->siteName=$S->siteName,  $S->self, SELECT_FAILED_INSERT_OK_{$ip}_{$msg}, ".
-                "err=$errno, errmsg=$errmsg, time=" . (new DateTime)->format('H:i:s:v'));
     } catch(Exception $e) {
-      $errno = $e->getCode();
-      $errmsg .= "::" . $e->getMessage();
-
       // ADD an entry to badplayer and mark it with BOTAS_COUNTED.
       // The primary key is ip and type
+      $errno = $e->getCode();
 
-      $sql = "insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
-             "values('$S->ip', $id, '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-             "on duplicate key update count=count+1, errmsg=errmsg . '::$errmsg', lasttime=now()";
+      $id = $id ?? 0;
+      error_log("id=$id");
+      $sql = "insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, agent, created, lasttime) ".
+             "values('$S->ip', $id, '$S->self', '$msg', 1, '$errno', '$S->agent', now(), now()) ".
+             "on duplicate key update count=count+1, errno=errno, lasttime=now()";
         
       if(!$S->sql($sql)) {
         error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip badplayer - could not do insert/update");
@@ -280,14 +285,12 @@ if($type = $_GET['page']) {
 
   $S->sql($sql);
 
-  // If this is csstest we are done.
-  
   if($type == "csstest") {
     header("Content-Type: text/css");
     echo "/* csstest.css */";
     exit();
   }
-
+  
   // BLP 2024-12-17 - $S->defaultImage is from the mysitemap.json before anything in the original
   // page has done things to $_site. So NOTHING you do in the original page will affect these $S
   // values!!!

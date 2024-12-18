@@ -396,7 +396,7 @@ EOF;
 
     if($this->nodb !== true && $this->noTrack !== true) {
       $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
-
+      error_log("SiteClass: trackerLocation=$trackerLocation");
       // BLP 2024-12-17 - 
       $image1 = "<!-- Image1 is provided by tracker.js if JavaScropt is not disabled -->";
       // We start out with the <img id='headerImage2'> having the NO SCRIPT logo, because this will
