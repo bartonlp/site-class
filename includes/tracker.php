@@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 */
 
-define("TRACKER_VERSION", "4.0.11tracker-pdo"); // BLP 2024-12-29 - add $DEBUG_NOSCRIPT
+define("TRACKER_VERSION", "4.0.12tracker-pdo"); // BLP 2024-12-30 - update $DEBUG_NOSCRIPT
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -318,10 +318,14 @@ if($type = $_GET['page']) {
 
   header("Content-Type: $imageType");
 
-  // BLP 2024-12-29 - add $DEBUG_NOSCRIPT   
+  // BLP 2024-12-30 - add $DEBUG_NOSCRIPT   
   
-  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) error_log("TRACKER NOSCRIPT: $id, $ip, $site, $thepage, $msg, java=$java, difftime=$difftime, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
-
+  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT && !empty($difftime)) {
+    error_log("TRACKER NOSCRIPT difftime=$difftime: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
+  } else {
+    error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format("H:i:s:v"));
+  }
+  
   echo $imgFinal;
   exit();
 }
