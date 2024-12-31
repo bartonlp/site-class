@@ -1,4 +1,451 @@
-* commit 386358df0ec3f15dab5b28abb43ee96a9eae9085 (HEAD -> main)
+* commit 0f2b40ee2da5a2fe0141ca0ce7a422e6332abfa5 (HEAD -> main)
+| Author: Barton Phillips <bartonphillips@gmail.com>
+| Date:   Tue Dec 31 14:04:08 2024 +0000
+| 
+|             modified:   .gitignore
+|             modified:   limited-gitlog
+|             deleted:    update-git-log.sh
+|             modified:   update.sh
+| 
+| diff --git a/.gitignore b/.gitignore
+| index 7120af9..3bc813e 100644
+| --- a/.gitignore
+| +++ b/.gitignore
+| @@ -2,3 +2,4 @@ composer.lock
+|  .cache_ggshield
+|  Archive
+|  **\#*\#
+| +limited-gitlog
+| diff --git a/limited-gitlog b/limited-gitlog
+| index e988da6..46c3e32 100644
+| --- a/limited-gitlog
+| +++ b/limited-gitlog
+| @@ -1,4 +1,322 @@
+| -* commit a4095d38387de061828dd8bef481c1607e84d639 (HEAD -> main)
+| +* commit 386358df0ec3f15dab5b28abb43ee96a9eae9085 (HEAD -> main)
+| +| Author: Barton Phillips <bartonphillips@gmail.com>
+| +| Date:   Tue Dec 31 14:00:22 2024 +0000
+| +| 
+| +|     update
+| +|     modified:   limited-gitlog
+| +|     modified:   update.sh
+| +| 
+| +| diff --git a/limited-gitlog b/limited-gitlog
+| +| index b3c19b8..e988da6 100644
+| +| --- a/limited-gitlog
+| +| +++ b/limited-gitlog
+| +| @@ -1,4 +1,248 @@
+| +| -* commit fe5afc8911a1aefa1665dfb46061bde1e3b0c106 (HEAD -> main, origin/main, origin/HEAD)
+| +| +* commit a4095d38387de061828dd8bef481c1607e84d639 (HEAD -> main)
+| +| +| Author: Barton Phillips <bartonphillips@gmail.com>
+| +| +| Date:   Tue Dec 31 13:57:13 2024 +0000
+| +| +| 
+| +| +|     Updating and adding items.
+| +| +|             modified:   includes/tracker.php
+| +| +|             deleted:    includes/update-git-log.sh
+| +| +|             new file:   limited-gitlog
+| +| +|             renamed:    mk-html-gitlog.sh -> mk-html.sh
+| +| +|             modified:   update-git-log.sh
+| +| +|             new file:   update.sh
+| +| +| 
+| +| +| diff --git a/includes/tracker.php b/includes/tracker.php
+| +| +| index 90f25ca..18cf2a5 100644
+| +| +| --- a/includes/tracker.php
+| +| +| +++ b/includes/tracker.php
+| +| +| @@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
+| +| +|  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
+| +| +|  */
+| +| +|  
+| +| +| -define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - $id and badplayer. see date
+| +| +| +define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - see limited-gitlog
+| +| +|  
+| +| +|  //$DEBUG_START = true; // start
+| +| +|  //$DEBUG_LOAD = true; // load
+| +| +| @@ -128,7 +128,8 @@ EOF;
+| +| +|  // If you need things like 'trackerImg1' etc. or 'trackerLocation' etc. they must be set in the
+| +| +|  // page that call tracker.php.
+| +| +|  // When you are using '/var/www/site-class/includes/autoload.php' you will need to add
+| +| +| -// 'trackerLocation' and 'trackerLocationJs'.
+| +| +| +// 'trackerLocation' and 'trackerLocationJs'. These need to be a URL path either explisit like
+| +| +| +// 'https://..." or relative like "./something". You may need to put symlinks in the home directory.
+| +| +|  // If you are using the standard /var/www/vendor/bartonlp/site-class/includes/siteload.php, there
+| +| +|  // is no need for the 'trackerLocation' and 'trackerLocationJs'.
+| +| +|  // **********************************
+| +| +| @@ -156,11 +157,8 @@ if($type = $_GET['page']) {
+| +| +|  
+| +| +|      $S = new Database($_site);
+| +| +|  
+| +| +| -    if(!$id) {
+| +| +| -      error_log("tracker: type=$msg, NO ID, $S->siteName, $S->ip, $S->agent");
+| +| +| -      exit();
+| +| +| -    }
+| +| +| -
+| +| +| +    // BLP 2024-12-31 -
+| +| +| +    
+| +| +|      if(!is_numeric($id)) {
+| +| +|        $errno = -99;
+| +| +|        $errmsg = "ID is not numeric: $id";
+| +| +| @@ -169,7 +167,7 @@ if($type = $_GET['page']) {
+| +| +|  
+| +| +|        $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
+| +| +|               "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+| +| +| -             "on duplicate key update errmsg='UPDATE_ID_NOT_NUMERIC::$errmsg', count=count+1, lasttime=now()";
+| +| +| +             "on duplicate key update count=count+1, lasttime=now()";
+| +| +|  
+| +| +|        error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, agent=$S->agent");
+| +| +|  
+| +| +| @@ -212,11 +210,10 @@ if($type = $_GET['page']) {
+| +| +|    } catch(Exception $e) { // catches the throw above.
+| +| +|      // At this point $site, $ip, $thepage and $agent are NOT VALID.
+| +| +|      
+| +| +| -    // try to insert into the id that was passed in.
+| +| +| +    // We don't have a tracker record for this id/ip, so try th create a new record.
+| +| +|  
+| +| +|      try {
+| +| +|        $ip = $ip ?? "NO_IP";
+| +| +| -      //$id = $id ?? 0; // BLP 2024-12-31 - remove. If null this will cause an exception
+| +| +|        
+| +| +|        $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
+| +| +|               "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
+| +| +| @@ -227,10 +224,10 @@ if($type = $_GET['page']) {
+| +| +|        // The primary key is ip and type
+| +| +|        
+| +| +|        $errno = $e->getCode();
+| +| +| -      $errmsg = $e->getMessage(); // BLP 2024-12-31 - 
+| +| +| +      $errmsg = "NO_ID"; // BLP 2024-12-31 - 
+| +| +|  
+| +| +| -      $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
+| +| +| -             "values('$S->ip', '$site', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+| +| +| +      $sql = "insert into $S->masterdb.badplayer (ip, page, type, count, errno, errmsg, agent, created, lasttime) ".
+| +| +| +             "values('$S->ip', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+| +| +|               "on duplicate key update count=count+1, lasttime=now()";
+| +| +|          
+| +| +|        if(!$S->sql($sql)) {
+| +| +| diff --git a/includes/update-git-log.sh b/includes/update-git-log.sh
+| +| +| deleted file mode 100644
+| +| +| index a5628b8..0000000
+| +| +| --- a/includes/update-git-log.sh
+| +| +| +++ /dev/null
+| +| +| @@ -1,4 +0,0 @@
+| +| +| -#!/usr/bin/bash
+| +| +| -# Should be run after every commit
+| +| +| -
+| +| +| -git log --all --graph -p --decorate > ~/www/bartonlp.com/gitlog-simple
+| +| +| diff --git a/limited-gitlog b/limited-gitlog
+| +| +| new file mode 100644
+| +| +| index 0000000..b3c19b8
+| +| +| --- /dev/null
+| +| +| +++ b/limited-gitlog
+| +| +| @@ -0,0 +1,106 @@
+| +| +| +* commit fe5afc8911a1aefa1665dfb46061bde1e3b0c106 (HEAD -> main, origin/main, origin/HEAD)
+| +| +| +| Author: Barton Phillips <bartonphillips@gmail.com>
+| +| +| +| Date:   Tue Dec 31 12:05:31 2024 +0000
+| +| +| +| 
+| +| +| +|     Changed !id to !is_numeric. Added $errmsg.
+| +| +| +|             modified:   includes/tracker.php
+| +| +| +| 
+| +| +| +| diff --git a/includes/tracker.php b/includes/tracker.php
+| +| +| +| index 0b6130f..90f25ca 100644
+| +| +| +| --- a/includes/tracker.php
+| +| +| +| +++ b/includes/tracker.php
+| +| +| +| @@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
+| +| +| +|  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
+| +| +| +|  */
+| +| +| +|  
+| +| +| +| -define("TRACKER_VERSION", "4.0.12tracker-pdo"); // BLP 2024-12-30 - update agaub $DEBUG_NOSCRIPT
+| +| +| +| +define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - $id and badplayer. see date
+| +| +| +|  
+| +| +| +|  //$DEBUG_START = true; // start
+| +| +| +|  //$DEBUG_LOAD = true; // load
+| +| +| +| @@ -216,7 +216,7 @@ if($type = $_GET['page']) {
+| +| +| +|  
+| +| +| +|      try {
+| +| +| +|        $ip = $ip ?? "NO_IP";
+| +| +| +| -      $id = $id ?? 0;
+| +| +| +| +      //$id = $id ?? 0; // BLP 2024-12-31 - remove. If null this will cause an exception
+| +| +| +|        
+| +| +| +|        $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
+| +| +| +|               "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
+| +| +| +| @@ -224,15 +224,14 @@ if($type = $_GET['page']) {
+| +| +| +|        
+| +| +| +|        $S->sql($sql);
+| +| +| +|      } catch(Exception $e) {
+| +| +| +| -      // ADD an entry to badplayer and mark it with BOTAS_COUNTED.
+| +| +| +|        // The primary key is ip and type
+| +| +| +| +      
+| +| +| +|        $errno = $e->getCode();
+| +| +| +| +      $errmsg = $e->getMessage(); // BLP 2024-12-31 - 
+| +| +| +|  
+| +| +| +| -      $id = $id ?? 0;
+| +| +| +| -      error_log("id=$id");
+| +| +| +| -      $sql = "insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, agent, created, lasttime) ".
+| +| +| +| -             "values('$S->ip', $id, '$S->self', '$msg', 1, '$errno', '$S->agent', now(), now()) ".
+| +| +| +| -             "on duplicate key update count=count+1, errno=errno, lasttime=now()";
+| +| +| +| +      $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
+| +| +| +| +             "values('$S->ip', '$site', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+| +| +| +| +             "on duplicate key update count=count+1, lasttime=now()";
+| +| +| +|          
+| +| +| +|        if(!$S->sql($sql)) {
+| +| +| +|          error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip badplayer - could not do insert/update");
+| +| +| +| @@ -262,9 +261,6 @@ if($type = $_GET['page']) {
+| +| +| +|      $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
+| +| +| +|                  "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
+| +| +| +|                  "on duplicate key update error='ISABOT_UPDATE_$msg', botAs='$botAs', lasttime=now()");
+| +| +| +| -
+| +| +| +| -    // BLP 2023-01-18 - If this is a bot change the image.
+| +| +| +| -    //$image = "/images/bot.jpg"; // Image of a bad bot!
+| +| +| +|    }
+| +| +| +|  
+| +| +| +|    $ref = $_SERVER["HTTP_REFERER"];
+| +| +| +| @@ -668,7 +664,7 @@ GOAWAY: // Label for goto.
+| +| +| +|  
+| +| +| +|  $id = $_GET['id'] ?? $_POST['id'];
+| +| +| +|  
+| +| +| +| -if(!$id) {
+| +| +| +| +if(!is_numeric($id)) { // BLP 2024-12-31 - from !$id
+| +| +| +|    $errno = -102;
+| +| +| +|    $errmsg = "No tracker logic triggered";
+| +| +| +|    
+| +| +| +| 
+| +| +| +* commit bf832e28ae8c0c405c032a9ffd9a34177c929ba6
+| +| +| +| Author: Barton Phillips <bartonphillips@gmail.com>
+| +| +| +| Date:   Mon Dec 30 11:56:54 2024 +0000
+| +| +| +| 
+| +| +| +|     correct last commit of tracker.php
+| +| +| +| 
+| +| +| +| diff --git a/includes/tracker.php b/includes/tracker.php
+| +| +| +| index 66fc834..0b6130f 100644
+| +| +| +| --- a/includes/tracker.php
+| +| +| +| +++ b/includes/tracker.php
+| +| +| +| @@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
+| +| +| +|  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
+| +| +| +|  */
+| +| +| +|  
+| +| +| +| -define("TRACKER_VERSION", "4.0.12tracker-pdo"); // BLP 2024-12-30 - update $DEBUG_NOSCRIPT
+| +| +| +| +define("TRACKER_VERSION", "4.0.12tracker-pdo"); // BLP 2024-12-30 - update agaub $DEBUG_NOSCRIPT
+| +| +| +|  
+| +| +| +|  //$DEBUG_START = true; // start
+| +| +| +|  //$DEBUG_LOAD = true; // load
+| +| +| +| @@ -320,10 +320,12 @@ if($type = $_GET['page']) {
+| +| +| +|  
+| +| +| +|    // BLP 2024-12-30 - add $DEBUG_NOSCRIPT   
+| +| +| +|    
+| +| +| +| -  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT && !empty($difftime)) {
+| +| +| +| -    error_log("TRACKER NOSCRIPT difftime=$difftime: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
+| +| +| +| -  } else {
+| +| +| +| -    error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format("H:i:s:v"));
+| +| +| +| +  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) {
+| +| +| +| +    if(!empty($difftime)) {
+| +| +| +| +      error_log("TRACKER NOSCRIPT difftime=$difftime: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
+| +| +| +| +    } else {
+| +| +| +| +      error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format("H:i:s:v"));
+| +| +| +| +    }
+| +| +| +|    }
+| +| +| +|    
+| +| +| +|    echo $imgFinal;
+| +| +| diff --git a/mk-html-gitlog.sh b/mk-html.sh
+| +| +| similarity index 99%
+| +| +| rename from mk-html-gitlog.sh
+| +| +| rename to mk-html.sh
+| +| +| index dd24183..81944a6 100755
+| +| +| --- a/mk-html-gitlog.sh
+| +| +| +++ b/mk-html.sh
+| +| +| @@ -1,4 +1,4 @@
+| +| +| -#!/bin/bash
+| +| +| +#!/usr/bin/bash
+| +| +|  # !!! You need pandoc: sudo apt-get install pandoc
+| +| +|  
+| +| +|  
+| +| +| diff --git a/update-git-log.sh b/update-git-log.sh
+| +| +| index 43dda63..617addc 100755
+| +| +| --- a/update-git-log.sh
+| +| +| +++ b/update-git-log.sh
+| +| +| @@ -2,3 +2,4 @@
+| +| +|  # Should be run after every commit
+| +| +|  
+| +| +|  git log --all --graph -p --decorate > ~/www/bartonlp.com/gitlog
+| +| +| +git log --all --graph -p --decorate -2 > ./limited-gitlog
+| +| +| \ No newline at end of file
+| +| +| diff --git a/update.sh b/update.sh
+| +| +| new file mode 100755
+| +| +| index 0000000..de33567
+| +| +| --- /dev/null
+| +| +| +++ b/update.sh
+| +| +| @@ -0,0 +1,7 @@
+| +| +| +#!/usr/bin/bash
+| +| +| +echo "TEST";
+| +| +| +
+| +| +| +mk-html.sh
+| +| +| +git add .
+| +| +| +git commit
+| +| +| +update-git-log.sh
+| +| +| 
+| +| +* commit fe5afc8911a1aefa1665dfb46061bde1e3b0c106 (origin/main, origin/HEAD)
+| +|  | Author: Barton Phillips <bartonphillips@gmail.com>
+| +|  | Date:   Tue Dec 31 12:05:31 2024 +0000
+| +|  | 
+| +| @@ -67,40 +311,3 @@
+| +|  |    $errno = -102;
+| +|  |    $errmsg = "No tracker logic triggered";
+| +|  |    
+| +| -| 
+| +| -* commit bf832e28ae8c0c405c032a9ffd9a34177c929ba6
+| +| -| Author: Barton Phillips <bartonphillips@gmail.com>
+| +| -| Date:   Mon Dec 30 11:56:54 2024 +0000
+| +| -| 
+| +| -|     correct last commit of tracker.php
+| +| -| 
+| +| -| diff --git a/includes/tracker.php b/includes/tracker.php
+| +| -| index 66fc834..0b6130f 100644
+| +| -| --- a/includes/tracker.php
+| +| -| +++ b/includes/tracker.php
+| +| -| @@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
+| +| -|  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
+| +| -|  */
+| +| -|  
+| +| -| -define("TRACKER_VERSION", "4.0.12tracker-pdo"); // BLP 2024-12-30 - update $DEBUG_NOSCRIPT
+| +| -| +define("TRACKER_VERSION", "4.0.12tracker-pdo"); // BLP 2024-12-30 - update agaub $DEBUG_NOSCRIPT
+| +| -|  
+| +| -|  //$DEBUG_START = true; // start
+| +| -|  //$DEBUG_LOAD = true; // load
+| +| -| @@ -320,10 +320,12 @@ if($type = $_GET['page']) {
+| +| -|  
+| +| -|    // BLP 2024-12-30 - add $DEBUG_NOSCRIPT   
+| +| -|    
+| +| -| -  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT && !empty($difftime)) {
+| +| -| -    error_log("TRACKER NOSCRIPT difftime=$difftime: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
+| +| -| -  } else {
+| +| -| -    error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format("H:i:s:v"));
+| +| -| +  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) {
+| +| -| +    if(!empty($difftime)) {
+| +| -| +      error_log("TRACKER NOSCRIPT difftime=$difftime: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
+| +| -| +    } else {
+| +| -| +      error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format("H:i:s:v"));
+| +| -| +    }
+| +| -|    }
+| +| -|    
+| +| -|    echo $imgFinal;
+| +| diff --git a/update.sh b/update.sh
+| +| index de33567..36bda75 100755
+| +| --- a/update.sh
+| +| +++ b/update.sh
+| +| @@ -1,7 +1,7 @@
+| +|  #!/usr/bin/bash
+| +|  echo "TEST";
+| +|  
+| +| -mk-html.sh
+| +| +./mk-html.sh
+| +|  git add .
+| +|  git commit
+| +| -update-git-log.sh
+| +| +./update-git-log.sh
+| +| 
+| +* commit a4095d38387de061828dd8bef481c1607e84d639
+|  | Author: Barton Phillips <bartonphillips@gmail.com>
+|  | Date:   Tue Dec 31 13:57:13 2024 +0000
+|  | 
+| @@ -241,73 +559,3 @@
+|  | +git add .
+|  | +git commit
+|  | +update-git-log.sh
+| -| 
+| -* commit fe5afc8911a1aefa1665dfb46061bde1e3b0c106 (origin/main, origin/HEAD)
+| -| Author: Barton Phillips <bartonphillips@gmail.com>
+| -| Date:   Tue Dec 31 12:05:31 2024 +0000
+| -| 
+| -|     Changed !id to !is_numeric. Added $errmsg.
+| -|             modified:   includes/tracker.php
+| -| 
+| -| diff --git a/includes/tracker.php b/includes/tracker.php
+| -| index 0b6130f..90f25ca 100644
+| -| --- a/includes/tracker.php
+| -| +++ b/includes/tracker.php
+| -| @@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
+| -|  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
+| -|  */
+| -|  
+| -| -define("TRACKER_VERSION", "4.0.12tracker-pdo"); // BLP 2024-12-30 - update agaub $DEBUG_NOSCRIPT
+| -| +define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - $id and badplayer. see date
+| -|  
+| -|  //$DEBUG_START = true; // start
+| -|  //$DEBUG_LOAD = true; // load
+| -| @@ -216,7 +216,7 @@ if($type = $_GET['page']) {
+| -|  
+| -|      try {
+| -|        $ip = $ip ?? "NO_IP";
+| -| -      $id = $id ?? 0;
+| -| +      //$id = $id ?? 0; // BLP 2024-12-31 - remove. If null this will cause an exception
+| -|        
+| -|        $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
+| -|               "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
+| -| @@ -224,15 +224,14 @@ if($type = $_GET['page']) {
+| -|        
+| -|        $S->sql($sql);
+| -|      } catch(Exception $e) {
+| -| -      // ADD an entry to badplayer and mark it with BOTAS_COUNTED.
+| -|        // The primary key is ip and type
+| -| +      
+| -|        $errno = $e->getCode();
+| -| +      $errmsg = $e->getMessage(); // BLP 2024-12-31 - 
+| -|  
+| -| -      $id = $id ?? 0;
+| -| -      error_log("id=$id");
+| -| -      $sql = "insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, agent, created, lasttime) ".
+| -| -             "values('$S->ip', $id, '$S->self', '$msg', 1, '$errno', '$S->agent', now(), now()) ".
+| -| -             "on duplicate key update count=count+1, errno=errno, lasttime=now()";
+| -| +      $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
+| -| +             "values('$S->ip', '$site', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+| -| +             "on duplicate key update count=count+1, lasttime=now()";
+| -|          
+| -|        if(!$S->sql($sql)) {
+| -|          error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip badplayer - could not do insert/update");
+| -| @@ -262,9 +261,6 @@ if($type = $_GET['page']) {
+| -|      $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
+| -|                  "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
+| -|                  "on duplicate key update error='ISABOT_UPDATE_$msg', botAs='$botAs', lasttime=now()");
+| -| -
+| -| -    // BLP 2023-01-18 - If this is a bot change the image.
+| -| -    //$image = "/images/bot.jpg"; // Image of a bad bot!
+| -|    }
+| -|  
+| -|    $ref = $_SERVER["HTTP_REFERER"];
+| -| @@ -668,7 +664,7 @@ GOAWAY: // Label for goto.
+| -|  
+| -|  $id = $_GET['id'] ?? $_POST['id'];
+| -|  
+| -| -if(!$id) {
+| -| +if(!is_numeric($id)) { // BLP 2024-12-31 - from !$id
+| -|    $errno = -102;
+| -|    $errmsg = "No tracker logic triggered";
+| -|    
+| diff --git a/update-git-log.sh b/update-git-log.sh
+| deleted file mode 100755
+| index 617addc..0000000
+| --- a/update-git-log.sh
+| +++ /dev/null
+| @@ -1,5 +0,0 @@
+| -#!/usr/bin/bash
+| -# Should be run after every commit
+| -
+| -git log --all --graph -p --decorate > ~/www/bartonlp.com/gitlog
+| -git log --all --graph -p --decorate -2 > ./limited-gitlog
+| \ No newline at end of file
+| diff --git a/update.sh b/update.sh
+| index 36bda75..f3ea345 100755
+| --- a/update.sh
+| +++ b/update.sh
+| @@ -1,7 +1,6 @@
+|  #!/usr/bin/bash
+| -echo "TEST";
+| -
+|  ./mk-html.sh
+|  git add .
+|  git commit
+| -./update-git-log.sh
+| +git log --all --graph -p --decorate > ~/www/bartonlp.com/gitlog
+| +git log --all --graph -p --decorate -2 > ./limited-gitlog
+| 
+* commit 386358df0ec3f15dab5b28abb43ee96a9eae9085
 | Author: Barton Phillips <bartonphillips@gmail.com>
 | Date:   Tue Dec 31 14:00:22 2024 +0000
 | 
@@ -315,247 +762,3 @@
 |  git commit
 | -update-git-log.sh
 | +./update-git-log.sh
-| 
-* commit a4095d38387de061828dd8bef481c1607e84d639
-| Author: Barton Phillips <bartonphillips@gmail.com>
-| Date:   Tue Dec 31 13:57:13 2024 +0000
-| 
-|     Updating and adding items.
-|             modified:   includes/tracker.php
-|             deleted:    includes/update-git-log.sh
-|             new file:   limited-gitlog
-|             renamed:    mk-html-gitlog.sh -> mk-html.sh
-|             modified:   update-git-log.sh
-|             new file:   update.sh
-| 
-| diff --git a/includes/tracker.php b/includes/tracker.php
-| index 90f25ca..18cf2a5 100644
-| --- a/includes/tracker.php
-| +++ b/includes/tracker.php
-| @@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
-|  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
-|  */
-|  
-| -define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - $id and badplayer. see date
-| +define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - see limited-gitlog
-|  
-|  //$DEBUG_START = true; // start
-|  //$DEBUG_LOAD = true; // load
-| @@ -128,7 +128,8 @@ EOF;
-|  // If you need things like 'trackerImg1' etc. or 'trackerLocation' etc. they must be set in the
-|  // page that call tracker.php.
-|  // When you are using '/var/www/site-class/includes/autoload.php' you will need to add
-| -// 'trackerLocation' and 'trackerLocationJs'.
-| +// 'trackerLocation' and 'trackerLocationJs'. These need to be a URL path either explisit like
-| +// 'https://..." or relative like "./something". You may need to put symlinks in the home directory.
-|  // If you are using the standard /var/www/vendor/bartonlp/site-class/includes/siteload.php, there
-|  // is no need for the 'trackerLocation' and 'trackerLocationJs'.
-|  // **********************************
-| @@ -156,11 +157,8 @@ if($type = $_GET['page']) {
-|  
-|      $S = new Database($_site);
-|  
-| -    if(!$id) {
-| -      error_log("tracker: type=$msg, NO ID, $S->siteName, $S->ip, $S->agent");
-| -      exit();
-| -    }
-| -
-| +    // BLP 2024-12-31 -
-| +    
-|      if(!is_numeric($id)) {
-|        $errno = -99;
-|        $errmsg = "ID is not numeric: $id";
-| @@ -169,7 +167,7 @@ if($type = $_GET['page']) {
-|  
-|        $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
-|               "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-| -             "on duplicate key update errmsg='UPDATE_ID_NOT_NUMERIC::$errmsg', count=count+1, lasttime=now()";
-| +             "on duplicate key update count=count+1, lasttime=now()";
-|  
-|        error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, agent=$S->agent");
-|  
-| @@ -212,11 +210,10 @@ if($type = $_GET['page']) {
-|    } catch(Exception $e) { // catches the throw above.
-|      // At this point $site, $ip, $thepage and $agent are NOT VALID.
-|      
-| -    // try to insert into the id that was passed in.
-| +    // We don't have a tracker record for this id/ip, so try th create a new record.
-|  
-|      try {
-|        $ip = $ip ?? "NO_IP";
-| -      //$id = $id ?? 0; // BLP 2024-12-31 - remove. If null this will cause an exception
-|        
-|        $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
-|               "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
-| @@ -227,10 +224,10 @@ if($type = $_GET['page']) {
-|        // The primary key is ip and type
-|        
-|        $errno = $e->getCode();
-| -      $errmsg = $e->getMessage(); // BLP 2024-12-31 - 
-| +      $errmsg = "NO_ID"; // BLP 2024-12-31 - 
-|  
-| -      $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
-| -             "values('$S->ip', '$site', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-| +      $sql = "insert into $S->masterdb.badplayer (ip, page, type, count, errno, errmsg, agent, created, lasttime) ".
-| +             "values('$S->ip', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-|               "on duplicate key update count=count+1, lasttime=now()";
-|          
-|        if(!$S->sql($sql)) {
-| diff --git a/includes/update-git-log.sh b/includes/update-git-log.sh
-| deleted file mode 100644
-| index a5628b8..0000000
-| --- a/includes/update-git-log.sh
-| +++ /dev/null
-| @@ -1,4 +0,0 @@
-| -#!/usr/bin/bash
-| -# Should be run after every commit
-| -
-| -git log --all --graph -p --decorate > ~/www/bartonlp.com/gitlog-simple
-| diff --git a/limited-gitlog b/limited-gitlog
-| new file mode 100644
-| index 0000000..b3c19b8
-| --- /dev/null
-| +++ b/limited-gitlog
-| @@ -0,0 +1,106 @@
-| +* commit fe5afc8911a1aefa1665dfb46061bde1e3b0c106 (HEAD -> main, origin/main, origin/HEAD)
-| +| Author: Barton Phillips <bartonphillips@gmail.com>
-| +| Date:   Tue Dec 31 12:05:31 2024 +0000
-| +| 
-| +|     Changed !id to !is_numeric. Added $errmsg.
-| +|             modified:   includes/tracker.php
-| +| 
-| +| diff --git a/includes/tracker.php b/includes/tracker.php
-| +| index 0b6130f..90f25ca 100644
-| +| --- a/includes/tracker.php
-| +| +++ b/includes/tracker.php
-| +| @@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
-| +|  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
-| +|  */
-| +|  
-| +| -define("TRACKER_VERSION", "4.0.12tracker-pdo"); // BLP 2024-12-30 - update agaub $DEBUG_NOSCRIPT
-| +| +define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - $id and badplayer. see date
-| +|  
-| +|  //$DEBUG_START = true; // start
-| +|  //$DEBUG_LOAD = true; // load
-| +| @@ -216,7 +216,7 @@ if($type = $_GET['page']) {
-| +|  
-| +|      try {
-| +|        $ip = $ip ?? "NO_IP";
-| +| -      $id = $id ?? 0;
-| +| +      //$id = $id ?? 0; // BLP 2024-12-31 - remove. If null this will cause an exception
-| +|        
-| +|        $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
-| +|               "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
-| +| @@ -224,15 +224,14 @@ if($type = $_GET['page']) {
-| +|        
-| +|        $S->sql($sql);
-| +|      } catch(Exception $e) {
-| +| -      // ADD an entry to badplayer and mark it with BOTAS_COUNTED.
-| +|        // The primary key is ip and type
-| +| +      
-| +|        $errno = $e->getCode();
-| +| +      $errmsg = $e->getMessage(); // BLP 2024-12-31 - 
-| +|  
-| +| -      $id = $id ?? 0;
-| +| -      error_log("id=$id");
-| +| -      $sql = "insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, agent, created, lasttime) ".
-| +| -             "values('$S->ip', $id, '$S->self', '$msg', 1, '$errno', '$S->agent', now(), now()) ".
-| +| -             "on duplicate key update count=count+1, errno=errno, lasttime=now()";
-| +| +      $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
-| +| +             "values('$S->ip', '$site', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-| +| +             "on duplicate key update count=count+1, lasttime=now()";
-| +|          
-| +|        if(!$S->sql($sql)) {
-| +|          error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip badplayer - could not do insert/update");
-| +| @@ -262,9 +261,6 @@ if($type = $_GET['page']) {
-| +|      $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
-| +|                  "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
-| +|                  "on duplicate key update error='ISABOT_UPDATE_$msg', botAs='$botAs', lasttime=now()");
-| +| -
-| +| -    // BLP 2023-01-18 - If this is a bot change the image.
-| +| -    //$image = "/images/bot.jpg"; // Image of a bad bot!
-| +|    }
-| +|  
-| +|    $ref = $_SERVER["HTTP_REFERER"];
-| +| @@ -668,7 +664,7 @@ GOAWAY: // Label for goto.
-| +|  
-| +|  $id = $_GET['id'] ?? $_POST['id'];
-| +|  
-| +| -if(!$id) {
-| +| +if(!is_numeric($id)) { // BLP 2024-12-31 - from !$id
-| +|    $errno = -102;
-| +|    $errmsg = "No tracker logic triggered";
-| +|    
-| +| 
-| +* commit bf832e28ae8c0c405c032a9ffd9a34177c929ba6
-| +| Author: Barton Phillips <bartonphillips@gmail.com>
-| +| Date:   Mon Dec 30 11:56:54 2024 +0000
-| +| 
-| +|     correct last commit of tracker.php
-| +| 
-| +| diff --git a/includes/tracker.php b/includes/tracker.php
-| +| index 66fc834..0b6130f 100644
-| +| --- a/includes/tracker.php
-| +| +++ b/includes/tracker.php
-| +| @@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
-| +|  ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
-| +|  */
-| +|  
-| +| -define("TRACKER_VERSION", "4.0.12tracker-pdo"); // BLP 2024-12-30 - update $DEBUG_NOSCRIPT
-| +| +define("TRACKER_VERSION", "4.0.12tracker-pdo"); // BLP 2024-12-30 - update agaub $DEBUG_NOSCRIPT
-| +|  
-| +|  //$DEBUG_START = true; // start
-| +|  //$DEBUG_LOAD = true; // load
-| +| @@ -320,10 +320,12 @@ if($type = $_GET['page']) {
-| +|  
-| +|    // BLP 2024-12-30 - add $DEBUG_NOSCRIPT   
-| +|    
-| +| -  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT && !empty($difftime)) {
-| +| -    error_log("TRACKER NOSCRIPT difftime=$difftime: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
-| +| -  } else {
-| +| -    error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format("H:i:s:v"));
-| +| +  if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) {
-| +| +    if(!empty($difftime)) {
-| +| +      error_log("TRACKER NOSCRIPT difftime=$difftime: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
-| +| +    } else {
-| +| +      error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format("H:i:s:v"));
-| +| +    }
-| +|    }
-| +|    
-| +|    echo $imgFinal;
-| diff --git a/mk-html-gitlog.sh b/mk-html.sh
-| similarity index 99%
-| rename from mk-html-gitlog.sh
-| rename to mk-html.sh
-| index dd24183..81944a6 100755
-| --- a/mk-html-gitlog.sh
-| +++ b/mk-html.sh
-| @@ -1,4 +1,4 @@
-| -#!/bin/bash
-| +#!/usr/bin/bash
-|  # !!! You need pandoc: sudo apt-get install pandoc
-|  
-|  
-| diff --git a/update-git-log.sh b/update-git-log.sh
-| index 43dda63..617addc 100755
-| --- a/update-git-log.sh
-| +++ b/update-git-log.sh
-| @@ -2,3 +2,4 @@
-|  # Should be run after every commit
-|  
-|  git log --all --graph -p --decorate > ~/www/bartonlp.com/gitlog
-| +git log --all --graph -p --decorate -2 > ./limited-gitlog
-| \ No newline at end of file
-| diff --git a/update.sh b/update.sh
-| new file mode 100755
-| index 0000000..de33567
-| --- /dev/null
-| +++ b/update.sh
-| @@ -0,0 +1,7 @@
-| +#!/usr/bin/bash
-| +echo "TEST";
-| +
-| +mk-html.sh
-| +git add .
-| +git commit
-| +update-git-log.sh
