@@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 */
 
-define("TRACKER_VERSION", "4.0.12tracker-pdo"); // BLP 2024-12-30 - update agaub $DEBUG_NOSCRIPT
+define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - $id and badplayer. see date
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -216,7 +216,7 @@ if($type = $_GET['page']) {
 
     try {
       $ip = $ip ?? "NO_IP";
-      $id = $id ?? 0;
+      //$id = $id ?? 0; // BLP 2024-12-31 - remove. If null this will cause an exception
       
       $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
              "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
@@ -224,15 +224,14 @@ if($type = $_GET['page']) {
       
       $S->sql($sql);
     } catch(Exception $e) {
-      // ADD an entry to badplayer and mark it with BOTAS_COUNTED.
       // The primary key is ip and type
+      
       $errno = $e->getCode();
+      $errmsg = $e->getMessage(); // BLP 2024-12-31 - 
 
-      $id = $id ?? 0;
-      error_log("id=$id");
-      $sql = "insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, agent, created, lasttime) ".
-             "values('$S->ip', $id, '$S->self', '$msg', 1, '$errno', '$S->agent', now(), now()) ".
-             "on duplicate key update count=count+1, errno=errno, lasttime=now()";
+      $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
+             "values('$S->ip', '$site', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+             "on duplicate key update count=count+1, lasttime=now()";
         
       if(!$S->sql($sql)) {
         error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip badplayer - could not do insert/update");
@@ -262,9 +261,6 @@ if($type = $_GET['page']) {
     $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
                 "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
                 "on duplicate key update error='ISABOT_UPDATE_$msg', botAs='$botAs', lasttime=now()");
-
-    // BLP 2023-01-18 - If this is a bot change the image.
-    //$image = "/images/bot.jpg"; // Image of a bad bot!
   }
 
   $ref = $_SERVER["HTTP_REFERER"];
@@ -668,7 +664,7 @@ GOAWAY: // Label for goto.
 
 $id = $_GET['id'] ?? $_POST['id'];
 
-if(!$id) {
+if(!is_numeric($id)) { // BLP 2024-12-31 - from !$id
   $errno = -102;
   $errmsg = "No tracker logic triggered";
   
