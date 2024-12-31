@@ -178,7 +178,7 @@ if($type = $_GET['page']) {
              "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
              "on duplicate key update count=count+1, lasttime=now()";
 
-      error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, agent=$S->agent");
+      error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, errno=$errno, errmsg=$errmsg, agent=$S->agent");
 
       $S->sql($sql);
       goto GOAWAYNOW;
@@ -240,7 +240,7 @@ if($type = $_GET['page']) {
              "on duplicate key update count=count+1, lasttime=now()";
         
       if(!$S->sql($sql)) {
-        error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip badplayer - could not do insert/update");
+        error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip, errno=$errno, errmsg=$errmsg, badplayer - could not do insert/update");
       }       
       goto GOAWAYNOW;
     }
@@ -707,7 +707,7 @@ $id = $id ?? "NO_ID";
 
 GOAWAYNOW:
 
-error_log("tracker: $id, $S->ip, $S->siteName, $S->self, GOAWAY, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
+error_log("tracker: $id, $S->ip, $S->siteName, $S->self, GOAWAYNOW, \$S->agent=$S->agent, errno=$errno, errmsg=$errmsg, agent=$agent finger=$finger{$request}");
 
 $version = TRACKER_VERSION;
 
