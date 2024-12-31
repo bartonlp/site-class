@@ -1,7 +1,6 @@
 #!/usr/bin/bash
-echo "TEST";
-
 ./mk-html.sh
 git add .
 git commit
-./update-git-log.sh
+git log --all --graph -p --decorate > ~/www/bartonlp.com/gitlog
+git log --all --graph -p --decorate -2 > ./limited-gitlog
