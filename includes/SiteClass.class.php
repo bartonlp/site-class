@@ -5,7 +5,7 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.0.6pdo"); // BLP 2024-12-17 - add <!-- comments -->. See date.
+define("SITE_CLASS_VERSION", "5.0.7pdo"); // BLP 2024-12-31 - updated jQuery to 3.7.1
 
 // One class for all my sites
 /**
@@ -186,9 +186,9 @@ class SiteClass extends Database {
 
     if($this->nojquery !== true) {
       $jQuery = <<<EOF
-  <!-- jQuery BLP 2022-12-21 - Latest version -->
-  <script src="https://code.jquery.com/jquery-3.6.3.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
-  <script src="https://code.jquery.com/jquery-migrate-3.4.0.min.js" integrity="sha256-mBCu5+bVfYzOqpYyK4jm30ZxAZRomuErKEFJFIyrwvM=" crossorigin="anonymous"></script>
+  <!-- BLP 2024-12-31 - Latest version 3.7.1 and migrate 3.5.2 -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-migrate-3.5.2.min.js" integrity="sha256-ocUeptHNod0gW2X1Z+ol3ONVAGWzIJXUmIs+4nUeDLI=" crossorigin="anonymous"></script>
   <script>jQuery.migrateMute = false; jQuery.migrateTrace = false;</script>
 EOF;
 
