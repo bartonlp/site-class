@@ -1,7 +1,11 @@
 <?php
 // Beacon from tracker.js
 
-define("BEACON_VERSION", "4.0.3beacon-pdo"); // BLP 2024-12-17 - See date.
+/* BLP 2024-12-31 - New errno values as a string.
+   -200: No type
+*/
+
+define("BEACON_VERSION", "4.0.4beacon-pdo"); // BLP 2024-12-31 - New errno.
 
 // BLP 2023-01-30 - If you want the version defined ONLY and no other information.
 // If we have a valid $_site or the $__VERSION_ONLY, then just return the version info.
@@ -39,8 +43,6 @@ $visits = $data['visits'];
 $thepage = $data['thepage'];
 $state = $data['state'];
 
-//error_log("*** beacon: site=$site, ip=$ip, page=$thepage, state=$state, type=$type");
-
 // Here the isMeFalse is passed as a true bool.
 $S->isMeFalse = $data['isMeFalse'];
 
@@ -48,12 +50,15 @@ $msg = strtoupper($type);
 
 // If we do not have an $id or $visits that is an error.
 
-if(!$id || $visits === null) {
-  if(!$msg) $msg = "NO_TYPE_NO_VISITS";
+if(!is_numeric($id) || $visits === null) {
+  if(!$msg) $msg = "NO_TYPE&NO_VISITS";
+
+  $errno = "-200: No type";
+
   error_log("beacon:  NO ID, $ip, $site, $msg -- visits=$visits, \$S->ip=$S->ip, \$S->self=$S->self, \$S->agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
   
   $S->sql("insert into $S->masterdb.badplayer (ip, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', '$site', '$S->self', 'counted', '{$msg}_BEACON_GOAWAY', 1, '-104', 'NO ID Go away', '$S->agent', now(), now()) ".
+            "values('$S->ip', '$site', '$S->self', 'counted', '{$msg}_BEACON_GOAWAY', 1, '$errno', 'NO ID Go away', '$S->agent', now(), now()) ".
             "on duplicate key update count=count+1, lasttime=now()");
 
   echo "<h1>GO AWAY</h1><p>" . BEACON_VERSION . "</p>";

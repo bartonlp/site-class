@@ -43,7 +43,7 @@ CREATE TABLE `badplayer` (
   `botAs` varchar(50) DEFAULT NULL,
   `type` varchar(50) NOT NULL,
   `count` int DEFAULT NULL,
-  `errno` int DEFAULT NULL,
+  `errno` varchar(100) DEFAULT NULL,
   `errmsg` varchar(255) DEFAULT NULL,
   `agent` varchar(255) DEFAULT NULL,
   `created` datetime DEFAULT NULL,
@@ -60,6 +60,15 @@ CREATE TABLE `daycounts` (
   `lasttime` datetime DEFAULT NULL,
   PRIMARY KEY (`site`,`date`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
+*/
+
+/* BLP 2024-12-31 - New errno values:
+   These all have these error codes plus the $e->getCode().
+   It looks like: <below code>: $e->getCode().
+   -100 = ID is not numeric: $id
+   -102 = Insert to tracker failed
+   -103 = NO ID: No tracker logic triggered
+   -104 = HAS ID: No tracker logic triggered
 */
 
 define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - see limited-gitlog
@@ -160,7 +169,7 @@ if($type = $_GET['page']) {
     // BLP 2024-12-31 -
     
     if(!is_numeric($id)) {
-      $errno = -99;
+      $errno = "-100: " . $e->getCode();
       $errmsg = "ID is not numeric: $id";
 
       // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
@@ -223,8 +232,8 @@ if($type = $_GET['page']) {
     } catch(Exception $e) {
       // The primary key is ip and type
       
-      $errno = $e->getCode();
-      $errmsg = "NO_ID"; // BLP 2024-12-31 - 
+      $errno = "-102: " . $e->getCode();
+      $errmsg = "Insert to tracker failed"; // BLP 2024-12-31 - 
 
       $sql = "insert into $S->masterdb.badplayer (ip, page, type, count, errno, errmsg, agent, created, lasttime) ".
              "values('$S->ip', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
@@ -659,10 +668,10 @@ if($_POST['page'] == 'timer') {
 
 GOAWAY: // Label for goto.
 
-$id = $_GET['id'] ?? $_POST['id'];
+$id = $_REQUEST['id'];
 
-if(!is_numeric($id)) { // BLP 2024-12-31 - from !$id
-  $errno = -102;
+if(!is_numeric($id)) {
+  $errno = "-103: " . $e->getCode();  
   $errmsg = "No tracker logic triggered";
   
   // No id
@@ -677,7 +686,7 @@ if(!is_numeric($id)) { // BLP 2024-12-31 - from !$id
             "values($id, '$S->ip', '$S->siteName', '$S->agent', " . TRACKER_GOAWAY . ", now(), now()) ".
             "on duplicate key update isJavaScript=isJavaScript|" . TRACKER_GOAWAY . ", lasttime=now()");
 
-  $errno = -103;
+  $errno = "-104: " . $e->getCode();
   $errmsg = "No tracker logic triggered";
   $botAs = BOTAS_COUNTED;
   
