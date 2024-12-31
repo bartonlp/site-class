@@ -149,8 +149,9 @@ if($type = $_GET['page']) {
   $mysitemap = $_GET['mysitemap']; // This was passed from the original $image2 or $image3. The image is changed here.
 
   if(!empty($mysitemap)) {
-    require_once "/var/www/site-class/includes/autoload.php";
-
+    //require_once "/var/www/site-class/includes/autoload.php";
+    require_once getenv("SITELOADNAME");
+    
     ob_start();
     require $mysitemap;
     $tmp = ob_get_contents();
@@ -184,6 +185,8 @@ if($type = $_GET['page']) {
       goto GOAWAYNOW;
     }
   } else {
+    // Default for CSSTEST because there is no good way to set mysitemap from .htaccess.
+    
     $_site = require_once getenv("SITELOADNAME");
     $S = new Database($_site);
   }
@@ -207,7 +210,7 @@ if($type = $_GET['page']) {
       error_log("tracker Switch Error: $S->ip, $S->siteName, type=$type, time=" . (new DateTime)->format('H:i:s:v'));
       goto GOAWAY;
   }
-  
+
   try {
     $sql = "select site, ip, page, finger, isJavaScript, agent, botAs, difftime from $S->masterdb.tracker where id=$id";
     
@@ -707,7 +710,7 @@ $id = $id ?? "NO_ID";
 
 GOAWAYNOW:
 
-error_log("tracker: $id, $S->ip, $S->siteName, $S->self, GOAWAYNOW, \$S->agent=$S->agent, errno=$errno, errmsg=$errmsg, agent=$agent finger=$finger{$request}");
+error_log("tracker: $id, $S->ip, $S->siteName, $S->self, GOAWAYNOW, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
 
 $version = TRACKER_VERSION;
 
