@@ -146,6 +146,8 @@ EOF;
 if($type = $_GET['page']) {
   // BLP 2024-12-17 - use the new mysitemap variable.
   
+  $id = $_GET['id'];
+  $image = $_GET['image'];
   $mysitemap = $_GET['mysitemap']; // This was passed from the original $image2 or $image3. The image is changed here.
 
   if(!empty($mysitemap)) {
@@ -159,9 +161,6 @@ if($type = $_GET['page']) {
 
     $_site = json_decode(stripComments($tmp));
 
-    $id = $_GET['id'];
-    $image = $_GET['image'];
-    
     $_site->noTrack = true;
     $_site->noGeo = true;
 
