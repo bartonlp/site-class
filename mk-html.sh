@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 # !!! You need pandoc: sudo apt-get install pandoc
 
 

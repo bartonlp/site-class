@@ -62,7 +62,7 @@ CREATE TABLE `daycounts` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 */
 
-define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - $id and badplayer. see date
+define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - see limited-gitlog
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -128,7 +128,8 @@ EOF;
 // If you need things like 'trackerImg1' etc. or 'trackerLocation' etc. they must be set in the
 // page that call tracker.php.
 // When you are using '/var/www/site-class/includes/autoload.php' you will need to add
-// 'trackerLocation' and 'trackerLocationJs'.
+// 'trackerLocation' and 'trackerLocationJs'. These need to be a URL path either explisit like
+// 'https://..." or relative like "./something". You may need to put symlinks in the home directory.
 // If you are using the standard /var/www/vendor/bartonlp/site-class/includes/siteload.php, there
 // is no need for the 'trackerLocation' and 'trackerLocationJs'.
 // **********************************
@@ -156,11 +157,8 @@ if($type = $_GET['page']) {
 
     $S = new Database($_site);
 
-    if(!$id) {
-      error_log("tracker: type=$msg, NO ID, $S->siteName, $S->ip, $S->agent");
-      exit();
-    }
-
+    // BLP 2024-12-31 -
+    
     if(!is_numeric($id)) {
       $errno = -99;
       $errmsg = "ID is not numeric: $id";
@@ -169,7 +167,7 @@ if($type = $_GET['page']) {
 
       $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
              "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-             "on duplicate key update errmsg='UPDATE_ID_NOT_NUMERIC::$errmsg', count=count+1, lasttime=now()";
+             "on duplicate key update count=count+1, lasttime=now()";
 
       error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, agent=$S->agent");
 
@@ -212,11 +210,10 @@ if($type = $_GET['page']) {
   } catch(Exception $e) { // catches the throw above.
     // At this point $site, $ip, $thepage and $agent are NOT VALID.
     
-    // try to insert into the id that was passed in.
+    // We don't have a tracker record for this id/ip, so try th create a new record.
 
     try {
       $ip = $ip ?? "NO_IP";
-      //$id = $id ?? 0; // BLP 2024-12-31 - remove. If null this will cause an exception
       
       $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
              "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
@@ -227,10 +224,10 @@ if($type = $_GET['page']) {
       // The primary key is ip and type
       
       $errno = $e->getCode();
-      $errmsg = $e->getMessage(); // BLP 2024-12-31 - 
+      $errmsg = "NO_ID"; // BLP 2024-12-31 - 
 
-      $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
-             "values('$S->ip', '$site', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+      $sql = "insert into $S->masterdb.badplayer (ip, page, type, count, errno, errmsg, agent, created, lasttime) ".
+             "values('$S->ip', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
              "on duplicate key update count=count+1, lasttime=now()";
         
       if(!$S->sql($sql)) {
