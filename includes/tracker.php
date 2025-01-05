@@ -71,7 +71,7 @@ CREATE TABLE `daycounts` (
    -104 = HAS ID: No tracker logic triggered
 */
 
-define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - see limited-gitlog
+define("TRACKER_VERSION", "4.0.15tracker-pdo"); // BLP 2025-01-05 - add special debug message ***tracker.php 1 and 2
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -80,8 +80,8 @@ define("TRACKER_VERSION", "4.0.13tracker-pdo"); // BLP 2024-12-31 - see limited-
 //$DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
 //$DEBUG_ISABOT = true; // This is in the 'timer' logic
-//$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
-$DEBUG_NOSCRIPT = true; // no script
+$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
+//$DEBUG_NOSCRIPT = true; // no script
 
 // If you want the version defined ONLY and no other information.
 // BLP 2024-12-17 - removed check for $_site.
@@ -248,9 +248,6 @@ if($type = $_GET['page']) {
     }
   }
 
-  $js |= $or; 
-  $java = dechex($js);
-  
   // If we get here the $ip, $site, $thepage and $agent are all valid.
 
   if($DEBUG_GET1)
@@ -260,17 +257,32 @@ if($type = $_GET['page']) {
     $botAs = BOTAS_COUNTED . "," . $botAs; // BLP 2024-03-21 - added
     $botAs = rtrim($botAs, ',');
   }
-  
-  if(empty($agent) || $S->isBot($agent)) {
-    if($DEBUG_ISABOT2) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, botAs=$botAs, image=$image, time=" . (new DateTime)->format('H:i:s:v'));
 
-    // We know that there is an ID but is there a record with that ID?
+  if(empty($agent) || $S->isBot($agent)) {
+    // BLP 2025-01-05 - I don't want $js to have the $or yet as I want to be able to check if
+    // NORMAL, NOSCRIPT or CSS has happened. So I do the DEBUG test first and then or in the new
+    // value.
+
+    error_log("***tracker.php 1: java=" . dechex($js) . ", ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
+
+    if($DEBUG_ISABOT2 && ($js & (TRACKER_NORMAL | TRACKER_NOSCRIPT | TRACKER_CSS) === 0))
+      error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, botAs=$botAs, image=$image, time=" . (new DateTime)->format('H:i:s:v'));
+
+    $js |= $or; 
+    $java = dechex($js);
+
+    error_log("***tracker.php 2: java=$java, ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
 
     $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
                 "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
                 "on duplicate key update error='ISABOT_UPDATE_$msg', botAs='$botAs', lasttime=now()");
+  } else {
+    // BLP 2025-01-05 - if not a bot or in the values.
+    
+    $js |= $or; 
+    $java = dechex($js);
   }
-
+  
   $ref = $_SERVER["HTTP_REFERER"];
 
   if($DEBUG_GET2) error_log("tracker: $id, $ip, $site, $thepage, $msg -- referer=$ref");
@@ -512,7 +524,7 @@ if($_POST['page'] == 'load') {
 // browsers and of course MS-Ie. Therefore these should not happen often.
 // BLP 2022-10-27 - I have not seen one in several months so I am removing this logic and replacing
 // it with an error message!
-// BLP 2023-10-06 - Tor does not support 'beacon' so Tor comes here.
+// BLP 2023-1-006 - Tor does not support 'beacon' so Tor comes here.
 
 if($_POST['page'] == 'onexit') {
   $id = $_POST['id'];
@@ -674,7 +686,7 @@ $id = $_REQUEST['id'];
 
 if(!is_numeric($id)) {
   $errno = "-103";  
-  $errmsg = "No Id, No tracker logic triggered";
+  $errmsg = "NO ID, No tracker logic triggered";
   
   // No id
   
