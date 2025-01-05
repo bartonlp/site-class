@@ -169,7 +169,7 @@ if($type = $_GET['page']) {
     // BLP 2024-12-31 -
     
     if(!is_numeric($id)) {
-      $errno = "-100: " . $e->getCode();
+      $errno = "-100";
       $errmsg = "ID is not numeric: $id";
 
       // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
@@ -216,7 +216,7 @@ if($type = $_GET['page']) {
     if($S->sql($sql)) {
       [$site, $ip, $thepage, $finger, $js, $agent, $botAs, $difftime] = $S->fetchrow('num');
     } else {
-      throw new Exception("tracker: NO RECORD for id=$id, type=$msg", -100); // This will be caught below.
+      throw new Exception("tracker: NO RECORD for id=$id, type=$msg"); // This will be caught below.
     }
   } catch(Exception $e) { // catches the throw above.
     // At this point $site, $ip, $thepage and $agent are NOT VALID.
@@ -673,8 +673,8 @@ GOAWAY: // Label for goto.
 $id = $_REQUEST['id'];
 
 if(!is_numeric($id)) {
-  $errno = "-103: " . $e->getCode();  
-  $errmsg = "No tracker logic triggered";
+  $errno = "-103";  
+  $errmsg = "No Id, No tracker logic triggered";
   
   // No id
   
@@ -689,7 +689,7 @@ if(!is_numeric($id)) {
             "on duplicate key update isJavaScript=isJavaScript|" . TRACKER_GOAWAY . ", lasttime=now()");
 
   $errno = "-104: " . $e->getCode();
-  $errmsg = "No tracker logic triggered";
+  $errmsg = "$id, No tracker logic triggered";
   $botAs = BOTAS_COUNTED;
   
   $S->sql("insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
