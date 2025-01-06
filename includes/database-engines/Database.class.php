@@ -3,7 +3,7 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.0.5database-pdo"); // BLP 2024-09-05 - moved ip, agent, self and requestUri to dbPdo
+define("DATABASE_CLASS_VERSION", "1.0.6database-pdo"); // BLP 2025-01-06 - remove dayrecords from database and from CheckIfTablesExist().
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 /**
@@ -635,7 +635,7 @@ class Database extends dbPdo {
       $tbls[] = $tbl;
     }
 
-    $ar = array_diff(['badplayer', 'bots', 'bots2', 'counter', 'counter2', 'daycounts', 'myip', 'logagent', 'dayrecords', 'geo'], $tbls);
+    $ar = array_diff(['badplayer', 'bots', 'bots2', 'counter', 'counter2', 'daycounts', 'myip', 'logagent', 'geo'], $tbls);
     if(!empty($ar)) {
       throw new Exception("Database.class.php: Missing tables -- " . implode(',', $ar));
     }

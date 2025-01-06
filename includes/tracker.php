@@ -50,16 +50,6 @@ CREATE TABLE `badplayer` (
   `lasttime` datetime DEFAULT NULL,
   PRIMARY KEY (`ip`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-// BLP 2024-10-02 - removed `real` and visits.
-
-CREATE TABLE `daycounts` (
-  `site` varchar(50) NOT NULL DEFAULT '',
-  `date` date NOT NULL,
-  `bots` int DEFAULT '0',
-  `lasttime` datetime DEFAULT NULL,
-  PRIMARY KEY (`site`,`date`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 */
 
 /* BLP 2024-12-31 - New errno values:
@@ -69,9 +59,14 @@ CREATE TABLE `daycounts` (
    -102 = Insert to tracker failed
    -103 = NO ID: No tracker logic triggered
    -104 = HAS ID: No tracker logic triggered
+   -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "4.0.15tracker-pdo"); // BLP 2025-01-05 - add special debug message ***tracker.php 1 and 2
+// BLP 2025-01-06 -  add special debug message ***tracker.php 1 and 2. Move Database out of
+// mysitemap logic. Removed daycount and dayrecords tables and logic to control them. Added -105.
+// In timer added new logic to check for $botAs values.
+// Remove time from error messages.
+define("TRACKER_VERSION", "4.0.15tracker-pdo"); // BLP 2025-01-06 - See date in code.
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -144,8 +139,6 @@ EOF;
 // **********************************
 
 if($type = $_GET['page']) {
-  // BLP 2024-12-17 - use the new mysitemap variable.
-  
   $id = $_GET['id'];
   $image = $_GET['image'];
   $mysitemap = $_GET['mysitemap']; // This was passed from the original $image2 or $image3. The image is changed here.
@@ -160,36 +153,35 @@ if($type = $_GET['page']) {
     ob_end_clean();
 
     $_site = json_decode(stripComments($tmp));
-
-    $_site->noTrack = true;
-    $_site->noGeo = true;
-
-    $S = new Database($_site);
-
-    // BLP 2024-12-31 -
-    
-    if(!is_numeric($id)) {
-      $errno = "-100";
-      $errmsg = "ID is not numeric: $id";
-
-      // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
-
-      $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
-             "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-             "on duplicate key update count=count+1, lasttime=now()";
-
-      error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, errno=$errno, errmsg=$errmsg, agent=$S->agent");
-
-      $S->sql($sql);
-      goto GOAWAYNOW;
-    }
   } else {
     // Default for CSSTEST because there is no good way to set mysitemap from .htaccess.
     
     $_site = require_once getenv("SITELOADNAME");
-    $S = new Database($_site);
   }
   // BLP 2024-12-17 - end of mysitemap addition
+
+  // BLP 2025-01-06 - Move out of mysitemap logic above
+  
+  $_site->noTrack = true; // BLP 2025-01-06 - 
+  $_site->noGeo = true;   // BLP 2025-01-06 - 
+
+  $S = new Database($_site);
+
+  if(!is_numeric($id)) {
+    $errno = "-100";
+    $errmsg = "ID is not numeric: $id";
+
+    // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
+
+    $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
+           "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+           "on duplicate key update count=count+1, lasttime=now()";
+
+    error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, errno=$errno, errmsg=$errmsg, agent=$S->agent");
+
+    $S->sql($sql);
+    goto GOAWAYNOW;
+  }
 
   // $S values are from the original pages mysitemap.json for every thing exept type 'csstest'..
   
@@ -206,31 +198,41 @@ if($type = $_GET['page']) {
       $or = TRACKER_CSS;
       break;
     default:
-      error_log("tracker Switch Error: $S->ip, $S->siteName, type=$type, time=" . (new DateTime)->format('H:i:s:v'));
+      error_log("tracker Switch Error: $S->ip, $S->siteName, type=$type");
       goto GOAWAY;
   }
 
+  // Get information from tracker.
+  
   try {
     $sql = "select site, ip, page, finger, isJavaScript, agent, botAs, difftime from $S->masterdb.tracker where id=$id";
     
     if($S->sql($sql)) {
       [$site, $ip, $thepage, $finger, $js, $agent, $botAs, $difftime] = $S->fetchrow('num');
     } else {
-      throw new Exception("tracker: NO RECORD for id=$id, type=$msg"); // This will be caught below.
+      throw new Exception("NO RECORD for id=$id, type=$msg", -105); // This will be caught below.
     }
   } catch(Exception $e) { // catches the throw above.
-    // At this point $site, $ip, $thepage and $agent are NOT VALID.
+    if(($errno = $e->getCode()) !== -105) {
+      $errmsg = $e->getMessage();
+      error_log("tracker.php errno=$errno, errmsg=$errmsg, line=" . __LINE__);
+      exit("<h1>Go Away</h1>");
+    }
+
+    error_log("tracker.php errno=$errno, errmsg=" . $e->getMessage() . ", line=" . __LINE__);
     
+    // At this point $site, $ip, $thepage and $agent are NOT VALID, BUT $id should be valid.
     // We don't have a tracker record for this id/ip, so try th create a new record.
 
     try {
-      $ip = $ip ?? "NO_IP";
+      $ip = "NO_IP"; 
       
       $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
              "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
              "on duplicate key update error='Update, Select failed $ip $msg', lasttime=now()";
       
       $S->sql($sql);
+      error_log("tracker.php: record added for id$id with no data, line=" . __LINE__);
     } catch(Exception $e) {
       // The primary key is ip and type
       
@@ -251,7 +253,7 @@ if($type = $_GET['page']) {
   // If we get here the $ip, $site, $thepage and $agent are all valid.
 
   if($DEBUG_GET1)
-     error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, time=" . (new DateTime)->format('H:i:s:v'));
+     error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java");
   
   if(!str_contains($botAs, BOTAS_COUNTED)) {
     $botAs = BOTAS_COUNTED . "," . $botAs; // BLP 2024-03-21 - added
@@ -263,15 +265,19 @@ if($type = $_GET['page']) {
     // NORMAL, NOSCRIPT or CSS has happened. So I do the DEBUG test first and then or in the new
     // value.
 
-    error_log("***tracker.php 1: java=" . dechex($js) . ", ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
+    if(empty($site)) $site = "NO_SITE";
+    if(empty($thepage)) $thepage = "NO_PAGE";
+    if(empty($agent)) $agent = "NO_AGENT";
+                                   
+    error_log("***tracker.php 1: id=$id, java=" . dechex($js) . ", ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
 
     if($DEBUG_ISABOT2 && ($js & (TRACKER_NORMAL | TRACKER_NOSCRIPT | TRACKER_CSS) === 0))
-      error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, botAs=$botAs, image=$image, time=" . (new DateTime)->format('H:i:s:v'));
+      error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, botAs=$botAs, image=$image");
 
     $js |= $or; 
     $java = dechex($js);
 
-    error_log("***tracker.php 2: java=$java, ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
+    error_log("***tracker.php 2: id=$id, java=$java, ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
 
     $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
                 "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
@@ -338,9 +344,9 @@ if($type = $_GET['page']) {
   
   if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) {
     if(!empty($difftime)) {
-      error_log("TRACKER NOSCRIPT difftime=$difftime: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
+      error_log("TRACKER NOSCRIPT difftime=$difftime: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent");
     } else {
-      error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent, time=" . (new DateTime)->format("H:i:s:v"));
+      error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent");
     }
   }
   
@@ -457,7 +463,7 @@ if($_POST['page'] == 'start') {
   if($S->sql("select botAs, isJavaScript, agent from $S->masterdb.tracker where id=$id")) {
     [$botAs, $js, $agent] = $S->fetchrow('num');
   } else { // BLP 2023-02-10 - add for debug
-    error_log("tracker: $id, $ip, $site, $thispage,  Select of id=$id failed, time=" . (new DateTime)->format('H:I:s:v'));
+    error_log("tracker: $id, $ip, $site, $thispage,  Select of id=$id failed");
   }
 
   $java = dechex($js);
@@ -465,7 +471,7 @@ if($_POST['page'] == 'start') {
   $js2 = dechex($js);
 
   if(!$S->isMyIp($ip) && $DEBUG_START) {
-    error_log("tracker: $id, $ip, $site, $thepage, START1, botAs=$botAs, referer=$ref, jsin=$java, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+    error_log("tracker: $id, $ip, $site, $thepage, START1, botAs=$botAs, referer=$ref, jsin=$java, jsout=$js2");
   }
 
   if($ref) {
@@ -509,7 +515,7 @@ if($_POST['page'] == 'load') {
   $js2 = dechex($js);
 
   if(!$S->isMyIp($ip) && $DEBUG_LOAD && strpos($botAs, BOTAS_COUNTED) === false)
-    error_log("tracker: $id, $ip, $site, $thepage, LOAD2, botAs=$botAs, jsin=$java, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+    error_log("tracker: $id, $ip, $site, $thepage, LOAD2, botAs=$botAs, jsin=$java, jsout=$js2");
 
   // BLP 2023-03-25 - This should maybe be insert/update?
   
@@ -591,7 +597,9 @@ if($_POST['page'] == 'timer') {
   // BLP 2024-12-04 - use hex value for $js, remove $java.
   
   if(!$S->sql("select botAs, isJavaScript, finger, agent, difftime from $S->masterdb.tracker where id=$id")) {
-    error_log("*** tracker.php: No record for id=$id, $site, $thispage");
+    error_log("*** tracker.php timer: No record for id=$id, $site, $thispage");
+    echo "Timer Error: no tracker record";
+    exit();
   }
 
   [$botAs, $js, $finger, $agent, $difftime] = $S->fetchrow('num');
@@ -602,76 +610,50 @@ if($_POST['page'] == 'timer') {
 
   if(!empty($agent)) {
     if($S->isBot($agent)) {
-      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
+      if($DEBUG_ISABOT)
+        error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, agent=$agent");
+      
       echo "Timer1: This is a BOT, $id, $ip, $site, $thepage";
       exit(); // If this is a bot don't bother
     }
   } else {
     error_log("tracker, timer: $id, $ip, $site, $thepage, java=$js2, 'EMPTY_AGENT', botAs=$botAs");
+    echo "Timer Error: no agent";
+    exit();
   }
 
-  // $botAs could have any or all of these: counted as well as  match, robot, sitemap or zbot
+  // $botAs could have any or all of these: BOTAS_COUNTED,  BOTAS_MATCH, BOTAS_ROBOT, BOTAS_SITEMAP
+  // or BOTAS_ZBOT.
+  // Check if $botAs has BOTAS_COUNTED. Then if it does not have BOTAS_COUNTED check to see if any
+  // of the other indicators of a robot are pressent. If they are exit with message.
+  // If the other indicator are not there then $botAs is empty so add BOTAS_COUNTED.
+
+  // BLP 2025-01-06 - New logic
   
-  if(!str_contains($botAs, BOTAS_COUNTED)) {
-    // Does not contain BOTAS_COUNTED
-    
-    if(!empty($botAs)) {
-      // This must have match, no-agent, robot, sitemap, or zbot
-
-      if($DEBUG_ISABOT) error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER2, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
-
-      echo "Timer2 This is a BOT, $id, $ip, $site, $thepage, $botAs";
-      exit();
+  if(preg_match("~^(.*)".BOTAS_COUNTED."(.*)$~", $botAs, $m) === 0) {
+    if(empty($botAs)) {
+      $botAs = BOTAS_COUNTED;
+    } else {
+      echo BOTAS_COUNTED . ",$botAs";
     }
-    // $botAs must be blank so set it to 'counted'.
-    
-    $botAs = BOTAS_COUNTED;
+  } elseif($m[1] || $m[2]) {
+    error_log("tracker timer, This is a BOT, id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, difftime=$difftime, agent=$agent, m=". print_r($m, true));
+    echo "This is a BOT, botAs=$botAs";
+    exit();
+  } else {
+    echo "ERROR: tracker, timer. botAs=$botAs";
   }
-
-  // If we get here we know that $botAs could have counted from above, but it may still have the other values.
-    
-  if(!$S->isMyIp($ip) && !str_contains($botAs, BOTAS_COUNTED)) {
-    // It is not me, and $botAs does not conatin counted. It may have any of the other values.
-    
-    try {
-      $S->sql("select `real`, bots, visits from $S->masterdb.daycounts where date=current_date() and site='$site'");
-      [$dayreal, $daybots, $dayvisits] = $S->fetchrow('num');
-      $dayreal++;
-      $dayvisits += $visits;
-      $daybots = empty($daybots) ? 0 : $daybots; // BLP 2023-01-07 -
-      
-      $sql = "update $S->masterdb.daycounts set `real`='$dayreal', bots='$daybots', visits='$dayvisits' where date=current_date() and site='$site'";
-      $S->sql($sql);
-      if($DEBUG_DAYCOUNT) error_log("tracker: $id, $ip, $site, $thepage, COUNTED_TIMER, real+1, visits=$visits, jsin=$java, jsout=$js2, real=$dayreal, bots=$daybots, time=" . (new DateTime)->format('H:i:s:v'));
-
-      // BLP 2022-12-06 - Added rcount and bcount
-      
-      $S->sql("insert into $S->masterdb.dayrecords (fid, ip, site, page, finger, jsin, jsout, dayreal, rcount, daybots, dayvisits, visits, lasttime) ".
-                "values($id, '$ip', '$site', '$thepage', '$finger', $java, $js2, '$dayreal', 1, '$daybots', '$dayvisits', '$visits', now()) ".
-                "on duplicate key update finger='$finger', dayreal='$dayreal', rcount=rcount+1, daybots='$daybots', ".
-                "dayvisits='$dayvisits', visits='$visits', lasttime=now()");
-    } catch(Exception $e) {
-      error_log("tracker Exception ($e) update or insert daycounts: real=$dayreal, bots=$daybots, visits=$dayvisits, site=$site, sql=$sql");
-    }      
-  }
-
-  // BLP 2022-12-06 - now $botAs may have counted as well as maybe all of the other values.
-  // Look again to see if we have counted.
-
-  if(!str_contains($botAs, BOTAS_COUNTED)) {
-    // It does not have counted so add it to the start
-
-    $botAs = BOTAS_COUNTED . "," . $botAs;
-  }
+  // BLP 2025-01-06 - end New logic
   
-  $sql = "update $S->masterdb.tracker set botAs='$botAs', isJavaScript=$js, endtime=now(), ".
-         "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id";
+  // BLP 2025-01-06 - removed the daycount and dayrecord logic.
 
-  $S->sql($sql);
+  $S->sql("update $S->masterdb.tracker set botAs='$botAs', isJavaScript=$js, endtime=now(), ".
+          "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id");
 
-  if(!$S->isMyIp($ip) && $DEBUG_TIMER) error_log("tracker: $id, $ip, $site, $thepage, TIMER2, botAs=$botAs, visits: $visits, jsin=$java, jsout=$js2, agent=$agent, time=" . (new DateTime)->format('H:i:s:v'));
+  if(!$S->isMyIp($ip) && $DEBUG_TIMER)
+    error_log("tracker: $id, $ip, $site, $thepage, TIMER2, botAs=$botAs, visits: $visits, jsin=$java, jsout=$js2, agent=$agent");
 
-  echo "Timer OK, visits: $visits, java=$js, finger=$finger";
+  echo "Timer OK, visits: $visits, java=$js2, finger=$finger";
   exit();
 }
 // *********************************************
