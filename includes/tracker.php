@@ -66,7 +66,7 @@ CREATE TABLE `badplayer` (
 // mysitemap logic. Removed daycount and dayrecords tables and logic to control them. Added -105.
 // In timer added new logic to check for $botAs values.
 // Remove time from error messages.
-define("TRACKER_VERSION", "4.0.15tracker-pdo"); // BLP 2025-01-06 - See date in code.
+define("TRACKER_VERSION", "4.0.15tracker-pdo"); // BLP 2025-01-06, BLP 2025-01-07 - See date in code.
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -630,22 +630,29 @@ if($_POST['page'] == 'timer') {
 
   // BLP 2025-01-06 - New logic
   
-  if(preg_match("~^(.*)".BOTAS_COUNTED."(.*)$~", $botAs, $m) === 0) {
-    if(empty($botAs)) {
-      $botAs = BOTAS_COUNTED;
+  if(preg_match("~^(.*)".BOTAS_COUNTED."(.*)$~", $botAs, $m) === 0) { // BLP 2025-01-07 - if zero then no match
+    if(empty($botAs)) { // BLP 2025-01-07 - check if $botAs is empty. It could have other indicators.
+      $botAs = BOTAS_COUNTED; // BLP 2025-01-07 - Yes it is empty so just add BOTAS_COUNTED.
     } else {
-      echo BOTAS_COUNTED . ",$botAs";
+      $botAs = BOTAS_COUNTED . ",$botAs"; // BLP 2025-01-07 - There are other indicators like BOTAS_ROBOT etc. So make BOTAS_COUNTED first and add the others.
     }
-  } elseif($m[1] || $m[2]) {
-    error_log("tracker timer, This is a BOT, id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, difftime=$difftime, agent=$agent, m=". print_r($m, true));
+  } elseif($m[1] || $m[2]) { // BLP 2025-01-07 - We found $m[1] or $m[2]. $m[0] has the whole string that has BOTAS_COUNTED.
+    // If $m[1] or $m[2] are true then this must have BOTAS_COUNTED and some other BOT indicators
+    // like BOTAS_ROBOT etc.
+    
+    error_log("tracker timer, This is a BOT, EXIT: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, difftime=$difftime, agent=$agent, m={$m[1]}/{$m[2]}");
     echo "This is a BOT, botAs=$botAs";
     exit();
-  } else {
-    echo "ERROR: tracker, timer. botAs=$botAs";
+  } else { // BLP 2025-01-07 - if preg_match() result was not 0 or 1, then it must be 'false' which is an error
+    error_log("tracker timer, preg_match() ERROR, botAs=$botAs");
+    echo "ERROR: tracker, timer. botAs=$botAs?";
+    exit();
   }
   // BLP 2025-01-06 - end New logic
   
   // BLP 2025-01-06 - removed the daycount and dayrecord logic.
+
+  // BLP 2025-01-07 - The only way I can get here is with an updated $botAs.
 
   $S->sql("update $S->masterdb.tracker set botAs='$botAs', isJavaScript=$js, endtime=now(), ".
           "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id");
