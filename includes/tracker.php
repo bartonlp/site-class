@@ -1,4 +1,4 @@
-<?php
+ID_IS_NOT_NUMERIC<?php
 // Track the various thing that happen. Some of this is done via JavaScript while others are by the
 // header images and the csstest that is in the .htaccess file as a RewirteRule.
 // NOTE: the $_site info is from a mysitemap.json that is where the tracker.php
@@ -76,6 +76,8 @@ define("TRACKER_VERSION", "4.0.15tracker-pdo"); // BLP 2025-01-06, BLP 2025-01-0
 //$DEBUG_GET1 = true;
 //$DEBUG_ISABOT = true; // This is in the 'timer' logic
 $DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
+$DEBUG_BOT1 = true;
+$DEBUG_BOT2 = true;
 //$DEBUG_NOSCRIPT = true; // no script
 
 // If you want the version defined ONLY and no other information.
@@ -141,8 +143,12 @@ EOF;
 if($type = $_GET['page']) {
   $id = $_GET['id'];
   $image = $_GET['image'];
-  $mysitemap = $_GET['mysitemap']; // This was passed from the original $image2 or $image3. The image is changed here.
+  $msg = strtoupper($type);
+  $mysitemap = $_GET['mysitemap'];
 
+  // If we have $mysitemap get the mysitemap.json from the caller.
+  // This should happend for all types except CSSTEST
+  
   if(!empty($mysitemap)) {
     //require_once "/var/www/site-class/includes/autoload.php";
     require_once getenv("SITELOADNAME");
@@ -158,9 +164,6 @@ if($type = $_GET['page']) {
     
     $_site = require_once getenv("SITELOADNAME");
   }
-  // BLP 2024-12-17 - end of mysitemap addition
-
-  // BLP 2025-01-06 - Move out of mysitemap logic above
   
   $_site->noTrack = true; // BLP 2025-01-06 - 
   $_site->noGeo = true;   // BLP 2025-01-06 - 
@@ -180,13 +183,12 @@ if($type = $_GET['page']) {
     error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, errno=$errno, errmsg=$errmsg, agent=$S->agent");
 
     $S->sql($sql);
-    goto GOAWAYNOW;
+    goaway('now');
+    exit();
   }
 
   // $S values are from the original pages mysitemap.json for every thing exept type 'csstest'..
   
-  $msg = strtoupper($type);
-
   switch($type) {
     case "normal":
       $or = TRACKER_NORMAL;
@@ -199,7 +201,8 @@ if($type = $_GET['page']) {
       break;
     default:
       error_log("tracker Switch Error: $S->ip, $S->siteName, type=$type");
-      goto GOAWAY;
+      goaway();
+      exit();
   }
 
   // Get information from tracker.
@@ -246,7 +249,8 @@ if($type = $_GET['page']) {
       if(!$S->sql($sql)) {
         error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip, errno=$errno, errmsg=$errmsg, badplayer - could not do insert/update");
       }       
-      goto GOAWAYNOW;
+      goaway('now');
+      exit();
     }
   }
 
@@ -269,7 +273,7 @@ if($type = $_GET['page']) {
     if(empty($thepage)) $thepage = "NO_PAGE";
     if(empty($agent)) $agent = "NO_AGENT";
                                    
-    error_log("***tracker.php 1: id=$id, java=" . dechex($js) . ", ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
+    if($DEBUG_BOT1) error_log("***tracker.php 1: id=$id, java=" . dechex($js) . ", ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
 
     if($DEBUG_ISABOT2 && ($js & (TRACKER_NORMAL | TRACKER_NOSCRIPT | TRACKER_CSS) === 0))
       error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, botAs=$botAs, image=$image");
@@ -277,7 +281,7 @@ if($type = $_GET['page']) {
     $js |= $or; 
     $java = dechex($js);
 
-    error_log("***tracker.php 2: id=$id, java=$java, ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
+    if($DEBUG_BOT2) error_log("***tracker.php 2 ISABOT_$msg: id=$id, java=$java, ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
 
     $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
                 "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
@@ -613,7 +617,7 @@ if($_POST['page'] == 'timer') {
       if($DEBUG_ISABOT)
         error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, agent=$agent");
       
-      echo "Timer1: This is a BOT, $id, $ip, $site, $thepage";
+      echo "Timer1: agent empty, This is a BOT, $id, $ip, $site, $thepage";
       exit(); // If this is a bot don't bother
     }
   } else {
@@ -643,10 +647,9 @@ if($_POST['page'] == 'timer') {
     error_log("tracker timer, This is a BOT, EXIT: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, difftime=$difftime, agent=$agent, m={$m[1]}/{$m[2]}");
     echo "This is a BOT, botAs=$botAs";
     exit();
-  } else { // BLP 2025-01-07 - if preg_match() result was not 0 or 1, then it must be 'false' which is an error
-    error_log("tracker timer, preg_match() ERROR, botAs=$botAs");
-    echo "ERROR: tracker, timer. botAs=$botAs?";
-    exit();
+  } else { // BLP 2025-01-07 - found only $m[0]
+    if(!$S->isMe()) error_log("tracker timer, botAs=$botAs, ip=$ip, agent=$agent");
+    echo "tracker timer $botAs";
   }
   // BLP 2025-01-06 - end New logic
   
@@ -667,54 +670,59 @@ if($_POST['page'] == 'timer') {
 // This is the END of the javascript AJAX calls.
 // *********************************************
 
-// Go Away logic
-
-GOAWAY: // Label for goto.
-
-$id = $_REQUEST['id'];
-
-if(!is_numeric($id)) {
-  $errno = "-103";  
-  $errmsg = "NO ID, No tracker logic triggered";
+function goaway($msg) {
+  // If now then skip the first part.
   
-  // No id
-  
-  $S->sql("insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAY NO ID', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-            "on duplicate key update count=count+1, lasttime=now()");
-} else {
-  // If this ID is not in the table add it with TRACKER_GOAWAY.
-  
-  $S->sql("insert into $S->masterdb.tracker (id, site, ip, agent, isJavaScript, starttime, lasttime) ".
-            "values($id, '$S->ip', '$S->siteName', '$S->agent', " . TRACKER_GOAWAY . ", now(), now()) ".
-            "on duplicate key update isJavaScript=isJavaScript|" . TRACKER_GOAWAY . ", lasttime=now()");
+  if(empty($msg)) { 
+    // Go Away logic
 
-  $errno = "-104: " . $e->getCode();
-  $errmsg = "$id, No tracker logic triggered";
-  $botAs = BOTAS_COUNTED;
-  
-  $S->sql("insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-            "on duplicate key update count=count+1, lasttime=now()");
-}
+    $id = $_REQUEST['id'];
 
-// otherwise just go away!
+    if(!is_numeric($id)) {
+      $errno = "-103";  
+      $errmsg = "NO ID, No tracker logic triggered";
 
-if($id) {
-  $sql = "select finger from tracker where id=$id";
-  $S->sql($sql);
-  $finger = $S->fetchrow('num')[0] ?? "NONE";
-}
-$request = $_REQUEST ? ", \$_REQUEST: " . print_r($_REQUEST, true) : '';
-$id = $id ?? "NO_ID";
+      // No id
 
-GOAWAYNOW:
+      $S->sql("insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
+              "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAY NO ID', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+              "on duplicate key update count=count+1, lasttime=now()");
+    } else {
+      // If this ID is not in the table add it with TRACKER_GOAWAY.
 
-error_log("tracker: $id, $S->ip, $S->siteName, $S->self, GOAWAYNOW, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
+      $S->sql("insert into $S->masterdb.tracker (id, site, ip, agent, isJavaScript, starttime, lasttime) ".
+              "values($id, '$S->ip', '$S->siteName', '$S->agent', " . TRACKER_GOAWAY . ", now(), now()) ".
+              "on duplicate key update isJavaScript=isJavaScript|" . TRACKER_GOAWAY . ", lasttime=now()");
 
-$version = TRACKER_VERSION;
+      $errno = "-104: " . $e->getCode();
+      $errmsg = "$id, No tracker logic triggered";
+      $botAs = BOTAS_COUNTED;
 
-echo <<<EOF
+      $S->sql("insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
+              "values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+              "on duplicate key update count=count+1, lasttime=now()");
+    }
+
+    // otherwise just go away!
+
+    if($id) {
+      $sql = "select finger from tracker where id=$id";
+      $S->sql($sql);
+      $finger = $S->fetchrow('num')[0] ?? "NONE";
+    }
+    $request = $_REQUEST ? ", \$_REQUEST: " . print_r($_REQUEST, true) : '';
+    $id = $id ?? "NO_ID";
+
+    errir_log("tracker $id, $S->ip, $S-<siteName, $S->self, GOAWAY, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
+  } else {
+    // $msg = now;
+    
+    error_log("tracker: $S->ip, $S->siteName, $S->self, GOAWAYNOW, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
+  }
+
+  $version = TRACKER_VERSION;
+
+  echo <<<EOF
 <!DOCTYPE html>
 <html>
 <head>
@@ -729,3 +737,4 @@ echo <<<EOF
 </body>
 </html>
 EOF;
+}
