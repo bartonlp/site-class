@@ -3,8 +3,10 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.0.6database-pdo"); // BLP 2025-01-06 - remove dayrecords from database and from CheckIfTablesExist().
+define("DATABASE_CLASS_VERSION", "1.0.7database-pdo"); // BLP 2025-01-12 - remove references to counter2 and daycounts table.
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
+
+define("DEBUG_TRACKER_BOTINFO", true);
 
 /**
  * Database wrapper class
@@ -83,7 +85,7 @@ class Database extends dbPdo {
         // Now do all of the rest.
 
         $this->trackbots();  // both 'bots' and 'bots2'. This also does a isMe() so never get put into the 'bots*' tables.
-        $this->tracker();    // This logs Me and everybody else but uses the $this->isBot! Note this is done before daycount()
+        $this->tracker();    // This logs Me and everybody else but uses the $this->isBot! 
         $this->updatemyip(); // Update myip if it is ME
 
         // If 'count' is false we don't do these counters
@@ -94,9 +96,8 @@ class Database extends dbPdo {
 
           $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
 
-          if(!$this->isMe()) { //If it is NOT ME do counter2 and daycount
-            $this->counter2(); // in 'masterdb' database
-            $this->daycount(); // in 'masterdb' database
+          if(!$this->isMe()) { //If it is NOT ME do counter2
+            $this->counter2(); 
           }
         }
       }
@@ -124,11 +125,10 @@ class Database extends dbPdo {
                      );
 
     if(!setcookie($cookie, $value, $options)) {
-      error_log("Database $this->siteName: $this->self: setcookie failed ". __LINE__);
+      error_log("Database setSiteCookie: failed, site=$this->siteName, page=$this->self, line=". __LINE__);
       return false;
     }
 
-    //error_log("cookie: $cookie, value: $value, options: " . print_r($options, true));
     return true;
   }
 
@@ -191,7 +191,7 @@ class Database extends dbPdo {
     $this->isBot = false;
     $this->foundBotAs = ''; // These two will be set in isBot().
     
-    if(!empty($agent)) { // BLP 2023-10-27 - Check agent.
+    if(!empty($agent)) {
       if(($x = preg_match("~\+*https?://|@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
                           "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
                           "http client|PECL::HTTP|Go-~i", $agent)) === 1) { // 1 means a match
@@ -202,14 +202,28 @@ class Database extends dbPdo {
         throw new PdoExceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", $this);
       }
     } else {
-      // BLP 2023-10-27 - If the agent is empty then this is a BOT
       $this->foundBotAs = BOTAS_NOAGENT;
       $this->isBot = true;
-      /* BLP 2023-10-29 - debug. analysis.php calls isBot() and agent may be empty and isMeFalse is true. */
-      //if(!$this->isMe()) error_log("Database isBot(): ip=$this->ip, site=$this->siteName, NO-AGENT, foundBotAs=$this->foundBotAs");
     }
 
-    // BLP 2023-10-27 - at this point isBot may have true and either 'match' or 'no-agent'.
+    // BLP 2025-01-09 - New logic. Look at the bots2 table for this ip address.
+
+    $type = null;
+
+    if($this->sql("select which from $this->masterdb.bots2 where ip='$this->ip'")) { // Found some.
+      while($which = $this->fetchrow('num')[0]) {
+        if($which & BOTS_ROBOTS) $type |= TRACKER_ROBOTS;
+        if($which & BOTS_SITEMAP) $type |= TRACKER_SITEMAP;
+        if($which & BOTS_SITECLASS) $type |= TRACKER_BOT;
+      }
+
+      // BLP 2025-01-09 - create new public.
+
+      $this->trackerBotInfo = $type; // used in tracker().
+    }
+
+    // At this point isBot may have true and either 'match' or 'no-agent'.
+    // Get info from the bots table for this ip.
     
     if($this->sql("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Is it in the bots table?
       // Yes it is in the bots table.
@@ -403,7 +417,7 @@ class Database extends dbPdo {
           $name = 'Konqueror';
           break;
         default:
-          error_log("Database.class.php: not in BROWSER pattern: $mm[0]");
+          error_log("Database tracker: Error, BROWSER pattern: $mm[0], line=".__LINE__);
           continue;
       }
     }
@@ -414,29 +428,33 @@ class Database extends dbPdo {
     // We then look at isBot and if nothing was found in the bots table and the regex did not
     // match something in the list then isJavaScript will be zero.
     // The visitor was probably a bot and will be added to the bots table as a 0x100 by the cron
-    // job checktracker2.php and to the bots2 table as 16. The bot was more than likely curl,
+    // job checktracker2.php and to the bots2 table. The bot was more than likely curl,
     // wget, python or the like that sets its user-agent to something that would not trigger my
     // regex. Such visitor leave very little footprint.
 
     $java = $this->isMe() ? TRACKER_ME : TRACKER_ZERO;
 
     if($this->isBot) { // can NEVER be me!
-      $java = TRACKER_BOT; // This is the robots tag
+      $java = TRACKER_BOT;
     }
 
+    $java |= $this->trackerBotInfo; // BLP 2025-01-12 - or in trackerBotInfo.
+    
     // The primary key is id which is auto incrementing so every time we come here we create a
     // new record.
 
-    // BLP 2023-12-12 - $agent = $this->escape($agent);
-
-    // BLP 2023-10-19 - here foundBotAs could be BOTAS_ZERO ('zero') and java could be TRACKER_ZERO
-    // (0). If that is the case then this is not going to be found in checktracker2.php.
-    
     $this->sql("insert into $this->masterdb.tracker (botAs, site, page, ip, browser, agent, starttime, isJavaScript, lasttime) ".
                  "values('$this->foundBotAs', '$this->siteName', '$this->self', '$this->ip', '$name', '$agent', now(), $java, now())");
 
     $this->LAST_ID = $this->getLastInsertId();
-    //error_log("Database.class.php Server: site=$this->siteName, LAST_ID=" . $this->getLastInsertId());
+
+    if(DEBUG_TRACKER_BOTINFO === true) {
+      $hexbotinfo = dechex($this->trackerBotInfo);
+      $javahex = dechex($java);
+      
+      error_log("Database tracker: trackerBotInfo=$hexbotinfo, id=$this->LAST_ID, ip=$this->ip, ".
+                "botAs=$this->foundBotAs, java=$javahex, agent=$this->agent, line=".__LINE__);
+    }    
   }
 
   /**
@@ -454,7 +472,7 @@ class Database extends dbPdo {
       $this->sql("insert into $this->masterdb.counter (site, filename, count, lasttime) values('$this->siteName', '$filename', 1, now())");
     } catch(Exception $e) {
       if($e->getCode() != 23000) {
-        error_log("Error: code=" . $e->getCode() . ", Message=" . $e->getMessage() . ", e=|" .print_r($e, true)."|");
+        error_log("Database counter: Error, code=" . $e->getCode() . ", Message=" . $e->getMessage() . ", e=|" .print_r($e, true)."|");
         throw new Exception(__CLASS__ . " " . __LINE__ . ":$e", $this);
       }
     }
@@ -484,57 +502,6 @@ class Database extends dbPdo {
     $this->hitCount = ($this->fetchrow('num')[0]) ?? 0; // This is the number of REAL (non BOT) accesses and NOT Me.
   }
 
-  /**
-   * counter2
-   * count files accessed per day
-   * Primary key is 'site', 'date', 'filename'.
-   */
-  
-  protected function counter2():void {
-    [$real, $bot] = $this->isBot ? [0,1] : [1,0];
-
-    if($this->dbinfo->engine != "sqlite") {
-      $sql = "insert into $this->masterdb.counter2 (site, date, filename, `real`, bots, lasttime) ".
-             "values('$this->siteName', now(), left('$this->self', 254), $real , $bot, now()) ".
-             "on duplicate key update `real`=`real`+$real, bots=bots+$bot, lasttime=now()";
-      
-      $this->sql($sql);
-    }
-  }
-
-  /*
-   * daycount()
-   * This creates the very first record then if this is a BOT it updates 'bots' and 'lasttime'.
-   * We only count robots here. Reals are counted via the AJAX from tracker.js by tracker.php and beacon.php
-     CREATE TABLE `daycounts` (
-      `site` varchar(50) NOT NULL DEFAULT '',
-      `date` date NOT NULL,
-      `real` int DEFAULT '0',
-      `bots` int DEFAULT '0',
-      `visits` int DEFAULT '0',
-      `lasttime` datetime DEFAULT NULL,
-      PRIMARY KEY (`site`,`date`)
-    ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
-   */
-  
-  protected function daycount():void {
-    try {
-      // This will create the very first daycounts entry for the day.
-      
-      $this->sql("insert into $this->masterdb.daycounts (site, `date`, lasttime) values('$this->siteName', current_date(), now())");
-    } catch(Exception $e) {
-      if($e->getCode() != 23000) { // I expect this to fail for dupkey after the first insert per day.
-        throw new Exception(__CLASS__ . "$e");
-      }
-    }
-    
-    if($this->isBot === false) return; // If NOT a bot return.
-
-    // Only count bots here.
-    
-    $this->sql("update $this->masterdb.daycounts set bots=bots+1, lasttime=now() where date=current_date() and site='$this->siteName'");
-  }
-  
   /**
    * logagent()
    * Log logagent
@@ -635,7 +602,7 @@ class Database extends dbPdo {
       $tbls[] = $tbl;
     }
 
-    $ar = array_diff(['badplayer', 'bots', 'bots2', 'counter', 'counter2', 'daycounts', 'myip', 'logagent', 'geo'], $tbls);
+    $ar = array_diff(['badplayer', 'bots', 'bots2', 'counter', 'counter2', 'myip', 'logagent', 'geo'], $tbls);
     if(!empty($ar)) {
       throw new Exception("Database.class.php: Missing tables -- " . implode(',', $ar));
     }

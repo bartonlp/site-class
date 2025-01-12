@@ -33,7 +33,12 @@ define("TRACKER_ZERO", 0); // This happens in SiteClass, isMe() is false and isB
 define("TRACKER_GOTO", 0x1000); // see bartonphillips.com/goto.php, also webtats.php and webstats.js
 define("TRACKER_GOAWAY", 0x2000); // tracker called with no info so GoAway
 
-define("CHECKTRACKER", 0x8000); // BLP 2023-10-20 - checktracker2.php ors in this value with TRACKER_BOT if the 
+define("CHECKTRACKER", 0x8000); // BLP 2023-10-20 - checktracker2.php ors in this value with TRACKER_BOT if the
+
+// BLP 2025-01-09 - New
+define("TRACKER_ROBOTS", 0x10000);
+define("TRACKER_SITEMAP", 0x20000);
+
 // Beacon is part of isJavaScript in the tracker table.
 // BLP 2023-08-08 - BEACON_VISIBILITYCHANGE moves to 0x10 from 0x40000
 

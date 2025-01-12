@@ -180,7 +180,7 @@ if($type = $_GET['page']) {
            "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
            "on duplicate key update count=count+1, lasttime=now()";
 
-    error_log("tracker ID_IS_NOT_NUMERIC: site=$S->siteName, ip=$S->ip, id(value)=$id, errno=$errno, errmsg=$errmsg, agent=$S->agent");
+    error_log("tracker GET: ID_IS_NOT_NUMERIC, site=$S->siteName, ip=$S->ip, id(value)=$id, errno=$errno, errmsg=$errmsg, agent=$S->agent");
 
     $S->sql($sql);
     goaway('now');
@@ -200,7 +200,7 @@ if($type = $_GET['page']) {
       $or = TRACKER_CSS;
       break;
     default:
-      error_log("tracker Switch Error: $S->ip, $S->siteName, type=$type");
+      error_log("tracker GET: Switch Error: $S->ip, $S->siteName, type=$type");
       goaway();
       exit();
   }
@@ -218,11 +218,11 @@ if($type = $_GET['page']) {
   } catch(Exception $e) { // catches the throw above.
     if(($errno = $e->getCode()) !== -105) {
       $errmsg = $e->getMessage();
-      error_log("tracker.php errno=$errno, errmsg=$errmsg, line=" . __LINE__);
+      error_log("tracker GET: errno=$errno, errmsg=$errmsg, line=" . __LINE__);
       exit("<h1>Go Away</h1>");
     }
 
-    error_log("tracker.php errno=$errno, errmsg=" . $e->getMessage() . ", line=" . __LINE__);
+    error_log("tracker GET: errno=$errno, errmsg=" . $e->getMessage() . ", line=" . __LINE__);
     
     // At this point $site, $ip, $thepage and $agent are NOT VALID, BUT $id should be valid.
     // We don't have a tracker record for this id/ip, so try th create a new record.
@@ -235,7 +235,7 @@ if($type = $_GET['page']) {
              "on duplicate key update error='Update, Select failed $ip $msg', lasttime=now()";
       
       $S->sql($sql);
-      error_log("tracker.php: record added for id$id with no data, line=" . __LINE__);
+      error_log("tracker GET: record added for id=$id with no data, line=" . __LINE__);
     } catch(Exception $e) {
       // The primary key is ip and type
       
@@ -247,7 +247,7 @@ if($type = $_GET['page']) {
              "on duplicate key update count=count+1, lasttime=now()";
         
       if(!$S->sql($sql)) {
-        error_log("tracker: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip, errno=$errno, errmsg=$errmsg, badplayer - could not do insert/update");
+        error_log("tracker GET: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip, errno=$errno, errmsg=$errmsg, badplayer - could not do insert/update");
       }       
       goaway('now');
       exit();
@@ -257,7 +257,7 @@ if($type = $_GET['page']) {
   // If we get here the $ip, $site, $thepage and $agent are all valid.
 
   if($DEBUG_GET1)
-     error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java");
+     error_log("tracker GET: $id, $ip, $site, $thepage, $msg, java=$java");
   
   if(!str_contains($botAs, BOTAS_COUNTED)) {
     $botAs = BOTAS_COUNTED . "," . $botAs; // BLP 2024-03-21 - added
@@ -273,15 +273,15 @@ if($type = $_GET['page']) {
     if(empty($thepage)) $thepage = "NO_PAGE";
     if(empty($agent)) $agent = "NO_AGENT";
                                    
-    if($DEBUG_BOT1) error_log("***tracker.php 1: id=$id, java=" . dechex($js) . ", ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
+    if($DEBUG_BOT1) error_log("tracker GET 1: id=$id, java=" . dechex($js) . ", ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
 
     if($DEBUG_ISABOT2 && ($js & (TRACKER_NORMAL | TRACKER_NOSCRIPT | TRACKER_CSS) === 0))
-      error_log("tracker: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, botAs=$botAs, image=$image");
+      error_log("tracker GET: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, botAs=$botAs, image=$image");
 
     $js |= $or; 
     $java = dechex($js);
 
-    if($DEBUG_BOT2) error_log("***tracker.php 2 ISABOT_$msg: id=$id, java=$java, ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
+    if($DEBUG_BOT2) error_log("tracker GET 2: ISABOT_$msg, id=$id, java=$java, ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
 
     $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
                 "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
@@ -295,7 +295,7 @@ if($type = $_GET['page']) {
   
   $ref = $_SERVER["HTTP_REFERER"];
 
-  if($DEBUG_GET2) error_log("tracker: $id, $ip, $site, $thepage, $msg -- referer=$ref");
+  if($DEBUG_GET2) error_log("tracker GET: $id, $ip, $site, $thepage, $msg -- referer=$ref");
 
   // BLP 2024-12-17 - fixed update $js and referer='$ref'.
   
@@ -348,9 +348,9 @@ if($type = $_GET['page']) {
   
   if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) {
     if(!empty($difftime)) {
-      error_log("TRACKER NOSCRIPT difftime=$difftime: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent");
+      error_log("tracker GET: NOSCRIPT, difftime=$difftime: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent");
     } else {
-      error_log("tracker: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent");
+      error_log("tracker GET: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent");
     }
   }
   
@@ -407,7 +407,7 @@ if($_POST) {
   $ip = $_SERVER['REMOTE_ADDR'];
 
   if($_site === null) {
-    error_log("*** tracker.php: \$_site is NULL, ip=$ip");
+    error_log("tracker PRE-POST: \$_site is NULL, ip=$ip");
     echo "ERROR \$_site is NULL";
     exit();
   }
@@ -418,7 +418,7 @@ if($_POST) {
 $_site->noTrack = true; // Don't track or do geo!
 $_site->noGeo = true;
 
-$S = new Database($_site); // BLP 2023-10-02 - because we use Database noTrack is set and we do not do any tracking.
+$S = new Database($_site); // BLP 2023-10-02 - because we use Database noTrack and noGeo are set and we do not do any tracking.
 
 // Post an ajax error message
 
@@ -436,14 +436,13 @@ if($_POST['page'] == 'ajaxmsg') {
     $args .= ", $arg2";
   }
 
-  if(!$S->isMyIp($ip) && $DEBUG_MSG) error_log("tracker AJAXMSG $site, $ip: $msg{$args}");
+  if(!$S->isMyIp($ip) && $DEBUG_MSG) error_log("tracker AJAXMSG: $site, $ip: $msg{$args}");
   
   echo "AJAXMSG OK";
   exit();
 }
 
-// 'start' is an ajax call from tracker.js
-// BLP 2023-08-08 - 'start' now implies the 'script' (TRACKER_SCRIPT goes away. see defines.php)
+// 'start' is an ajax call from tracker.js. If JavaScript is enabled we should always do this.
 
 if($_POST['page'] == 'start') {
   $id = $_POST['id'];
@@ -454,7 +453,7 @@ if($_POST['page'] == 'start') {
   $ref = $_POST['referer'];
 
   if(!$id) {
-    error_log("tracker: $site, $ip: START NO ID");
+    error_log("tracker START: $site, $ip: START NO ID");
     exit();
   }
 
@@ -467,7 +466,7 @@ if($_POST['page'] == 'start') {
   if($S->sql("select botAs, isJavaScript, agent from $S->masterdb.tracker where id=$id")) {
     [$botAs, $js, $agent] = $S->fetchrow('num');
   } else { // BLP 2023-02-10 - add for debug
-    error_log("tracker: $id, $ip, $site, $thispage,  Select of id=$id failed");
+    error_log("tracker START: $id, $ip, $site, $thispage,  Select of id=$id failed");
   }
 
   $java = dechex($js);
@@ -475,7 +474,7 @@ if($_POST['page'] == 'start') {
   $js2 = dechex($js);
 
   if(!$S->isMyIp($ip) && $DEBUG_START) {
-    error_log("tracker: $id, $ip, $site, $thepage, START1, botAs=$botAs, referer=$ref, jsin=$java, jsout=$js2");
+    error_log("tracker START: $id, $ip, $site, $thepage, START1, botAs=$botAs, referer=$ref, jsin=$java, jsout=$js2");
   }
 
   if($ref) {
@@ -503,7 +502,7 @@ if($_POST['page'] == 'load') {
   $thepage = $_POST['thepage'];
   
   if(!$id) {
-    error_log("tracker $site, $ip: LOAD NO ID");
+    error_log("tracker LOAD: $site, $ip: LOAD NO ID");
     echo "Load Error: no id, exiting";
     exit();
   }
@@ -519,7 +518,7 @@ if($_POST['page'] == 'load') {
   $js2 = dechex($js);
 
   if(!$S->isMyIp($ip) && $DEBUG_LOAD && strpos($botAs, BOTAS_COUNTED) === false)
-    error_log("tracker: $id, $ip, $site, $thepage, LOAD2, botAs=$botAs, jsin=$java, jsout=$js2");
+    error_log("tracker LOAD: $id, $ip, $site, $thepage, LOAD2, botAs=$botAs, jsin=$java, jsout=$js2");
 
   // BLP 2023-03-25 - This should maybe be insert/update?
   
@@ -546,7 +545,7 @@ if($_POST['page'] == 'onexit') {
   if($S->sql("select botAs, isJavaScript, difftime, agent from $S->masterdb.tracker where id=$id")) {
     [$botAs, $js, $difftime, $agent] = $S->fetchrow('num');
   } else {
-    error_log("tracker onexit: NO record for $id, line=" . __LINE__);
+    error_log("tracker ONEXIT: NO record for $id, line=" . __LINE__);
   }
 
   $msg = strtoupper($type);
@@ -567,7 +566,7 @@ if($_POST['page'] == 'onexit') {
       $onexit = BEACON_VISIBILITYCHANGE;
       break;
     default:
-      error_log("tracker: $id, $ip, $site, $thepage, SWITCH_ERROR_{$type}, botAs=$botAs -- \$S->ip=$S->ip, \$S->agent=$S->agent");
+      error_log("tracker ONEXIT: $id, $ip, $site, $thepage, SWITCH_ERROR_{$type}, botAs=$botAs -- \$S->ip=$S->ip, \$S->agent=$S->agent");
       exit();
   }
 
@@ -577,7 +576,7 @@ if($_POST['page'] == 'onexit') {
   $S->sql("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
             "isJavaScript=$js, lasttime=now() where id=$id");
 
-  error_log("tracker onexit: $id, $site, $ip, $thepage, $msg, $botAs, Maybe Tor?");
+  error_log("tracker ONEXIT: $id, $site, $ip, $thepage, $msg, $botAs, Maybe Tor?");
   exit();
 }
 // END OF EXIT FUNCTIONS
@@ -593,15 +592,13 @@ if($_POST['page'] == 'timer') {
   $thepage = $_POST['thepage'];
 
   if(!$id) {
-    error_log("tracker: $site, $ip: TIMER NO ID");
+    error_log("tracker TIMER: $site, $ip: TIMER NO ID");
     echo "Timer Error: no id, exiting";
     exit();
   }
 
-  // BLP 2024-12-04 - use hex value for $js, remove $java.
-  
   if(!$S->sql("select botAs, isJavaScript, finger, agent, difftime from $S->masterdb.tracker where id=$id")) {
-    error_log("*** tracker.php timer: No record for id=$id, $site, $thispage");
+    error_log("tracker TIMER: No record for id=$id, $site, $thispage");
     echo "Timer Error: no tracker record";
     exit();
   }
@@ -615,13 +612,13 @@ if($_POST['page'] == 'timer') {
   if(!empty($agent)) {
     if($S->isBot($agent)) {
       if($DEBUG_ISABOT)
-        error_log("tracker: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, agent=$agent");
+        error_log("tracker TIMER: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, agent=$agent");
       
       echo "Timer1: agent empty, This is a BOT, $id, $ip, $site, $thepage";
       exit(); // If this is a bot don't bother
     }
   } else {
-    error_log("tracker, timer: $id, $ip, $site, $thepage, java=$js2, 'EMPTY_AGENT', botAs=$botAs");
+    error_log("tracker TIMER: $id, $ip, $site, $thepage, java=$js2, 'EMPTY_AGENT', botAs=$botAs");
     echo "Timer Error: no agent";
     exit();
   }
@@ -634,34 +631,32 @@ if($_POST['page'] == 'timer') {
 
   // BLP 2025-01-06 - New logic
   
-  if(preg_match("~^(.*)".BOTAS_COUNTED."(.*)$~", $botAs, $m) === 0) { // BLP 2025-01-07 - if zero then no match
+  if(preg_match("~^".BOTAS_COUNTED."(.*)$~", $botAs, $m) === 0) { // BLP 2025-01-07 - if zero then no match
     if(empty($botAs)) { // BLP 2025-01-07 - check if $botAs is empty. It could have other indicators.
       $botAs = BOTAS_COUNTED; // BLP 2025-01-07 - Yes it is empty so just add BOTAS_COUNTED.
     } else {
       $botAs = BOTAS_COUNTED . ",$botAs"; // BLP 2025-01-07 - There are other indicators like BOTAS_ROBOT etc. So make BOTAS_COUNTED first and add the others.
     }
-  } elseif($m[1] || $m[2]) { // BLP 2025-01-07 - We found $m[1] or $m[2]. $m[0] has the whole string that has BOTAS_COUNTED.
-    // If $m[1] or $m[2] are true then this must have BOTAS_COUNTED and some other BOT indicators
+  } elseif($m[1] && !$difftime) { // BLP 2025-01-07 - We found $m[1] and $difftime is null. $m[0] has the whole string that has BOTAS_COUNTED.
+    // If $m[1] is true then this must have BOTAS_COUNTED and some other BOT indicators
     // like BOTAS_ROBOT etc.
     
-    error_log("tracker timer, This is a BOT, EXIT: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, difftime=$difftime, agent=$agent, m={$m[1]}/{$m[2]}");
+    error_log("tracker TIMER: This is a BOT, EXIT, id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, difftime=$difftime, agent=$agent, m={$m[1]}");
     echo "This is a BOT, botAs=$botAs";
     exit();
   } else { // BLP 2025-01-07 - found only $m[0]
-    if(!$S->isMe()) error_log("tracker timer, botAs=$botAs, ip=$ip, agent=$agent");
+    if(!$S->isMe()) error_log("tracker TIMER: botAs=$botAs, ip=$ip, difftime=$difftime, agent=$agent");
     echo "tracker timer $botAs";
   }
   // BLP 2025-01-06 - end New logic
   
-  // BLP 2025-01-06 - removed the daycount and dayrecord logic.
-
   // BLP 2025-01-07 - The only way I can get here is with an updated $botAs.
 
   $S->sql("update $S->masterdb.tracker set botAs='$botAs', isJavaScript=$js, endtime=now(), ".
           "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id");
 
   if(!$S->isMyIp($ip) && $DEBUG_TIMER)
-    error_log("tracker: $id, $ip, $site, $thepage, TIMER2, botAs=$botAs, visits: $visits, jsin=$java, jsout=$js2, agent=$agent");
+    error_log("tracker TIMER: $id, $ip, $site, $thepage, TIMER2, botAs=$botAs, visits: $visits, jsin=$java, jsout=$js2, agent=$agent");
 
   echo "Timer OK, visits: $visits, java=$js2, finger=$finger";
   exit();
@@ -713,11 +708,11 @@ function goaway($msg) {
     $request = $_REQUEST ? ", \$_REQUEST: " . print_r($_REQUEST, true) : '';
     $id = $id ?? "NO_ID";
 
-    errir_log("tracker $id, $S->ip, $S-<siteName, $S->self, GOAWAY, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
+    error_log("tracker GOAWAY: $id, $S->ip, $S-<siteName, $S->self, GOAWAY, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
   } else {
     // $msg = now;
     
-    error_log("tracker: $S->ip, $S->siteName, $S->self, GOAWAYNOW, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
+    error_log("tracker GOAWAY: $S->ip, $S->siteName, $S->self, GOAWAYNOW, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
   }
 
   $version = TRACKER_VERSION;
