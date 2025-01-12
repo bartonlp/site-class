@@ -3,7 +3,7 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.0.7database-pdo"); // BLP 2025-01-12 - remove references to counter2 and daycounts table.
+define("DATABASE_CLASS_VERSION", "1.0.8database-pdo"); // BLP 2025-01-12 - remove references to counter2 and daycounts table. isBot() now garuntees it is not me.
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 define("DEBUG_TRACKER_BOTINFO", true);
@@ -190,6 +190,10 @@ class Database extends dbPdo {
   public function isBot(?string $agent):bool {
     $this->isBot = false;
     $this->foundBotAs = ''; // These two will be set in isBot().
+
+    // BLP 2025-01-12 - Make sure it is not ME!
+
+    if($this->isMe()) return false;
     
     if(!empty($agent)) {
       if(($x = preg_match("~\+*https?://|@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
@@ -434,7 +438,7 @@ class Database extends dbPdo {
 
     $java = $this->isMe() ? TRACKER_ME : TRACKER_ZERO;
 
-    if($this->isBot) { // can NEVER be me!
+    if($this->isBot) {
       $java = TRACKER_BOT;
     }
 
@@ -448,7 +452,7 @@ class Database extends dbPdo {
 
     $this->LAST_ID = $this->getLastInsertId();
 
-    if(DEBUG_TRACKER_BOTINFO === true) {
+    if(DEBUG_TRACKER_BOTINFO === true && $this->isBot) {
       $hexbotinfo = dechex($this->trackerBotInfo);
       $javahex = dechex($java);
       
