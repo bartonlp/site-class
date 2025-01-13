@@ -273,9 +273,14 @@ if($type = $_GET['page']) {
     $js |= $or; 
     $java = dechex($js);
 
-    if($DEBUG_ISABOT2)
-      error_log("tracker GET ISABOT2_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, isBot=$isBot, java=$java, image=$image, agent=$agent");
-
+    if($DEBUG_ISABOT2) {
+      if($msg == "NOSCRIPT") {
+        error_log("tracker GET ISABOT2_$msg: id=$id, java=$java");
+      } else {
+        error_log("tracker GET ISABOT2_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, isBot=$isBot, java=$java, image=$image, agent=$agent");
+      }
+    }
+    
     $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
                 "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
                 "on duplicate key update error='ISABOT_UPDATE_$msg', botAs='$botAs', lasttime=now()");
