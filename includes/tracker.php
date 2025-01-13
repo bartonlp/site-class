@@ -62,11 +62,7 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-// BLP 2025-01-06 -  add special debug message ***tracker.php 1 and 2. Move Database out of
-// mysitemap logic. Removed daycount and dayrecords tables and logic to control them. Added -105.
-// In timer added new logic to check for $botAs values.
-// Remove time from error messages.
-define("TRACKER_VERSION", "4.0.15tracker-pdo"); // BLP 2025-01-06, BLP 2025-01-07 - See date in code.
+define("TRACKER_VERSION", "4.0.16tracker-pdo"); // BLP 2025-01-13 - reworked GET error messages.
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -74,10 +70,8 @@ define("TRACKER_VERSION", "4.0.15tracker-pdo"); // BLP 2025-01-06, BLP 2025-01-0
 //$DEBUG_DAYCOUNT = true; // Timer real+1
 //$DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
-//$DEBUG_ISABOT = true; // This is in the 'timer' logic
+//$DEBUG_ISABOT1 = true; // This is in the 'timer' logic
 $DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
-$DEBUG_BOT1 = true;
-$DEBUG_BOT2 = true;
 //$DEBUG_NOSCRIPT = true; // no script
 
 // If you want the version defined ONLY and no other information.
@@ -273,15 +267,14 @@ if($type = $_GET['page']) {
     if(empty($thepage)) $thepage = "NO_PAGE";
     if(empty($agent)) $agent = "NO_AGENT";
                                    
-    if($DEBUG_BOT1) error_log("tracker GET 1: id=$id, java=" . dechex($js) . ", ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
-
-    if($DEBUG_ISABOT2 && ($js & (TRACKER_NORMAL | TRACKER_NOSCRIPT | TRACKER_CSS) === 0))
-      error_log("tracker GET: $id, $ip, $site, $thepage, ISABOT_{$msg}, agent=$agent, botAs=$botAs, image=$image");
+    if($DEBUG_ISABOT1 && ($js & (TRACKER_NORMAL | TRACKER_NOSCRIPT | TRACKER_CSS) === 0))
+      error_log("tracker GET ISABOT1_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, isBot=$isBot, java=$java, image=$image, agent=$agent");
 
     $js |= $or; 
     $java = dechex($js);
 
-    if($DEBUG_BOT2) error_log("tracker GET 2: ISABOT_$msg, id=$id, java=$java, ip=$ip, site=$site, page=$thepage, type=$type, agent=$agent");
+    if($DEBUG_ISABOT2)
+      error_log("tracker GET ISABOT2_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, isBot=$isBot, java=$java, image=$image, agent=$agent");
 
     $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
                 "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
