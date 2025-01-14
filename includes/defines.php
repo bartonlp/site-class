@@ -5,7 +5,7 @@
 define("DO_SERVER", "192.241.132.229"); // My server IP address through DigitalOcean: 192.241.132.229
 define("MY_IP", "195.252.232.86"); // My personal static IP address through MetroNet: 195.252.232.86
 
-define("DEFINES_VERSION", "1.1.0defines-pdo"); // BLP 2023-08-08 - 
+define("DEFINES_VERSION", "1.1.1defines-pdo"); // BLP 2025-01-14 - Added new codes on 2025-01-09 and 2025-01-14
 
 // Bots and bots2 Tables.
 // These are all done via SiteClass trackbots() which does both the bots and bots2 tables.
@@ -58,3 +58,4 @@ define("BOTAS_ZERO", "zero");
 define("BOTAS_ZBOT", "zbot"); // BLP 2023-11-04 - 
 define("BOTAS_COUNTED", "counted");
 define("BOTAS_NOAGENT", "no-agent"); // BLP 2023-10-27 - added
+define("BOTAS_GOODBOT", "good-bot"); // BLP 2025-01-14 - added

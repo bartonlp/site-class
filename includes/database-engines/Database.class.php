@@ -3,10 +3,10 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.0.9database-pdo"); // BLP 2025-01-12 - remove counter2() in constructor
+define("DATABASE_CLASS_VERSION", "1.0.10database-pdo"); // BLP 2025-01-14 - Added logic to isBot() to use BOTAS_GOODBOT
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
-define("DEBUG_TRACKER_BOTINFO", true);
+define("DEBUG_TRACKER_BOTINFO", true); // Change this to false if you don't want the error
 
 /**
  * Database wrapper class
@@ -192,14 +192,21 @@ class Database extends dbPdo {
     if($this->isMe()) return false;
     
     if(!empty($agent)) {
-      if(($x = preg_match("~\+*https?://|@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
+      if(($x = preg_match("~@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
                           "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
                           "http client|PECL::HTTP|Go-~i", $agent)) === 1) { // 1 means a match
         $this->isBot = true;
         $this->foundBotAs = BOTAS_MATCH;
       } elseif($x === false) { // false is error
         // This is an unexplained ERROR
-        throw new PdoExceiption(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", $this);
+        throw new PdoException(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", -300);
+      }
+
+      if(($x = preg_match("~\+*https?://~", $agent)) === 1) {
+        $this->isBot = true;
+        $this->foundBotAs = (empty($this->foundBotAs)) ? BOTAS_GOODBOT : ("$this->foundBotAs," . BOTAS_GOODBOT);
+      } elseif($x === false) {
+        throw new PdoException(__CLASS__ . " " . __LINE__ . ": preg_match() for +https? false", -301);
       }
     } else {
       $this->foundBotAs = BOTAS_NOAGENT;
