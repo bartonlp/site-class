@@ -1,4 +1,4 @@
-ID_IS_NOT_NUMERIC<?php
+<?php
 // Track the various thing that happen. Some of this is done via JavaScript while others are by the
 // header images and the csstest that is in the .htaccess file as a RewirteRule.
 // NOTE: the $_site info is from a mysitemap.json that is where the tracker.php
