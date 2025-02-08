@@ -71,7 +71,7 @@ define("TRACKER_VERSION", "4.0.16tracker-pdo"); // BLP 2025-01-13 - reworked GET
 //$DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
 //$DEBUG_ISABOT1 = true; // This is in the 'timer' logic
-$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
+//$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
 //$DEBUG_NOSCRIPT = true; // no script
 
 // If you want the version defined ONLY and no other information.
@@ -242,7 +242,7 @@ if($type = $_GET['page']) {
         
       if(!$S->sql($sql)) {
         error_log("tracker GET: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip, errno=$errno, errmsg=$errmsg, badplayer - could not do insert/update");
-      }       
+      }
       goaway('now');
       exit();
     }
@@ -643,7 +643,7 @@ if($_POST['page'] == 'timer') {
     echo "This is a BOT, botAs=$botAs";
     exit();
   } else { // BLP 2025-01-07 - found only $m[0]
-    if(!$S->isMe()) error_log("tracker TIMER: botAs=$botAs, ip=$ip, difftime=$difftime, agent=$agent");
+    if(!$S->isMe()) error_log("tracker TIMER: id=$id, ip=$ip, botAs=$botAs, difftime=$difftime, agent=$agent");
     echo "tracker timer $botAs";
   }
   // BLP 2025-01-06 - end New logic
@@ -663,8 +663,11 @@ if($_POST['page'] == 'timer') {
 // This is the END of the javascript AJAX calls.
 // *********************************************
 
+// $msg can be 'now' or blank. This allows me to have one goaway() functon that does GOAWAY and
+// GOAWAYNOW.
+
 function goaway($msg) {
-  // If now then skip the first part.
+  // If $msg == "now" then skip the first part and do the GOAWAYNOE logic only.
   
   if(empty($msg)) { 
     // Go Away logic
@@ -681,7 +684,7 @@ function goaway($msg) {
               "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAY NO ID', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
               "on duplicate key update count=count+1, lasttime=now()");
     } else {
-      // If this ID is not in the table add it with TRACKER_GOAWAY.
+      // If this ID is not in the tracker table, add it with TRACKER_GOAWAY.
 
       $S->sql("insert into $S->masterdb.tracker (id, site, ip, agent, isJavaScript, starttime, lasttime) ".
               "values($id, '$S->ip', '$S->siteName', '$S->agent', " . TRACKER_GOAWAY . ", now(), now()) ".
@@ -699,8 +702,7 @@ function goaway($msg) {
     // otherwise just go away!
 
     if($id) {
-      $sql = "select finger from tracker where id=$id";
-      $S->sql($sql);
+      $S->sql("select finger from tracker where id=$id");
       $finger = $S->fetchrow('num')[0] ?? "NONE";
     }
     $request = $_REQUEST ? ", \$_REQUEST: " . print_r($_REQUEST, true) : '';
@@ -708,7 +710,7 @@ function goaway($msg) {
 
     error_log("tracker GOAWAY: $id, $S->ip, $S-<siteName, $S->self, GOAWAY, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
   } else {
-    // $msg = now;
+    // This is the GOAWAYNOW logic.
     
     error_log("tracker GOAWAY: $S->ip, $S->siteName, $S->self, GOAWAYNOW, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
   }
