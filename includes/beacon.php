@@ -5,7 +5,7 @@
    -200: No type
 */
 
-define("BEACON_VERSION", "4.0.6beacon-pdo"); // BLP 2025-01-12 - remove reference to daycounts table.
+define("BEACON_VERSION", "4.0.7beacon-pdo"); // BLP 2025-02-10 - $DEBUG2&3 true. Changed error_log messages and improved messages.
 
 // BLP 2023-01-30 - If you want the version defined ONLY and no other information.
 // If we have a valid $_site or the $__VERSION_ONLY, then just return the version info.
@@ -24,8 +24,8 @@ $_site->noGeo = true;
 $S = new Database($_site);
           
 //$DEBUG1 = true; // COUNTED real+1 bots-1
-//$DEBUG2 = true; // After update tracker table
-//$DEBUG3 = true; // visablechange
+$DEBUG2 = true; // After update tracker table
+$DEBUG3 = true; // visablechange
 //$DEBUG_IPS = true; // show ip mismatches.
 //$DEBUG_ISABOT = true;
 
@@ -61,6 +61,8 @@ if(!is_numeric($id) || $visits === null) {
             "values('$S->ip', '$site', '$S->self', 'counted', '{$msg}_BEACON_GOAWAY', 1, '$errno', 'NO ID Go away', '$S->agent', now(), now()) ".
             "on duplicate key update count=count+1, lasttime=now()");
 
+  error_log("beacon GO_AWAY: id=NO_ID, ip=$ip, site=$site, page=$thepage, type=$type, state=$state, line=" . __LINE__);
+  
   echo "<h1>GO AWAY</h1><p>" . BEACON_VERSION . "</p>";
   exit();
 }
@@ -70,6 +72,7 @@ if(!is_numeric($id) || $visits === null) {
 
 if($S->sql("select botAs, isJavaScript, difftime, finger, agent from $S->masterdb.tracker where id=$id")) {
   [$botAs, $js, $difftime, $finger, $agent] = $S->fetchrow('num');
+  $difftime /= 1000; // seconds
 } else {
   error_log("beacon: NO record for $id, line=" . __LINE__);
 }
@@ -94,6 +97,7 @@ switch($type) {
     exit();
 }
 
+$jsin = $js;
 $java = strtoupper(dechex($js));
 $js |= $beacon;
 $js2 = strtoupper(dechex($js));
@@ -105,7 +109,7 @@ if($DEBUG_IPS && ($ip != $S->ip)) {
 // Is this a bot?
 
 if($agent && $S->isBot($agent)) {
-  if($DEBUG_ISABOT) error_log("beacon: $id, $ip, $site, $thepage, ISABOT_{$msg}1, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, time=" . (new DateTime)->format('H:i:s:v'));
+  if($DEBUG_ISABOT) error_log("beacon ISABOT_{$msg}1: $id, $ip, $site, $thepage, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, line=" . __LINE__);
   //exit(); // If this is a bot don't bother
 }
 
@@ -115,7 +119,7 @@ if(!str_contains($botAs, BOTAS_COUNTED)) {
   if(!empty($botAs)) {
     // This must have robot, sitemap, or zero
     
-    if($DEBUG_ISABOT) error_log("beacon: $id, $ip, $site, $thepage, ISABOT_{$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+    if($DEBUG_ISABOT) error_log("beacon ISABOT_{$msg}2: id=$id, ip=$ip, site=$site, page=$thepage, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
     exit();
   }
 }
@@ -131,9 +135,15 @@ if(empty($botAs)) {
 $S->sql("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
           "isJavaScript='$js', lasttime=now() where id=$id");
 
-if(!$S->isMyIp($ip) && $DEBUG2) {
-  error_log("beacon: $id, $ip, $site, $thepage, {$msg}2, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+//error_log("beacon TEST: id=$id, ip=$ip, site=$site, page=$thepage, jsin=" . dechex($jsin));
+
+if(!$S->isMyIp($ip) && $DEBUG2 && $type == 'visibilitychange') {
+  if(($jsin & BEACON_VISIBILITYCHANGE) === 0) 
+    error_log("beacon {$msg}2: id=$id, ip=$ip, site=$site, page=$thepage, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
 }
-if(!$S->isMyIp($ip) && $DEBUG3 && $type == 'visibilitychange') {
-  error_log("beacon: $id, $ip, $site, $thepage, {$msg}3, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, time=" . (new DateTime)->format('H:i:s:v'));
+
+if(!$S->isMyIp($ip) && $DEBUG3) {
+  if(($jsin & (BEACON_PAGEHIDE | BEACON_UNLOAD | BEACON_BEFOREUNLOAD)) === 0 && $type != "visibilitychange") {
+    error_log("beacon {$msg}3: id=$id, ip=$ip, site=$site, page=$thepage, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
+  }
 }

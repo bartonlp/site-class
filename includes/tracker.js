@@ -5,7 +5,7 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.3trackerjs-pdo"; // BLP 2024-12-17 - add <!-- comments. See date.
+const TRACKERJS_VERSION = "3.1.4trackerjs-pdo"; // BLP 2025-02-11 - added difftime to ajax.
 
 let visits = 0;
 
@@ -268,7 +268,7 @@ jQuery(document).ready(function($) {
 
     $.ajax({
       url: trackerUrl,
-      data: {page: 'timer', id: lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse, mysitemap: mysitemap},
+      data: {page: 'timer', id: lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse, mysitemap: mysitemap, difftime: (difftime/1000)},
       type: 'post',
       success: function(data) {
         difftime += 10000;

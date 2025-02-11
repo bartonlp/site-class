@@ -5,7 +5,7 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.0.7pdo"); // BLP 2024-12-31 - updated jQuery to 3.7.1
+define("SITE_CLASS_VERSION", "5.0.8pdo"); // BLP 2025-02-11 - /* Minimal tracker.js logic if noTrack */ and change default name.
 
 // One class for all my sites
 /**
@@ -244,10 +244,11 @@ EOF;
         // Either or both noTrack and nodb were set.
         $trackerStr =<<<EOF
 <script data-lastid='$this->LAST_ID'>
+/* Minimal tracker.js logic if noTrack */
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.2trackerjs-pdo"; // BLP 2024-11-16 - remove mytime logic!
+const TRACKERJS_VERSION = "default_tracker.js_from_site_class_getPageHead";
 
 let visits = 0;
 var isMeFalse;

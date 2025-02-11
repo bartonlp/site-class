@@ -37,7 +37,7 @@ CREATE TABLE `tracker` (
 
 CREATE TABLE `badplayer` (
   `ip` varchar(20) NOT NULL,
-  `id` int DEFAULT NULL,
+  `id` varchar(30) DEFAULT NULL,
   `site` varchar(50) DEFAULT NULL,
   `page` varchar(255) DEFAULT NULL,
   `botAs` varchar(50) DEFAULT NULL,
@@ -62,11 +62,12 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "4.0.16tracker-pdo"); // BLP 2025-01-13 - reworked GET error messages.
+define("TRACKER_VERSION", "4.0.17tracker-pdo"); // BLP 2025-02-11 - moved CSSTEST out of the other GET logic. Improved error_log messages
 
-//$DEBUG_START = true; // start
+$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
-//$DEBUG_TIMER = true; // Timer
+//$DEBUG_TIMER1 = true; // Timer
+//$DEBUG_TIMEE2 = true;
 //$DEBUG_DAYCOUNT = true; // Timer real+1
 //$DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
@@ -134,6 +135,57 @@ EOF;
 // is no need for the 'trackerLocation' and 'trackerLocationJs'.
 // **********************************
 
+// Special case for 'csstest'. It does not have an ID.
+
+if($_GET['page'] == "csstest") {
+  $msg = strtoupper($_GET['page']);
+  $id = $_GET['id'];
+
+  if(!is_numeric($id)) {
+    error_log("tracker CSSTEST: id not numeric, id=$id, line=" . __LINE__);
+  }
+  
+  $_site = require_once getenv("SITELOADNAME");
+  $_site->noTrack = true; // BLP 2025-01-06 - 
+  $_site->noGeo = true;   // BLP 2025-01-06 - 
+
+  $S = new Database($_site);
+
+  $S->sql("select ip, site, page, botAs, agent, referer, isJavaScript from $S->masterdb.tracker where id=$id");
+  [$ip, $site, $page, $botAs, $agent, $ref, $js] = $S->fetchrow('num');
+
+  if(!str_contains($botAs, BOTAS_COUNTED)) {
+    $botAs = BOTAS_COUNTED . "," . $botAs; // BLP 2024-03-21 - added
+    $botAs = rtrim($botAs, ',');
+  } else {
+    $botAs = BOTAS_COUNTED;
+  }
+  
+  $js |= TRACKER_CSS;
+  
+  $ref = $_SERVER["HTTP_REFERER"];
+
+  // BLP 2024-12-17 - fixed update $js and referer='$ref'.
+  
+  if($ref) {
+    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, referer, isJavaScript, error, starttime, lasttime) ".
+           "values('$id', '$ip', '$site', '$page', '$botAs', '$agent', '$ref', $js, '$msg', now(), now()) ".
+           "on duplicate key update isJavaScript=$js, botAs='$botAs', referer='$ref', lasttime=now()";
+  } else {
+    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
+           "values('$id', '$ip', '$site', '$page', '$botAs', '$agent', $js, '$msg', now(), now()) ".
+           "on duplicate key update isJavaScript=$js, botAs='$botAs', lasttime=now()";
+  }
+
+  $S->sql($sql);
+
+  header("Content-Type: text/css");
+  echo "/* csstest.css */";
+  exit();
+}
+
+// This is the rest of the GET for 'normal' and 'noscript'
+
 if($type = $_GET['page']) {
   $id = $_GET['id'];
   $image = $_GET['image'];
@@ -154,9 +206,8 @@ if($type = $_GET['page']) {
 
     $_site = json_decode(stripComments($tmp));
   } else {
-    // Default for CSSTEST because there is no good way to set mysitemap from .htaccess.
-    
-    $_site = require_once getenv("SITELOADNAME");
+    error_log("tracker NO_MYSITEMAP: id=$id, ip=$ip, image=$image, line=". __LINE__);
+    exit("<h1>No mysitemap.json</h1>");
   }
   
   $_site->noTrack = true; // BLP 2025-01-06 - 
@@ -190,20 +241,17 @@ if($type = $_GET['page']) {
     case "noscript":
       $or = TRACKER_NOSCRIPT;
       break;
-    case "csstest":
-      $or = TRACKER_CSS;
-      break;
-    default:
+     default:
       error_log("tracker GET: Switch Error: $S->ip, $S->siteName, type=$type");
       goaway();
       exit();
   }
 
   // Get information from tracker.
-  
+
   try {
     $sql = "select site, ip, page, finger, isJavaScript, agent, botAs, difftime from $S->masterdb.tracker where id=$id";
-    
+
     if($S->sql($sql)) {
       [$site, $ip, $thepage, $finger, $js, $agent, $botAs, $difftime] = $S->fetchrow('num');
     } else {
@@ -212,34 +260,34 @@ if($type = $_GET['page']) {
   } catch(Exception $e) { // catches the throw above.
     if(($errno = $e->getCode()) !== -105) {
       $errmsg = $e->getMessage();
-      error_log("tracker GET: errno=$errno, errmsg=$errmsg, line=" . __LINE__);
+      error_log("tracker GET: type=$type, sql=$sql, errno=$errno, errmsg=$errmsg, line=" . __LINE__);
       exit("<h1>Go Away</h1>");
     }
 
-    error_log("tracker GET: errno=$errno, errmsg=" . $e->getMessage() . ", line=" . __LINE__);
-    
+    error_log("tracker GET: type=$type, sql=$sql, errno=$errno, errmsg=" . $e->getMessage() . ", line=" . __LINE__);
+
     // At this point $site, $ip, $thepage and $agent are NOT VALID, BUT $id should be valid.
     // We don't have a tracker record for this id/ip, so try th create a new record.
 
     try {
       $ip = "NO_IP"; 
-      
+
       $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
              "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
              "on duplicate key update error='Update, Select failed $ip $msg', lasttime=now()";
-      
+
       $S->sql($sql);
       error_log("tracker GET: record added for id=$id with no data, line=" . __LINE__);
     } catch(Exception $e) {
       // The primary key is ip and type
-      
+
       $errno = "-102: " . $e->getCode();
       $errmsg = "Insert to tracker failed"; // BLP 2024-12-31 - 
 
       $sql = "insert into $S->masterdb.badplayer (ip, page, type, count, errno, errmsg, agent, created, lasttime) ".
              "values('$S->ip', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
              "on duplicate key update count=count+1, lasttime=now()";
-        
+
       if(!$S->sql($sql)) {
         error_log("tracker GET: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip, errno=$errno, errmsg=$errmsg, badplayer - could not do insert/update");
       }
@@ -309,12 +357,6 @@ if($type = $_GET['page']) {
 
   $S->sql($sql);
 
-  if($type == "csstest") {
-    header("Content-Type: text/css");
-    echo "/* csstest.css */";
-    exit();
-  }
-  
   // BLP 2024-12-17 - $S->defaultImage is from the mysitemap.json before anything in the original
   // page has done things to $_site. So NOTHING you do in the original page will affect these $S
   // values!!!
@@ -451,7 +493,7 @@ if($_POST['page'] == 'start') {
   $ref = $_POST['referer'];
 
   if(!$id) {
-    error_log("tracker START: $site, $ip: START NO ID");
+    error_log("tracker START1 NO ID: site=$site, page=$thepage, line=". __LINE__);
     exit();
   }
 
@@ -464,7 +506,7 @@ if($_POST['page'] == 'start') {
   if($S->sql("select botAs, isJavaScript, agent from $S->masterdb.tracker where id=$id")) {
     [$botAs, $js, $agent] = $S->fetchrow('num');
   } else { // BLP 2023-02-10 - add for debug
-    error_log("tracker START: $id, $ip, $site, $thispage,  Select of id=$id failed");
+    error_log("tracker START2: id=$id, ip=$ip, site=$site, page=$thispage,  Select of id=$id failed, line=". __LINE__);
   }
 
   $java = dechex($js);
@@ -472,7 +514,7 @@ if($_POST['page'] == 'start') {
   $js2 = dechex($js);
 
   if(!$S->isMyIp($ip) && $DEBUG_START) {
-    error_log("tracker START: $id, $ip, $site, $thepage, START1, botAs=$botAs, referer=$ref, jsin=$java, jsout=$js2");
+    error_log("tracker START3: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, referer=$ref, jsin=$java, jsout=$js2, line=". __LINE__);
   }
 
   if($ref) {
@@ -500,7 +542,7 @@ if($_POST['page'] == 'load') {
   $thepage = $_POST['thepage'];
   
   if(!$id) {
-    error_log("tracker LOAD: $site, $ip: LOAD NO ID");
+    error_log("tracker LOAD NO ID: ip=$ip, site=$site, page=$thepage, line=". __LINE__);
     echo "Load Error: no id, exiting";
     exit();
   }
@@ -516,7 +558,7 @@ if($_POST['page'] == 'load') {
   $js2 = dechex($js);
 
   if(!$S->isMyIp($ip) && $DEBUG_LOAD && strpos($botAs, BOTAS_COUNTED) === false)
-    error_log("tracker LOAD: $id, $ip, $site, $thepage, LOAD2, botAs=$botAs, jsin=$java, jsout=$js2");
+    error_log("tracker LOAD: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, jsin=$java, jsout=$js2, line=". __LINE__);
 
   // BLP 2023-03-25 - This should maybe be insert/update?
   
@@ -564,7 +606,7 @@ if($_POST['page'] == 'onexit') {
       $onexit = BEACON_VISIBILITYCHANGE;
       break;
     default:
-      error_log("tracker ONEXIT: $id, $ip, $site, $thepage, SWITCH_ERROR_{$type}, botAs=$botAs -- \$S->ip=$S->ip, \$S->agent=$S->agent");
+      error_log("tracker ONEXIT SWITCH_ERROR_{$type}: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs -- \$S->ip=$S->ip, \$S->agent=$S->agent, line=". __LINE__);
       exit();
   }
 
@@ -574,7 +616,7 @@ if($_POST['page'] == 'onexit') {
   $S->sql("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
             "isJavaScript=$js, lasttime=now() where id=$id");
 
-  error_log("tracker ONEXIT: $id, $site, $ip, $thepage, $msg, $botAs, Maybe Tor?");
+  error_log("tracker ONEXIT: id=$id, ip=$ip, site=$site, page=$thepage, type=$msg, botAs=$botAs, Maybe Tor?");
   exit();
 }
 // END OF EXIT FUNCTIONS
@@ -588,15 +630,18 @@ if($_POST['page'] == 'timer') {
   $ip = $_POST['ip'];
   $visits = $_POST['visits'];
   $thepage = $_POST['thepage'];
+  $time = $_POST['difftime']; // number of seconds.
 
+  //error_log("tracker TIMER: id=$id, ip=$ip, site=$site, page=$thepage, time=$time, line=" . __LINE__);
+  
   if(!$id) {
-    error_log("tracker TIMER: $site, $ip: TIMER NO ID");
+    error_log("tracker TIMER_NOID: ip=$ip,site=$site, difftime=$time, line=". __LINE__);
     echo "Timer Error: no id, exiting";
     exit();
   }
 
   if(!$S->sql("select botAs, isJavaScript, finger, agent, difftime from $S->masterdb.tracker where id=$id")) {
-    error_log("tracker TIMER: No record for id=$id, $site, $thispage");
+    error_log("tracker TIMER: No record for id=$id, site=$site, page=$thispage, time=$time");
     echo "Timer Error: no tracker record";
     exit();
   }
@@ -610,13 +655,13 @@ if($_POST['page'] == 'timer') {
   if(!empty($agent)) {
     if($S->isBot($agent)) {
       if($DEBUG_ISABOT)
-        error_log("tracker TIMER: $id, $ip, $site, $thepage, ISABOT_TIMER1, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, agent=$agent");
+        error_log("tracker TIMER_ISABOT1: id=$id, ip=$ip, site=$site, page=$thepage, time=$time, difftime=$difftime, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, agent=$agent, line=".__LINE__);
       
       echo "Timer1: agent empty, This is a BOT, $id, $ip, $site, $thepage";
       exit(); // If this is a bot don't bother
     }
   } else {
-    error_log("tracker TIMER: $id, $ip, $site, $thepage, java=$js2, 'EMPTY_AGENT', botAs=$botAs");
+    error_log("tracker TIMER_EMPTY_AGENT: id=$id, ip=$ip, site=$site, page=$thepage, time=$time, difftime=$difftime, java=$js2, botAs=$botAs, line=". __LINE__);
     echo "Timer Error: no agent";
     exit();
   }
@@ -627,8 +672,6 @@ if($_POST['page'] == 'timer') {
   // of the other indicators of a robot are pressent. If they are exit with message.
   // If the other indicator are not there then $botAs is empty so add BOTAS_COUNTED.
 
-  // BLP 2025-01-06 - New logic
-  
   if(preg_match("~^".BOTAS_COUNTED."(.*)$~", $botAs, $m) === 0) { // BLP 2025-01-07 - if zero then no match
     if(empty($botAs)) { // BLP 2025-01-07 - check if $botAs is empty. It could have other indicators.
       $botAs = BOTAS_COUNTED; // BLP 2025-01-07 - Yes it is empty so just add BOTAS_COUNTED.
@@ -639,22 +682,22 @@ if($_POST['page'] == 'timer') {
     // If $m[1] is true then this must have BOTAS_COUNTED and some other BOT indicators
     // like BOTAS_ROBOT etc.
     
-    error_log("tracker TIMER: This is a BOT, EXIT, id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, difftime=$difftime, agent=$agent, m={$m[1]}");
+    error_log("tracker TIMER_BOT_EXIT: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, time=$time, difftime=$difftime, agent=$agent, m={$m[1]}, line=". __LINE__);
     echo "This is a BOT, botAs=$botAs";
     exit();
-  } else { // BLP 2025-01-07 - found only $m[0]
-    if(!$S->isMe()) error_log("tracker TIMER: id=$id, ip=$ip, botAs=$botAs, difftime=$difftime, agent=$agent");
+  } else { 
+    if(!$S->isMyIp($ip) && $DEBUG_TIMER1) error_log("tracker TIMER_PREG_MATCH_ZERO: id=$id, ip=$ip, botAs=$botAs, time=$time, difftime=$difftime, agent=$agent, line=". __LINE__);
     echo "tracker timer $botAs";
+    exit();
   }
-  // BLP 2025-01-06 - end New logic
   
   // BLP 2025-01-07 - The only way I can get here is with an updated $botAs.
 
   $S->sql("update $S->masterdb.tracker set botAs='$botAs', isJavaScript=$js, endtime=now(), ".
           "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id");
 
-  if(!$S->isMyIp($ip) && $DEBUG_TIMER)
-    error_log("tracker TIMER: $id, $ip, $site, $thepage, TIMER2, botAs=$botAs, visits: $visits, jsin=$java, jsout=$js2, agent=$agent");
+  if(!$S->isMyIp($ip) && $DEBUG_TIMER2)
+    error_log("tracker TIMER2: id=$id, ip-$ip, site=$site, page=$thepage, botAs=$botAs, time=$time, difftime=$difftime, visits: $visits, jsin=$java, jsout=$js2, agent=$agent, line=". __LINE__);
 
   echo "Timer OK, visits: $visits, java=$js2, finger=$finger";
   exit();
@@ -708,11 +751,11 @@ function goaway($msg) {
     $request = $_REQUEST ? ", \$_REQUEST: " . print_r($_REQUEST, true) : '';
     $id = $id ?? "NO_ID";
 
-    error_log("tracker GOAWAY: $id, $S->ip, $S-<siteName, $S->self, GOAWAY, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
+    error_log("tracker GOAWAY: id=$id, ip=$S->ip, site=$S-<siteName, page=$S->self, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}, line=". __LINE__);
   } else {
     // This is the GOAWAYNOW logic.
     
-    error_log("tracker GOAWAY: $S->ip, $S->siteName, $S->self, GOAWAYNOW, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}");
+    error_log("tracker GOAWAYNOW: ip=$S->ip, site=$S->siteName, page=$S->self, errno=$errno, errmsg=$errmsg, \$S->agent=$S->agent, agent=$agent finger=$finger{$request}, line=". __LINE__);
   }
 
   $version = TRACKER_VERSION;
