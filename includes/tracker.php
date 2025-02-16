@@ -206,7 +206,7 @@ if($type = $_GET['page']) {
 
     $_site = json_decode(stripComments($tmp));
   } else {
-    error_log("tracker NO_MYSITEMAP: id=$id, ip=$ip, image=$image, line=". __LINE__);
+    error_log("tracker NO_MYSITEMAP: id=$id, type=$type, image=$image, line=". __LINE__);
     exit("<h1>No mysitemap.json</h1>");
   }
   
@@ -455,6 +455,8 @@ if($_POST) {
   $_site->dbinfo->host = $tmp; // Still use the original dbinfo->host
 }
 
+// We have set up $_site from the passed in $mysitemap.
+
 $_site->noTrack = true; // Don't track or do geo!
 $_site->noGeo = true;
 
@@ -606,7 +608,7 @@ if($_POST['page'] == 'onexit') {
       $onexit = BEACON_VISIBILITYCHANGE;
       break;
     default:
-      error_log("tracker ONEXIT SWITCH_ERROR_{$type}: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs -- \$S->ip=$S->ip, \$S->agent=$S->agent, line=". __LINE__);
+      error_log("tracker ONEXIT SWITCH_ERROR_{$msg}: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs -- \$S->ip=$S->ip, \$S->agent=$S->agent, line=". __LINE__);
       exit();
   }
 

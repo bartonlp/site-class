@@ -5,7 +5,7 @@
    -200: No type
 */
 
-define("BEACON_VERSION", "4.0.7beacon-pdo"); // BLP 2025-02-10 - $DEBUG2&3 true. Changed error_log messages and improved messages.
+define("BEACON_VERSION", "4.0.7beacon-pdo"); // BLP 2025-02-16 - $DEBUG2&3 true. Changed error_log messages and improved messages.
 
 // BLP 2023-01-30 - If you want the version defined ONLY and no other information.
 // If we have a valid $_site or the $__VERSION_ONLY, then just return the version info.
@@ -24,8 +24,8 @@ $_site->noGeo = true;
 $S = new Database($_site);
           
 //$DEBUG1 = true; // COUNTED real+1 bots-1
-$DEBUG2 = true; // After update tracker table
-$DEBUG3 = true; // visablechange
+//$DEBUG2 = true; // visibilitychange
+$DEBUG3 = true; // all types
 //$DEBUG_IPS = true; // show ip mismatches.
 //$DEBUG_ISABOT = true;
 
@@ -93,7 +93,7 @@ switch($type) {
     $beacon = BEACON_VISIBILITYCHANGE;
     break;
   default:
-    error_log("beacon: $id, $ip, $site, $thepage, SWITCH_ERROR_{$type}, botAs=$botAs, java=$js, visits=$visits -- \$S->ip=$S->ip, \$S->agent=$S->agent");
+    error_log("beacon: $id, $ip, $site, $thepage, SWITCH_ERROR_{$type}, botAs=$botAs, java=$js, visits=$visits -- \$S->ip=$S->ip, line=". __LINE__);
     exit();
 }
 
@@ -103,7 +103,7 @@ $js |= $beacon;
 $js2 = strtoupper(dechex($js));
 
 if($DEBUG_IPS && ($ip != $S->ip)) {
-  error_log("beacon: $id, $ip, $site, $thepage, IP_MISMATCH_{$msg}, \$ip != \$S->ip -- \$S->ip=$S->ip, botAs=$botAs, jsin=$java, jsout=$js2, visits=$visits");
+  error_log("beacon: $id, $ip, $site, $thepage, IP_MISMATCH_{$msg}, \$ip != \$S->ip -- \$S->ip=$S->ip, botAs=$botAs, jsin=$java, jsout=$js2, visits=$visits, line=". __LINE__);
 }
 
 // Is this a bot?
@@ -143,7 +143,7 @@ if(!$S->isMyIp($ip) && $DEBUG2 && $type == 'visibilitychange') {
 }
 
 if(!$S->isMyIp($ip) && $DEBUG3) {
-  if(($jsin & (BEACON_PAGEHIDE | BEACON_UNLOAD | BEACON_BEFOREUNLOAD)) === 0 && $type != "visibilitychange") {
+  if(($jsin & (BEACON_PAGEHIDE | BEACON_UNLOAD | BEACON_BEFOREUNLOAD | BEACON_VISIBILITYCHANGE)) === 0 && $type != "visibilitychange") {
     error_log("beacon {$msg}3: id=$id, ip=$ip, site=$site, page=$thepage, state=$state, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
   }
 }

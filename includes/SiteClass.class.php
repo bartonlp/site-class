@@ -5,7 +5,9 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.0.8pdo"); // BLP 2025-02-11 - /* Minimal tracker.js logic if noTrack */ and change default name.
+define("SITE_CLASS_VERSION", "5.0.9pdo"); // BLP 2025-02-15 - Add nonce for programs that use CSP.
+                                          // Currently only bartonphillips.com/index.php and
+                                          // example.js/csp-test2.php.
 
 // One class for all my sites
 /**
@@ -128,6 +130,8 @@ class SiteClass extends Database {
    * @return string $pageHead
    */
 
+  // BLP 2025-02-15 - Add nonce.
+  
   public function getPageHead():string {
     // Instantiate a stdClass so we can pass things to the headFile.
     
@@ -167,7 +171,7 @@ class SiteClass extends Database {
     // These need to have the <style> or <script> tabs added.
     
     $h->css = $this->css ? "<style>\n$this->css\n</style>" : null;
-    $h->inlineScript = $this->h_inlineScript ? "<script>\n$this->h_inlineScript\n</script>" : null;
+    $h->inlineScript = $this->h_inlineScript ? "<script nonce='$this->nonce'>\n$this->h_inlineScript\n</script>" : null;
     
     // The rest, $h->link, $h->script and $h->extra need to have the full '<link' or '<script' tags
     // in the variables.
@@ -187,9 +191,9 @@ class SiteClass extends Database {
     if($this->nojquery !== true) {
       $jQuery = <<<EOF
   <!-- BLP 2024-12-31 - Latest version 3.7.1 and migrate 3.5.2 -->
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-  <script src="https://code.jquery.com/jquery-migrate-3.5.2.min.js" integrity="sha256-ocUeptHNod0gW2X1Z+ol3ONVAGWzIJXUmIs+4nUeDLI=" crossorigin="anonymous"></script>
-  <script>jQuery.migrateMute = false; jQuery.migrateTrace = false;</script>
+  <script nonce="$this->nonce" src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script nonce="$this->nonce" src="https://code.jquery.com/jquery-migrate-3.5.2.min.js" integrity="sha256-ocUeptHNod0gW2X1Z+ol3ONVAGWzIJXUmIs+4nUeDLI=" crossorigin="anonymous"></script>
+  <script nonce="$this->nonce">jQuery.migrateMute = false; jQuery.migrateTrace = false;</script>
 EOF;
 
       // BLP 2023-02-20 - trackerLocationJs needs to be part of $this for whatisloaded.class.php.
@@ -239,7 +243,7 @@ EOF;
 
         // If not noTrack or nbdb add the tracker.js location.
         
-        $trackerStr = "  <script data-lastid='$this->LAST_ID' src='$this->trackerLocationJs'></script>\n";
+        $trackerStr = "<script nonce='$this->nonce' data-lastid='$this->LAST_ID' src='$this->trackerLocationJs'></script>\n";
       } else {
         // Either or both noTrack and nodb were set.
         $trackerStr =<<<EOF
@@ -314,7 +318,7 @@ EOF;
       // If noTrack or nodb then many of the items will be empty.
       
       $trackerStr .=<<<EOF
-  <script>
+  <script nonce="$this->nonce">
     var thesite = "$this->siteName",
     theip = "$this->ip",
     thepage = "$this->self",
@@ -483,7 +487,7 @@ EOF;
 
     // Set the $b values from the b_ values
     
-    $b->inlineScript = $this->b_inlineScript ? "<script>\n$this->b_inlineScript\n</script>" : null;
+    $b->inlineScript = $this->b_inlineScript ? "<script nonce='$this->nonce'>\n$this->b_inlineScript\n</script>" : null;
     $b->script = $this->b_script;
 
     // counterWigget is available to the footerFile to use if wanted.

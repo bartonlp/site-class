@@ -3,7 +3,7 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.0.11database-pdo"); // BLP 2025-02-10 - turn DEBUG_TRACKER_BOTINFO off. Improved error_log messages
+define("DATABASE_CLASS_VERSION", "1.0.12database-pdo"); // BLP 2025-02-15 - Add new logic to isBot() and comments to tracker()
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 define("DEBUG_TRACKER_BOTINFO", false); // Change this to false if you don't want the error
@@ -213,15 +213,18 @@ class Database extends dbPdo {
       $this->isBot = true;
     }
 
-    // BLP 2025-01-09 - New logic. Look at the bots2 table for this ip address.
+    // BLP 2025-02-15 - New logic. Look at the bots table for this ip address.
 
     $type = null;
 
-    if($this->sql("select which from $this->masterdb.bots2 where ip='$this->ip'")) { // Found some.
-      while($which = $this->fetchrow('num')[0]) {
-        if($which & BOTS_ROBOTS) $type |= TRACKER_ROBOTS;
-        if($which & BOTS_SITEMAP) $type |= TRACKER_SITEMAP;
-        if($which & BOTS_SITECLASS) $type |= TRACKER_BOT;
+    if($this->sql("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Found some.
+      switch($this->fetchrow('num')[0]) {
+        case BOTS_ROBOTS:
+          $type |= TRACKER_ROBOTS;
+        case BOTS_SITEMAP:
+          $type |= TRACKER_SITEMAP;
+        case BOTS_SITECLASS:
+          $type |= TRACKER_BOT;
       }
 
       // BLP 2025-01-09 - create new public.
@@ -445,7 +448,11 @@ class Database extends dbPdo {
       $java = TRACKER_BOT;
     }
 
-    $java |= $this->trackerBotInfo; // BLP 2025-01-12 - or in trackerBotInfo.
+    $java |= $this->trackerBotInfo; // BLP 2025-01-12 - or in trackerBotInfo from isBot().
+                                    // These are the TRACKER_ROBOT or TRACKER_SITEMAP or
+                                    // TRACKER_BOT. 
+                                    // The values from the bots3 table for this ip. The first two are
+                                    // high order bits and TRACKER_BOT is 0x200.
     
     // The primary key is id which is auto incrementing so every time we come here we create a
     // new record.
