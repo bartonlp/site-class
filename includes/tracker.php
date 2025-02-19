@@ -206,7 +206,7 @@ if($type = $_GET['page']) {
 
     $_site = json_decode(stripComments($tmp));
   } else {
-    error_log("tracker NO_MYSITEMAP: id=$id, type=$type, image=$image, line=". __LINE__);
+    error_log("tracker NO_MYSITEMAP: id=$id, type=$msg, image=$image, line=". __LINE__);
     exit("<h1>No mysitemap.json</h1>");
   }
   
@@ -490,17 +490,12 @@ if($_POST['page'] == 'start') {
   $id = $_POST['id'];
   $site = $_POST['site'];
   $ip = $_POST['ip']; // This is the real ip of the program. $S->ip will be the ip of ME.
-  $visits = $_POST['visits']; // Visits may be 1 or zero. tracker.js sets the mytime cookie.
   $thepage = $_POST['thepage'];
   $ref = $_POST['referer'];
 
   if(!$id) {
     error_log("tracker START1 NO ID: site=$site, page=$thepage, line=". __LINE__);
     exit();
-  }
-
-  if($S->isMyIp($ip)) {
-    $visits = 0;
   }
 
   // BLP 2024-12-04 - use hex value for $js, remove $java.
@@ -630,7 +625,6 @@ if($_POST['page'] == 'timer') {
   $id = $_POST['id'];
   $site = $_POST['site'];
   $ip = $_POST['ip'];
-  $visits = $_POST['visits'];
   $thepage = $_POST['thepage'];
   $time = $_POST['difftime']; // number of seconds.
 
@@ -657,7 +651,7 @@ if($_POST['page'] == 'timer') {
   if(!empty($agent)) {
     if($S->isBot($agent)) {
       if($DEBUG_ISABOT)
-        error_log("tracker TIMER_ISABOT1: id=$id, ip=$ip, site=$site, page=$thepage, time=$time, difftime=$difftime, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, agent=$agent, line=".__LINE__);
+        error_log("tracker TIMER_ISABOT1: id=$id, ip=$ip, site=$site, page=$thepage, time=$time, difftime=$difftime, botAs=$botAs, jsin=$java, jsout=$js2, agent=$agent, line=".__LINE__);
       
       echo "Timer1: agent empty, This is a BOT, $id, $ip, $site, $thepage";
       exit(); // If this is a bot don't bother
@@ -699,9 +693,9 @@ if($_POST['page'] == 'timer') {
           "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id");
 
   if(!$S->isMyIp($ip) && $DEBUG_TIMER2)
-    error_log("tracker TIMER2: id=$id, ip-$ip, site=$site, page=$thepage, botAs=$botAs, time=$time, difftime=$difftime, visits: $visits, jsin=$java, jsout=$js2, agent=$agent, line=". __LINE__);
+    error_log("tracker TIMER2: id=$id, ip-$ip, site=$site, page=$thepage, botAs=$botAs, time=$time, difftime=$difftime, jsin=$java, jsout=$js2, agent=$agent, line=". __LINE__);
 
-  echo "Timer OK, visits: $visits, java=$js2, finger=$finger";
+  echo "Timer OK, java=$js2, finger=$finger";
   exit();
 }
 // *********************************************

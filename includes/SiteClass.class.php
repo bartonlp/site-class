@@ -5,9 +5,11 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.0.9pdo"); // BLP 2025-02-15 - Add nonce for programs that use CSP.
-                                          // Currently only bartonphillips.com/index.php and
-                                          // example.js/csp-test2.php.
+define("SITE_CLASS_VERSION", "5.0.10pdo"); // BLP 2025-02-18 - Add nonce for programs that use CSP.
+                                           // Currently only bartonphillips.com/index.php and
+                                           // example.js/csp-test2.php.
+                                           // Removed isMeFalse, visits and doState from the
+                                           // default JavaScript used if noTrack or nodb are true.
 
 // One class for all my sites
 /**
@@ -246,6 +248,8 @@ EOF;
         $trackerStr = "<script nonce='$this->nonce' data-lastid='$this->LAST_ID' src='$this->trackerLocationJs'></script>\n";
       } else {
         // Either or both noTrack and nodb were set.
+        // This is the code we use instead of tracker.js if noTrack or nodb are true.
+        
         $trackerStr =<<<EOF
 <script data-lastid='$this->LAST_ID'>
 /* Minimal tracker.js logic if noTrack */
@@ -253,10 +257,6 @@ EOF;
 'use strict';
 
 const TRACKERJS_VERSION = "default_tracker.js_from_site_class_getPageHead";
-
-let visits = 0;
-var isMeFalse;
-var doState; // for debugging. It can be set by the caller.
 
 // The very first thing we do is get the lastId from the script tag.
 
@@ -307,7 +307,7 @@ jQuery(document).ready(function($) {
   }
   
   console.log("VARIABLES -- thesite: " + thesite + ", theip: " + theip + ", thepage: " + thepage + 
-              ", isMeFalse: " + isMeFalse + ", phoneImg: " + phoneImg + ", desktopImg: " + desktopImg +
+              ", phoneImg: " + phoneImg + ", desktopImg: " + desktopImg +
               ", phoneImg2: " + phoneImg2 + ", desktopImg2: " + desktopImg2);
 });
 </script>

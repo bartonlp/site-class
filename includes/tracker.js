@@ -5,14 +5,17 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.4trackerjs-pdo"; // BLP 2025-02-11 - added difftime to ajax.
+const TRACKERJS_VERSION = "3.1.5trackerjs-pdo"; // BLP 2025-02-18 - removed 'visits' as we removed 'mytime' from SiteClass.
 
-let visits = 0;
+// To use 'isMeFalse' you need code like this in your main program:
+// $S->b_inlineScript = "var isMeFalse = "$S->isMeFalse"; Before
+// calling $S->getPageTopBottom().
+// The same is true of 'doState'!
 
 var isMeFalse;
-//isMeFalse = true; // For Debugging
-
 var doState; // for debugging. It can be set by the caller.
+//isMeFalse = true; // For Debugging
+//doState = true; // For Debugging
 
 function makeTime() {
   let x = new Date;
@@ -35,21 +38,23 @@ function postAjaxMsg(msg, arg1='', arg2='') {
   });
 }
 
+console.log("tracker.js: at " . document.currentScript.src);
+console.log("navigator.userAgentData: ", navigator.userAgentData);
+
 // The very first thing we do is get the lastId from the script tag.
 
 const lastId = $("script[data-lastid]").attr("data-lastid");
-console.log("navigator.userAgentData: ", navigator.userAgentData);
 
 // Now we wait until all of the DOM is loaded and ready.
-// NOTE: these Javascript variables have been set in
-// SiteClass.class.php -- SiteClass::getPageHead() and are available
-// everywhere because they are declaired as 'var' right after
-// tracker.js is declaired:
+// NOTE: these Javascript variables:
 // thesite, thepage, trackerUrl, beaconUrl, noCssLastId, desktopImg,
-// phoneImg.
+// phoneImg,
+// have been set in SiteClass.class.php -- SiteClass::getPageHead() and are available
+// everywhere because they are declaired as 'var' right after
+// tracker.js is declaired.
+
 
 jQuery(document).ready(function($) {
-  console.log("tracker.js: in /var/www/site-class/includes/tracker.js");
   if(noCssLastId !== '1') {
     $("script[data-lastid]").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
   }
@@ -217,7 +222,7 @@ jQuery(document).ready(function($) {
     // Can we use beacon?
 
     if(navigator.sendBeacon) { // If beacon is supported by this client we will always do beacon.
-      navigator.sendBeacon(beaconUrl, JSON.stringify({'id':lastId, 'type': e.type, 'site': thesite, 'ip': theip, 'visits': visits, 'thepage': thepage, 'isMeFalse': isMeFalse, 'state': state}));
+      navigator.sendBeacon(beaconUrl, JSON.stringify({'id':lastId, 'type': e.type, 'site': thesite, 'ip': theip, 'thepage': thepage, 'isMeFalse': isMeFalse, 'state': state}));
       console.log("beacon " + e.type + ", "+thesite+", "+thepage+", state="+state+", "+makeTime());
     } else { // This is only if beacon is not supported by the client (which is infrequently. This can happen with MS-Ie, tor and old versions of others).
       console.log("Beacon NOT SUPPORTED");
@@ -227,7 +232,7 @@ jQuery(document).ready(function($) {
       
       $.ajax({
         url: trackerUrl,
-        data: {page: 'onexit', type: e.type, 'id': lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse, state: state, mysitemap: mysitemap},
+        data: {page: 'onexit', type: e.type, 'id': lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, state: state, mysitemap: mysitemap},
         type: 'post',
         success: function(data) {
           console.log("tracker ", data);
@@ -268,7 +273,7 @@ jQuery(document).ready(function($) {
 
     $.ajax({
       url: trackerUrl,
-      data: {page: 'timer', id: lastId, site: thesite, ip: theip, visits: visits, thepage: thepage, isMeFalse: isMeFalse, mysitemap: mysitemap, difftime: (difftime/1000)},
+      data: {page: 'timer', id: lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, mysitemap: mysitemap, difftime: (difftime/1000)},
       type: 'post',
       success: function(data) {
         difftime += 10000;
