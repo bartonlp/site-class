@@ -14,7 +14,7 @@
 
 use SendGrid\Mail\Mail; // Use SendGrid for email
 
-define("PDO_CLASS_VERSION", "1.0.9pdo"); // BLP 2024-12-17 - see date
+define("PDO_CLASS_VERSION", "1.0.11pdo"); // BLP 2025-02-19 - add $contents to plain text email.
 
 /**
  * @package PDO Database
@@ -135,7 +135,7 @@ class dbPdo extends PDO {
         $result = $this->query($query);
       } catch(Exception $e) {
         if(str_contains($query, "by+lasttime")) {
-          error_log("dbPdo.class.php, by+lasttime: $this->siteName, ip=$this->ip, page=$this->self,  agent=$this->agent");
+          error_log("dbPdo.class.php, by+lasttime: ip=$this->ip, site=$this->siteName, page=$this->self, agent=$this->agent");
           return;
         }
         throw $e;
@@ -314,7 +314,6 @@ class dbPdo extends PDO {
     } catch(Exception $e) {
       throw $e;
     }
-    //error_log("dbPdo: fetchrow, query=" . self::$lastQuery . ", row=" . var_export($row, true));
     return $row;
   }
   
@@ -428,10 +427,10 @@ class dbPdo extends PDO {
       $email->setFrom("ErrorMessage@bartonphillips.com");
       $email->setSubject($from);
       $email->addTo($s->EMAILADDRESS);
-  
-      $email->addContent("text/plain", 'View this in HTML mode');
 
       $contents = preg_replace(["~\"~", "~\\n~"], ['','<br>'], "$err<br>lastQuery: $last<br>$userId");
+
+      $email->addContent("text/plain", $contents); // BLP 2025-02-19 - 
 
       $email->addContent("text/html", $contents);
 
@@ -444,7 +443,7 @@ class dbPdo extends PDO {
       // instead of response and that caused an error.
       
       if(($resp = $response->statusCode()) > 299) {
-        error_log("dbPod sendgrid error: $resp, response header: " . print_r($response->headers()));
+        error_log("dbPod.class.php: sendgrid error, $resp, response header: " . print_r($response->headers()));
       }
     }
 
@@ -497,7 +496,7 @@ EOF;
     if($exit === true) {
       throw new Exception($msg);
     } else {
-      error_log("dbPdo.class.php Error: $msg");
+      error_log("dbPdo.class.php: Error=$msg");
       return;
     }
   }
