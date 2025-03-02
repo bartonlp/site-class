@@ -5,7 +5,7 @@
    -200: No type
 */
 
-define("BEACON_VERSION", "4.0.8beacon-pdo"); // BLP 2025-02-18 - removed 'visits'. It was set via the 'mytime' logic which we removed.
+define("BEACON_VERSION", "4.0.10beacon-pdo"); // BLP 2025-02-26 - error_log changes, add $beacon_exit
 
 // BLP 2023-01-30 - If you want the version defined ONLY and no other information.
 // If we have a valid $_site or the $__VERSION_ONLY, then just return the version info.
@@ -24,7 +24,7 @@ $_site->noGeo = true;
 $S = new Database($_site);
           
 //$DEBUG1 = true; // COUNTED real+1 bots-1
-//$DEBUG2 = true; // visibilitychange
+$DEBUG2 = true; // visibilitychange
 $DEBUG3 = true; // all types
 //$DEBUG_IPS = true; // show ip mismatches.
 //$DEBUG_ISABOT = true;
@@ -41,6 +41,7 @@ $site = $data['site'];
 $ip = $data['ip'];
 $thepage = $data['thepage'];
 $state = $data['state'];
+$prevState = $data['prevState'];
 
 // Here the isMeFalse is passed as a true bool.
 $S->isMeFalse = $data['isMeFalse'];
@@ -68,9 +69,10 @@ if(!is_numeric($id)) {
 
 // Now get botAs and isJavaScrip etc. from the tracker table.
 // BLP 2024-12-17 - remove $java and hex(isJavaScript).
+// BLP 2025-02-26 - get 'error' into $beacon_exit.
 
-if($S->sql("select botAs, isJavaScript, difftime, finger, agent from $S->masterdb.tracker where id=$id")) {
-  [$botAs, $js, $difftime, $finger, $agent] = $S->fetchrow('num');
+if($S->sql("select botAs, isJavaScript, difftime, finger, agent, error from $S->masterdb.tracker where id=$id")) {
+  [$botAs, $js, $difftime, $finger, $agent, $beacon_exit] = $S->fetchrow('num'); // BLP 2025-02-28 - $beacon_exit has the value from 'error'.
   $difftime /= 1000; // seconds
 } else {
   error_log("beacon: NO record for $id, line=" . __LINE__);
@@ -92,7 +94,7 @@ switch($type) {
     $beacon = BEACON_VISIBILITYCHANGE;
     break;
   default:
-    error_log("beacon: $id, $ip, $site, $thepage, SWITCH_ERROR_{$type}, botAs=$botAs, java=$js, -- \$S->ip=$S->ip, line=". __LINE__);
+    error_log("beacon: id=$id, ip=$ip, state=$site, page=$thepage, SWITCH_ERROR_{$type}, botAs=$botAs, java=$js, -- \$S->ip=$S->ip, line=". __LINE__);
     exit();
 }
 
@@ -102,13 +104,13 @@ $js |= $beacon;
 $js2 = strtoupper(dechex($js));
 
 if($DEBUG_IPS && ($ip != $S->ip)) {
-  error_log("beacon: $id, $ip, $site, $thepage, IP_MISMATCH_{$msg}, \$ip != \$S->ip -- \$S->ip=$S->ip, botAs=$botAs, jsin=$java, jsout=$js2, line=". __LINE__);
+  error_log("beacon: id=$id, ip=$ip, site=$site, page=$thepage, IP_MISMATCH_{$msg}, \$ip != \$S->ip -- \$S->ip=$S->ip, botAs=$botAs, jsin=$java, jsout=$js2, line=". __LINE__);
 }
 
 // Is this a bot?
 
 if($agent && $S->isBot($agent)) {
-  if($DEBUG_ISABOT) error_log("beacon ISABOT_{$msg}1: $id, $ip, $site, $thepage, state=$state, botAs=$botAs, jsin=$java, jsout=$js2, line=" . __LINE__);
+  if($DEBUG_ISABOT) error_log("beacon ISABOT_{$msg}1: id=$id, ip=$ip, state=$site, page=$thepage, state=$state, botAs=$botAs, jsin=$java, jsout=$js2, line=" . __LINE__);
   //exit(); // If this is a bot don't bother
 }
 
@@ -129,20 +131,33 @@ if(empty($botAs)) {
   $botAs .= "," . BOTAS_COUNTED;
 }
 
-// Now update tracker. $botAs should have BOTS_COUNTED!
+// BLP 2025-02-26 - moved $S->sql below error messages.
 
-$S->sql("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
-          "isJavaScript='$js', lasttime=now() where id=$id");
+$masked = dechex($js & (BEACON_PAGEHIDE | BEACON_UNLOAD | BEACON_BEFOREUNLOAD | BEACON_VISIBILITYCHANGE));
 
-//error_log("beacon TEST: id=$id, ip=$ip, site=$site, page=$thepage, jsin=" . dechex($jsin));
+// BLP 2025-02-28 - is 'beacon_exit' in the tracker table error field?
 
-if(!$S->isMyIp($ip) && $DEBUG2 && $type == 'visibilitychange') {
-  if(($jsin & BEACON_VISIBILITYCHANGE) === 0) 
-    error_log("beacon {$msg}2: id=$id, ip=$ip, site=$site, page=$thepage, state=$state, botAs=$botAs, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
+$bExit = str_contains($beacon_exit, "beacon_exit");
+
+if(!$S->isMyIp($ip) && $DEBUG2 && $type == 'visibilitychange' && !$bExit) {
+  error_log("beacon {$msg}2: id=$id, ip=$ip, site=$site, page=$thepage, masked=$masked, state=$state, prevState=$prevState, botAs=$botAs, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
 }
 
-if(!$S->isMyIp($ip) && $DEBUG3) {
-  if(($jsin & (BEACON_PAGEHIDE | BEACON_UNLOAD | BEACON_BEFOREUNLOAD | BEACON_VISIBILITYCHANGE)) === 0 && $type != "visibilitychange") {
-    error_log("beacon {$msg}3: id=$id, ip=$ip, site=$site, page=$thepage, state=$state, botAs=$botAs, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
+if(!$S->isMyIp($ip) && $DEBUG3 && $type != 'visibilitychange') {
+  if(($js & (BEACON_PAGEHIDE | BEACON_UNLOAD | BEACON_BEFOREUNLOAD)) !== 0 && !$bExit) {
+    error_log("beacon {$msg}3: id=$id, ip=$ip, site=$site, page=$thepage, masked=$masked, state=$state, prevState=$prevState, botAs=$botAs, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
+
+    if(!$beacon_exit) {
+      $beacon_exit = "beacon_exit";
+    } else {
+      $beacon_exit .= ":beacon_exit";
+    }
   }
 }
+
+// Now update tracker. $botAs should have BOTS_COUNTED!
+// BLP 2025-02-26 - add error='$beacon_exit'
+
+$S->sql("update $S->masterdb.tracker set botAs='$botAs', error='$beacon_exit', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
+          "isJavaScript='$js', lasttime=now() where id=$id");
+

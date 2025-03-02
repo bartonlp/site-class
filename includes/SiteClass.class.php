@@ -5,12 +5,12 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.0.10pdo"); // BLP 2025-02-18 - Add nonce for programs that use CSP.
+define("SITE_CLASS_VERSION", "5.0.11pdo"); // BLP 2025-02-21 -  Add nonce for programs that use CSP.
                                            // Currently only bartonphillips.com/index.php and
                                            // example.js/csp-test2.php.
                                            // Removed isMeFalse, visits and doState from the
                                            // default JavaScript used if noTrack or nodb are true.
-
+                                           // Use $h and $b for getPageHead() and getPageFooter().
 // One class for all my sites
 /**
  * SiteClass
@@ -130,6 +130,7 @@ class SiteClass extends Database {
    * getPageHead()
    * Get the page <head></head> stuff including the doctype and the beginning <body> tag.
    * @return string $pageHead
+   * Uses $h. However the old values are still available for old includes.
    */
 
   // BLP 2025-02-15 - Add nonce.
@@ -336,6 +337,12 @@ EOF;
     
     $html = '<html lang="' . $lang . '" ' . $htmlextra . ">"; // stuff like manafest etc.
 
+    // BLP 2025-02-21 - The original $jQuery and $trackerStr are still available to old header
+    // include file. $h is new and the head.i.php in bartonphillips.com/includes uses the new form.
+    
+    $h->jQuery = $jQuery;
+    $h->trackerStr = $trackerStr;
+    
     // What if headFile is null? Use the Default Head.
 
     if(!is_null($this->headFile)) {
@@ -357,8 +364,8 @@ $h->title
   <meta name="description" content="{$this->desc}"/>
   <!-- local link -->
 $this->link
-$jQuery
-$trackerStr
+$h->jQuery
+$h->trackerStr
   <!-- extra -->
 $h->extra
   <!-- remote script -->
@@ -450,8 +457,9 @@ EOF;
    * getPageFooter()
    * Get Page Footer
    * @return string
+   * Uses $b, however the old values are still available for old includes.
    */
-  
+
   public function getPageFooter():string {
     // If nofooter is true just return an empty footer
 
@@ -510,6 +518,12 @@ EOF;
       $geo = "<script src='$geo/geo.js'></script>";
     }
 
+    // BLP 2025-02-21 - $counterWigget, $lastmod and $geo are still available to old footer
+    // includes files. $b now is used in bartonphillips.com/includes/footer.i.php.
+    $b->counterWigget = $counterWigget;
+    $b->lastmod = $lastmod;
+    $b->geo = $geo;
+    
     // We can put the footerFile into $S or use it from mysitemap.json
     // If either is set to 'false' then use the default footer, else use $this->footerFile unless
     // it is false.

@@ -5,7 +5,7 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.5trackerjs-pdo"; // BLP 2025-02-18 - removed 'visits' as we removed 'mytime' from SiteClass.
+const TRACKERJS_VERSION = "3.1.6trackerjs-pdo"; // BLP 2025-02-25 - removed 'capture: true' for life style events per AI. Add mysitemap to postAjaxMsg().
 
 // To use 'isMeFalse' you need code like this in your main program:
 // $S->b_inlineScript = "var isMeFalse = "$S->isMeFalse"; Before
@@ -24,10 +24,10 @@ function makeTime() {
 
 // Post a AjaxMsg. For debugging
 
-function postAjaxMsg(msg, arg1='', arg2='') {
+function postAjaxMsg(msg, mysitemap, arg1='', arg2='') { // BLP 2025-02-25 - must pass mysitemap.
   $.ajax({
     url: trackerUrl,
-    data: {page: 'ajaxmsg', msg: msg, site: thesite, ip: theip, arg1: arg1, arg2: arg2, isMeFalse: isMeFalse},
+    data: {page: 'ajaxmsg', msg: msg, site: thesite, ip: theip, arg1: arg1, arg2: arg2, isMeFalse: isMeFalse, mysitemap: mysitemap},
     type: 'post',
     success: function(data) {
       console.log(data);
@@ -38,7 +38,7 @@ function postAjaxMsg(msg, arg1='', arg2='') {
   });
 }
 
-console.log("tracker.js: at " . document.currentScript.src);
+console.log("tracker.js: at " , document.currentScript.src);
 console.log("navigator.userAgentData: ", navigator.userAgentData);
 
 // The very first thing we do is get the lastId from the script tag.
@@ -142,8 +142,9 @@ jQuery(document).ready(function($) {
     }
   });
 
+  /********************/
   /* Lifestyle Events */
-  
+
   const getState = () => {
     if(document.visibilityState === 'hidden') {
       return 'hidden';
@@ -154,27 +155,29 @@ jQuery(document).ready(function($) {
     return 'passive';
   };
 
-  let state = getState();
-
-  // Accepts a next state and, if there's been a state change, logs the
-  // change to the console. It also updates the `state` value defined above.
+  let state;
+  let prevState;
+  
+  // Accepts a next state and, if there has been a state change, logs the
+  // change to the console. It also updates the 'state'
 
   const logStateChange = (nextState, type) => {
-    const prevState = state;
+    prevState = getState();
+    state = nextState;
+    
     if(nextState !== prevState) {
-      if(doState) {
-        console.log(`${type} State change: ${prevState} >>> ${nextState}, ${thepage}`);
-        postAjaxMsg(`${type} State change: ${prevState} >>> ${nextState}, ${thepage}`);
+      console.log(`${type} State change: ${prevState} >>> ${nextState}, ${thepage}`);
+      if(doState) { // ONLY for debugging.
+        postAjaxMsg(`tracker.js: type=${type} State change: prev=${prevState} >>> next=${nextState}, page=${thepage}`, mysitemap);
       }
-      state = nextState;
     }
   };
 
-  // These lifecycle events can all use the same listener to observe state
-  // changes (they call the `getState()` function to determine the next state).
+  // These lifecycle events can all use thier listener to observe state
+  // changes (they call the 'getState()' function to determine the next state).
 
-  ['pageshow', 'focus', 'blur', 'visibilitychange', 'resume'].forEach(type => {
-    window.addEventListener(type, () => logStateChange(getState(), type), {capture: true});
+  ['pageshow', 'focus', 'blur', /*'visibilitychange',*/ 'resume'].forEach(type => {
+    window.addEventListener(type, () => logStateChange(getState(), type));
   });
 
   // The next two listeners, on the other hand, can determine the next
@@ -183,19 +186,19 @@ jQuery(document).ready(function($) {
   window.addEventListener('freeze', () => {
     // In the freeze event, the next state is always frozen.
     logStateChange('frozen', 'freeze');
-  }, {capture: true});
+  });
 
   window.addEventListener('pagehide', event => {
     if(event.persisted) {
-      // If the event's persisted property is `true` the page is about
+      // If the event's persisted property is 'true' the page is about
       // to enter the Back-Forward Cache, which is also in the frozen state.
       logStateChange('frozen', 'pagehide');
     } else {
-      // If the event's persisted property is not `true` the page is
+      // If the event's persisted property is not 'true' the page is
       // about to be unloaded.
       logStateChange('terminated', 'pagehide');
     }
-  }, {capture: true});
+  });
 
   /* End of lifestyle events. */
   
@@ -222,8 +225,8 @@ jQuery(document).ready(function($) {
     // Can we use beacon?
 
     if(navigator.sendBeacon) { // If beacon is supported by this client we will always do beacon.
-      navigator.sendBeacon(beaconUrl, JSON.stringify({'id':lastId, 'type': e.type, 'site': thesite, 'ip': theip, 'thepage': thepage, 'isMeFalse': isMeFalse, 'state': state}));
-      console.log("beacon " + e.type + ", "+thesite+", "+thepage+", state="+state+", "+makeTime());
+      navigator.sendBeacon(beaconUrl, JSON.stringify({'id':lastId, 'type': e.type, 'site': thesite, 'ip': theip, 'thepage': thepage, 'isMeFalse': isMeFalse, 'state': state, 'prevState': prevState}));
+      console.log("beacon " + e.type + ", "+thesite+", "+thepage+", state="+state+", prevState="+prevState+ ", " + makeTime());
     } else { // This is only if beacon is not supported by the client (which is infrequently. This can happen with MS-Ie, tor and old versions of others).
       console.log("Beacon NOT SUPPORTED");
       

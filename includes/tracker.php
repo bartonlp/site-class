@@ -62,14 +62,14 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "4.0.17tracker-pdo"); // BLP 2025-02-11 - moved CSSTEST out of the other GET logic. Improved error_log messages
+define("TRACKER_VERSION", "4.0.18tracker-pdo"); // BLP 2025-02-25 - added in_array() logic to GET for 'normal' and 'noscript'
 
 $DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
 //$DEBUG_TIMER1 = true; // Timer
 //$DEBUG_TIMEE2 = true;
 //$DEBUG_DAYCOUNT = true; // Timer real+1
-//$DEBUG_MSG = true; // AjaxMsg
+$DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
 //$DEBUG_ISABOT1 = true; // This is in the 'timer' logic
 //$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
@@ -193,11 +193,24 @@ if($type = $_GET['page']) {
   $mysitemap = $_GET['mysitemap'];
 
   // If we have $mysitemap get the mysitemap.json from the caller.
-  // This should happend for all types except CSSTEST
+  // This should happend for all types.
+  // Get $_site just incase we have an early error and goaway().
+  // This $_site will be overwritten by the values we get from the GET 'mysitemap' query parameter.
+
+  //require_once "/var/www/site-class/includes/autoload.php";
+  $_site = require_once getenv("SITELOADNAME");
+
+  // BLP 2025-02-25 - add in_array() logic
   
   if(!empty($mysitemap)) {
-    //require_once "/var/www/site-class/includes/autoload.php";
-    require_once getenv("SITELOADNAME");
+    $x = preg_replace("~^/var/www/(.*?)/.*$~", "$1", $mysitemap);
+    if(!in_array($x, ["bartonphillips.com", "bonnieburch.com", "bartonlp.com", "bartonphillipsnet", "bartonlp.org",
+                      "newbernzig.com", "jt-lawnservice.com", "tysonweb", "swam.us"])) {
+      error_log("tracker require is not from my domains ($x): type=$msg, mysitemap=$mysitemap, line=". __LINE__);
+      $S = new Database($_site); // This is for goaway which need $S
+      goaway("tracker $msg, require is not form my domains ($x)");
+      exit();
+    }
     
     ob_start();
     require $mysitemap;
@@ -206,8 +219,10 @@ if($type = $_GET['page']) {
 
     $_site = json_decode(stripComments($tmp));
   } else {
-    error_log("tracker NO_MYSITEMAP: id=$id, type=$msg, image=$image, line=". __LINE__);
-    exit("<h1>No mysitemap.json</h1>");
+    error_log("tracker NO_MYSITEMAP: id=$id, type=$type, image=$image, line=". __LINE__);
+    $S = new Database($_site); // This is for goaway which need $S
+    goaway("GET $msg no mysitemap.json");
+    exit();
   }
   
   $_site->noTrack = true; // BLP 2025-01-06 - 
@@ -470,7 +485,7 @@ if($_POST['page'] == 'ajaxmsg') {
   $site = $_POST['site'];
   $arg1 = $_POST['arg1'];
   $arg2 = $_POST['arg2'];
-
+  
   if($arg1) {
     $args = ", $arg1";
   }
@@ -490,12 +505,17 @@ if($_POST['page'] == 'start') {
   $id = $_POST['id'];
   $site = $_POST['site'];
   $ip = $_POST['ip']; // This is the real ip of the program. $S->ip will be the ip of ME.
+  $visits = $_POST['visits']; // Visits may be 1 or zero. tracker.js sets the mytime cookie.
   $thepage = $_POST['thepage'];
   $ref = $_POST['referer'];
 
   if(!$id) {
     error_log("tracker START1 NO ID: site=$site, page=$thepage, line=". __LINE__);
     exit();
+  }
+
+  if($S->isMyIp($ip)) {
+    $visits = 0;
   }
 
   // BLP 2024-12-04 - use hex value for $js, remove $java.
@@ -514,15 +534,11 @@ if($_POST['page'] == 'start') {
     error_log("tracker START3: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, referer=$ref, jsin=$java, jsout=$js2, line=". __LINE__);
   }
 
-  if($ref) {
-    $sql = "insert into $S->masterdb.tracker (id, botAs, site, page, ip, agent, referer, starttime, isJavaScript, lasttime) ".
-           "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', '$ref', now(), '$js', now()) ".
-           "on duplicate key update isJavaScript=$js, referer='$ref', lasttime=now()";
-  } else {
-    $sql = "insert into $S->masterdb.tracker (id, botAs, site, page, ip, agent, starttime, isJavaScript, lasttime) ".
-           "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', now(), '$js', now()) ".
-           "on duplicate key update isJavaScript=$js, lasttime=now()";
-  }
+  // BLP 2025-02-25 - remove if($ref) as if it is not there it will not be posted.
+  
+  $sql = "insert into $S->masterdb.tracker (id, botAs, site, page, ip, agent, referer, starttime, isJavaScript, lasttime) ".
+         "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', '$ref', now(), '$js', now()) ".
+         "on duplicate key update isJavaScript=$js, referer='$ref', lasttime=now()";
   
   $S->sql($sql);
 
@@ -603,7 +619,7 @@ if($_POST['page'] == 'onexit') {
       $onexit = BEACON_VISIBILITYCHANGE;
       break;
     default:
-      error_log("tracker ONEXIT SWITCH_ERROR_{$msg}: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs -- \$S->ip=$S->ip, \$S->agent=$S->agent, line=". __LINE__);
+      error_log("tracker ONEXIT SWITCH_ERROR_{$type}: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs -- \$S->ip=$S->ip, \$S->agent=$S->agent, line=". __LINE__);
       exit();
   }
 
@@ -625,6 +641,7 @@ if($_POST['page'] == 'timer') {
   $id = $_POST['id'];
   $site = $_POST['site'];
   $ip = $_POST['ip'];
+  $visits = $_POST['visits'];
   $thepage = $_POST['thepage'];
   $time = $_POST['difftime']; // number of seconds.
 
@@ -651,7 +668,7 @@ if($_POST['page'] == 'timer') {
   if(!empty($agent)) {
     if($S->isBot($agent)) {
       if($DEBUG_ISABOT)
-        error_log("tracker TIMER_ISABOT1: id=$id, ip=$ip, site=$site, page=$thepage, time=$time, difftime=$difftime, botAs=$botAs, jsin=$java, jsout=$js2, agent=$agent, line=".__LINE__);
+        error_log("tracker TIMER_ISABOT1: id=$id, ip=$ip, site=$site, page=$thepage, time=$time, difftime=$difftime, botAs=$botAs, visits=$visits, jsin=$java, jsout=$js2, agent=$agent, line=".__LINE__);
       
       echo "Timer1: agent empty, This is a BOT, $id, $ip, $site, $thepage";
       exit(); // If this is a bot don't bother
@@ -693,9 +710,9 @@ if($_POST['page'] == 'timer') {
           "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id");
 
   if(!$S->isMyIp($ip) && $DEBUG_TIMER2)
-    error_log("tracker TIMER2: id=$id, ip-$ip, site=$site, page=$thepage, botAs=$botAs, time=$time, difftime=$difftime, jsin=$java, jsout=$js2, agent=$agent, line=". __LINE__);
+    error_log("tracker TIMER2: id=$id, ip-$ip, site=$site, page=$thepage, botAs=$botAs, time=$time, difftime=$difftime, visits: $visits, jsin=$java, jsout=$js2, agent=$agent, line=". __LINE__);
 
-  echo "Timer OK, java=$js2, finger=$finger";
+  echo "Timer OK, visits: $visits, java=$js2, finger=$finger";
   exit();
 }
 // *********************************************
@@ -706,9 +723,19 @@ if($_POST['page'] == 'timer') {
 // GOAWAYNOW.
 
 function goaway($msg) {
-  // If $msg == "now" then skip the first part and do the GOAWAYNOE logic only.
+  global $S;
   
-  if(empty($msg)) { 
+  // If $msg == "now" then skip the first part and do the GOAWAYNOE logic only.
+
+  if(!empty($msg) && $msg != 'now') {
+    $errno = "-105";
+    $errmsg = $msg;
+    
+    $S->sql("insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
+            "values('$S->ip', 'NO_ID' ,'$S->siteName', '$S->self', 'GOAWAY', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
+            "on duplicate key update count=count+1, lasttime=now()");
+  
+  } elseif(!$msg == 'now') { 
     // Go Away logic
 
     $id = $_REQUEST['id'];
@@ -737,8 +764,6 @@ function goaway($msg) {
               "values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
               "on duplicate key update count=count+1, lasttime=now()");
     }
-
-    // otherwise just go away!
 
     if($id) {
       $S->sql("select finger from tracker where id=$id");
