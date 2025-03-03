@@ -5,7 +5,7 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.6trackerjs-pdo"; // BLP 2025-02-25 - removed 'capture: true' for life style events per AI. Add mysitemap to postAjaxMsg().
+const TRACKERJS_VERSION = "3.1.6trackerjs-pdo"; // BLP 2025-03-03 - let state = getState().
 
 // To use 'isMeFalse' you need code like this in your main program:
 // $S->b_inlineScript = "var isMeFalse = "$S->isMeFalse"; Before
@@ -155,14 +155,14 @@ jQuery(document).ready(function($) {
     return 'passive';
   };
 
-  let state;
+  let state = getState(); // get the first state.
   let prevState;
   
   // Accepts a next state and, if there has been a state change, logs the
   // change to the console. It also updates the 'state'
 
   const logStateChange = (nextState, type) => {
-    prevState = getState();
+    prevState = state;
     state = nextState;
     
     if(nextState !== prevState) {
@@ -176,7 +176,7 @@ jQuery(document).ready(function($) {
   // These lifecycle events can all use thier listener to observe state
   // changes (they call the 'getState()' function to determine the next state).
 
-  ['pageshow', 'focus', 'blur', /*'visibilitychange',*/ 'resume'].forEach(type => {
+  ['pageshow', 'focus', 'blur', 'visibilitychange', 'resume'].forEach(type => {
     window.addEventListener(type, () => logStateChange(getState(), type));
   });
 
