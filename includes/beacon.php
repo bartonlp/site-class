@@ -5,7 +5,7 @@
    -200: No type
 */
 
-define("BEACON_VERSION", "4.0.10beacon-pdo"); // BLP 2025-02-26 - error_log changes, add $beacon_exit
+define("BEACON_VERSION", "4.0.11beacon-pdo"); // BLP 2025-03-02 - error_log changes, add $beacon_exit. Remove divide by 1000 because difftime is already seconds.
 
 // BLP 2023-01-30 - If you want the version defined ONLY and no other information.
 // If we have a valid $_site or the $__VERSION_ONLY, then just return the version info.
@@ -73,7 +73,7 @@ if(!is_numeric($id)) {
 
 if($S->sql("select botAs, isJavaScript, difftime, finger, agent, error from $S->masterdb.tracker where id=$id")) {
   [$botAs, $js, $difftime, $finger, $agent, $beacon_exit] = $S->fetchrow('num'); // BLP 2025-02-28 - $beacon_exit has the value from 'error'.
-  $difftime /= 1000; // seconds
+  $difftime; // seconds
 } else {
   error_log("beacon: NO record for $id, line=" . __LINE__);
 }
