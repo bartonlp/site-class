@@ -62,7 +62,7 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "4.0.18tracker-pdo"); // BLP 2025-02-25 - added in_array() logic to GET for 'normal' and 'noscript'
+define("TRACKER_VERSION", "4.0.19tracker-pdo"); // BLP 2025-03-03 - fix timer $botAs logic.
 
 $DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -679,32 +679,24 @@ if($_POST['page'] == 'timer') {
     exit();
   }
 
+  // BLP 2025-03-03 - 
   // $botAs could have any or all of these: BOTAS_COUNTED,  BOTAS_MATCH, BOTAS_ROBOT, BOTAS_SITEMAP
   // or BOTAS_ZBOT.
-  // Check if $botAs has BOTAS_COUNTED. Then if it does not have BOTAS_COUNTED check to see if any
-  // of the other indicators of a robot are pressent. If they are exit with message.
-  // If the other indicator are not there then $botAs is empty so add BOTAS_COUNTED.
 
-  if(preg_match("~^".BOTAS_COUNTED."(.*)$~", $botAs, $m) === 0) { // BLP 2025-01-07 - if zero then no match
-    if(empty($botAs)) { // BLP 2025-01-07 - check if $botAs is empty. It could have other indicators.
-      $botAs = BOTAS_COUNTED; // BLP 2025-01-07 - Yes it is empty so just add BOTAS_COUNTED.
-    } else {
-      $botAs = BOTAS_COUNTED . ",$botAs"; // BLP 2025-01-07 - There are other indicators like BOTAS_ROBOT etc. So make BOTAS_COUNTED first and add the others.
-    }
-  } elseif($m[1] && !$difftime) { // BLP 2025-01-07 - We found $m[1] and $difftime is null. $m[0] has the whole string that has BOTAS_COUNTED.
-    // If $m[1] is true then this must have BOTAS_COUNTED and some other BOT indicators
-    // like BOTAS_ROBOT etc.
+  if(str_contains($botAs, BOTAS_COUNTED) === false) { // $botAs is the haystack and BOTAS_COUNTED is the needel.
+    // $botAs does not have 'counted', but does it have any other indicators, like from robots.php or
+    // sitemap.php?
     
-    error_log("tracker TIMER_BOT_EXIT: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, time=$time, difftime=$difftime, agent=$agent, m={$m[1]}, line=". __LINE__);
-    echo "This is a BOT, botAs=$botAs";
-    exit();
-  } else { 
-    if(!$S->isMyIp($ip) && $DEBUG_TIMER1) error_log("tracker TIMER_PREG_MATCH_ZERO: id=$id, ip=$ip, botAs=$botAs, time=$time, difftime=$difftime, agent=$agent, line=". __LINE__);
-    echo "tracker timer $botAs";
-    exit();
+    if($botAs) {
+      // $botAs is not empty so add 'counted' at the start.
+      $botAs = BOTAS_COUNTED . ",$botAs";
+    } else {
+      // $botAs is really empty and has no other indicators
+      $botAs = BOTAS_COUNTED;
+    }
   }
   
-  // BLP 2025-01-07 - The only way I can get here is with an updated $botAs.
+  // If we get here either $botAs did contain 'counted' or we fixed it up above.
 
   $S->sql("update $S->masterdb.tracker set botAs='$botAs', isJavaScript=$js, endtime=now(), ".
           "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id");
