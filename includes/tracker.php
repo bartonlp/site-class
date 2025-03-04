@@ -12,13 +12,16 @@
 // first $_site->dbinfo and replace the value form the file_get_contents().
 
 /*
+Modified tracker to make id a bigint.
+
 CREATE TABLE `tracker` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `botAs` varchar(30) DEFAULT NULL,
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `botAs` varchar(100) DEFAULT NULL,
   `site` varchar(25) DEFAULT NULL,
   `page` varchar(255) NOT NULL DEFAULT '',
   `finger` varchar(50) DEFAULT NULL,
   `nogeo` tinyint(1) DEFAULT NULL,
+  `browser` varchar(50) DEFAULT NULL,
   `ip` varchar(40) DEFAULT NULL,
   `agent` text,
   `referer` varchar(255) DEFAULT '',
@@ -33,7 +36,7 @@ CREATE TABLE `tracker` (
   KEY `ip` (`ip`),
   KEY `lasttime` (`lasttime`),
   KEY `starttime` (`starttime`)
-) ENGINE=MyISAM AUTO_INCREMENT=6523425 DEFAULT CHARSET=utf8mb3;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 
 CREATE TABLE `badplayer` (
   `ip` varchar(20) NOT NULL,

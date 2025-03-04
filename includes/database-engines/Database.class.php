@@ -3,7 +3,7 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.0.12database-pdo"); // BLP 2025-02-15 - Add new logic to isBot() and comments to tracker()
+define("DATABASE_CLASS_VERSION", "1.0.12database-pdo"); // BLP 2025-03-03 - if(($x = preg_match("~\+?https?://~", $agent)) === 1) replace \+* with \*?
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 define("DEBUG_TRACKER_BOTINFO", false); // Change this to false if you don't want the error
@@ -202,7 +202,7 @@ class Database extends dbPdo {
         throw new PdoException(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", -300);
       }
 
-      if(($x = preg_match("~\+*https?://~", $agent)) === 1) {
+      if(($x = preg_match("~\+?https?://~", $agent)) === 1) {
         $this->isBot = true;
         $this->foundBotAs = (empty($this->foundBotAs)) ? BOTAS_GOODBOT : ("$this->foundBotAs," . BOTAS_GOODBOT);
       } elseif($x === false) {
