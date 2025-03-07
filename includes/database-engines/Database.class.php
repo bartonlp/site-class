@@ -3,8 +3,9 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.0.12database-pdo"); // BLP 2025-03-03 - if(($x = preg_match("~\+?https?://~", $agent)) === 1) replace \+* with \*?
-require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
+define("DATABASE_CLASS_VERSION", "1.0.13database-pdo"); // BLP 2025-03-07 - move require defines to dbPdo.
+                                                        // Moved isMe(), isMyIp() and isBot() to
+                                                        // dbPdo.
 
 define("DEBUG_TRACKER_BOTINFO", false); // Change this to false if you don't want the error
 
@@ -128,26 +129,6 @@ class Database extends dbPdo {
     return true;
   }
 
-  /**
-   * isMyIp($ip):bool
-   * Given an IP address check if this is me.
-   */
-
-  public function isMyIp(string $ip):bool {
-    if($this->isMeFalse === true) return false;
-    return (in_array($ip, $this->myIp));
-  }
-  
-  /**
-   * isMe()
-   * Check if this access is from ME
-   * @return true if $this->ip == $this->myIp else false!
-   */
-
-  public function isMe():bool {
-    return $this->isMyIp($this->ip);
-  }
-
   public function getClassName() {
     return __CLASS__;
   }
@@ -171,113 +152,6 @@ class Database extends dbPdo {
 
   public function getIp():string {
     return $this->ip;
-  }
-
-  /*
-   * isBot(string $agent):bool
-   * Determines if an agent is a bot or not.
-   * @return bool
-   * Side effects:
-   *  it sets $this->isBot
-   *  it sets $this->foundBotAs
-   * These side effects are used by checkIfBot():void see below.
-   */
-  
-  public function isBot(?string $agent):bool {
-    $this->isBot = false;
-    $this->foundBotAs = ''; // These two will be set in isBot().
-
-    // BLP 2025-01-12 - Make sure it is not ME!
-
-    if($this->isMe()) return false;
-    
-    if(!empty($agent)) {
-      if(($x = preg_match("~@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
-                          "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
-                          "http client|PECL::HTTP|Go-~i", $agent)) === 1) { // 1 means a match
-        $this->isBot = true;
-        $this->foundBotAs = BOTAS_MATCH;
-      } elseif($x === false) { // false is error
-        // This is an unexplained ERROR
-        throw new PdoException(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", -300);
-      }
-
-      if(($x = preg_match("~\+?https?://~", $agent)) === 1) {
-        $this->isBot = true;
-        $this->foundBotAs = (empty($this->foundBotAs)) ? BOTAS_GOODBOT : ("$this->foundBotAs," . BOTAS_GOODBOT);
-      } elseif($x === false) {
-        throw new PdoException(__CLASS__ . " " . __LINE__ . ": preg_match() for +https? false", -301);
-      }
-    } else {
-      $this->foundBotAs = BOTAS_NOAGENT;
-      $this->isBot = true;
-    }
-
-    // BLP 2025-02-15 - New logic. Look at the bots table for this ip address.
-
-    $type = null;
-
-    if($this->sql("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Found some.
-      switch($this->fetchrow('num')[0]) {
-        case BOTS_ROBOTS:
-          $type |= TRACKER_ROBOTS;
-        case BOTS_SITEMAP:
-          $type |= TRACKER_SITEMAP;
-        case BOTS_SITECLASS:
-          $type |= TRACKER_BOT;
-      }
-
-      // BLP 2025-01-09 - create new public.
-
-      $this->trackerBotInfo = $type; // used in tracker().
-    }
-
-    // At this point isBot may have true and either 'match' or 'no-agent'.
-    // Get info from the bots table for this ip.
-    
-    if($this->sql("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Is it in the bots table?
-      // Yes it is in the bots table.
-
-      $tmp = '';
-
-      // Look at each posible entry in bots. The entries may be for different sites and have
-      // different values for $robots. The BOTAS_... are a string while BOTS_... are integers.
-      
-      while([$robots] = $this->fetchrow('num')) {
-        if($robots & BOTS_ROBOTS) {
-          $tmp .= "," . BOTAS_ROBOT;
-        }
-        if($robots & BOTS_SITEMAP) {
-          $tmp .= "," . BOTAS_SITEMAP;
-        }
-        if($robots & BOTS_CRON_ZERO) {
-          $tmp .= "," . BOTAS_ZBOT; // BLP 2023-11-04 - found 0x100 in bots so this is a zero (0x100) from bots ttable: 'zbot'
-        }
-        if($tmp != '') break;
-      }
-      
-      if($tmp != '') {
-        if(empty($this->foundBotAs)) {
-          $tmp = ltrim($tmp, ','); // remove the leading comma
-          $this->foundBotAs = $tmp; // foundBotAs has never been set!
-        } else {
-          $this->foundBotAs .= $tmp; // foundBotAs could be BOTAS_MATCH or BOTAS_NOAGENT so add $tmp.
-        }
-        $this->isBot = true; 
-      } 
-    }
-
-    // isBot may be true because 1) BOTAS_MATCH, 2) BOTAS_NOAGENT or 3) found in bots
-    // table. If the preg_match() found the agent, then BOTAS_MATCH. If there was 'no agent', isBot is set
-    // and BOTAS_NOAGENT is set.
-    
-    if(!$this->isBot) {
-      // The agent was not found by preg_match() and the ip was NOT in the bots table either.
-
-      $this->foundBotAs = BOTAS_NOT; // not a bot (null)
-    }
-
-    return $this->isBot;
   }
 
   // ********************************************************************************

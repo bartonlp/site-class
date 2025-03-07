@@ -207,9 +207,10 @@ if($type = $_GET['page']) {
   
   if(!empty($mysitemap)) {
     $x = preg_replace("~^/var/www/(.*?)/.*$~", "$1", $mysitemap);
+
     if(!in_array($x, ["bartonphillips.com", "bonnieburch.com", "bartonlp.com", "bartonphillipsnet", "bartonlp.org",
                       "newbernzig.com", "jt-lawnservice.com", "tysonweb", "swam.us"])) {
-      error_log("tracker require is not from my domains ($x): type=$msg, mysitemap=$mysitemap, line=". __LINE__);
+      error_log("tracker require is not from my domains ($x): id=$id, type=$msg, mysitemap=$mysitemap, line=". __LINE__);
       $S = new Database($_site); // This is for goaway which need $S
       goaway("tracker $msg, require is not form my domains ($x)");
       exit();
@@ -222,7 +223,7 @@ if($type = $_GET['page']) {
 
     $_site = json_decode(stripComments($tmp));
   } else {
-    error_log("tracker NO_MYSITEMAP: id=$id, type=$type, image=$image, line=". __LINE__);
+    error_log("tracker NO_MYSITEMAP: id=$id, type=$msg, image=$image, line=". __LINE__);
     $S = new Database($_site); // This is for goaway which need $S
     goaway("GET $msg no mysitemap.json");
     exit();
@@ -243,7 +244,7 @@ if($type = $_GET['page']) {
            "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
            "on duplicate key update count=count+1, lasttime=now()";
 
-    error_log("tracker GET: ID_IS_NOT_NUMERIC, site=$S->siteName, ip=$S->ip, id(value)=$id, errno=$errno, errmsg=$errmsg, agent=$S->agent");
+    error_log("tracker GET ID_IS_NOT_NUMERIC: id=$id, ip=$S->ip, site=$S->siteName, errno=$errno, errmsg=$errmsg, agent=$S->agent");
 
     $S->sql($sql);
     goaway('now');
