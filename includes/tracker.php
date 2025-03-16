@@ -38,6 +38,29 @@ CREATE TABLE `tracker` (
   KEY `starttime` (`starttime`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 
+CREATE TABLE `bots` (
+  `ip` varchar(40) NOT NULL DEFAULT '',
+  `agent` text NOT NULL,
+  `count` int DEFAULT NULL,
+  `robots` int DEFAULT '0',
+  `site` varchar(255) DEFAULT NULL,
+  `creation_time` datetime DEFAULT NULL,
+  `lasttime` datetime DEFAULT NULL,
+  PRIMARY KEY (`ip`,`agent`(254))
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+CREATE TABLE `bots2` (
+  `ip` varchar(40) NOT NULL DEFAULT '',
+  `agent` text NOT NULL,
+  `page` text,
+  `date` date NOT NULL,
+  `site` varchar(50) NOT NULL DEFAULT '',
+  `which` int NOT NULL DEFAULT '0',
+  `count` int DEFAULT NULL,
+  `lasttime` datetime DEFAULT NULL,
+  PRIMARY KEY (`ip`,`agent`(254),`date`,`site`,`which`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE `badplayer` (
   `primeid` int NOT NULL AUTO_INCREMENT,
   `id` int DEFAULT NULL,
@@ -65,7 +88,7 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "4.1.0tracker-pdo"); // BLP 2025-03-15 - Change name from bartonphillipsnet to bartonphillips.net
+define("TRACKER_VERSION", "4.1.0tracker-pdo"); // BLP 2025-03-16 - Add new logic to update bots and bots2 in GET.
 
 $DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -331,11 +354,13 @@ if($type = $_GET['page']) {
     if(empty($site)) $site = "NO_SITE";
     if(empty($thepage)) $thepage = "NO_PAGE";
     if(empty($agent)) $agent = "NO_AGENT";
-                                   
+
+    // At this point we know that either $agent was empty of isBot() is true.
+    
     if($DEBUG_ISABOT1 && ($js & (TRACKER_NORMAL | TRACKER_NOSCRIPT | TRACKER_CSS) === 0))
       error_log("tracker GET ISABOT1_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, isBot=$isBot, java=$java, image=$image, agent=$agent");
 
-    $js |= $or; 
+    $js |= $or | TRACKER_BOT; // BLP 2025-03-16 -  
     $java = dechex($js);
 
     if($DEBUG_ISABOT2) {
@@ -347,8 +372,18 @@ if($type = $_GET['page']) {
     }
     
     $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
-                "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT type=$msg', now(), now()) ".
-                "on duplicate key update error='ISABOT_UPDATE type=$msg', botAs='$botAs', lasttime=now()");
+            "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT type=$msg', now(), now()) ".
+            "on duplicate key update error='ISABOT_UPDATE type=$msg', botAs='$botAs', lasttime=now()");
+
+    // BLP 2025-03-16 - New logic to update the bots and bots2 tables.
+    
+    $S->sql("insert into $S->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
+            "values('$ip', '$agent', 1, " . BOTS_SITECLASS . ", '$site', now(), now()) ".
+            "on duplicate key update robots = robots | " . BOTS_SITECLASS . ", lasttime=now()");
+
+    $S->sql("insert into $S->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
+            "values('$ip', '$agent', '$thepage', date(now()), '$site', " . BOTS_SITECLASS . ", 1, now()) ".
+            "on duplicate key update count=count+1, lasttime=now()");
   } else {
     // BLP 2025-01-05 - if not a bot or in the values.
     
