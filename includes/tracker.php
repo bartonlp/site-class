@@ -39,20 +39,20 @@ CREATE TABLE `tracker` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3;
 
 CREATE TABLE `badplayer` (
+  `primeid` int NOT NULL AUTO_INCREMENT,
+  `id` int DEFAULT NULL,
   `ip` varchar(20) NOT NULL,
-  `id` varchar(30) DEFAULT NULL,
   `site` varchar(50) DEFAULT NULL,
   `page` varchar(255) DEFAULT NULL,
   `botAs` varchar(50) DEFAULT NULL,
   `type` varchar(50) NOT NULL,
-  `count` int DEFAULT NULL,
   `errno` varchar(100) DEFAULT NULL,
-  `errmsg` varchar(255) DEFAULT NULL,
+  `errmsg` varchar(255) NOT NULL,
   `agent` varchar(255) DEFAULT NULL,
   `created` datetime DEFAULT NULL,
   `lasttime` datetime DEFAULT NULL,
-  PRIMARY KEY (`ip`,`type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  PRIMARY KEY (`primeid`)
+) ENGINE=InnoDB AUTO_INCREMENT=279 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
 /* BLP 2024-12-31 - New errno values:
@@ -65,7 +65,7 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "4.0.19tracker-pdo"); // BLP 2025-03-03 - fix timer $botAs logic.
+define("TRACKER_VERSION", "4.1.0tracker-pdo"); // BLP 2025-03-15 - Change name from bartonphillipsnet to bartonphillips.net
 
 $DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -208,8 +208,8 @@ if($type = $_GET['page']) {
   if(!empty($mysitemap)) {
     $x = preg_replace("~^/var/www/(.*?)/.*$~", "$1", $mysitemap);
 
-    if(!in_array($x, ["bartonphillips.com", "bonnieburch.com", "bartonlp.com", "bartonphillipsnet", "bartonlp.org",
-                      "newbernzig.com", "jt-lawnservice.com", "tysonweb", "swam.us"])) {
+    if(!in_array($x, ["bartonphillips.com", "bonnieburch.com", "bartonlp.com", "bartonphillips.net", "bartonlp.org",
+                      "newbernzig.com", "jt-lawnservice.com", "newbern-nc.info", "swam.us"])) {
       error_log("tracker require is not from my domains ($x): id=$id, type=$msg, mysitemap=$mysitemap, line=". __LINE__);
       $S = new Database($_site); // This is for goaway which need $S
       goaway("tracker $msg, require is not form my domains ($x)");
@@ -240,9 +240,8 @@ if($type = $_GET['page']) {
 
     // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
 
-    $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) ".
-           "values('$S->ip', '$S->siteName', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-           "on duplicate key update count=count+1, lasttime=now()";
+    $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime) ".
+           "values('$S->ip', '$S->siteName', '$S->self', '$msg', '$errno', '$errmsg', '$S->agent', now(), now())";
 
     error_log("tracker GET ID_IS_NOT_NUMERIC: id=$id, ip=$S->ip, site=$S->siteName, errno=$errno, errmsg=$errmsg, agent=$S->agent");
 
@@ -303,9 +302,8 @@ if($type = $_GET['page']) {
       $errno = "-102: " . $e->getCode();
       $errmsg = "Insert to tracker failed"; // BLP 2024-12-31 - 
 
-      $sql = "insert into $S->masterdb.badplayer (ip, page, type, count, errno, errmsg, agent, created, lasttime) ".
-             "values('$S->ip', '$S->self', '$msg', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-             "on duplicate key update count=count+1, lasttime=now()";
+      $sql = "insert into $S->masterdb.badplayer (ip, page, type, errno, errmsg, agent, created, lasttime) ".
+             "values('$S->ip', '$S->self', '$msg', '$errno', '$errmsg', '$S->agent', now(), now())";
 
       if(!$S->sql($sql)) {
         error_log("tracker GET: \$S->ip=$S->ip, \$S->siteName=$S->siteName, \$ip=$ip, errno=$errno, errmsg=$errmsg, badplayer - could not do insert/update");
@@ -349,8 +347,8 @@ if($type = $_GET['page']) {
     }
     
     $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
-                "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT_$msg', now(), now()) ".
-                "on duplicate key update error='ISABOT_UPDATE_$msg', botAs='$botAs', lasttime=now()");
+                "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT type=$msg', now(), now()) ".
+                "on duplicate key update error='ISABOT_UPDATE type=$msg', botAs='$botAs', lasttime=now()");
   } else {
     // BLP 2025-01-05 - if not a bot or in the values.
     
@@ -380,7 +378,7 @@ if($type = $_GET['page']) {
   // page has done things to $_site. So NOTHING you do in the original page will affect these $S
   // values!!!
   
-  $img = $S->defaultImage ?? "https://bartonphillips.net/images/blank.png";
+  $img = $S->defaultImage ?? "/var/www/bartonphillips.net/images/blank.png";
 
   // script and normal may have an image but
   // noscript has NO IMAGE
@@ -390,7 +388,7 @@ if($type = $_GET['page']) {
     if($pos !== false && $pos == 0) { 
       $img = $image; // $image has the full url starting with http (could be https)
     } else {
-      $trackerLocation = $S->trackerLocation ?? "https://bartonphillips.net/";
+      $trackerLocation = $S->trackerLocation ?? "/var/www/bartonphillips.net/";
       $img = "$trackerLocation/$image";
     }
   }
@@ -445,7 +443,7 @@ if($_POST) {
 
   unset($_site);
 
-  // BLP 2024-07-29 - extend logic for my Acer Spine.
+  // BLP 2024-07-29 - extend logic for my Acer Spin3 and my RPI.
   
   if(str_contains($mysite, "bartonphillips.org")) {
     $port = null;
@@ -727,9 +725,8 @@ function goaway($msg) {
     $errno = "-105";
     $errmsg = $msg;
     
-    $S->sql("insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', 'NO_ID' ,'$S->siteName', '$S->self', 'GOAWAY', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-            "on duplicate key update count=count+1, lasttime=now()");
+    $S->sql("insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime) " .
+            "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg', '$S->agent', now(), now())");
   
   } elseif(!$msg == 'now') { 
     // Go Away logic
@@ -742,9 +739,8 @@ function goaway($msg) {
 
       // No id
 
-      $S->sql("insert into $S->masterdb.badplayer (ip, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
-              "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAY NO ID', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-              "on duplicate key update count=count+1, lasttime=now()");
+      $S->sql("insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime) " .
+              "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAY NO ID', '$errno', '$errmsg', '$S->agent', now(), now())");
     } else {
       // If this ID is not in the tracker table, add it with TRACKER_GOAWAY.
 
@@ -756,9 +752,8 @@ function goaway($msg) {
       $errmsg = "$id, No tracker logic triggered";
       $botAs = BOTAS_COUNTED;
 
-      $S->sql("insert into $S->masterdb.badplayer (ip, id, site, page, type, count, errno, errmsg, agent, created, lasttime) " .
-              "values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', 1, '$errno', '$errmsg', '$S->agent', now(), now()) ".
-              "on duplicate key update count=count+1, lasttime=now()");
+      $S->sql("insert into $S->masterdb.badplayer (ip, id, site, page, type, errno, errmsg, agent, created, lasttime) " .
+              "values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg', '$S->agent', now(), now())");
     }
 
     if($id) {

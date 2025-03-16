@@ -5,12 +5,7 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.0.11pdo"); // BLP 2025-02-21 -  Add nonce for programs that use CSP.
-                                           // Currently only bartonphillips.com/index.php and
-                                           // example.js/csp-test2.php.
-                                           // Removed isMeFalse, visits and doState from the
-                                           // default JavaScript used if noTrack or nodb are true.
-                                           // Use $h and $b for getPageHead() and getPageFooter().
+define("SITE_CLASS_VERSION", "5.1.0pdo"); // BLP 2025-03-15 - change bartonphillipsnet to bartonphillips.net
 // One class for all my sites
 /**
  * SiteClass
@@ -210,7 +205,7 @@ EOF;
       $beaconLocation = $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php"; // BLP 2023-08-09 - a symlink
 
       $logoImgLocation = $this->logoImgLocation ?? "https://bartonphillips.net";
-      $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation ?? "https://bartonphillips.net";
+      $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation ?? "/var/www/bartonphillips.net";
 
       // The trackerImg... can start with http or https. If so use the full url.
 
@@ -559,10 +554,10 @@ EOF;
     $hits = number_format($this->hitCount);
 
     // Let the appearance be up to the pages css!
-    // However, the defaultCss is bartonphillipsnet/css/blp.css it includes hitcounter.css which
+    // However, the defaultCss is bartonphillips.net/css/blp.css it includes hitcounter.css which
     // sets the following values.
     // #hitCounter, #hitCountertbl, #hitCountertr and #hitCounterth.
-    // See bartonphillipsnet/css/hitcounter.css for all the info.
+    // See bartonphillips.net/css/hitcounter.css for all the info.
     // So to override the values enter the css AFTER the defaultCss and change the values of the ids.
     
     return <<<EOF

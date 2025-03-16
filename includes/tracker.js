@@ -5,7 +5,7 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.6trackerjs-pdo"; // BLP 2025-03-03 - let state = getState().
+const TRACKERJS_VERSION = "3.1.7trackerjs-pdo"; // BLP 2025-03-12 - moved runtimer() to top of ready.
 
 // To use 'isMeFalse' you need code like this in your main program:
 // $S->b_inlineScript = "var isMeFalse = "$S->isMeFalse"; Before
@@ -55,6 +55,16 @@ const lastId = $("script[data-lastid]").attr("data-lastid");
 
 
 jQuery(document).ready(function($) {
+  // Now lets do timer to update the endtime
+  // This triggers tracker.php 'timer'.
+
+  let cnt = 0;
+  let time = 0;
+  let difftime = 10000; // We miss the first ajax so the next time will be 10sec + 10sec.
+  let tflag = true;
+
+  runtimer(); // First thing, start the timer.
+
   if(noCssLastId !== '1') {
     $("script[data-lastid]").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
   }
@@ -247,14 +257,6 @@ jQuery(document).ready(function($) {
     }
   });
 
-  // Now lets do timer to update the endtime
-  // This triggers tracker.php 'timer'.
-  
-  let cnt = 0;
-  let time = 0;
-  let difftime = 10000; // We miss the first ajax so the next time will be 10sec + 10sec.
-  let tflag = true;
-  
   function runtimer() {
     if(cnt++ < 50) {
       // Time should increase to about 8 plus minutes
@@ -292,6 +294,4 @@ jQuery(document).ready(function($) {
       }
     });
   }
-
-  runtimer();
 });

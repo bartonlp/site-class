@@ -237,7 +237,7 @@ class Database extends dbPdo {
    * tracker()
    * track if java script or not.
    * CREATE TABLE `tracker` (
-   *  `id` int NOT NULL AUTO_INCREMENT,
+   *  `id` bigint NOT NULL AUTO_INCREMENT,
    *  `botAs` varchar(30) DEFAULT NULL,
    *  `site` varchar(25) DEFAULT NULL,
    *  `page` varchar(255) NOT NULL DEFAULT '',
@@ -325,7 +325,7 @@ class Database extends dbPdo {
     $java |= $this->trackerBotInfo; // BLP 2025-01-12 - or in trackerBotInfo from isBot().
                                     // These are the TRACKER_ROBOT or TRACKER_SITEMAP or
                                     // TRACKER_BOT. 
-                                    // The values from the bots3 table for this ip. The first two are
+                                    // The values from the bots table for this ip. The first two are
                                     // high order bits and TRACKER_BOT is 0x200.
     
     // The primary key is id which is auto incrementing so every time we come here we create a

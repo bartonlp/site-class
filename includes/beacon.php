@@ -57,9 +57,8 @@ if(!is_numeric($id)) {
 
   error_log("beacon: NO ID, $ip, $site, $msg -- \$S->ip=$S->ip, \$S->self=$S->self, \$S->agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
   
-  $S->sql("insert into $S->masterdb.badplayer (ip, site, page, botAs, type, count, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', '$site', '$S->self', 'counted', '{$msg}_BEACON_GOAWAY', 1, '$errno', 'NO ID Go away', '$S->agent', now(), now()) ".
-            "on duplicate key update count=count+1, lasttime=now()");
+  $S->sql("insert into $S->masterdb.badplayer (ip, site, page, botAs, type, errno, errmsg, agent, created, lasttime) " .
+            "values('$S->ip', '$site', '$S->self', 'counted', '{$msg}_BEACON_GOAWAY', '$errno', 'NO ID Go away', '$S->agent', now(), now())");
 
   error_log("beacon GO_AWAY: id=NO_ID, ip=$ip, site=$site, page=$thepage, type=$type, state=$state, line=" . __LINE__);
   
@@ -140,12 +139,12 @@ $masked = dechex($js & (BEACON_PAGEHIDE | BEACON_UNLOAD | BEACON_BEFOREUNLOAD | 
 $bExit = str_contains($beacon_exit, "beacon_exit");
 
 if(!$S->isMyIp($ip) && $DEBUG2 && $type == 'visibilitychange' && !$bExit) {
-  error_log("beacon {$msg}2: id=$id, ip=$ip, site=$site, page=$thepage, masked=$masked, state=$state, prevState=$prevState, botAs=$botAs, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
+  error_log("beacon {$msg}2: id=$id, ip=$ip, site=$site, page=$thepage, state=$state, prevState=$prevState, botAs=$botAs, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
 }
 
 if(!$S->isMyIp($ip) && $DEBUG3 && $type != 'visibilitychange') {
   if(($js & (BEACON_PAGEHIDE | BEACON_UNLOAD | BEACON_BEFOREUNLOAD)) !== 0 && !$bExit) {
-    error_log("beacon {$msg}3: id=$id, ip=$ip, site=$site, page=$thepage, masked=$masked, state=$state, prevState=$prevState, botAs=$botAs, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
+    error_log("beacon {$msg}3: id=$id, ip=$ip, site=$site, page=$thepage, state=$state, prevState=$prevState, botAs=$botAs, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
 
     if(!$beacon_exit) {
       $beacon_exit = "beacon_exit";

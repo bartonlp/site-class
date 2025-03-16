@@ -14,9 +14,7 @@
 
 use SendGrid\Mail\Mail; // Use SendGrid for email
 
-define("PDO_CLASS_VERSION", "1.0.13pdo"); // BLP 2025-03-07 - moved require defines.php from Database to here.
-                                          // Move isBot(), isMe() and isMyIp() from Database to
-                                          // here.
+define("PDO_CLASS_VERSION", "1.0.15pdo"); // BLP 2025-03-12 - add python to match locig in isBot().
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -134,7 +132,8 @@ class dbPdo extends PDO {
    * isBot(string $agent):bool
    * Determines if an agent is a bot or not.
    * @return bool
-   * Side effects:
+   * Side effects: (for tracker() in Database)
+   *  it sets $this->trackerBotInfo
    *  it sets $this->isBot
    *  it sets $this->foundBotAs
    * These side effects are used by checkIfBot():void see below.
@@ -142,8 +141,9 @@ class dbPdo extends PDO {
   
   public function isBot(?string $agent):bool {
     $this->isBot = false;
-    $this->foundBotAs = ''; // These two will be set in isBot().
-
+    $this->foundBotAs = BOTAS_ZERO; // BOTAS_ZERO is null. This will be the return if nothing was found.
+    $this->trackerBotInfo = null; // Set to null at start.
+    
     // BLP 2025-01-12 - Make sure it is not ME!
 
     if($this->isMe()) return false;
@@ -151,7 +151,7 @@ class dbPdo extends PDO {
     if(!empty($agent)) {
       if(($x = preg_match("~@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
                           "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
-                          "http client|PECL::HTTP|Go-~i", $agent)) === 1) { // 1 means a match
+                          "http client|PECL::HTTP|Go-|python~i", $agent)) === 1) { // 1 means a match
         $this->isBot = true;
         $this->foundBotAs = BOTAS_MATCH;
       } elseif($x === false) { // false is error
@@ -170,69 +170,56 @@ class dbPdo extends PDO {
       $this->isBot = true;
     }
 
-    // BLP 2025-02-15 - New logic. Look at the bots table for this ip address.
+    // BLP 2025-03-08 - reworked. Use bots not bots2. Combine the bots2 and bots logic. Remove
+    // switch() and use if($robots & ...).
 
-    $type = null;
-
-    if($this->sql("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Found some.
-      switch($this->fetchrow('num')[0]) {
-        case BOTS_ROBOTS:
-          $type |= TRACKER_ROBOTS;
-        case BOTS_SITEMAP:
-          $type |= TRACKER_SITEMAP;
-        case BOTS_SITECLASS:
-          $type |= TRACKER_BOT;
-      }
-
-      // BLP 2025-01-09 - create new public.
-
-      $this->trackerBotInfo = $type; // used in tracker().
-    }
-
-    // At this point isBot may have true and either 'match' or 'no-agent'.
-    // Get info from the bots table for this ip.
+    // Look at all of the bots records for this ip.
     
-    if($this->sql("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Is it in the bots table?
-      // Yes it is in the bots table.
+    if($this->sql("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Found some.
+      // Get each record
 
-      $tmp = '';
-
-      // Look at each posible entry in bots. The entries may be for different sites and have
-      // different values for $robots. The BOTAS_... are a string while BOTS_... are integers.
-      
       while([$robots] = $this->fetchrow('num')) {
+        $type = null;
+
+        // $robots is an int with the BOTS_... ored in. It must be taken apart with 'ands'.
+
         if($robots & BOTS_ROBOTS) {
-          $tmp .= "," . BOTAS_ROBOT;
+          $type |= TRACKER_ROBOTS;
+
+          // Check it the $tmp string already contains BOTS_ROBOTS if so add nothing. Else add
+          // BOTAS_ROBOT and a trailing comma.
+          
+          $this->foundBotAs .= str_contains($this->foundBotAs, BOTAS_ROBOT) ? null : "," . BOTAS_ROBOT;
         }
         if($robots & BOTS_SITEMAP) {
-          $tmp .= "," . BOTAS_SITEMAP;
+          $type |= TRACKER_SITEMAP;
+          $this->foundBotAs .= str_contains($this->foundBotAs, BOTAS_SITEMAP) ? null : "," . BOTAS_SITEMAP;
+        }
+        if($robots & BOTS_SITECLASS) {
+          $type |= TRACKER_BOT;
+          $this->foundBotAs .= str_contains($this->foundBotAs, BOTAS_SITECLASS) ? null : "," . BOTAS_SITECLASS;
         }
         if($robots & BOTS_CRON_ZERO) {
-          $tmp .= "," . BOTAS_ZBOT; // BLP 2023-11-04 - found 0x100 in bots so this is a zero (0x100) from bots ttable: 'zbot'
+          $this->foundBotAs .= str_contains($this->foundBotAs, BOTAS_ZBOT) ? null : "," . BOTAS_ZBOT; // BLP 2023-11-04 - found 0x100 in bots so this is a zero (0x100) from bots ttable: 'zbot'
         }
-        if($tmp != '') break;
+
+        $this->trackerBotInfo |= $type; // used in tracker() in Database.
+
+        // BLP 2025-03-09 - foundBotAs also used in tracker in Database.
+        
+        $this->isBot = true;
+        
+        // Now $this->trackerBotInfo and $this->foundBotAs are set.
       }
-      
-      if($tmp != '') {
-        if(empty($this->foundBotAs)) {
-          $tmp = ltrim($tmp, ','); // remove the leading comma
-          $this->foundBotAs = $tmp; // foundBotAs has never been set!
-        } else {
-          $this->foundBotAs .= $tmp; // foundBotAs could be BOTAS_MATCH or BOTAS_NOAGENT so add $tmp.
-        }
-        $this->isBot = true; 
-      } 
     }
 
-    // isBot may be true because 1) BOTAS_MATCH, 2) BOTAS_NOAGENT or 3) found in bots
-    // table. If the preg_match() found the agent, then BOTAS_MATCH. If there was 'no agent', isBot is set
-    // and BOTAS_NOAGENT is set.
-    
-    if(!$this->isBot) {
-      // The agent was not found by preg_match() and the ip was NOT in the bots table either.
-
-      $this->foundBotAs = BOTAS_NOT; // not a bot (null)
-    }
+    // isBot may be true because 1) BOTAS_MATCH, 2) BOTAS_NOAGENT 3) BOTAS_GOODBOT or 4) found in bots
+    // table. If the agent mastched the list in the preg_match at the top, then BOTAS_MATCH.
+    // If the agent had an http address for information then BOTAS_GOODBOT is set.
+    // If there was 'no agent' then BOTAS_NOAGENT is set.
+    // If any of the above happened then isBot is true.
+    // If we did not find anything then BATAS_ZERO was set at the start of isBot so
+    // $this->foundBotAs == BOTAS_ZERO (null)
 
     return $this->isBot;
   }
