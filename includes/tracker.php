@@ -88,7 +88,7 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "4.1.0tracker-pdo"); // BLP 2025-03-16 - Add new logic to update bots and bots2 in GET.
+define("TRACKER_VERSION", "4.1.2tracker-pdo"); // BLP 2025-03-23 - change strpos() to str_contains(). Add error to insert.
 
 $DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -177,6 +177,19 @@ if($_GET['page'] == "csstest") {
 
   $S = new Database($_site);
 
+  if(!$id) {
+    error_log("tracker NO_ID: \$_GET=" . print_r($_GET, true));
+
+    // I don't think I can ever have a duplicate key but just in case 'ignore' added to 'insert'.
+    
+    $S->sql("insert ignore into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime) ".
+            "values('$S->ip', '$S->siteName', '$S->self', '$msg', -980, 'NO_ID', '$S->agent', now(), now())");
+
+    header("Content-Type: text/css");
+    echo "/* csstest.css-NO_ID */";
+    exit();
+  }
+  
   $S->sql("select ip, site, page, botAs, agent, referer, isJavaScript from $S->masterdb.tracker where id=$id");
   [$ip, $site, $page, $botAs, $agent, $ref, $js] = $S->fetchrow('num');
 
@@ -246,8 +259,11 @@ if($type = $_GET['page']) {
 
     $_site = json_decode(stripComments($tmp));
   } else {
-    error_log("tracker NO_MYSITEMAP: id=$id, type=$msg, image=$image, line=". __LINE__);
     $S = new Database($_site); // This is for goaway which need $S
+
+    // I think ip, sit, page and agent will not be correct.
+
+    error_log("tracker NO_MYSITEMAP: id=$id, ip=$S->ip, site=$S->siteName, type=$msg, image=$image, line=". __LINE__);
     goaway("GET $msg no mysitemap.json");
     exit();
   }
@@ -308,7 +324,7 @@ if($type = $_GET['page']) {
     error_log("tracker GET: type=$type, sql=$sql, errno=$errno, errmsg=" . $e->getMessage() . ", line=" . __LINE__);
 
     // At this point $site, $ip, $thepage and $agent are NOT VALID, BUT $id should be valid.
-    // We don't have a tracker record for this id/ip, so try th create a new record.
+    // We don't have a tracker record for this id/ip, so try to create a new record.
 
     try {
       $ip = "NO_IP"; 
@@ -346,7 +362,7 @@ if($type = $_GET['page']) {
     $botAs = rtrim($botAs, ',');
   }
 
-  if(empty($agent) || $S->isBot($agent)) {
+  if(empty($agent) || $S->isBot($agent) || $type == "noscript") {
     // BLP 2025-01-05 - I don't want $js to have the $or yet as I want to be able to check if
     // NORMAL, NOSCRIPT or CSS has happened. So I do the DEBUG test first and then or in the new
     // value.
@@ -360,7 +376,7 @@ if($type = $_GET['page']) {
     if($DEBUG_ISABOT1 && ($js & (TRACKER_NORMAL | TRACKER_NOSCRIPT | TRACKER_CSS) === 0))
       error_log("tracker GET ISABOT1_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, isBot=$isBot, java=$java, image=$image, agent=$agent");
 
-    $js |= $or | TRACKER_BOT; // BLP 2025-03-16 -  
+    $js |= $or | TRACKER_BOT;
     $java = dechex($js);
 
     if($DEBUG_ISABOT2) {
@@ -385,7 +401,7 @@ if($type = $_GET['page']) {
             "values('$ip', '$agent', '$thepage', date(now()), '$site', " . BOTS_SITECLASS . ", 1, now()) ".
             "on duplicate key update count=count+1, lasttime=now()");
   } else {
-    // BLP 2025-01-05 - if not a bot or in the values.
+    // $agent is not empty and the $agent is not a BOT.
     
     $js |= $or; 
     $java = dechex($js);
@@ -415,15 +431,15 @@ if($type = $_GET['page']) {
   
   $img = $S->defaultImage ?? "/var/www/bartonphillips.net/images/blank.png";
 
-  // script and normal may have an image but
+  // normal may have an image but
   // noscript has NO IMAGE
 
   if($image) {
-    $pos = strpos($image, "http"); // does $image start with http?
-    if($pos !== false && $pos == 0) { 
+    if(str_contains($image, "http")) { 
       $img = $image; // $image has the full url starting with http (could be https)
     } else {
-      $trackerLocation = $S->trackerLocation ?? "/var/www/bartonphillips.net/";
+      // BLP 2025-03-23 - trackerLocation must be an absolute or relative URL.
+      $trackerLocation = $S->trackerLocation ?? "https://bartonphillips.net/";
       $img = "$trackerLocation/$image";
     }
   }
@@ -572,11 +588,13 @@ if($_POST['page'] == 'start') {
   }
 
   // BLP 2025-02-25 - remove if($ref) as if it is not there it will not be posted.
+  // If the select above of tracker failed, then do an insert, otherwise we do an update!
+  // BLP 2025-03-23 - add error if select failed.
   
-  $sql = "insert into $S->masterdb.tracker (id, botAs, site, page, ip, agent, referer, starttime, isJavaScript, lasttime) ".
-         "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', '$ref', now(), '$js', now()) ".
+  $sql = "insert into $S->masterdb.tracker (id, botAs, site, page, ip, agent, referer, error, starttime, isJavaScript, lasttime) ".
+         "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', '$ref', 'select failed', now(), '$js', now()) ".
          "on duplicate key update isJavaScript=$js, referer='$ref', lasttime=now()";
-  
+
   $S->sql($sql);
 
   echo "Start OK, java=$js";
@@ -607,7 +625,7 @@ if($_POST['page'] == 'load') {
   $js |= TRACKER_LOAD;
   $js2 = dechex($js);
 
-  if(!$S->isMyIp($ip) && $DEBUG_LOAD && strpos($botAs, BOTAS_COUNTED) === false)
+  if(!$S->isMyIp($ip) && $DEBUG_LOAD && !str_contains($botAs, BOTAS_COUNTED))
     error_log("tracker LOAD: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, jsin=$java, jsout=$js2, line=". __LINE__);
 
   // BLP 2023-03-25 - This should maybe be insert/update?

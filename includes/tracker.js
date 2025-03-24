@@ -22,6 +22,65 @@ function makeTime() {
   return x.getHours()+":"+String(x.getMinutes()).padStart(2, '0')+":"+String(x.getSeconds()).padStart(2, '0')+":"+ String(x.getMilliseconds()).padStart(3, '0');
 }
 
+/*
+These are some interesting examples.
+// This can be used to do fetch() form or json calls.
+// await postFormData({page: 'ajaxmsg', msg: 'Hello',site:
+// 'bartonphillips.com'});
+// or
+// await postFormData('json', {...})/
+
+async function postFormData(type='form', data) {
+  let body, headers;
+
+  if (type === 'json') {
+    headers = { 'Content-Type': 'application/json' };
+    body = JSON.stringify(data);
+  } else {
+    // Default to x-www-form-urlencoded
+    headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    body = new URLSearchParams(data);
+  }
+
+  const response = await fetch(trackerUrl, {
+    method: 'POST',
+    headers,
+    body
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error ${response.status}`);
+  }
+
+  return response.text(); // Or `.json()` if you expect JSON response
+}
+
+// Post a AjaxMsg. For debugging
+// While this really does not need to return the 'result' data it is an
+// exercise in an async function with await.
+
+async function postAjaxMsg(msg, mysitemap, arg1='', arg2='') {
+  try {
+    const response = await fetch(trackerUrl, postFormData({
+        page: 'ajaxmsg',
+        ip: theip,
+        site: thesite,
+        msg: msg,
+        mysitemap: mysitemap,
+        arg1: arg1,
+        arg2: arg2
+      });
+    });
+
+    const result = await response.text(); // or .json() if JSON
+    console.log('Success:', result);
+    return result;
+  } catch (err) {
+    console.error('Fetch error:', err);
+  }
+}
+*/
+
 // Post a AjaxMsg. For debugging
 
 function postAjaxMsg(msg, mysitemap, arg1='', arg2='') { // BLP 2025-02-25 - must pass mysitemap.
@@ -287,6 +346,9 @@ jQuery(document).ready(function($) {
         // TrackerCount is only in bartonphillips.com/index.php
         $("#TrackerCount").html("Tracker every " + time/1000 + " sec.<br>");
 
+        // FOR DEBUG
+        //postAjaxMsg(msg, mysitemap);
+        
         setTimeout(runtimer, time);
       },
       error: function(err) {
