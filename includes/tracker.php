@@ -88,10 +88,10 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "4.1.2tracker-pdo"); // BLP 2025-03-23 - change strpos() to str_contains(). Add error to insert.
+define("TRACKER_VERSION", "4.1.2tracker-pdo"); // BLP 2025-03-24 - added $id to 'ajaxmsg'
 
 $DEBUG_START = true; // start
-//$DEBUG_LOAD = true; // load
+$DEBUG_LOAD = true; // load
 //$DEBUG_TIMER1 = true; // Timer
 //$DEBUG_TIMEE2 = true;
 //$DEBUG_DAYCOUNT = true; // Timer real+1
@@ -259,11 +259,9 @@ if($type = $_GET['page']) {
 
     $_site = json_decode(stripComments($tmp));
   } else {
+    // I think ip, site, page and agent will not be correct.
+    error_log("tracker NO_MYSITEMAP: id=$id, ip=$S->ip, site=$S->siteName, page=$S->self, type=$msg, image=$image, line=". __LINE__);
     $S = new Database($_site); // This is for goaway which need $S
-
-    // I think ip, sit, page and agent will not be correct.
-
-    error_log("tracker NO_MYSITEMAP: id=$id, ip=$S->ip, site=$S->siteName, type=$msg, image=$image, line=". __LINE__);
     goaway("GET $msg no mysitemap.json");
     exit();
   }
@@ -431,14 +429,15 @@ if($type = $_GET['page']) {
   
   $img = $S->defaultImage ?? "/var/www/bartonphillips.net/images/blank.png";
 
-  // normal may have an image but
+  // script and normal may have an image but
   // noscript has NO IMAGE
-
+  // BLP 2025-03-23 - $image must have http or just a /. Also, trackerLocation must be either an
+  // absolute url or a relative url, but NOT a file prefix like /var/www!
+  
   if($image) {
-    if(str_contains($image, "http")) { 
+    if(str_contains($image, 'http')) { 
       $img = $image; // $image has the full url starting with http (could be https)
     } else {
-      // BLP 2025-03-23 - trackerLocation must be an absolute or relative URL.
       $trackerLocation = $S->trackerLocation ?? "https://bartonphillips.net/";
       $img = "$trackerLocation/$image";
     }
@@ -534,19 +533,23 @@ $S = new Database($_site); // BLP 2023-10-02 - because we use Database noTrack a
 
 if($_POST['page'] == 'ajaxmsg') {
   $msg = $_POST['msg'];
+  $id = $_POST['id'];
   $ip = $_POST['ip'];
   $site = $_POST['site'];
   $arg1 = $_POST['arg1'];
   $arg2 = $_POST['arg2'];
   
   if($arg1) {
-    $args = ", $arg1";
+    $args = ", arg1=$arg1";
   }
   if($arg2) {
-    $args .= ", $arg2";
+    $args .= ", arg2=$arg2";
   }
 
-  if(!$S->isMyIp($ip) && $DEBUG_MSG) error_log("tracker AJAXMSG: $site, $ip: $msg{$args}");
+  //error_log("tracker AJAXMSG: ip=$ip, site=$site, msg=$msg{$args}"); // Just for debugging on my system when
+  //isMyIp($ip) is me.
+  
+  if(!$S->isMyIp($ip) && $DEBUG_MSG) error_log("tracker AJAXMSG: id=$id, ip=$ip, site=$site, msg=$msg{$args}");
   
   echo "AJAXMSG OK";
   exit();
@@ -555,7 +558,7 @@ if($_POST['page'] == 'ajaxmsg') {
 // 'start' is an ajax call from tracker.js. If JavaScript is enabled we should always do this.
 
 if($_POST['page'] == 'start') {
-  $id = $_POST['id'];
+  $id = $_POST['id']; // BLP 2025-03-24 - 
   $site = $_POST['site'];
   $ip = $_POST['ip']; // This is the real ip of the program. $S->ip will be the ip of ME.
   $visits = $_POST['visits']; // Visits may be 1 or zero. tracker.js sets the mytime cookie.
@@ -594,7 +597,7 @@ if($_POST['page'] == 'start') {
   $sql = "insert into $S->masterdb.tracker (id, botAs, site, page, ip, agent, referer, error, starttime, isJavaScript, lasttime) ".
          "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', '$ref', 'select failed', now(), '$js', now()) ".
          "on duplicate key update isJavaScript=$js, referer='$ref', lasttime=now()";
-
+  
   $S->sql($sql);
 
   echo "Start OK, java=$js";

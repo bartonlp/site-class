@@ -5,7 +5,7 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.7trackerjs-pdo"; // BLP 2025-03-12 - moved runtimer() to top of ready.
+const TRACKERJS_VERSION = "3.1.8trackerjs-pdo"; // BLP 2025-03-24 - added id to postAjaxMsg(), etc.
 
 // To use 'isMeFalse' you need code like this in your main program:
 // $S->b_inlineScript = "var isMeFalse = "$S->isMeFalse"; Before
@@ -22,15 +22,32 @@ function makeTime() {
   return x.getHours()+":"+String(x.getMinutes()).padStart(2, '0')+":"+String(x.getSeconds()).padStart(2, '0')+":"+ String(x.getMilliseconds()).padStart(3, '0');
 }
 
+// Post a AjaxMsg. For debugging
+// Old logic using $.ajax.
 /*
-These are some interesting examples.
+function postAjaxMsg(msg, mysitemap, arg1='', arg2='') { // BLP 2025-02-25 - must pass mysitemap.
+$.ajax({
+url: trackerUrl,
+data: {page: 'ajaxmsg', msg: msg, site: thesite, ip: theip, arg1: arg1, arg2: arg2, isMeFalse: isMeFalse, mysitemap: mysitemap},
+type: 'post',
+success: function(data) {
+console.log(data);
+},
+error: function(err) {
+console.log(err);
+}
+});
+}
+*/
+
+// BLP 2025-03-24 - New logic using fetch.
 // This can be used to do fetch() form or json calls.
 // await postFormData({page: 'ajaxmsg', msg: 'Hello',site:
 // 'bartonphillips.com'});
 // or
 // await postFormData('json', {...})/
 
-async function postFormData(type='form', data) {
+async function postFormData(data, type='form') {
   let body, headers;
 
   if (type === 'json') {
@@ -52,7 +69,8 @@ async function postFormData(type='form', data) {
     throw new Error(`HTTP error ${response.status}`);
   }
 
-  return response.text(); // Or `.json()` if you expect JSON response
+  const ret = response.text(); 
+  return ret;
 }
 
 // Post a AjaxMsg. For debugging
@@ -61,40 +79,21 @@ async function postFormData(type='form', data) {
 
 async function postAjaxMsg(msg, mysitemap, arg1='', arg2='') {
   try {
-    const response = await fetch(trackerUrl, postFormData({
-        page: 'ajaxmsg',
-        ip: theip,
-        site: thesite,
-        msg: msg,
-        mysitemap: mysitemap,
-        arg1: arg1,
-        arg2: arg2
-      });
+    const result = await postFormData({
+      page: 'ajaxmsg',
+      id: lastId,
+      ip: theip,
+      site: thesite,
+      msg: msg,
+      mysitemap: mysitemap,
+      arg1: arg1,
+      arg2: arg2
     });
-
-    const result = await response.text(); // or .json() if JSON
-    console.log('Success:', result);
+                                 
     return result;
   } catch (err) {
-    console.error('Fetch error:', err);
+    console.log('Fetch error:', err);
   }
-}
-*/
-
-// Post a AjaxMsg. For debugging
-
-function postAjaxMsg(msg, mysitemap, arg1='', arg2='') { // BLP 2025-02-25 - must pass mysitemap.
-  $.ajax({
-    url: trackerUrl,
-    data: {page: 'ajaxmsg', msg: msg, site: thesite, ip: theip, arg1: arg1, arg2: arg2, isMeFalse: isMeFalse, mysitemap: mysitemap},
-    type: 'post',
-    success: function(data) {
-      console.log(data);
-    },
-    error: function(err) {
-      console.log(err);
-    }
-  });
 }
 
 console.log("tracker.js: at " , document.currentScript.src);
@@ -334,25 +333,28 @@ jQuery(document).ready(function($) {
     }
 
     // After 10 seconds we should probably have a 'finger'.
-
+    
     $.ajax({
       url: trackerUrl,
       data: {page: 'timer', id: lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, mysitemap: mysitemap, difftime: (difftime/1000)},
       type: 'post',
       success: function(data) {
         difftime += 10000;
-        console.log(data +", " +makeTime() + ", next timer=" + (difftime/1000) + " sec");
+        console.log(`${data}, ${makeTime()}, next timer=${difftime/1000} sec`);
 
         // TrackerCount is only in bartonphillips.com/index.php
         $("#TrackerCount").html("Tracker every " + time/1000 + " sec.<br>");
-
-        // FOR DEBUG
-        //postAjaxMsg(msg, mysitemap);
         
-        setTimeout(runtimer, time);
-      },
-      error: function(err) {
-        console.log(err);
+        const msg = `Timer: next difftime=${difftime/1000}, id=${lastId}`;
+        
+        // BLP 2025-03-24 - FOR DEBUG. Looking to see why I am not seeing timer entries.?
+        if(!difftime) {
+          postAjaxMsg(msg, mysitemap, thepage).then(ajaxData => {
+            console.log(`This is ajaxData (${ajaxData}) from trackerUrl(${trackerUrl})`);
+          });
+        }
+        
+        setTimeout(runtimer, time);        
       }
     });
   }
