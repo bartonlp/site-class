@@ -5,7 +5,7 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.1.0pdo"); // BLP 2025-03-15 - change bartonphillipsnet to bartonphillips.net
+define("SITE_CLASS_VERSION", "5.1.1pdo"); // BLP 2025-03-25 -  Removed "data-lastid='$this->LAST_ID'" from and added lastId to $trackerStr
 // One class for all my sites
 /**
  * SiteClass
@@ -241,13 +241,15 @@ EOF;
 
         // If not noTrack or nbdb add the tracker.js location.
         
-        $trackerStr = "<script nonce='$this->nonce' data-lastid='$this->LAST_ID' src='$this->trackerLocationJs'></script>\n";
+        $trackerStr = "<script nonce='$this->nonce' src='$this->trackerLocationJs'></script>\n"; // BLP 2025-03-25 - removed data-lastid='$this->LAST_ID'
       } else {
         // Either or both noTrack and nodb were set.
         // This is the code we use instead of tracker.js if noTrack or nodb are true.
+
+        // BLP 2025-03-25 - remove data-lastid='$this->LAST_ID'
         
         $trackerStr =<<<EOF
-<script data-lastid='$this->LAST_ID'>
+<script>
 /* Minimal tracker.js logic if noTrack */
 
 'use strict';
@@ -325,7 +327,8 @@ EOF;
     phoneImg = "$phoneImg"; 
     desktopImg2 = "$desktopImg2";
     phoneImg2 = "$phoneImg2", 
-    mysitemap = "$mysitemap" 
+    mysitemap = "$mysitemap",
+    lastId = "$this->LAST_ID" // BLP 2025-03-25 - 
   </script>
 EOF;
     }

@@ -5,7 +5,11 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.8trackerjs-pdo"; // BLP 2025-03-24 - added id to postAjaxMsg(), etc.
+const TRACKERJS_VERSION = "3.1.9trackerjs-pdo"; // BLP 2025-03-25 - Get lastId from SiteClass $h->trackerStr
+
+// The very first thing we do is get the lastId from the script tag.
+
+//const lastId = $("script[data-lastid]").attr("data-lastid"); // BLP 2025-03-25 - 
 
 // To use 'isMeFalse' you need code like this in your main program:
 // $S->b_inlineScript = "var isMeFalse = "$S->isMeFalse"; Before
@@ -16,6 +20,7 @@ var isMeFalse;
 var doState; // for debugging. It can be set by the caller.
 //isMeFalse = true; // For Debugging
 //doState = true; // For Debugging
+var lastId; // BLP 2025-03-25 - from the JavaScript loaded by SiteClass.
 
 function makeTime() {
   let x = new Date;
@@ -78,6 +83,8 @@ async function postFormData(data, type='form') {
 // exercise in an async function with await.
 
 async function postAjaxMsg(msg, mysitemap, arg1='', arg2='') {
+  //console.log(`postAjaxMsg: id=${lastId}`);
+  
   try {
     const result = await postFormData({
       page: 'ajaxmsg',
@@ -98,10 +105,6 @@ async function postAjaxMsg(msg, mysitemap, arg1='', arg2='') {
 
 console.log("tracker.js: at " , document.currentScript.src);
 console.log("navigator.userAgentData: ", navigator.userAgentData);
-
-// The very first thing we do is get the lastId from the script tag.
-
-const lastId = $("script[data-lastid]").attr("data-lastid");
 
 // Now we wait until all of the DOM is loaded and ready.
 // NOTE: these Javascript variables:
@@ -316,6 +319,12 @@ jQuery(document).ready(function($) {
   });
 
   function runtimer() {
+    // BLP 2025-03-25 - Debug. Is timer running.
+    const startmsg = "At start of runtimer";
+    postAjaxMsg(startmsg, mysitemap, thepage).then(ajaxData => {
+      console.log(`Top of timer (${ajaxData}) from trackerUrl(${trackerUrl})`);
+    });
+
     if(cnt++ < 50) {
       // Time should increase to about 8 plus minutes
       time += 10000;
@@ -345,11 +354,11 @@ jQuery(document).ready(function($) {
         // TrackerCount is only in bartonphillips.com/index.php
         $("#TrackerCount").html("Tracker every " + time/1000 + " sec.<br>");
         
-        const msg = `Timer: next difftime=${difftime/1000}, id=${lastId}`;
+        const msg = `Timer: next difftime=${difftime/1000}`;
         
         // BLP 2025-03-24 - FOR DEBUG. Looking to see why I am not seeing timer entries.?
         if(!difftime) {
-          postAjaxMsg(msg, mysitemap, thepage).then(ajaxData => {
+          postAjaxMsg(msg, mysitemap, thepage, lastId).then(ajaxData => {
             console.log(`This is ajaxData (${ajaxData}) from trackerUrl(${trackerUrl})`);
           });
         }
