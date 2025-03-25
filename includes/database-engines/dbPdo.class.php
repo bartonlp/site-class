@@ -14,7 +14,7 @@
 
 use SendGrid\Mail\Mail; // Use SendGrid for email
 
-define("PDO_CLASS_VERSION", "1.0.15pdo"); // BLP 2025-03-12 - add python to match locig in isBot().
+define("PDO_CLASS_VERSION", "1.0.16pdo"); // BLP 2025-03-24 - Change foundBotAs to botAs
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -135,13 +135,13 @@ class dbPdo extends PDO {
    * Side effects: (for tracker() in Database)
    *  it sets $this->trackerBotInfo
    *  it sets $this->isBot
-   *  it sets $this->foundBotAs
+   *  it sets $this->botAs
    * These side effects are used by checkIfBot():void see below.
    */
   
   public function isBot(?string $agent):bool {
     $this->isBot = false;
-    $this->foundBotAs = BOTAS_ZERO; // BOTAS_ZERO is null. This will be the return if nothing was found.
+    $this->botAs = BOTAS_ZERO; // BOTAS_ZERO is null. This will be the return if nothing was found.
     $this->trackerBotInfo = null; // Set to null at start.
     
     // BLP 2025-01-12 - Make sure it is not ME!
@@ -153,7 +153,7 @@ class dbPdo extends PDO {
                           "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
                           "http client|PECL::HTTP|Go-|python~i", $agent)) === 1) { // 1 means a match
         $this->isBot = true;
-        $this->foundBotAs = BOTAS_MATCH;
+        $this->botAs = BOTAS_MATCH;
       } elseif($x === false) { // false is error
         // This is an unexplained ERROR
         throw new PdoException(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", -300);
@@ -161,12 +161,12 @@ class dbPdo extends PDO {
 
       if(($x = preg_match("~\+?https?://~", $agent)) === 1) {
         $this->isBot = true;
-        $this->foundBotAs = (empty($this->foundBotAs)) ? BOTAS_GOODBOT : ("$this->foundBotAs," . BOTAS_GOODBOT);
+        $this->botAs = (empty($this->botAs)) ? BOTAS_GOODBOT : ("$this->botAs," . BOTAS_GOODBOT);
       } elseif($x === false) {
         throw new PdoException(__CLASS__ . " " . __LINE__ . ": preg_match() for +https? false", -301);
       }
     } else {
-      $this->foundBotAs = BOTAS_NOAGENT;
+      $this->botAs = BOTAS_NOAGENT;
       $this->isBot = true;
     }
 
@@ -189,27 +189,27 @@ class dbPdo extends PDO {
           // Check it the $tmp string already contains BOTS_ROBOTS if so add nothing. Else add
           // BOTAS_ROBOT and a trailing comma.
           
-          $this->foundBotAs .= str_contains($this->foundBotAs, BOTAS_ROBOT) ? null : "," . BOTAS_ROBOT;
+          $this->botAs .= str_contains($this->botAs, BOTAS_ROBOT) ? null : "," . BOTAS_ROBOT;
         }
         if($robots & BOTS_SITEMAP) {
           $type |= TRACKER_SITEMAP;
-          $this->foundBotAs .= str_contains($this->foundBotAs, BOTAS_SITEMAP) ? null : "," . BOTAS_SITEMAP;
+          $this->botAs .= str_contains($this->botAs, BOTAS_SITEMAP) ? null : "," . BOTAS_SITEMAP;
         }
         if($robots & BOTS_SITECLASS) {
           $type |= TRACKER_BOT;
-          $this->foundBotAs .= str_contains($this->foundBotAs, BOTAS_SITECLASS) ? null : "," . BOTAS_SITECLASS;
+          $this->botAs .= str_contains($this->botAs, BOTAS_SITECLASS) ? null : "," . BOTAS_SITECLASS;
         }
         if($robots & BOTS_CRON_ZERO) {
-          $this->foundBotAs .= str_contains($this->foundBotAs, BOTAS_ZBOT) ? null : "," . BOTAS_ZBOT; // BLP 2023-11-04 - found 0x100 in bots so this is a zero (0x100) from bots ttable: 'zbot'
+          $this->botAs .= str_contains($this->botAs, BOTAS_ZBOT) ? null : "," . BOTAS_ZBOT; // BLP 2023-11-04 - found 0x100 in bots so this is a zero (0x100) from bots ttable: 'zbot'
         }
 
         $this->trackerBotInfo |= $type; // used in tracker() in Database.
 
-        // BLP 2025-03-09 - foundBotAs also used in tracker in Database.
+        // BLP 2025-03-09 - BotAs also used in tracker in Database.
         
         $this->isBot = true;
         
-        // Now $this->trackerBotInfo and $this->foundBotAs are set.
+        // Now $this->trackerBotInfo and $this->botAs are set.
       }
     }
 
@@ -219,7 +219,7 @@ class dbPdo extends PDO {
     // If there was 'no agent' then BOTAS_NOAGENT is set.
     // If any of the above happened then isBot is true.
     // If we did not find anything then BATAS_ZERO was set at the start of isBot so
-    // $this->foundBotAs == BOTAS_ZERO (null)
+    // $this->botAs == BOTAS_ZERO (null)
 
     return $this->isBot;
   }

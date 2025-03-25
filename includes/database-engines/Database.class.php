@@ -3,9 +3,7 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.0.13database-pdo"); // BLP 2025-03-07 - move require defines to dbPdo.
-                                                        // Moved isMe(), isMyIp() and isBot() to
-                                                        // dbPdo.
+define("DATABASE_CLASS_VERSION", "1.0.14database-pdo"); // BLP 2025-03-24 - foundBotAs to botAs, see dbPdo for same changes.
 
 define("DEBUG_TRACKER_BOTINFO", false); // Change this to false if you don't want the error
 
@@ -195,7 +193,7 @@ class Database extends dbPdo {
    */
 
   protected function trackbots():void {
-    if(!empty($this->foundBotAs) && $this->dbinfo->engine != "sqlite") {
+    if(!empty($this->botAs) && $this->dbinfo->engine != "sqlite") {
       $agent = $this->agent;
 
       try {
@@ -245,6 +243,7 @@ class Database extends dbPdo {
    *  `nogeo` tinyint(1) DEFAULT NULL,
    *  `browser` varchar(50) DEFAULT NULL,
    *  `ip` varchar(40) DEFAULT NULL,
+   *  `count` int DEFAULT 1,
    *  `agent` text,
    *  `referer` varchar(255) DEFAULT '',
    *  `starttime` datetime DEFAULT NULL,
@@ -332,7 +331,7 @@ class Database extends dbPdo {
     // new record.
 
     $this->sql("insert into $this->masterdb.tracker (botAs, site, page, ip, browser, agent, starttime, isJavaScript, lasttime) ".
-                 "values('$this->foundBotAs', '$this->siteName', '$this->self', '$this->ip', '$name', '$agent', now(), $java, now())");
+                 "values('$this->botAs', '$this->siteName', '$this->self', '$this->ip', '$name', '$agent', now(), $java, now())");
 
     $this->LAST_ID = $this->getLastInsertId();
 
@@ -341,7 +340,7 @@ class Database extends dbPdo {
       $javahex = dechex($java);
       
       error_log("Database tracker: trackerBotInfo=$hexbotinfo, id=$this->LAST_ID, ip=$this->ip, ".
-                "site=$this->siteName, page=$this->self, botAs=$this->foundBotAs, java=$javahex, agent=$this->agent, line=".__LINE__);
+                "site=$this->siteName, page=$this->self, botAs=$this->botAs, java=$javahex, agent=$this->agent, line=".__LINE__);
     }    
   }
 

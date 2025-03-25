@@ -23,6 +23,7 @@ CREATE TABLE `tracker` (
   `nogeo` tinyint(1) DEFAULT NULL,
   `browser` varchar(50) DEFAULT NULL,
   `ip` varchar(40) DEFAULT NULL,
+  `count` int DEFAULT 1,
   `agent` text,
   `referer` varchar(255) DEFAULT '',
   `starttime` datetime DEFAULT NULL,
@@ -98,7 +99,7 @@ $DEBUG_LOAD = true; // load
 $DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
 //$DEBUG_ISABOT1 = true; // This is in the 'timer' logic
-//$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
+$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
 //$DEBUG_NOSCRIPT = true; // no script
 
 // If you want the version defined ONLY and no other information.
@@ -259,8 +260,7 @@ if($type = $_GET['page']) {
 
     $_site = json_decode(stripComments($tmp));
   } else {
-    // I think ip, site, page and agent will not be correct.
-    error_log("tracker NO_MYSITEMAP: id=$id, ip=$S->ip, site=$S->siteName, page=$S->self, type=$msg, image=$image, line=". __LINE__);
+    error_log("tracker NO_MYSITEMAP: id=$id, type=$msg, image=$image, line=". __LINE__);
     $S = new Database($_site); // This is for goaway which need $S
     goaway("GET $msg no mysitemap.json");
     exit();
@@ -372,7 +372,7 @@ if($type = $_GET['page']) {
     // At this point we know that either $agent was empty of isBot() is true.
     
     if($DEBUG_ISABOT1 && ($js & (TRACKER_NORMAL | TRACKER_NOSCRIPT | TRACKER_CSS) === 0))
-      error_log("tracker GET ISABOT1_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, isBot=$isBot, java=$java, image=$image, agent=$agent");
+      error_log("tracker GET ISABOT1_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, isBot=$S->isBot, java=$java, image=$image, agent=$agent");
 
     $js |= $or | TRACKER_BOT;
     $java = dechex($js);
@@ -381,13 +381,13 @@ if($type = $_GET['page']) {
       if($msg == "NOSCRIPT") {
         error_log("tracker GET ISABOT2_$msg: id=$id, java=$java");
       } else {
-        error_log("tracker GET ISABOT2_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, isBot=$isBot, java=$java, image=$image, agent=$agent");
+        error_log("tracker GET ISABOT2_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, isBot=$S->isBot, java=$java, image=$image, agent=$agent");
       }
     }
     
     $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
             "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT type=$msg', now(), now()) ".
-            "on duplicate key update error='ISABOT_UPDATE type=$msg', botAs='$botAs', lasttime=now()");
+            "on duplicate key update error='ISABOT_UPDATE type=$msg', count=count+1, botAs='$botAs', lasttime=now()");
 
     // BLP 2025-03-16 - New logic to update the bots and bots2 tables.
     
