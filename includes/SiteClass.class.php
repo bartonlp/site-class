@@ -5,7 +5,8 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.1.1pdo"); // BLP 2025-03-25 -  Removed "data-lastid='$this->LAST_ID'" from and added lastId to $trackerStr
+define("SITE_CLASS_VERSION", "5.1.2pdo"); // BLP 2025-03-26 - location information added.
+                                          // BLP 2025-03-26 - add $b->extra in getPageFooter()
 // One class for all my sites
 /**
  * SiteClass
@@ -198,6 +199,11 @@ EOF;
 
       $this->trackerLocationJs = $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
 
+      // BLP 2025-03-26 - add the location of the logging.js and logging.php files.
+      
+      $this->interactionLocationJs = $this->interactionLocationJs ?? "https://bartonlp.com/otherpages/js/logging.js"; // BLP 2025-03-26 - 
+      $this->interactionLocationPhp = $this->interactionLocationPhp ?? "https://bartonlp.com/otherpages/logging.php";  // BLP 2025-03-26 -
+      
       // tracker.php and beacon.php MUST be symlinked in bartonlp.com/otherpages
       // to the SiteClass 'includes' directory.
 
@@ -242,6 +248,8 @@ EOF;
         // If not noTrack or nbdb add the tracker.js location.
         
         $trackerStr = "<script nonce='$this->nonce' src='$this->trackerLocationJs'></script>\n"; // BLP 2025-03-25 - removed data-lastid='$this->LAST_ID'
+        if($this->nointeraction !== true)
+          $trackerStr .= "<script nonce='$this->nonce' src='$this->interactionLocationJs'></script>\n"; // BLP 2025-03-26 - 
       } else {
         // Either or both noTrack and nodb were set.
         // This is the code we use instead of tracker.js if noTrack or nodb are true.
@@ -315,7 +323,7 @@ EOF;
       // Now fill in the rest of $trackerStr.
       // If noTrack or nodb then many of the items will be empty.
       
-      $trackerStr .=<<<EOF
+      $xtmp = <<<EOF
   <script nonce="$this->nonce">
     var thesite = "$this->siteName",
     theip = "$this->ip",
@@ -328,9 +336,11 @@ EOF;
     desktopImg2 = "$desktopImg2";
     phoneImg2 = "$phoneImg2", 
     mysitemap = "$mysitemap",
-    lastId = "$this->LAST_ID" // BLP 2025-03-25 - 
+    lastId = "$this->LAST_ID", // BLP 2025-03-25 -
+    loggingphp = "$this->interactionLocationPhp" // BLP 2025-03-26 - 
   </script>
 EOF;
+      $trackerStr = "$xtmp\n$trackerStr";
     }
     
     $html = '<html lang="' . $lang . '" ' . $htmlextra . ">"; // stuff like manafest etc.
@@ -495,7 +505,8 @@ EOF;
     
     $b->inlineScript = $this->b_inlineScript ? "<script nonce='$this->nonce'>\n$this->b_inlineScript\n</script>" : null;
     $b->script = $this->b_script;
-
+    $b->extra = $this->b_extra; // BLP 2025-03-26 -
+    
     // counterWigget is available to the footerFile to use if wanted.
     
     if($this->noCounter !== true) {

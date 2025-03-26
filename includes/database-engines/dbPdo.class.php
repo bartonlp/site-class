@@ -25,6 +25,8 @@ require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER
  * The password is optional and if not pressent is picked up form my $HOME.
  */
 
+define("DEBUG_CONSTRUCTOR", true); // To disable change to false.
+
 class dbPdo extends PDO {
   private $result; // for select etc. a result set.
   static public $lastQuery = null; // for debugging
@@ -39,15 +41,10 @@ class dbPdo extends PDO {
   public function __construct(object $s) {
     set_exception_handler("dbPdo::my_exceptionhandler"); // Set up the exception handler
 
-    // BLP 2021-03-06 -- New server is in New York
-
     date_default_timezone_set('America/New_York');
 
-    // BLP 2023-10-02 - ask for sec headers
-    
     header("Accept-CH: Sec-Ch-Ua-Platform,Sec-Ch-Ua-Platform-Version,Sec-CH-UA-Full-Version-List,Sec-CH-UA-Arch,Sec-CH-UA-Model"); 
 
-    // BLP 2024-09-05 - Moved from Database
     $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
 
     $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'];
@@ -55,7 +52,6 @@ class dbPdo extends PDO {
 
     $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
     $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
-    // End Moved
     
     foreach($s as $k=>$v) {
       $this->$k = $v;
@@ -76,9 +72,14 @@ class dbPdo extends PDO {
     }
     $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    $this->sql("set time_zone='US/Eastern'"); // BLP 2024-04-20 - We must set the mysql time zone
+    $this->sql("set time_zone='America/New_York'"); 
     
     $this->database = $database;
+    
+    if(DEBUG_CONSTRUCTOR) {
+      if($this->ip != MY_IP)
+        error_log("dbPdo constructor: ip=$this->ip, site=$this->siteName, page=$this->self, line=". __LINE__);
+    }
   } // End of constructor.
 
   /*
@@ -203,7 +204,7 @@ class dbPdo extends PDO {
           $this->botAs .= str_contains($this->botAs, BOTAS_ZBOT) ? null : "," . BOTAS_ZBOT; // BLP 2023-11-04 - found 0x100 in bots so this is a zero (0x100) from bots ttable: 'zbot'
         }
 
-        $this->trackerBotInfo |= $type; // used in tracker() in Database.
+        $this->trackerBotInfo |= $type; // used by tracker() in Database.
 
         // BLP 2025-03-09 - BotAs also used in tracker in Database.
         

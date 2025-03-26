@@ -5,7 +5,7 @@
 
 define("DATABASE_CLASS_VERSION", "1.0.14database-pdo"); // BLP 2025-03-24 - foundBotAs to botAs, see dbPdo for same changes.
 
-define("DEBUG_TRACKER_BOTINFO", false); // Change this to false if you don't want the error
+define("DEBUG_TRACKER_BOTINFO", true); // Change this to false if you don't want the error
 
 /**
  * Database wrapper class
@@ -25,9 +25,6 @@ class Database extends dbPdo {
   public function __construct(object $s) {
     // If no 'dbinfo' (no database) in mysitemap.json set everything so the database is not loaded.
 
-    // BLP 2024-09-05 - moved ip, agent, self and requestUrl to dbPdo and into the nodb section
-    // below if we don't instantiate dbPdo.
-    
     if($s->nodb === true || is_null($s->dbinfo)) {
       // Use the $s values or defaults
       
@@ -339,7 +336,7 @@ class Database extends dbPdo {
       $hexbotinfo = dechex($this->trackerBotInfo);
       $javahex = dechex($java);
       
-      error_log("Database tracker: trackerBotInfo=$hexbotinfo, id=$this->LAST_ID, ip=$this->ip, ".
+      error_log("Database tracker trackerBotInfo=$hexbotinfo: id=$this->LAST_ID, ip=$this->ip, ".
                 "site=$this->siteName, page=$this->self, botAs=$this->botAs, java=$javahex, agent=$this->agent, line=".__LINE__);
     }    
   }
