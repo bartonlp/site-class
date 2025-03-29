@@ -616,7 +616,7 @@ if($_POST['page'] == 'start') {
     error_log("tracker START3: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, referer=$ref, jsin=$java, jsout=$js2, line=". __LINE__);
   }
 
-  $S->sql("update $S->masterdb.tracker set isJavaScript=$js, referer='$ref, count=count+1, lasttime=now() where id=$id"); // BLP 2025-03-29 - 
+  $S->sql("update $S->masterdb.tracker set isJavaScript=$js, referer='$ref', count=count+1, lasttime=now() where id=$id"); // BLP 2025-03-29 - 
 
   echo "Start OK, java=$js";
   exit();
