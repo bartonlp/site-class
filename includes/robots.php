@@ -96,4 +96,4 @@ $S->sql("insert into $S->masterdb.logagent (site, ip, agent, count, created, las
 $S->sql("insert into $S->masterdb.tracker(site, ip, page, agent, botAs, isjavascript, starttime, lasttime) ".
         "values('$S->siteName', '$ip', 'robots.php', '$agent', 'robots', ".
         TRACKER_ROBOTS . ", now(), now()) ".
-        "on duplicate key update count=cout+1, botAs=botAs+',robot', isjavascript=isjavascript |" . TRACKER_ROBOTS . ", lasttime=now()"); // BLP 2025-03-29 - 
+        "on duplicate key update count=count+1, botAs=botAs+',robot', isjavascript=isjavascript |" . TRACKER_ROBOTS . ", lasttime=now()"); // BLP 2025-03-29 - 
