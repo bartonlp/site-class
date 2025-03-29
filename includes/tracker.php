@@ -79,7 +79,7 @@ CREATE TABLE `badplayer` (
 ) ENGINE=InnoDB AUTO_INCREMENT=279 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-/* BLP 2024-12-31 - New errno values:
+/* New errno values:
    These all have these error codes plus the $e->getCode().
    It looks like: <below code>: $e->getCode().
    -100 = ID is not numeric: $id
@@ -89,7 +89,11 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "4.1.2tracker-pdo"); // BLP 2025-03-24 - added $id to 'ajaxmsg'
+define("TRACKER_VERSION", "4.1.4tracker-pdo"); // BLP 2025-03-29 - add count added try to csstest and edits.
+                                               // Made function updateBots().
+                                               // Use only 'update' not 'insert/update' on tracker.
+                                               // Comment changes.
+                                               // Change csstest from !$id to !is_numeric($id)
 
 $DEBUG_START = true; // start
 $DEBUG_LOAD = true; // load
@@ -103,13 +107,26 @@ $DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
 //$DEBUG_NOSCRIPT = true; // no script
 
 // If you want the version defined ONLY and no other information.
-// BLP 2024-12-17 - removed check for $_site.
 
 if($__VERSION_ONLY === true) {
   return TRACKER_VERSION;
 }
 
-//BLP 2024-12-17 - Move GET to top of page.
+// Update the two bots tables (bots and bots2).
+// Used in the GET normal and noscript.
+
+function updateBots($ip, $agent, $thepage, $site, $bottype) {
+  global $S;
+  
+  $S->sql("insert into $S->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
+          "values('$ip', '$agent', 1, $bottype, '$site', now(), now()) ".
+          "on duplicate key update robots = robots | $bottype, lasttime=now()");
+
+  $S->sql("insert into $S->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
+          "values('$ip', '$agent', '$thepage', date(now()), '$site', $bottype, 1, now()) ".
+          "on duplicate key update count=count+1, lasttime=now()");
+}
+
 // START OF IMAGE and CSSTEST FUNCTIONS These are NOT javascript but rather use $_GET.
 // NOTE: The image functions are GET calls from the original php file.
 //       THESE ARE NOT DONE BY tracker.js!
@@ -178,7 +195,7 @@ if($_GET['page'] == "csstest") {
 
   $S = new Database($_site);
 
-  if(!$id) {
+  if(!is_numeric($id)) {
     error_log("tracker NO_ID: \$_GET=" . print_r($_GET, true));
 
     // I don't think I can ever have a duplicate key but just in case 'ignore' added to 'insert'.
@@ -190,9 +207,16 @@ if($_GET['page'] == "csstest") {
     echo "/* csstest.css-NO_ID */";
     exit();
   }
-  
-  $S->sql("select ip, site, page, botAs, agent, referer, isJavaScript from $S->masterdb.tracker where id=$id");
-  [$ip, $site, $page, $botAs, $agent, $ref, $js] = $S->fetchrow('num');
+
+  try { // BLP 2025-03-29 - try/catch
+    $S->sql("select ip, site, page, botAs, agent, referer, isJavaScript from $S->masterdb.tracker where id=$id");
+    [$ip, $site, $page, $botAs, $agent, $ref, $js] = $S->fetchrow('num');
+  } catch(Exception $e) {
+    $errno = $e->getCode();
+    $errmsg = $e->getMessage();
+    error_log("tracker csstest: can't select tracker id=$id, line=". __LINE__);
+    exit();
+  }
 
   if(!str_contains($botAs, BOTAS_COUNTED)) {
     $botAs = BOTAS_COUNTED . "," . $botAs; // BLP 2024-03-21 - added
@@ -205,19 +229,7 @@ if($_GET['page'] == "csstest") {
   
   $ref = $_SERVER["HTTP_REFERER"];
 
-  // BLP 2024-12-17 - fixed update $js and referer='$ref'.
-  
-  if($ref) {
-    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, referer, isJavaScript, error, starttime, lasttime) ".
-           "values('$id', '$ip', '$site', '$page', '$botAs', '$agent', '$ref', $js, '$msg', now(), now()) ".
-           "on duplicate key update isJavaScript=$js, botAs='$botAs', referer='$ref', lasttime=now()";
-  } else {
-    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
-           "values('$id', '$ip', '$site', '$page', '$botAs', '$agent', $js, '$msg', now(), now()) ".
-           "on duplicate key update isJavaScript=$js, botAs='$botAs', lasttime=now()";
-  }
-
-  $S->sql($sql);
+  $S->sql("update $S->masterdb.tracker set isJavaScript=$js, botAs='$botAs', referer='$ref', count=count+1, lasttime=now() where id=$id"); // BLP 2025-03-29 - 
 
   header("Content-Type: text/css");
   echo "/* csstest.css */";
@@ -243,34 +255,59 @@ if($type = $_GET['page']) {
   // BLP 2025-02-25 - add in_array() logic
   
   if(!empty($mysitemap)) {
+    // Here I am looking for just the part that looks like the domain name.
+    // All of my server directory names are the same as the domain name without any prefix like
+    // 'www' etc.
+    
     $x = preg_replace("~^/var/www/(.*?)/.*$~", "$1", $mysitemap);
 
+    // Is this from one of my domains?
+    
     if(!in_array($x, ["bartonphillips.com", "bonnieburch.com", "bartonlp.com", "bartonphillips.net", "bartonlp.org",
-                      "newbernzig.com", "jt-lawnservice.com", "newbern-nc.info", "swam.us"])) {
+                      "newbernzig.com", "jt-lawnservice.com", "newbern-nc.info", "swam.us"]))
+    {
+      // NOT one of my domains.
+      
       error_log("tracker require is not from my domains ($x): id=$id, type=$msg, mysitemap=$mysitemap, line=". __LINE__);
       $S = new Database($_site); // This is for goaway which need $S
       goaway("tracker $msg, require is not form my domains ($x)");
       exit();
     }
+
+    // This is from one of my domains so bet the mysitemap.json informaton from the passed in
+    // $mysitemap. We need to capture the output and put it into $tmp.
     
     ob_start();
     require $mysitemap;
     $tmp = ob_get_contents();
     ob_end_clean();
 
+    // Now that we have the actual value from the mysitemap.json use it to get our $_site and then
+    // instanciate my $S with Database.
+    
     $_site = json_decode(stripComments($tmp));
   } else {
+    // If $mysitemap is empty we can't proceed.
+    
     error_log("tracker NO_MYSITEMAP: id=$id, type=$msg, image=$image, line=". __LINE__);
+
+    // Here we are using the $_site from the require_once at the start of this GET.
+    
     $S = new Database($_site); // This is for goaway which need $S
     goaway("GET $msg no mysitemap.json");
     exit();
   }
+
+  // Now after all the hoki-pokie we have a valid $S with information form $mysitemap, the calling
+  // sites mysitemap.json
   
-  $_site->noTrack = true; // BLP 2025-01-06 - 
-  $_site->noGeo = true;   // BLP 2025-01-06 - 
+  $_site->noTrack = true; // Don't track
+  $_site->noGeo = true;   // No Geo
 
   $S = new Database($_site);
 
+  // If the $id is not numeric we can't go on.
+  
   if(!is_numeric($id)) {
     $errno = "-100";
     $errmsg = "ID is not numeric: $id";
@@ -283,7 +320,7 @@ if($type = $_GET['page']) {
     error_log("tracker GET ID_IS_NOT_NUMERIC: id=$id, ip=$S->ip, site=$S->siteName, errno=$errno, errmsg=$errmsg, agent=$S->agent");
 
     $S->sql($sql);
-    goaway('now');
+    goaway('now'); // If the goaway() message is 'now' we already have a valid $S.
     exit();
   }
 
@@ -327,12 +364,11 @@ if($type = $_GET['page']) {
     try {
       $ip = "NO_IP"; 
 
-      $sql = "insert into $S->masterdb.tracker (id, ip, error, starttime, lasttime) ".
-             "values($id, '$S->ip', 'Select failed insert on $ip $msg', now(), now()) ".
-             "on duplicate key update error='Update, Select failed $ip $msg', lasttime=now()";
+      $S->sql("update $S->masterdb.tracker set error='Update. Select failed', count=count+1, lasttime=now() where id=$id"); // BLP 2025-03-29 - 
+      
+      error_log("tracker GET: record added for id=$id with no data. Original select failed, line=" . __LINE__);
 
-      $S->sql($sql);
-      error_log("tracker GET: record added for id=$id with no data, line=" . __LINE__);
+      exit(); 
     } catch(Exception $e) {
       // The primary key is ip and type
 
@@ -350,10 +386,12 @@ if($type = $_GET['page']) {
     }
   }
 
-  // If we get here the $ip, $site, $thepage and $agent are all valid.
-
+  // I HAVE A VALID 'tracker' RECORD!
+  // If we get here the $ip, $site, $thepage and $agent are all valid. That is they all came from
+  // the select of 'tracker'. They still my be empty if the original values in tracker were not correct.
+  
   if($DEBUG_GET1)
-     error_log("tracker GET: $id, $ip, $site, $thepage, $msg, java=$java");
+     error_log("tracker GET: $id, $ip, $site, $thepage, $msg, java=$java, line=". __LINE__);
   
   if(!str_contains($botAs, BOTAS_COUNTED)) {
     $botAs = BOTAS_COUNTED . "," . $botAs; // BLP 2024-03-21 - added
@@ -362,7 +400,7 @@ if($type = $_GET['page']) {
 
   if(empty($agent) || $S->isBot($agent) || $type == "noscript") {
     // BLP 2025-01-05 - I don't want $js to have the $or yet as I want to be able to check if
-    // NORMAL, NOSCRIPT or CSS has happened. So I do the DEBUG test first and then or in the new
+    // NORMAL or NOSCRIPT has happened. So I do the DEBUG test first and then 'or' in the new
     // value.
 
     if(empty($site)) $site = "NO_SITE";
@@ -384,54 +422,45 @@ if($type = $_GET['page']) {
         error_log("tracker GET ISABOT2_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, isBot=$S->isBot, java=$java, image=$image, agent=$agent");
       }
     }
-    
-    $S->sql("insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
-            "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, 'ISABOT type=$msg', now(), now()) ".
-            "on duplicate key update error='ISABOT_UPDATE type=$msg', count=count+1, botAs='$botAs', lasttime=now()");
 
-    // BLP 2025-03-16 - New logic to update the bots and bots2 tables.
-    
-    $S->sql("insert into $S->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
-            "values('$ip', '$agent', 1, " . BOTS_SITECLASS . ", '$site', now(), now()) ".
-            "on duplicate key update robots = robots | " . BOTS_SITECLASS . ", lasttime=now()");
+    // At this point I am pretty sure I have a tracker record for this $id.
 
-    $S->sql("insert into $S->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
-            "values('$ip', '$agent', '$thepage', date(now()), '$site', " . BOTS_SITECLASS . ", 1, now()) ".
-            "on duplicate key update count=count+1, lasttime=now()");
+    try {
+      $S->sql("update $S->masterdb.tracker set error='ISABOT_UPDATE type=$msg', count=count+1, botAs='$botAs', lasttime=now() where id=$id"); // BLP 2025-03-29 - 
+    } catch(Exception $e) {
+      error_log("tracker No record: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, isBot=$->isBot, java=$java, image=$image, agent=$agent");
+      exit();
+    }
+
+    // BLP 2025-03-28 - Made into a function.
+    // Update both bots tables (bots and bots2).
+    
+    updateBots($ip, $agent, $thepage, $site, BOTS_SITECLASS);
   } else {
     // $agent is not empty and the $agent is not a BOT.
     
     $js |= $or; 
     $java = dechex($js);
   }
+
+  // THERE IS A TRACKER RECORD.
+  // So UPDATE the existing record.
   
   $ref = $_SERVER["HTTP_REFERER"];
 
-  if($DEBUG_GET2) error_log("tracker GET: $id, $ip, $site, $thepage, $msg -- referer=$ref");
+  if($DEBUG_GET2) error_log("tracker GET: id=$id, ip=$ip, site=$site, page=$thepage, type=$msg, referer=$ref");
 
-  // BLP 2024-12-17 - fixed update $js and referer='$ref'.
-  
-  if($ref) {
-    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, referer, isJavaScript, error, starttime, lasttime) ".
-           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', '$ref', $js, '$msg', now(), now()) ".
-           "on duplicate key update isJavaScript=$js, botAs='$botAs', referer='$ref', lasttime=now()";
-  } else {
-    $sql = "insert into $S->masterdb.tracker (id, ip, site, page, botAs, agent, isJavaScript, error, starttime, lasttime) ".
-           "values($id, '$ip', '$site', '$thepage', '$botAs', '$agent', $js, '$msg', now(), now()) ".
-           "on duplicate key update isJavaScript=$js, botAs='$botAs', lasttime=now()";
-  }
+  $S->sql("update $S->masterdb.tracker set isJavaScript=$js, botAs='$botAs', referer='$ref', count=count+1, lasttime=now() where id=$id"); // BLP 2025-03-29 - 
 
-  $S->sql($sql);
-
-  // BLP 2024-12-17 - $S->defaultImage is from the mysitemap.json before anything in the original
+  // $S->defaultImage is from the mysitemap.json before anything in the original
   // page has done things to $_site. So NOTHING you do in the original page will affect these $S
   // values!!!
   
   $img = $S->defaultImage ?? "/var/www/bartonphillips.net/images/blank.png";
 
-  // script and normal may have an image but
-  // noscript has NO IMAGE
-  // BLP 2025-03-23 - $image must have http or just a /. Also, trackerLocation must be either an
+  // $type='noscript' has NO $image so it uses the default image above which is normally blank.png.
+  // $type='normal' has an $image
+  // The type='normal' $image must have http or just a /. Also, trackerLocation must be either an
   // absolute url or a relative url, but NOT a file prefix like /var/www!
   
   if($image) {
@@ -454,11 +483,7 @@ if($type = $_GET['page']) {
   // BLP 2024-12-30 - add $DEBUG_NOSCRIPT   
   
   if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) {
-    if(!empty($difftime)) {
-      error_log("tracker GET: NOSCRIPT, difftime=$difftime: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent");
-    } else {
-      error_log("tracker GET: $id, $ip, $site, $thepage, $msg, java=$java, agent=$agent");
-    }
+    error_log("tracker GET NOSCRIPT, difftime=$difftime: id=$id, ip=$ip, site=$site, page=$thepage, type=$msg, java=$java, agent=$agent");
   }
   
   echo $imgFinal;
@@ -580,6 +605,7 @@ if($_POST['page'] == 'start') {
     [$botAs, $js, $agent] = $S->fetchrow('num');
   } else { // BLP 2023-02-10 - add for debug
     error_log("tracker START2: id=$id, ip=$ip, site=$site, page=$thispage,  Select of id=$id failed, line=". __LINE__);
+    exit();
   }
 
   $java = dechex($js);
@@ -590,15 +616,7 @@ if($_POST['page'] == 'start') {
     error_log("tracker START3: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$botAs, referer=$ref, jsin=$java, jsout=$js2, line=". __LINE__);
   }
 
-  // BLP 2025-02-25 - remove if($ref) as if it is not there it will not be posted.
-  // If the select above of tracker failed, then do an insert, otherwise we do an update!
-  // BLP 2025-03-23 - add error if select failed.
-  
-  $sql = "insert into $S->masterdb.tracker (id, botAs, site, page, ip, agent, referer, error, starttime, isJavaScript, lasttime) ".
-         "values($id, '$botAs', '$site', '$thepage', '$ip', '$agent', '$ref', 'select failed', now(), '$js', now()) ".
-         "on duplicate key update isJavaScript=$js, referer='$ref', lasttime=now()";
-  
-  $S->sql($sql);
+  $S->sql("update $S->masterdb.tracker set isJavaScript=$js, referer='$ref, count=count+1, lasttime=now where id=$id"); // BLP 2025-03-29 - 
 
   echo "Start OK, java=$js";
   exit();
@@ -633,7 +651,7 @@ if($_POST['page'] == 'load') {
 
   // BLP 2023-03-25 - This should maybe be insert/update?
   
-  $S->sql("update $S->masterdb.tracker set isJavaScript=$js, lasttime=now() where id='$id'");
+  $S->sql("update $S->masterdb.tracker set isJavaScript=$js, count=count+1, lasttime=now() where id='$id'"); // BLP 2025-03-29 - 
 
   echo "Load OK, java=$js";
   exit();
@@ -684,7 +702,7 @@ if($_POST['page'] == 'onexit') {
   $botAs = empty($botAs) ? "Tor?" : "$botAs,Tor?";
   $js |= $onexit;
   
-  $S->sql("update $S->masterdb.tracker set botAs='$botAs', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
+  $S->sql("update $S->masterdb.tracker set botAs='$botAs', count=count+1, endtime=now(), difftime=timestampdiff(second, starttime, now()), ". // BLP 2025-03-29 - 
             "isJavaScript=$js, lasttime=now() where id=$id");
 
   error_log("tracker ONEXIT: id=$id, ip=$ip, site=$site, page=$thepage, type=$msg, botAs=$botAs, Maybe Tor?");
@@ -756,7 +774,7 @@ if($_POST['page'] == 'timer') {
   
   // If we get here either $botAs did contain 'counted' or we fixed it up above.
 
-  $S->sql("update $S->masterdb.tracker set botAs='$botAs', isJavaScript=$js, endtime=now(), ".
+  $S->sql("update $S->masterdb.tracker set botAs='$botAs', count=count+1, isJavaScript=$js, endtime=now(), ". // BLP 2025-03-29 - 
           "difftime=timestampdiff(second, starttime, now()), lasttime=now() where id=$id");
 
   if(!$S->isMyIp($ip) && $DEBUG_TIMER2)
@@ -802,7 +820,7 @@ function goaway($msg) {
 
       $S->sql("insert into $S->masterdb.tracker (id, site, ip, agent, isJavaScript, starttime, lasttime) ".
               "values($id, '$S->ip', '$S->siteName', '$S->agent', " . TRACKER_GOAWAY . ", now(), now()) ".
-              "on duplicate key update isJavaScript=isJavaScript|" . TRACKER_GOAWAY . ", lasttime=now()");
+              "on duplicate key update count=count+1, isJavaScript=isJavaScript|" . TRACKER_GOAWAY . ", lasttime=now()"); // BLP 2025-03-29 - 
 
       $errno = "-104: " . $e->getCode();
       $errmsg = "$id, No tracker logic triggered";

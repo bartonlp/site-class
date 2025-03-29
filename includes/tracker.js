@@ -320,10 +320,11 @@ jQuery(document).ready(function($) {
 
   function runtimer() {
     // BLP 2025-03-25 - Debug. Is timer running.
-    const startmsg = "At start of runtimer";
-    postAjaxMsg(startmsg, mysitemap, thepage).then(ajaxData => {
-      console.log(`Top of timer (${ajaxData}) from trackerUrl(${trackerUrl})`);
-    });
+
+    //const startmsg = "At start of runtimer";
+    //postAjaxMsg(startmsg, mysitemap, thepage).then(ajaxData => {
+    //  console.log(`Top of timer (${ajaxData}) from trackerUrl(${trackerUrl})`);
+    //});
 
     if(cnt++ < 50) {
       // Time should increase to about 8 plus minutes
@@ -357,11 +358,11 @@ jQuery(document).ready(function($) {
         const msg = `Timer: next difftime=${difftime/1000}`;
         
         // BLP 2025-03-24 - FOR DEBUG. Looking to see why I am not seeing timer entries.?
-        if(!difftime) {
-          postAjaxMsg(msg, mysitemap, thepage, lastId).then(ajaxData => {
-            console.log(`This is ajaxData (${ajaxData}) from trackerUrl(${trackerUrl})`);
-          });
-        }
+        //if(!difftime) {
+        //  postAjaxMsg(msg, mysitemap, thepage, lastId).then(ajaxData => {
+        //    console.log(`This is ajaxData (${ajaxData}) from trackerUrl(${trackerUrl})`);
+        //  });
+        //}
         
         setTimeout(runtimer, time);        
       }

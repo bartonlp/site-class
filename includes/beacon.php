@@ -5,7 +5,7 @@
    -200: No type
 */
 
-define("BEACON_VERSION", "4.0.11beacon-pdo"); // BLP 2025-03-02 - error_log changes, add $beacon_exit. Remove divide by 1000 because difftime is already seconds.
+define("BEACON_VERSION", "4.0.12beacon-pdo"); // BLP 2025-03-29 - add update count. Edits.
 
 // BLP 2023-01-30 - If you want the version defined ONLY and no other information.
 // If we have a valid $_site or the $__VERSION_ONLY, then just return the version info.
@@ -155,8 +155,8 @@ if(!$S->isMyIp($ip) && $DEBUG3 && $type != 'visibilitychange') {
 }
 
 // Now update tracker. $botAs should have BOTS_COUNTED!
-// BLP 2025-02-26 - add error='$beacon_exit'
+// BLP 2025-03-29 - add count.
 
-$S->sql("update $S->masterdb.tracker set botAs='$botAs', error='$beacon_exit', endtime=now(), difftime=timestampdiff(second, starttime, now()), ".
-          "isJavaScript='$js', lasttime=now() where id=$id");
+$S->sql("update $S->masterdb.tracker set botAs='$botAs', error='$beacon_exit', endtime=now(), count=count+1, difftime=timestampdiff(second, starttime, now()), ".
+        "isJavaScript='$js', lasttime=now() where id=$id");
 

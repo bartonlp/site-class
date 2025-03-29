@@ -406,6 +406,9 @@ EOF;
   public function getPageBanner():string {
     $h = new stdClass;
 
+    // BLP 2025-03-28 - at some point all of the variable that are passed to banner.i.php need to
+    // be $h->... This includes $bodytag, $mainTitle, $image1, $image2, $image3
+    
     // BLP 2022-04-09 - These need to be checked here.
     
     $bodytag = $this->bodytag ?? "<body>";
@@ -418,11 +421,10 @@ EOF;
       $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
 
       // BLP 2024-12-17 - 
-      $image1 = "<!-- Image1 is provided by tracker.js if JavaScropt is not disabled -->";
+      $image1 = "<!-- Image1 is provided by tracker.js if JavaScropt is not disabled -->\n";
+
       // We start out with the <img id='headerImage2'> having the NO SCRIPT logo, because this will
       // be changed by tracker.js if the user has Javascript.
-
-      // BLP 2024-12-17 - add mysitemap to image2 and image3 and <!-- comment.
       
       $image2 = "<!-- This is originally set to noscript.svg in SiteClass via 'image=noscriript.svg'. ".
                 "If JavaScript is enabled then tracker.js add the images from mysitemap.json, 'trackerImg1 or 2 etc. -->\n".

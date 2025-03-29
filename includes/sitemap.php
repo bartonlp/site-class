@@ -4,7 +4,7 @@
 // logagent.
 // NOTE: this can only be run with mysqli or PDO using engine mysql!
 
-define("SITEMAP_VERSION", '2.0.1'); // BLP 2025-03-23 - add TRACKER_ROBOTS to tracker table.
+define("SITEMAP_VERSION", '2.0.2'); // BLP 2025-03-29 - add count to tracker update.
 
 $_site = require_once(getenv("SITELOADNAME"));
 $_site->noTrack = true;
@@ -69,4 +69,4 @@ $S->sql("insert into $S->masterdb.logagent (site, ip, agent, count, created, las
 $S->sql("insert into $S->masterdb.tracker(site, ip, page, agent, botAs, isjavascript, starttime, lasttime) ".
         "values('$S->siteName', '$ip', 'robots.php', '$agent', 'robots',  ".
         TRACKER_ROBOTS . ", now(), now()) ".
-        "on duplicate key update botAs=botAs+',robot', isjavascript=isjavascript |" . TRACKER_ROBOTS . ", lasttime=now()");
+        "on duplicate key count=count+1, update botAs=botAs+',robot', isjavascript=isjavascript |" . TRACKER_ROBOTS . ", lasttime=now()");

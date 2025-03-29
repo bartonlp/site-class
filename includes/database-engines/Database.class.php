@@ -3,9 +3,12 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.0.14database-pdo"); // BLP 2025-03-24 - foundBotAs to botAs, see dbPdo for same changes.
+define("DATABASE_CLASS_VERSION", "1.0.15database-pdo"); // Removed checkIfBot() and replaced it with a simple isBot($agent).
+                                                        // Fixed trackbots() to look at
+                                                        // $this->isBot before setting
+                                                        // BOTS_SITECLASS.
 
-define("DEBUG_TRACKER_BOTINFO", true); // Change this to false if you don't want the error
+define("DEBUG_TRACKER_BOTINFO", false); // Change this to false if you don't want the error
 
 /**
  * Database wrapper class
@@ -74,9 +77,7 @@ class Database extends dbPdo {
       if($this->noTrack !== true) {
         $this->logagent();   // This logs Me and everybody else! This is done regardless of $this->isBot or $this->isMe().
 
-        // checkIfBot() must be done before the rest because everyone uses $this->isBot.
-
-        $this->checkIfBot(); // This set $this->isBot. Does a isMe() so I never get set as a bot!
+        $this->isBot($this->agent); // This set $this->isBot, it also does isMe() so I never get set as a bot!
 
         // Now do all of the rest.
 
@@ -161,7 +162,6 @@ class Database extends dbPdo {
   /**
    * trackbots()
    * Track both bots and bots2
-   * This sets $this->isBot unless the 'bots' table is not found.
    * SEE defines.php for the values for isJavaScript.
      CREATE TABLE `bots` (
        `ip` varchar(40) NOT NULL DEFAULT '',
@@ -190,7 +190,12 @@ class Database extends dbPdo {
    */
 
   protected function trackbots():void {
-    if(!empty($this->botAs) && $this->dbinfo->engine != "sqlite") {
+    // BLP 2025-03-28 - if $this->isBot is not true then $this->botAs should be 'zero'.
+
+    //error_log("****Database trackbots: botAs=$this->botAs, isBot=" . ($this->isBot ? "true" : "false"));
+    
+
+    if($this->isBot && $this->dbinfo->engine != "sqlite") { // BLP 2025-03-28 - Add !$this->isBot.
       $agent = $this->agent;
 
       try {
@@ -199,15 +204,16 @@ class Database extends dbPdo {
       } catch(Exception $e) {
         if($e->getCode() == 23000) { // duplicate key
           // We need the site info first. This can be one or multiple sites seperated by commas.
-
+          // The bots primary key is ip, agent(256) so there should be only one of there.
+          
           $this->sql("select site from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
 
           $who = $this->fetchrow('num')[0]; // get the site which could have multiple sites seperated by commas.
 
-          // Look at who (the haystack) and see if siteName is there. If it is not there this
-          // returns false.
+          // Look at who (the haystack) and see if siteName is there. If it is not there then add
+          // it.
 
-          if(strpos($who, $this->siteName) === false) {
+          if(!str_contains($who, $this->siteName)) {
             $who .= ", $this->siteName";
           }
 
@@ -422,25 +428,6 @@ class Database extends dbPdo {
   // ************
   // End Counters
   // ************
-
-  /**
-   * checkIfBot() before we do any of the other protected functions in SiteClass.
-   * Calls the public isBot().
-   * Checks if the user-agent looks like a bot or if the ip is in the bots table
-   * or previous tracker records had something other than zero or 0x2000.
-   * Set $this->isBot true/false.
-   * return bool.
-   * SEE defines.php for the values for TRACKER_BOT, BOTS_SITECLASS
-   * $this-isBot() is false if there is no 'match' or no entry in the bots table
-   */
-
-  protected function checkIfBot():bool {
-    if($this->isMe()) { // I am never a bot!
-      return false; 
-    }
-
-    return $this->isBot($this->agent);
-  }
 
   /**
    * updatemyip()

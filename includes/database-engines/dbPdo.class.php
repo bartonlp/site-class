@@ -25,7 +25,7 @@ require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER
  * The password is optional and if not pressent is picked up form my $HOME.
  */
 
-define("DEBUG_CONSTRUCTOR", true); // To disable change to false.
+define("DEBUG_CONSTRUCTOR", false); // To disable change to false.
 
 class dbPdo extends PDO {
   private $result; // for select etc. a result set.
@@ -75,8 +75,8 @@ class dbPdo extends PDO {
     $this->sql("set time_zone='America/New_York'"); 
     
     $this->database = $database;
-    
-    if(DEBUG_CONSTRUCTOR) {
+
+    if(DEBUG_CONSTRUCTOR === true) {
       if($this->ip != MY_IP)
         error_log("dbPdo constructor: ip=$this->ip, site=$this->siteName, page=$this->self, line=". __LINE__);
     }
@@ -186,10 +186,6 @@ class dbPdo extends PDO {
 
         if($robots & BOTS_ROBOTS) {
           $type |= TRACKER_ROBOTS;
-
-          // Check it the $tmp string already contains BOTS_ROBOTS if so add nothing. Else add
-          // BOTAS_ROBOT and a trailing comma.
-          
           $this->botAs .= str_contains($this->botAs, BOTAS_ROBOT) ? null : "," . BOTAS_ROBOT;
         }
         if($robots & BOTS_SITEMAP) {
@@ -201,7 +197,11 @@ class dbPdo extends PDO {
           $this->botAs .= str_contains($this->botAs, BOTAS_SITECLASS) ? null : "," . BOTAS_SITECLASS;
         }
         if($robots & BOTS_CRON_ZERO) {
-          $this->botAs .= str_contains($this->botAs, BOTAS_ZBOT) ? null : "," . BOTAS_ZBOT; // BLP 2023-11-04 - found 0x100 in bots so this is a zero (0x100) from bots ttable: 'zbot'
+          // BOTS_CRON_ZER0 (0x100) is added by my cron job checktracker2.php every 15 minutes.
+          // Found BOTS_CRON_ZERO (0x100) in bots so $this->botAs is BOTSAS_ZBOT.
+          // There is no $type because there is no TRACKER_... to use.
+          
+          $this->botAs .= str_contains($this->botAs, BOTAS_ZBOT) ? null : "," . BOTAS_ZBOT; 
         }
 
         $this->trackerBotInfo |= $type; // used by tracker() in Database.
