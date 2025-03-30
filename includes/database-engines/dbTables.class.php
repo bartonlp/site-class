@@ -1,8 +1,10 @@
 <?php
 /* WELL TESTED and MAINTAINED */
-// BLP 2023-01-31 - added $db->dbTables and made $db a reference.
 
-define("DBTABLE_CLASS_VERSION", "1.0.1dbTables-pdo"); // BLP 2023-01-31 - 
+define("DBTABLE_CLASS_VERSION", "1.0.2dbTables-pdo"); // BLP 2025-03-30 - Add getrows().
+                                                      // Added defaults for $rowdesc and $delim.
+                                                      // Removed setting of $rowdes and $delim.
+ 
 
 // Make database tables given either a SiteClass or Database class object.
 
@@ -10,7 +12,7 @@ class dbTables {
   private $db;
 
   /**
-   * @param object|class $db. Can be either SiteClass or Database class.
+   * @param class $db. Can be either SiteClass, Database or dbPdo class.
    */
   
   public function __construct(&$db) { // BLP 2023-01-31 - make $db a reference
@@ -21,10 +23,57 @@ class dbTables {
   public static function getVersion() {
     return DBTABLE_CLASS_VERSION;
   }
+
+  /**
+   * getrows
+   * Simple row extraction with a callback function.
+   * @param string $query
+   * @param callback function default to null
+   * @return string|null. If no data found returns null, else the body rows of a table.
+   * On error throws an exception from sql().
+   * The callback function argument is the row passed by reference (&$row).
+   * The row has a <tr> start and <td>...</td> values followed by a </tr>.
+   * The &$row is a side effect of the callback and becomes the new $row.
+   **/
+
+  public function getrows($query, $callback = null):string|null {
+    $rows = null;
+
+    $num = $this->db->sql($query);
+
+    // If no date return null
+    
+    if($num === 0) {
+      return $rows; // NULL
+    }
+
+    // Loop through all the rows.
+    
+    while($row = $this->db->fetchrow('num')) {
+      $tmp = '';
+
+      // Loop through the $row array
+      
+      foreach($row as $v) {
+        // $v is the row item surround it with <td>...</td>
+        
+        $tmp .= "<td>$v</td>";
+      }
+      // Do the call back if not null. The function gets $tmp as a referrence.
+      
+      if($callback) $callback($tmp);
+
+      // If the callback was called $tmp has been modified
+      
+      $rows .= "<tr>$tmp</tr>";
+    }
+    // return the full body of a table. There is not <tbody>...</tbody> just <tr> lines.
+    
+    return $rows;
+  }
   
   /**
    * makeresultrows
-   * Like maketbodyrows() but with different argument symantics. USE THIS INSTEAD of maketbodyrows()
    * The $rowdesc can have a wild card like this: '<tr><td>*</td></tr>'. Then make the $extra[delim] be
    *   array("<td>", "</td>");
    * Can also have a header like '<table><thead>%<th>*</th>%</thead>'. The header delimiter is always %.
@@ -44,7 +93,7 @@ class dbTables {
    *         else a string with the rows
    */
   
-  public function makeresultrows(string $query, string $rowdesc, array $extra=array()):mixed {
+  public function makeresultrows(string $query, string $rowdesc=null, array $extra=null):mixed {
     $num = $this->db->sql($query); 
 
     if(!$num) {
@@ -55,7 +104,8 @@ class dbTables {
     
     $result = $this->db->getResult(); 
 
-    $delim = $extra['delim'];
+    $delim = $extra['delim'] ?? ['<td>', '</td>']; // BLP 2025-03-30 - use default if not supplied.
+    $rowdesc = $rowdesc ?? "<tr><td>*</td></tr>"; // BLP 2025-03-30 - use default.
 
     // Set up delimiters
 
@@ -222,8 +272,8 @@ class dbTables {
       }
     }
     $table .= ">\n<thead>\n<tr>%<th>*</th>%</tr>\n</thead>";
-    $rowdesc = "<tr><td>*</td></tr>";
-    $delim = array("<td>", "</td>");
+    //$rowdesc = "<tr><td>*</td></tr>"; // BLP 2025-03-30 - removed
+    //$delim = array("<td>", "</td>"); // BLP 2025-03-30 - 
     $callback = $extra['callback']; // Before
     $callback2 = $extra['callback2']; // After
 
