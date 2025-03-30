@@ -35,7 +35,7 @@ if($_POST) {
   $site = $_POST['site'] ?? '';
   $page = $_POST['page'] ?? '';
   $ts = $_POST['ts']/1000 ?? time();
-  $ts =  date("Y:m:d H:i:s", $ts);
+  $ts =  date("Y-m-d H:i:s", $ts);
 
   // Note that $S->isMe() looks at myip and anyone who I have been is considered me. Here I only
   // want to not look at my ip.
