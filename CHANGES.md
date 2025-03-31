@@ -1,5 +1,8 @@
 # CHANGES
 
+BLP 2025-03-31 - Added logging.php and logging.js. These look at JavaScript events other than exit events.
+A number of updates and fixes have been done in the past month.
+
 [Full git log of changes](https://bartonlp.com/gitlog)  
 [Version](https://bartonlp.com/otherpages/getVersions.php)
 
