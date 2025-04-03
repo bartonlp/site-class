@@ -1,0 +1,58 @@
+I want to change the bots table, or create a new table that incorperates all of the bot indicators as an ored field.
+
+For example:
+1 is robots.txt
+2 is sitemap.xml
+4 is BOT match
+0x10 is BOT zbot (found in this table)
+0x20 is BOT goodbot
+0x30 is counted
+
+0x100 is visability change
+0x200 is page hide
+0x400 is before unload
+0x800 is unload
+0x1000 is cron added by checkvisability
+0x2000 is cron added by checktracker
+0x10000 is difftime not zero
+
+Then when I get a new IP in the tracker() function in Database I can look to see if it was found in isBot() in dbPdo.
+If it is I can decide how I want to treat this item. This layout will give me more information.
+If I see an IP that is the same but with different User Agent Strings I can look at the difftime and other events to see if this might be a
+BOT like facebook that piggybacks on the real IP (like from Verison etc).
+
+The new bots table might look like:
+create table bots3 {
+  ip varchar(50) comment 'big enough to handle IP6',
+  agent text comment 'big enough to handle anything',
+  site int comment 'location of start of site chain',
+  page varchar(255) comment 'the page on my site',
+  info int comment 'bit mapped values as above',
+  count int default 1 comment 'the number of time this has been updated',
+  created datetime comment 'when record created',
+  lasttime datetime comment 'the lasttime this was updated',
+  primary key (ip, agent(255), page) comment 'this makes this record unique'
+);
+
+This 'site' is a link to the start of an ip chain that looks like:
+create table sitechain (
+  backinx int comment 'link back to bot table item',
+  sitedomain varchar(255) not null comment 'the site domain name',
+  forwardinx int comment 'either null or the next sitedomain in chain',
+  created datetime,
+  lasttime datetime
+)
+
+Here is what I have now:
+
+CREATE TABLE `bots` (
+  `ip` varchar(40) NOT NULL DEFAULT '',
+  `agent` text NOT NULL,
+  `count` int DEFAULT NULL,
+  `robots` int DEFAULT '0',
+  `site` varchar(255) DEFAULT NULL,
+  `creation_time` datetime DEFAULT NULL,
+  `lasttime` datetime DEFAULT NULL,
+  PRIMARY KEY (`ip`,`agent`(254))
+) ENGINE=MyISAM DEFAULT CHARSET=latin1
+  

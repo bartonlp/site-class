@@ -288,8 +288,14 @@ if($type = $_GET['page']) {
     $_site = json_decode(stripComments($tmp));
   } else {
     // If $mysitemap is empty we can't proceed.
+
+    if(!$_SERVER) error_log("****tracker: NO \$_SERVER");
     
-    error_log("tracker NO_MYSITEMAP: id=$id, type=$msg, image=$image, line=". __LINE__);
+    $xip = $_SERVER['REMOTE_ADDR'] ?? "NO_IP";
+    $xsite = $_SERVER['HTTP_HOST'] ?? "NO_SITE";
+    $xpage = $_SERVER['PHP_SELF'] ?? "NO_PAGE";
+    
+    error_log("tracker NO_MYSITEMAP: id=$id, xip=$xip, xsite=$xsite, xpage=$xpage, type=$msg, image=$image, line=". __LINE__);
 
     // Here we are using the $_site from the require_once at the start of this GET.
     
