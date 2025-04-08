@@ -4,17 +4,16 @@
 // logagent.
 // NOTE: this can only be run with mysqli or PDO using engine mysql!
 
-define("SITEMAP_VERSION", '2.0.2'); // BLP 2025-03-29 - add count to tracker update.
+define("SITEMAP_VERSION", '2.1.0'); // BLP 2025-04-03 - new bots3 logic
 
-$_site = require_once(getenv("SITELOADNAME"));
+$_site = require_once getenv("SITELOADNAME");
 $_site->noTrack = true;
 $_site->noGeo = true;
 $S = new Database($_site);
 
-$map = BOTS_SITEMAP;
-
 if(!file_exists("./Sitemap.xml")) {
   echo "<h1>404 - FILE NOT FOUND</h1>";
+  error_log("sitemap.php: Sitemap.xml not found, line=". __LINE__);
   exit();
 }
 
@@ -26,37 +25,14 @@ if($S->isMe()) return;
 
 $ip = $S->ip;
 $agent = $S->agent;
+$page = basename($S->self);
 
-try {
-  // BLP 2021-12-26 -- robots is 4 for insert and robots=robots|8 for update.
+$siteBit = BOTS_SITEBITMAP[$S->siteDomain] ?? 0; // BLP 2025-04-03 - all of the siteNames are domain names.
+$siteMap = BOTS_SITEMAP;
 
-  $S->sql("insert into $S->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
-          "values('$ip', '$agent', 1, $map, '$S->siteName', now(), now())");
-} catch(Exception $e) {
-  if($e->getCode() == 1062 || $e->getCode() == 23000) { // duplicate key
-    $S->sql("select site from $S->masterdb.bots where ip='$ip'");
-
-    $who = $S->fetchrow('num')[0];
-
-    if(!$who) {
-      $who = $S->siteName;
-    }
-    if(strpos($who, $S->siteName) === false) {
-      $who .= ", $S->siteName";
-    }
-    $S->sql("update $S->masterdb.bots set robots=robots|$map, count=count+1, site='$who', lasttime=now() ".
-              "where ip='$ip' and agent='$agent'");
-  } else {
-    error_log("robots: ".print_r($e, true));
-  }
-}
-
-// BLP 2021-11-12 -- 4 for sitemap
-// BLP 2021-12-26 -- bots2 primary key is 'ip, agent, date, site, which'.
-
-$S->sql("insert into $S->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
-        "values('$ip', '$agent', 'sitemap', now(), '$S->siteName', $map, 1, now()) ".
-        "on duplicate key update count=count+1, lasttime=now()");
+$S->sql("insert into $S->masterdb.bots3 (ip, agent, page, count, robots, site, created) ".
+        "values('$ip', '$agent', '$page', 1, $siteMap, $siteBit, now()) ".
+        "on duplicate key update robots=robots|$siteMap, site=site|$siteBit");
 
 // Insert or update logagent
 
@@ -66,7 +42,8 @@ $S->sql("insert into $S->masterdb.logagent (site, ip, agent, count, created, las
 // Add to tracker
 // BLP 2025-03-23 - add TRACKER_ROBOTS
 
-$S->sql("insert into $S->masterdb.tracker(site, ip, page, agent, botAs, isjavascript, starttime, lasttime) ".
-        "values('$S->siteName', '$ip', 'robots.php', '$agent', 'robots',  ".
-        TRACKER_ROBOTS . ", now(), now()) ".
-        "on duplicate key update count=count+1, botAs=botAs+',robot', isjavascript=isjavascript |" . TRACKER_ROBOTS . ", lasttime=now()");
+$S->sql("insert into $S->masterdb.tracker(site, ip, page, agent, botAs, botAsBits, isjavascript, starttime) ".
+        "values('$S->siteName', '$ip', 'robots.php', '$agent', 'robots', ". BOTS_SITEMAP .
+        ", " . TRACKER_ROBOTS . ", now()) ".
+        "on duplicate key update count=count+1, botAs=botAs+',robot', botAsBits=botAsBits|". BOTS_SITEMAP .
+        ", isjavascript=isjavascript |" . TRACKER_ROBOTS . ", lasttime=now()");

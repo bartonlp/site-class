@@ -5,8 +5,12 @@
 
 // This is using PDO.
 
-define("SITE_CLASS_VERSION", "5.1.2pdo"); // BLP 2025-03-26 - location information added.
-                                          // BLP 2025-03-26 - add $b->extra in getPageFooter()
+define("SITE_CLASS_VERSION", "5.2.0pdo"); // BLP 2025-04-08 - changed getPageBanner() to use $b->names. Changed getPageFooter() to use $f->names.
+                                          // Added more comments and removed old BLP labels.
+                                          // The $this->b_... and $this->h_..., which are usually set by
+                                          // $S->b_... and $S->h_..., remain the same in all of my
+                                          // files.
+
 // One class for all my sites
 /**
  * SiteClass
@@ -51,7 +55,7 @@ class SiteClass extends Database {
     
     parent::__construct($s); // Turns everything in $s into $this.
 
-    // BLP 2018-07-01 -- Add the date to the copyright notice if one exists
+    // Add the date to the copyright notice if one exists
 
     if($this->copyright) {
       $this->copyright = date("Y") . " $this->copyright";
@@ -136,8 +140,6 @@ class SiteClass extends Database {
     
     $h = new stdClass;
 
-    $dtype = $this->doctype; // note that $this->doctype could also be from mysitemap.json see the constructor.
-
     $h->base = $this->base ? "<base href='$this->base'>" : null;
 
     // All meta tags
@@ -186,8 +188,11 @@ class SiteClass extends Database {
     $htmlextra = $this->htmlextra; // Must be full html
     
     // If nojquery is true then don't add $trackerStr at all.
-
+    // So here !== true means that it is really false or null.
+    
     if($this->nojquery !== true) {
+      // Add the jQuery info and the JavaScript var items.
+      
       $jQuery = <<<EOF
   <!-- BLP 2024-12-31 - Latest version 3.7.1 and migrate 3.5.2 -->
   <script nonce="$this->nonce" src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
@@ -195,25 +200,26 @@ class SiteClass extends Database {
   <script nonce="$this->nonce">jQuery.migrateMute = false; jQuery.migrateTrace = false;</script>
 EOF;
 
-      // BLP 2023-02-20 - trackerLocationJs needs to be part of $this for whatisloaded.class.php.
-
       $this->trackerLocationJs = $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
 
-      // BLP 2025-03-26 - add the location of the logging.js and logging.php files.
+      // add the location of the logging.js and logging.php files.
       
       $this->interactionLocationJs = $this->interactionLocationJs ?? "https://bartonlp.com/otherpages/js/logging.js"; // BLP 2025-03-26 - 
       $this->interactionLocationPhp = $this->interactionLocationPhp ?? "https://bartonlp.com/otherpages/logging.php";  // BLP 2025-03-26 -
       
       // tracker.php and beacon.php MUST be symlinked in bartonlp.com/otherpages
-      // to the SiteClass 'includes' directory.
+      // to the SiteClass 'includes' directory. This is because /var/www/site-class does not have
+      // its own and therefore we can't get to it directly. https://bartonlp has its own
+      // domain and we can get to it.
 
       $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php"; // BLP 2023-08-09 - a symlink
       $beaconLocation = $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php"; // BLP 2023-08-09 - a symlink
 
       $logoImgLocation = $this->logoImgLocation ?? "https://bartonphillips.net";
-      $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation ?? "/var/www/bartonphillips.net";
+      $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation;
 
       // The trackerImg... can start with http or https. If so use the full url.
+      // NOTE: these Must be either an absolute URL or a relative URL not a filesystem link!
 
       if(strpos($this->trackerImg1, "http") === 0) {
         $desktopImg = $this->trackerImg1;
@@ -236,28 +242,23 @@ EOF;
         $phoneImg2 = $this->trackerImgPhone2 ? "$headerImg2Location$this->trackerImgPhone2" : null; // BLP 2023-08-10 - 
       }
 
+      // Should we track and do we actually want a database ?
+      
       if($this->noTrack !== true && $this->nodb !== true) {
-        // 'load' is an alias for getinfo() in siteload.php. See the top of this
-        // program for the 'use' alias.
-        // I use $mysitemap in tracker.php to be able to not have symlinks in all of my domains.
-
-        // BLP 2024-12-17 - remove try below and use $this->mysitemap.
-        
         $mysitemap = $this->mysitemap;
 
-        // If not noTrack or nbdb add the tracker.js location.
+        // If we are 'tracking' users add tracker.js and logging.js
         
-        $trackerStr = "<script nonce='$this->nonce' src='$this->trackerLocationJs'></script>\n"; // BLP 2025-03-25 - removed data-lastid='$this->LAST_ID'
+        $trackerStr = "<script nonce='$this->nonce' src='$this->trackerLocationJs'></script>\n"; 
+
         if($this->nointeraction !== true)
-          $trackerStr .= "<script nonce='$this->nonce' src='$this->interactionLocationJs'></script>\n"; // BLP 2025-03-26 - 
+          $trackerStr .= "<script nonce='$this->nonce' src='$this->interactionLocationJs'></script>\n";
       } else {
         // Either or both noTrack and nodb were set.
         // This is the code we use instead of tracker.js if noTrack or nodb are true.
 
-        // BLP 2025-03-25 - remove data-lastid='$this->LAST_ID'
-        
         $trackerStr =<<<EOF
-<script>
+<script nonce='$this->nonce'>
 /* Minimal tracker.js logic if noTrack */
 
 'use strict';
@@ -318,7 +319,7 @@ jQuery(document).ready(function($) {
 });
 </script>
 EOF;
-      }
+      } // End of logic is noTrack or nodb is true.
 
       // Now fill in the rest of $trackerStr.
       // If noTrack or nodb then many of the items will be empty.
@@ -341,20 +342,19 @@ EOF;
   </script>
 EOF;
       $trackerStr = "$xtmp\n$trackerStr";
-    }
+    } // End of $this->nojquery !=== true. That is we want jQuery.
+
+    // Add language and things like a manafest etc. to the <html> tag.
     
     $html = '<html lang="' . $lang . '" ' . $htmlextra . ">"; // stuff like manafest etc.
 
-    // BLP 2025-02-21 - The original $jQuery and $trackerStr are still available to old header
-    // include file. $h is new and the head.i.php in bartonphillips.com/includes uses the new form.
-    
     $h->jQuery = $jQuery;
     $h->trackerStr = $trackerStr;
     
     // What if headFile is null? Use the Default Head.
 
     if(!is_null($this->headFile)) {
-      if(($p = require($this->headFile)) != 1) {
+      if(($p = require($this->headFile)) !== 1) {
         $pageHeadText = "{$html}\n$p";
       } else {
         throw new Exception(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1");
@@ -384,11 +384,12 @@ $h->inlineScript
 $h->css
 </head>
 EOF;
-    }
+    } // End default head.
 
-    // Default header has < /> elements. If not XHTML we remove the /> at the end!
+    // Add tthe preheadcomment and doctype and the pageHeadText
+    
     $pageHead = <<<EOF
-{$preheadcomment}{$dtype}
+{$preheadcomment}{$this->doctype}
 $pageHeadText
 EOF;
 
@@ -398,21 +399,16 @@ EOF;
   /**
    * getPageBanner()
    * Get Page Banner
-   * BLP 2022-01-30 -- New logic
    * @return string banner
    * NOTE: The body tag is done HERE!
    */
-
+  // BLP 2025-04-08 - I should use $b = new stdClass and make everything $b->name.
+  
   public function getPageBanner():string {
-    $h = new stdClass;
+    $b = new stdClass; // b is for banner
 
-    // BLP 2025-03-28 - at some point all of the variable that are passed to banner.i.php need to
-    // be $h->... This includes $bodytag, $mainTitle, $image1, $image2, $image3
-    
-    // BLP 2022-04-09 - These need to be checked here.
-    
-    $bodytag = $this->bodytag ?? "<body>";
-    $mainTitle = $this->banner ?? $this->mainTitle;
+    $b->bodytag = $this->bodytag ?? "<body>";
+    $b->mainTitle = $this->banner ?? $this->mainTitle;
 
     // If we have nodb or noTrack then there will be no tracker.js or tracker.php
     // so we can't set the images at all.
@@ -421,30 +417,30 @@ EOF;
       $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
 
       // BLP 2024-12-17 - 
-      $image1 = "<!-- Image1 is provided by tracker.js if JavaScropt is not disabled -->\n";
+      $b->image1 = "<!-- Image1 is provided by tracker.js if JavaScropt is not disabled -->\n";
 
       // We start out with the <img id='headerImage2'> having the NO SCRIPT logo, because this will
       // be changed by tracker.js if the user has Javascript.
       
-      $image2 = "<!-- This is originally set to noscript.svg in SiteClass via 'image=noscriript.svg'. ".
+      $b->image2 = "<!-- This is originally set to noscript.svg in SiteClass via 'image=noscriript.svg'. ".
                 "If JavaScript is enabled then tracker.js add the images from mysitemap.json, 'trackerImg1 or 2 etc. -->\n".
                 "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal".
                 "&amp;id=$this->LAST_ID&amp;image=/images/noscript.svg&amp;mysitemap=$this->mysitemap' alt='NO SCRIPT'>";
 
-      $image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?page=noscript&amp;id=$this->LAST_ID&amp;mysitemap=$this->mysitemap'>";
+      $b->image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?page=noscript&amp;id=$this->LAST_ID&amp;mysitemap=$this->mysitemap'>";
     }
 
-    $h->logoAnchor = $this->logoAnchor ?? "https://www.$this->siteDomain";
+    $b->logoAnchor = $this->logoAnchor ?? "https://www.$this->siteDomain";
     
     if(!is_null($this->bannerFile)) {
-      $pageBannerText = require($this->bannerFile);
+      $b->pageBannerText = require($this->bannerFile);
     } else {
       // a default banner
-      $pageBannerText =<<<EOF
+      $b->pageBannerText =<<<EOF
 <!-- Default Header/Banner -->
 <header>
 <div id='pagetitle'>
-$mainTitle
+$b->mainTitle
 </div>
 <noscript style="color: red; border: 1px solid black; padding: 10px; font-size: large;">
 <strong>Your browser either does not support JavaScripts
@@ -457,8 +453,8 @@ EOF;
     // Return the Banner
 
     return <<<EOF
-$bodytag
-$pageBannerText
+$b->bodytag
+$b->pageBannerText
 
 EOF;
   }
@@ -469,7 +465,8 @@ EOF;
    * @return string
    * Uses $b, however the old values are still available for old includes.
    */
-
+  // BLP 2025-04-08 - changed all $b=>name to $f->name. $f for footer.
+  
   public function getPageFooter():string {
     // If nofooter is true just return an empty footer
 
@@ -482,32 +479,32 @@ EOF;
 EOF;
     }
 
-    $b = new stdClass;
+    $f = new stdClass; // $f is for footer
 
-    $b->ctrmsg = $this->ctrmsg;
-    $b->msg = $this->msg;
-    $b->msg1 = $this->msg1;
-    $b->msg2 = $this->msg2;
+    $f->ctrmsg = $this->ctrmsg;
+    $f->msg = $this->msg;
+    $f->msg1 = $this->msg1;
+    $f->msg2 = $this->msg2;
     
-    $b->address = $this->noAddress ? null : ($this->address . "<br>");
+    $f->address = $this->noAddress ? null : ($this->address . "<br>");
     $noCopyright = $this->noCopyright;
-    $b->copyright = $noCopyright ? null : ($this->copyright . "<br>");
-    if(preg_match("~^\d{4}~", $b->copyright) === 1) {
-      $b->copyright = "Copyright &copy; $b->copyright";
+    $f->copyright = $noCopyright ? null : ($this->copyright . "<br>");
+    if(preg_match("~^\d{4}~", $f->copyright) === 1) {
+      $f->copyright = "Copyright &copy; $f->copyright";
     }
     
-    $b->aboutwebsite = $this->aboutwebsite ??
+    $f->aboutwebsite = $this->aboutwebsite ??
                        "<h2><a target='_blank' href='https://bartonlp.com/otherpages/aboutwebsite.php?" .
                        "site=$this->siteName&domain=$this->siteDomain'>About This Site</a></h2>";
     
-    $b->emailAddress = $this->noEmailAddress ? null : ($this->emailAddress ?? $this->EMAILADDRESS);
-    $b->emailAddress = $this->emailAddress ? "<a href='mailto:$this->emailAddress'>$this->emailAddress</a>" : null;
+    $f->emailAddress = $this->noEmailAddress ? null : ($this->emailAddress ?? $this->EMAILADDRESS);
+    $f->emailAddress = $this->emailAddress ? "<a href='mailto:$this->emailAddress'>$this->emailAddress</a>" : null;
 
     // Set the $b values from the b_ values
     
-    $b->inlineScript = $this->b_inlineScript ? "<script nonce='$this->nonce'>\n$this->b_inlineScript\n</script>" : null;
-    $b->script = $this->b_script;
-    $b->extra = $this->b_extra; // BLP 2025-03-26 -
+    $f->inlineScript = $this->b_inlineScript ? "<script nonce='$this->nonce'>\n$this->b_inlineScript\n</script>" : null;
+    $f->script = $this->b_script;
+    $f->extra = $this->b_extra; // BLP 2025-03-26 -
     
     // counterWigget is available to the footerFile to use if wanted.
     
@@ -531,9 +528,9 @@ EOF;
 
     // BLP 2025-02-21 - $counterWigget, $lastmod and $geo are still available to old footer
     // includes files. $b now is used in bartonphillips.com/includes/footer.i.php.
-    $b->counterWigget = $counterWigget;
-    $b->lastmod = $lastmod;
-    $b->geo = $geo;
+    $f->counterWigget = $counterWigget;
+    $f->lastmod = $lastmod;
+    $f->geo = $geo;
     
     // We can put the footerFile into $S or use it from mysitemap.json
     // If either is set to 'false' then use the default footer, else use $this->footerFile unless
@@ -545,11 +542,11 @@ EOF;
       $pageFooterText = <<<EOF
 <!-- Default Footer -->
 <footer>
-$b->aboutwebsite
-$counterWigget
-$lastmod
-$b->script
-$b->inlineScript
+$f->aboutwebsite
+$f->counterWigget
+$f->lastmod
+$f->script
+$f->inlineScript
 </footer>
 </body>
 </html>

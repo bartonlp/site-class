@@ -14,7 +14,7 @@
 
 use SendGrid\Mail\Mail; // Use SendGrid for email
 
-define("PDO_CLASS_VERSION", "1.0.16pdo"); // BLP 2025-03-24 - Change foundBotAs to botAs
+define("PDO_CLASS_VERSION", "1.2.0pdo"); // BLP 2025-04-04 - New logic in isBot(). Add BOTS_FORCE to force a bot.
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -138,11 +138,44 @@ class dbPdo extends PDO {
    *  it sets $this->isBot
    *  it sets $this->botAs
    * These side effects are used by checkIfBot():void see below.
+   * BLP 2025-04-05 - $this-botAs is now a bitmap
    */
   
   public function isBot(?string $agent):bool {
-    $this->isBot = false;
-    $this->botAs = BOTAS_ZERO; // BOTAS_ZERO is null. This will be the return if nothing was found.
+    // BLP 2025-04-04 - Force isBot to return true.
+
+    if($this->forceBot === true) { // BLP 2025-04-04 - 
+      $this->isBot = true;
+      $this->botAs = BOTS_FORCE;
+    } else {
+      $this->isBot = false;
+      $this->botAs = 0; // BLP 2025-04-03 - botAs is not an integer bitmap
+    }
+
+    // BLP 2025-04-04 - create the robots to $botAS, $type matrix
+    // I use this map to take apart the robots fields from ALL of the bots3 records.
+    // Some of these have TRACKER_... or BEACON_... values but many have none.
+    // See the logic in the section that loops through ALL of the bots3 records below.
+    
+    $robotMap = [
+                 BOTS_ROBOTS => ['as' => BOTS_ROBOTS,    'tracker' => TRACKER_ROBOTS],
+                 BOTS_SITEMAP => ['as' => BOTS_SITEMAP,   'tracker' => TRACKER_SITEMAP],
+                 BOTS_SITECLASS => ['as' => BOTS_SITECLASS, 'tracker' => TRACKER_BOT],
+                 BOTS_ZBOT => ['as' => BOTS_ZBOT],
+                 BOTS_GOODBOT => ['as' => BOTS_GOODBOT],
+                 BOTS_NOAGENT => ['as' => BOTS_NOAGENT],
+                 BOTS_VISIBILITYCHANGE => ['as' => BOTS_VISIBILITYCHANGE, 'tracker' => BEACON_VISIBILITYCHANGE],
+                 BOTS_PAGEHIDE => ['as' => BOTS_PAGEHIDE, 'tracker' => BEACON_PAGEHIDE],
+                 BOTS_BEFOREUNLOAD => ['as' => BOTS_BEFOREUNLOAD, 'tracker' => BEACON_BEFOREUNLOAD],
+                 BOTS_UNLOAD => ['as' => BOTS_UNLOAD, 'tracker' => BEACON_UNLOAD],
+                 BOTS_CRON_CHECKTRACKER => ['as' => BOTS_CRON_CHECKTRACKER],
+                 BOTS_CRON_CHECKVISIBILITY => ['as' => BOTS_CRON_CHECKVISIBILITY],
+                 BOTS_HAS_DIFFTIME => ['as' => BOTS_HAS_DIFFTIME],
+                 BOTS_HAS_FINGER => ['as' => BOTS_HAS_FINGER],
+                 BOTS_ISMEFALSE => ['as' => BOTS_ISMEFALSE],
+                 BOTS_FORCE => ['as' => BOTS_FORCE],
+                ];
+    
     $this->trackerBotInfo = null; // Set to null at start.
     
     // BLP 2025-01-12 - Make sure it is not ME!
@@ -154,7 +187,8 @@ class dbPdo extends PDO {
                           "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
                           "http client|PECL::HTTP|Go-|python~i", $agent)) === 1) { // 1 means a match
         $this->isBot = true;
-        $this->botAs = BOTAS_MATCH;
+        $this->botAs |= BOTS_MATCH;
+
       } elseif($x === false) { // false is error
         // This is an unexplained ERROR
         throw new PdoException(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", -300);
@@ -162,51 +196,39 @@ class dbPdo extends PDO {
 
       if(($x = preg_match("~\+?https?://~", $agent)) === 1) {
         $this->isBot = true;
-        $this->botAs = (empty($this->botAs)) ? BOTAS_GOODBOT : ("$this->botAs," . BOTAS_GOODBOT);
+        $this->botAs |= BOTS_GOODBOT; // BLP 2025-04-03 - bitmap
       } elseif($x === false) {
         throw new PdoException(__CLASS__ . " " . __LINE__ . ": preg_match() for +https? false", -301);
       }
     } else {
-      $this->botAs = BOTAS_NOAGENT;
+      $this->botAs |= BOTS_NOAGENT; // BLP 2025-04-05 - bitmap
       $this->isBot = true;
     }
 
-    // BLP 2025-03-08 - reworked. Use bots not bots2. Combine the bots2 and bots logic. Remove
-    // switch() and use if($robots & ...).
-
-    // Look at all of the bots records for this ip.
+    // BLP 2025-04-04 - New logic to take apart the robots field and 'or' the corresponding values
+    // into $this->bottAs and $this->trackerBotInfo variables which are used later in Database
+    // tracker().
+    // Look at ALL of the bots3 records for this ip.
     
-    if($this->sql("select robots from $this->masterdb.bots where ip='$this->ip'")) { // Found some.
+    if($this->sql("select robots from $this->masterdb.bots3 where ip='$this->ip'")) { // Found some.
       // Get each record
 
       while([$robots] = $this->fetchrow('num')) {
         $type = null;
 
-        // $robots is an int with the BOTS_... ored in. It must be taken apart with 'ands'.
-
-        if($robots & BOTS_ROBOTS) {
-          $type |= TRACKER_ROBOTS;
-          $this->botAs .= str_contains($this->botAs, BOTAS_ROBOT) ? null : "," . BOTAS_ROBOT;
+        // BLP 2025-04-04 - Use $robotMap and take apart the information
+        // Changed this to a looping function as the number of $robots items got too big.
+        
+        foreach ($robotMap as $bit => $flags) {
+          if ($robots & $bit) {
+            $this->botAs |= $flags['as'];
+            if (isset($flags['tracker'])) {
+              $this->trackerBotInfo |= $flags['tracker'];
+            }
+          }
         }
-        if($robots & BOTS_SITEMAP) {
-          $type |= TRACKER_SITEMAP;
-          $this->botAs .= str_contains($this->botAs, BOTAS_SITEMAP) ? null : "," . BOTAS_SITEMAP;
-        }
-        if($robots & BOTS_SITECLASS) {
-          $type |= TRACKER_BOT;
-          $this->botAs .= str_contains($this->botAs, BOTAS_SITECLASS) ? null : "," . BOTAS_SITECLASS;
-        }
-        if($robots & BOTS_CRON_ZERO) {
-          // BOTS_CRON_ZER0 (0x100) is added by my cron job checktracker2.php every 15 minutes.
-          // Found BOTS_CRON_ZERO (0x100) in bots so $this->botAs is BOTSAS_ZBOT.
-          // There is no $type because there is no TRACKER_... to use.
-          
-          $this->botAs .= str_contains($this->botAs, BOTAS_ZBOT) ? null : "," . BOTAS_ZBOT; 
-        }
-
-        $this->trackerBotInfo |= $type; // used by tracker() in Database.
-
-        // BLP 2025-03-09 - BotAs also used in tracker in Database.
+    
+        // BLP 2025-03-09 - $this->botAs and $this->trackerBotInfo used in tracker in Database.
         
         $this->isBot = true;
         
@@ -214,13 +236,12 @@ class dbPdo extends PDO {
       }
     }
 
-    // isBot may be true because 1) BOTAS_MATCH, 2) BOTAS_NOAGENT 3) BOTAS_GOODBOT or 4) found in bots
-    // table. If the agent mastched the list in the preg_match at the top, then BOTAS_MATCH.
-    // If the agent had an http address for information then BOTAS_GOODBOT is set.
-    // If there was 'no agent' then BOTAS_NOAGENT is set.
+    // isBot may be true because 1) BOTS_MATCH, 2) BOTS_NOAGENT 3) BOTS_GOODBOT or 4) found in bots
+    // table. If the agent mastched the list in the preg_match at the top, then BOTS_MATCH.
+    // If the agent had an http address for information then BOTS_GOODBOT is set.
+    // If there was 'no agent' then BOTS_NOAGENT is set.
     // If any of the above happened then isBot is true.
-    // If we did not find anything then BATAS_ZERO was set at the start of isBot so
-    // $this->botAs == BOTAS_ZERO (null)
+    // If we did not find anything then $this->botAs=0 and isBot=false.
 
     return $this->isBot;
   }

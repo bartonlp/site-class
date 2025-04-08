@@ -57,6 +57,8 @@ if($_POST) {
     $S->sql("insert into $S->masterdb.interaction (id, ip, site, page, event, time, created, lasttime) ".
             "values('$id', '$ip', '$site', '$page', '$event', '$ts', now(), now()) ".
             "on duplicate key update event=concat_ws(',', event, '$event'), count=count+1, lasttime=now()");
+
+    $S->sql("update $S->masterdb.tracker set botAsBits=botAsBits|". BOTS_HAS_INTERACTION . ", count=count+1 where id=$id");
   }
   
   http_response_code(204); // No content

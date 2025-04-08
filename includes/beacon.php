@@ -5,7 +5,7 @@
    -200: No type
 */
 
-define("BEACON_VERSION", "4.0.12beacon-pdo"); // BLP 2025-03-29 - add update count. Edits.
+define("BEACON_VERSION", "4.0.13beacon-pdo"); // BLP 2025-04-07 - fix botAsBits.
 
 // BLP 2023-01-30 - If you want the version defined ONLY and no other information.
 // If we have a valid $_site or the $__VERSION_ONLY, then just return the version info.
@@ -72,7 +72,6 @@ if(!is_numeric($id)) {
 
 if($S->sql("select botAs, isJavaScript, difftime, finger, agent, error from $S->masterdb.tracker where id=$id")) {
   [$botAs, $js, $difftime, $finger, $agent, $beacon_exit] = $S->fetchrow('num'); // BLP 2025-02-28 - $beacon_exit has the value from 'error'.
-  $difftime; // seconds
 } else {
   error_log("beacon: NO record for $id, line=" . __LINE__);
 }
@@ -81,16 +80,20 @@ if($S->sql("select botAs, isJavaScript, difftime, finger, agent, error from $S->
 
 switch($type) {
   case "pagehide":
-    $beacon = BEACON_PAGEHIDE;
+    $beacon =  BEACON_PAGEHIDE;
+    $botAsBits = BOTS_PAGEHIDE;
     break;
   case "unload":
-    $beacon = BEACON_UNLOAD;
+    $beacon =  BEACON_UNLOAD;
+    $botAsBits = BOTS_UNLOAD;
     break;
   case "beforeunload":
-    $beacon = BEACON_BEFOREUNLOAD;
+    $beacon =  BEACON_BEFOREUNLOAD;
+    $botAsBits = BOTS_BEFOREUNLOAD;
     break;
   case "visibilitychange":
-    $beacon = BEACON_VISIBILITYCHANGE;
+    $beacon =  BEACON_VISIBILITYCHANGE;
+    $botAsBits = BOTS_VISIBILITYCHANGE;
     break;
   default:
     error_log("beacon: id=$id, ip=$ip, state=$site, page=$thepage, SWITCH_ERROR_{$type}, botAs=$botAs, java=$js, -- \$S->ip=$S->ip, line=". __LINE__);
@@ -157,6 +160,8 @@ if(!$S->isMyIp($ip) && $DEBUG3 && $type != 'visibilitychange') {
 // Now update tracker. $botAs should have BOTS_COUNTED!
 // BLP 2025-03-29 - add count.
 
-$S->sql("update $S->masterdb.tracker set botAs='$botAs', error='$beacon_exit', endtime=now(), count=count+1, difftime=timestampdiff(second, starttime, now()), ".
-        "isJavaScript='$js', lasttime=now() where id=$id");
+$botAsBits |= ($difftime ? BOTS_HAS_DIFFTIME : 0);
+
+$S->sql("update $S->masterdb.tracker set botAs='$botAs', botAsBits=botAsBits|$botAsBits, error='$beacon_exit', endtime=now(), count=count+1, difftime=timestampdiff(second, starttime, now()), ".
+        "isJavaScript='$js' where id=$id");
 

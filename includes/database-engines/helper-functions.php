@@ -2,7 +2,7 @@
 /* HELPER FUNCTIONS. Well tested and maintained */
 // BLP 2023-10-04 - added varexport() functions.
 
-define("HELPER_FUNCTION_VERSION", "1.1.2helper-pdo"); // BLP 2023-10-04 - 
+define("HELPER_FUNCTION_VERSION", "1.2.0helper-pdo"); // BLP 2025-04-03 - add logic for decoding bitmap
 
 /**
  * Helper Functions
@@ -237,3 +237,46 @@ if(!function_exists('array_deep')) {
   }
 }
 
+// These two new function can encode and decode things like the site field in the new bots table.
+// It is a bitmap of the site domains. See defines.php for the site bitmap.
+
+// Endoce an array using a map.
+// @param $ar is the input array of strings to encode.
+// @param $map is the bitmap array with 'value'=>bit entries.
+// @return $bitmask
+// BLP 2025-04-03 - 
+
+function encodeArray(array $ar, array $map): int {
+  $bitmask = 0;
+
+  // $ar is an array of strings to encode. For example if $ar is ['abc', 'ghi'] and $map
+  // is ['abc'=>1, 'def'=>2, 'ghi'=>4], then the returned $bitmask is binary 0b0101 or hex 0x5.
+  
+  foreach ($ar as $v) { // Get each string from the input array
+    if (isset($map[$v])) { // if the string is in the bitmap array
+      $bitmask |= $map[$v]; // then get the bit value of the string and 'or' it into the return mask.
+    }
+  }
+  return $bitmask; // This has a bit set for each of the input array's strings.
+}
+
+// Decode bit map
+// @param $bitmask is an integer bitmask to be decoded
+// @param $map is the decoding array
+// @retun $result array with the decoded values.
+// BLP 2025-04-03 - 
+
+function decodeSites(int $bitmask, array $map): array {
+  $result = []; // start with an empty array
+
+  // The $map is an array with value>bit. For example $map=["abc"=>1, "def"=>2, "ghi"=>4].
+  // If we have a $bitmask of 0b0101 or 0x5 we would return 'abc' and 'ghi' in the $result array.
+  
+  foreach ($map as $site => $bit) { // from the map array 
+    if (($bitmask & $bit) === $bit) { // if the $bitmask and $bit equals the $bit
+      $result[] = $site; // Then put the $site string value into the result array
+    }
+  }
+
+  return $result;
+}

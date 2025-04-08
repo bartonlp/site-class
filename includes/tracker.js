@@ -1,26 +1,48 @@
 // Track user activity
 // Goes hand in hand with tracker.php
-// BLP 2023-08-08 - Changed to use the new images for desktop and phone.
-// BLP 2023-08-10 - Do 'headerImage2'
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.9trackerjs-pdo"; // BLP 2025-03-25 - Get lastId from SiteClass $h->trackerStr
+const TRACKERJS_VERSION = "3.1.10trackerjs-pdo"; // BLP 2025-04-08 - add comments etc.
 
-// The very first thing we do is get the lastId from the script tag.
+// SiteClass places a <script> tag in the head.i.php file via
+// $h->tracjerStr. That variable has a full list of JavaScript
+// variables like this for bartonphillips.com. The values come from the
+// mysitemap.json file.
+/* 
+var thesite = "bartonphillips.com",
+theip = "195.252.232.86",
+thepage = "/index.php",
+trackerUrl = "https://bartonlp.com/otherpages/tracker.php",
+beaconUrl = "https://bartonlp.com/otherpages/beacon.php",
+noCssLastId = "",
+desktopImg = "https://bartonphillips.net/images/blp-image.png", 
+phoneImg = ""; 
+desktopImg2 = "https://bartonphillips.net/images/146624.png";
+phoneImg2 = "", 
+mysitemap = "/var/www/bartonphillips.com/mysitemap.json",
+lastId = "7611498", // BLP 2025-03-25 -
+loggingphp = "https://bartonlp.com/otherpages/logging.php" // BLP 2025-03-26 - 
+*/
 
-//const lastId = $("script[data-lastid]").attr("data-lastid"); // BLP 2025-03-25 - 
+// To use these debug variables you need a JavaScript section in you
+// main file that sets these variable. Usually this would be placed in
+/*
+$S->b_inlineScript = <<<
+var isMeFalse = "$S->isFalse", doState = "$S->doState", forceBot = "$S->forceBot";
+EOF;
+*/
 
-// To use 'isMeFalse' you need code like this in your main program:
-// $S->b_inlineScript = "var isMeFalse = "$S->isMeFalse"; Before
-// calling $S->getPageTopBottom().
-// The same is true of 'doState'!
-
+// *************************
+// These are here in case you want to edit these here rather than via a
+// $S->b_inlineScript.
 var isMeFalse;
-var doState; // for debugging. It can be set by the caller.
+var doState; 
+var forceBot; 
 //isMeFalse = true; // For Debugging
 //doState = true; // For Debugging
-var lastId; // BLP 2025-03-25 - from the JavaScript loaded by SiteClass.
+//forceBot = true; // For Debugging
+// *************************
 
 function makeTime() {
   let x = new Date;
@@ -197,9 +219,10 @@ jQuery(document).ready(function($) {
   // 'start' is done weather or not 'load' happens. As long as
   // javascript works. Otherwise we should get information from the
   // image in the <noscript> section of includes/banner.i.php
-  // BLP 2023-08-08 - 'start' now implies 'script'!
-  
+   
   let ref = document.referrer; // Get the referer which we pass to 'start'
+
+  // Do START.
   
   $.ajax({
     url: trackerUrl,
@@ -270,7 +293,6 @@ jQuery(document).ready(function($) {
       logStateChange('terminated', 'pagehide');
     }
   });
-
   /* End of lifestyle events. */
   
   // On the load event

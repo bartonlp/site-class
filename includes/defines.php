@@ -5,7 +5,7 @@
 define("DO_SERVER", "192.241.132.229"); // My server IP address through DigitalOcean
 define("MY_IP", "195.252.232.86"); // My personal static IP address through MetroNet
 
-define("DEFINES_VERSION", "1.1.3defines-pdo"); // BLP 2025-03-08 - added TRACKER_ADDED via checkvischange.php. Also changed comments.
+define("DEFINES_VERSION", "1.2.1defines-pdo"); // BLP 2025-04-08 - new BOTS_ for NO_MYSITEMAP and HAS_INTEACTION
 
 // Bots and bots2 Tables.
 // These are all done via SiteClass trackbots() which does both the bots and bots2 tables.
@@ -14,9 +14,42 @@ define("BOTS_ROBOTS", 1);
 define("BOTS_SITEMAP", 2);
 define("BOTS_SITECLASS", 4);
 
-// This is done from checktracker2.php
+// BLP 2025-04-03 - START NEW
+define("BOTS_ZBOT", 8); // isBot() from the bots table
+define("BOTS_GOODBOT", 0x10); // isBot() found +https?:// in user agent string
+define("BOTS_COUNTED", 0x20); // Was counted in tracker.php or banner.php
+define("BOTS_MATCH", 0x40); // isBot() found a match in the preg_match()
+define("BOTS_NOAGENT", 0x80); // isBot() no agent
+define("BOTS_VISIBILITYCHANGE", 0x100); // exit logic
+define("BOTS_PAGEHIDE", 0x200); // exit logic
+define("BOTS_BEFOREUNLOAD", 0x400); // exit logic
+define("BOTS_UNLOAD", 0x8400); // exit logic
+define("BOTS_CRON_CHECKTRACKER", 0x1000); // checktracker.php
+define("BOTS_CRON_CHECKVISIBILITY", 0x2000); // checkvisability.php
+define("BOTS_HAS_DIFFTIME", 0x4000); // tracker table has non zero difftime
+define("BOTS_HAS_FINGER", 0x8000); // has a finger print.
+define("BOTS_NO_MYSITEMAP", 0x10000); // No mysitemap.json passed to tracker.php or beacon.php etc.
+define("BOTS_HAS_INTERACTION", 0x20000); // has interaction from events like scroll, mousemove, click etc.
+define("BOTS_ISMEFALSE", 0x40000); // used the $this-isMeFalse === true. BLP 2025-04-04 - 
+define("BOTS_FORCE", 0x80000); // used the $this->forceBot === true. BLP 2025-04-04 - 
+// BLP 2025-04-03 - END NEW
 
-define("BOTS_CRON_ZERO", 0x100);
+// BLP 2025-04-03 - The values for site in bots 'site' field.
+// Used to encode and decode the 'site' field.
+
+// New sitemap site values for encode/decode
+
+define("BOTS_SITEBITMAP", [
+                          'bartonphillips.com' => 1,
+                          'bartonphillips.net' => 2,
+                          'bartonlp.com' => 4,
+                          'bartonlp.org' => 8,
+                          'bonnieburch.com' => 0x10,
+                          'newbernzig.com' => 0x20,
+                          'newbern-nc.info' => 0x40,
+                          'jt-lawnservice.com' => 0x80,
+                          'swam.us' => 0x100,
+                         ]);
 
 // Tracker defines. These happen in different places all via tracker.php exceipt the ones marked as
 // SiteClass. The one marked 'via javascript' are instigated by the tracker.js program which does

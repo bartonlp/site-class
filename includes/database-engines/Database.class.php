@@ -3,12 +3,9 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.0.15database-pdo"); // Removed checkIfBot() and replaced it with a simple isBot($agent).
-                                                        // Fixed trackbots() to look at
-                                                        // $this->isBot before setting
-                                                        // BOTS_SITECLASS.
+define("DATABASE_CLASS_VERSION", "1.2.0database-pdo"); // BLP 2025-04-03 - new bots3 logic
 
-define("DEBUG_TRACKER_BOTINFO", false); // Change this to false if you don't want the error
+define("DEBUG_TRACKER_BOTINFO", true); // Change this to false if you don't want the error
 
 /**
  * Database wrapper class
@@ -190,45 +187,17 @@ class Database extends dbPdo {
    */
 
   protected function trackbots():void {
-    // BLP 2025-03-28 - if $this->isBot is not true then $this->botAs should be 'zero'.
-
-    //error_log("****Database trackbots: botAs=$this->botAs, isBot=" . ($this->isBot ? "true" : "false"));
-    
+    $siteClass = BOTS_SITECLASS;
 
     if($this->isBot && $this->dbinfo->engine != "sqlite") { // BLP 2025-03-28 - Add !$this->isBot.
       $agent = $this->agent;
 
-      try {
-        $this->sql("insert into $this->masterdb.bots (ip, agent, count, robots, site, creation_time, lasttime) ".
-                     "values('$this->ip', '$agent', 1, " . BOTS_SITECLASS . ", '$this->siteName', now(), now())");
-      } catch(Exception $e) {
-        if($e->getCode() == 23000) { // duplicate key
-          // We need the site info first. This can be one or multiple sites seperated by commas.
-          // The bots primary key is ip, agent(256) so there should be only one of there.
-          
-          $this->sql("select site from $this->masterdb.bots where ip='$this->ip' and agent='$agent'");
-
-          $who = $this->fetchrow('num')[0]; // get the site which could have multiple sites seperated by commas.
-
-          // Look at who (the haystack) and see if siteName is there. If it is not there then add
-          // it.
-
-          if(!str_contains($who, $this->siteName)) {
-            $who .= ", $this->siteName";
-          }
-
-          $this->sql("update $this->masterdb.bots set robots=robots | " . BOTS_SITECLASS . ", site='$who', count=count+1, lasttime=now() ".
-                       "where ip='$this->ip' and agent='$agent'");
-        } else {
-          throw new Exception(__CLASS__ . " " . __LINE__ . ":$e");
-        }
-      }
-
-      // Now do bots2
-
-      $this->sql("insert into $this->masterdb.bots2 (ip, agent, page, date, site, which, count, lasttime) ".
-                 "values('$this->ip', '$agent', '$this->self', now(), '$this->siteName', " . BOTS_SITECLASS . ", 1, now())".
-                 "on duplicate key update count=count+1, lasttime=now()");
+      $siteBit = BOTS_SITEBITMAP[$this->siteDomain] ?? 0; // BLP 2025-04-03 - siteName is now the domain name for the site.
+      //error_log("Database: siteBit=$siteBit, siteName=$this->siteName, line=".__LINE__);
+      
+      $this->sql("insert into $this->masterdb.bots3 (ip, agent, count, robots, site, created) ".
+                 "values('$this->ip', '$agent', 1, $siteClass, $siteBit, now()) ".
+                 "on duplicate key update robots=robots|$siteClass, site=site|$siteBit");
     }
   }
    
@@ -332,18 +301,24 @@ class Database extends dbPdo {
     
     // The primary key is id which is auto incrementing so every time we come here we create a
     // new record.
-
-    $this->sql("insert into $this->masterdb.tracker (botAs, site, page, ip, browser, agent, starttime, isJavaScript, lasttime) ".
-                 "values('$this->botAs', '$this->siteName', '$this->self', '$this->ip', '$name', '$agent', now(), $java, now())");
+    // BLP 2025-04-05 - $this->botAs is a bitmap. The field botAs is still in the table and used by
+    // other files like tracker.php, beacon.php, robots.php and sitemap.php. I will eventually
+    // remove botAs all together. dbPdo sets $this->botAs as an integer bitmap!
+    
+    $this->sql("insert into $this->masterdb.tracker (site, page, ip, browser, agent, botAsBits, starttime, isJavaScript) ".
+                 "values('$this->siteName', '$this->self', '$this->ip', '$name', '$agent', $this->botAs, now(), $java)");
 
     $this->LAST_ID = $this->getLastInsertId();
 
     if(DEBUG_TRACKER_BOTINFO === true && $this->isBot) {
       $hexbotinfo = dechex($this->trackerBotInfo);
       $javahex = dechex($java);
-      
+
+      // BLP 2025-04-03 - botAs is a bitmap.
+
+      $hexBotAs = dechex($this->botAs);
       error_log("Database tracker trackerBotInfo=$hexbotinfo: id=$this->LAST_ID, ip=$this->ip, ".
-                "site=$this->siteName, page=$this->self, botAs=$this->botAs, java=$javahex, agent=$this->agent, line=".__LINE__);
+                "site=$this->siteName, page=$this->self, bitmap-botAs=$hexBotAs, java=$javahex, agent=$this->agent, line=".__LINE__);
     }    
   }
 
