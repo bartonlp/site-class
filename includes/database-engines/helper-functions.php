@@ -280,3 +280,34 @@ function decodeSites(int $bitmask, array $map): array {
 
   return $result;
 }
+
+// Build the Error Constance map.
+// map is key=>value.
+
+function buildErrorConstantMap(string $prefix='BOTS_', string $section='user'): array {
+  $map = array_filter(
+                      get_defined_constants(true)[$section] ?? [],
+                      fn($k) => str_starts_with($k, $prefix),
+                      ARRAY_FILTER_USE_KEY
+                     );
+  return $map; // return name=>type
+}
+
+// Given the error $type as an integer form functions like error_get_last() etc.
+// Get the error constant as a string like 'E_Error' or E_Warning' etc.
+
+function getErrorConstantName(int $type, string $prefix='BOTS_', string $section='user'): string {
+  $kvmap = array_filter(
+                      get_defined_constants(true)[$section] ?? [],
+                      fn($k) => str_starts_with($k, $prefix),
+                      ARRAY_FILTER_USE_KEY
+                     );
+
+  // $kvmap is name=>type
+  // Flip the array so it it type=>name.
+  
+  $vkmap = array_flip($kvmap);
+
+  return $vkmap[$type] ?? "UNKNOWN ($type)";
+}
+

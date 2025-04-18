@@ -28,7 +28,8 @@ var loggingphp;
     id: lastId,
     ip: theip,
     site: thesite,
-    page: thepage
+    page: thepage,
+    agent: theagent
   };
 
   // Only log once per event type

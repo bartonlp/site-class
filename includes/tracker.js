@@ -4,7 +4,9 @@
 'use strict';
 
 const TRACKERJS_VERSION = "3.1.10trackerjs-pdo"; // BLP 2025-04-08 - add comments etc.
-
+                                                 // Add theagent to all
+                                                 // $.ajax calls.
+                                                 
 // SiteClass places a <script> tag in the head.i.php file via
 // $h->tracjerStr. That variable has a full list of JavaScript
 // variables like this for bartonphillips.com. The values come from the
@@ -32,7 +34,6 @@ $S->b_inlineScript = <<<
 var isMeFalse = "$S->isFalse", doState = "$S->doState", forceBot = "$S->forceBot";
 EOF;
 */
-
 // *************************
 // These are here in case you want to edit these here rather than via a
 // $S->b_inlineScript.
@@ -49,30 +50,12 @@ function makeTime() {
   return x.getHours()+":"+String(x.getMinutes()).padStart(2, '0')+":"+String(x.getSeconds()).padStart(2, '0')+":"+ String(x.getMilliseconds()).padStart(3, '0');
 }
 
-// Post a AjaxMsg. For debugging
-// Old logic using $.ajax.
-/*
-function postAjaxMsg(msg, mysitemap, arg1='', arg2='') { // BLP 2025-02-25 - must pass mysitemap.
-$.ajax({
-url: trackerUrl,
-data: {page: 'ajaxmsg', msg: msg, site: thesite, ip: theip, arg1: arg1, arg2: arg2, isMeFalse: isMeFalse, mysitemap: mysitemap},
-type: 'post',
-success: function(data) {
-console.log(data);
-},
-error: function(err) {
-console.log(err);
-}
-});
-}
-*/
-
-// BLP 2025-03-24 - New logic using fetch.
+// **************************************************
 // This can be used to do fetch() form or json calls.
 // await postFormData({page: 'ajaxmsg', msg: 'Hello',site:
 // 'bartonphillips.com'});
 // or
-// await postFormData('json', {...})/
+// await postFormData('json', {...});
 
 async function postFormData(data, type='form') {
   let body, headers;
@@ -100,6 +83,7 @@ async function postFormData(data, type='form') {
   return ret;
 }
 
+// **************************************************
 // Post a AjaxMsg. For debugging
 // While this really does not need to return the 'result' data it is an
 // exercise in an async function with await.
@@ -112,6 +96,7 @@ async function postAjaxMsg(msg, mysitemap, arg1='', arg2='') {
       page: 'ajaxmsg',
       id: lastId,
       ip: theip,
+      agent: theagent,
       site: thesite,
       msg: msg,
       mysitemap: mysitemap,
@@ -124,6 +109,10 @@ async function postAjaxMsg(msg, mysitemap, arg1='', arg2='') {
     console.log('Fetch error:', err);
   }
 }
+// **************************************************
+
+// **************************************************
+// Start of regular logic.
 
 console.log("tracker.js: at " , document.currentScript.src);
 console.log("navigator.userAgentData: ", navigator.userAgentData);
@@ -135,7 +124,6 @@ console.log("navigator.userAgentData: ", navigator.userAgentData);
 // have been set in SiteClass.class.php -- SiteClass::getPageHead() and are available
 // everywhere because they are declaired as 'var' right after
 // tracker.js is declaired.
-
 
 jQuery(document).ready(function($) {
   // Now lets do timer to update the endtime
@@ -226,7 +214,8 @@ jQuery(document).ready(function($) {
   
   $.ajax({
     url: trackerUrl,
-    data: {page: 'start', id: lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, referer: ref, mysitemap: mysitemap},
+    data: {page: 'start', id: lastId, site: thesite, ip: theip, agent: theagent, thepage: thepage,
+           isMeFalse: isMeFalse, referer: ref, mysitemap: mysitemap},
     type: 'post',
     success: function(data) {
       console.log(data +", "+ makeTime());
@@ -300,7 +289,7 @@ jQuery(document).ready(function($) {
   $(window).on("load", function(e) {
     $.ajax({
       url: trackerUrl,
-      data: {page: e.type, 'id': lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, mysitemap: mysitemap},
+      data: {page: e.type, 'id': lastId, agent: theagent, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, mysitemap: mysitemap},
       type: 'post',
       success: function(data) {
         console.log(data +", "+ makeTime());
@@ -318,7 +307,9 @@ jQuery(document).ready(function($) {
     // Can we use beacon?
 
     if(navigator.sendBeacon) { // If beacon is supported by this client we will always do beacon.
-      navigator.sendBeacon(beaconUrl, JSON.stringify({'id':lastId, 'type': e.type, 'site': thesite, 'ip': theip, 'thepage': thepage, 'isMeFalse': isMeFalse, 'state': state, 'prevState': prevState}));
+      navigator.sendBeacon(beaconUrl, JSON.stringify({'id':lastId, 'type': e.type, 'site': thesite, 'ip': theip, 'agent': theagent,
+        'thepage': thepage, 'isMeFalse': isMeFalse, 'state': state, 'prevState': prevState}));
+      
       console.log("beacon " + e.type + ", "+thesite+", "+thepage+", state="+state+", prevState="+prevState+ ", " + makeTime());
     } else { // This is only if beacon is not supported by the client (which is infrequently. This can happen with MS-Ie, tor and old versions of others).
       console.log("Beacon NOT SUPPORTED");
@@ -328,7 +319,8 @@ jQuery(document).ready(function($) {
       
       $.ajax({
         url: trackerUrl,
-        data: {page: 'onexit', type: e.type, 'id': lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, state: state, mysitemap: mysitemap},
+        data: {page: 'onexit', type: e.type, 'id': lastId, agent: theagent,
+               site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, state: state, mysitemap: mysitemap},
         type: 'post',
         success: function(data) {
           console.log("tracker ", data);
@@ -341,13 +333,6 @@ jQuery(document).ready(function($) {
   });
 
   function runtimer() {
-    // BLP 2025-03-25 - Debug. Is timer running.
-
-    //const startmsg = "At start of runtimer";
-    //postAjaxMsg(startmsg, mysitemap, thepage).then(ajaxData => {
-    //  console.log(`Top of timer (${ajaxData}) from trackerUrl(${trackerUrl})`);
-    //});
-
     if(cnt++ < 50) {
       // Time should increase to about 8 plus minutes
       time += 10000;
@@ -368,7 +353,8 @@ jQuery(document).ready(function($) {
     
     $.ajax({
       url: trackerUrl,
-      data: {page: 'timer', id: lastId, site: thesite, ip: theip, thepage: thepage, isMeFalse: isMeFalse, mysitemap: mysitemap, difftime: (difftime/1000)},
+      data: {page: 'timer', id: lastId, site: thesite, agent: theagent, ip: theip, thepage: thepage,
+             isMeFalse: isMeFalse, mysitemap: mysitemap, difftime: (difftime/1000)},
       type: 'post',
       success: function(data) {
         difftime += 10000;

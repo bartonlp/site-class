@@ -6,6 +6,9 @@
 // This is using PDO.
 
 define("SITE_CLASS_VERSION", "5.2.0pdo"); // BLP 2025-04-08 - changed getPageBanner() to use $b->names. Changed getPageFooter() to use $f->names.
+                                          // Added theagent='$this->agent' to $trackerStr. This is
+                                          // for the bots3 table which uses ip, agent, page as its
+                                          // key.
                                           // Added more comments and removed old BLP labels.
                                           // The $this->b_... and $this->h_..., which are usually set by
                                           // $S->b_... and $S->h_..., remain the same in all of my
@@ -323,22 +326,25 @@ EOF;
 
       // Now fill in the rest of $trackerStr.
       // If noTrack or nodb then many of the items will be empty.
+
+      $page = basename($this->self); // BLP 2025-04-12 - get rid of the slash.
       
       $xtmp = <<<EOF
   <script nonce="$this->nonce">
-    var thesite = "$this->siteName",
-    theip = "$this->ip",
-    thepage = "$this->self",
-    trackerUrl = "$trackerLocation",
-    beaconUrl = "$beaconLocation",
-    noCssLastId = "$this->noCssLastId",
-    desktopImg = "$desktopImg", 
-    phoneImg = "$phoneImg"; 
-    desktopImg2 = "$desktopImg2";
-    phoneImg2 = "$phoneImg2", 
-    mysitemap = "$mysitemap",
-    lastId = "$this->LAST_ID", // BLP 2025-03-25 -
-    loggingphp = "$this->interactionLocationPhp" // BLP 2025-03-26 - 
+  var thesite = "$this->siteName",
+      theagent = "$this->agent", // BLP 2025-04-08 - 
+      theip = "$this->ip",
+      thepage = "$page",
+      trackerUrl = "$trackerLocation",
+      beaconUrl = "$beaconLocation",
+      noCssLastId = "$this->noCssLastId",
+      desktopImg = "$desktopImg", 
+      phoneImg = "$phoneImg"; 
+      desktopImg2 = "$desktopImg2";
+      phoneImg2 = "$phoneImg2", 
+      mysitemap = "$mysitemap",
+      lastId = "$this->LAST_ID", // BLP 2025-03-25 -
+      loggingphp = "$this->interactionLocationPhp" // BLP 2025-03-26 - 
   </script>
 EOF;
       $trackerStr = "$xtmp\n$trackerStr";
@@ -492,7 +498,7 @@ EOF;
     if(preg_match("~^\d{4}~", $f->copyright) === 1) {
       $f->copyright = "Copyright &copy; $f->copyright";
     }
-    
+
     $f->aboutwebsite = $this->aboutwebsite ??
                        "<h2><a target='_blank' href='https://bartonlp.com/otherpages/aboutwebsite.php?" .
                        "site=$this->siteName&domain=$this->siteDomain'>About This Site</a></h2>";

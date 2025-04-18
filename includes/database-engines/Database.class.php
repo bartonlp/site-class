@@ -3,7 +3,8 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.2.0database-pdo"); // BLP 2025-04-03 - new bots3 logic
+define("DATABASE_CLASS_VERSION", "1.2.0database-pdo"); // BLP 2025-04-12 - remove trackbots()
+                                                       // add it to tracker().
 
 define("DEBUG_TRACKER_BOTINFO", true); // Change this to false if you don't want the error
 
@@ -78,8 +79,7 @@ class Database extends dbPdo {
 
         // Now do all of the rest.
 
-        $this->trackbots();  // both 'bots' and 'bots2'. This also does a isMe() so never get put into the 'bots*' tables.
-        $this->tracker();    // This logs Me and everybody else but uses the $this->isBot! 
+        $this->tracker();    // This logs Me and everybody else but uses the $this->isBot bitmap! 
         $this->updatemyip(); // Update myip if it is ME
 
         // If 'count' is false we don't do these counters
@@ -147,90 +147,74 @@ class Database extends dbPdo {
     return $this->ip;
   }
 
+  // updateBots3 helper function used by tracker.php, beacon.php, robots.php and sitemap.php
+  // update the bots3 table
+  // @param $ip, the ip address (key)
+  // @param $agent, the agent (key)
+  // @param $page, the page (key)
+  // @param $site, string/integer value for the site
+  // @param $botAsBits, the bitmap value of BOTS_...
+
+  public function updateBots3($ip, $agent, $page, $site, $botAsBits) {
+    if($this->isMe()) return; // BLP 2025-04-12 - Can not be me!
+    
+    // $site can be either a string or a bitmapped integer.
+    
+    if(gettype($site) === 'string') {
+      $siteBit = BOTS_SITEBITMAP[$site] | 0; // get bitmap. Supports NO_SITE.
+    } else {
+      $siteBit = $site;
+    }
+
+    try {
+      $this->sql("insert into $this->masterdb.bots3 (ip, agent, page, count, robots, site, created) ".
+                 "values('$ip', '$agent', '$page', 1, $botAsBits, $siteBit, now()) ".
+                 "on duplicate key update robots = robots|$botAsBits, site=site|$siteBit, count=count+1");
+    } catch(Exception $e) {
+      $err = $e->getCode();
+      $errmsg = $e->getMessage();
+      error_log("Database updateBots3: ip=$ip, agent=$agent, page=$page, robots=$botAsBits, err=$err, errmsg=$errmsg, line=". __LINE__);
+    }
+  }
+
   // ********************************************************************************
   // Private and protected methods.
   // Protected methods can be overridden in child classes so most things that would be private
   // should be protected in this base class
 
-  // **************
-  // Start Counters
-  // **************
+  // ***************
+  // Start Tracking
+  // ***************
 
   /**
-   * trackbots()
-   * Track both bots and bots2
-   * SEE defines.php for the values for isJavaScript.
-     CREATE TABLE `bots` (
-       `ip` varchar(40) NOT NULL DEFAULT '',
-       `agent` text NOT NULL,
-       `count` int DEFAULT NULL,
-       `robots` int DEFAULT '0',
-       `site` varchar(255) DEFAULT NULL, // this is $who which can be multiple sites seperated by commas.
-       `creation_time` datetime DEFAULT NULL,
-       `lasttime` datetime DEFAULT NULL,
-       PRIMARY KEY (`ip`,`agent`(254))
-     ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-
-     CREATE TABLE `bots2` (
-       `ip` varchar(40) NOT NULL DEFAULT '',
-       `agent` text NOT NULL,
-       `page` text,
-       `date` date NOT NULL,
-       `site` varchar(50) NOT NULL DEFAULT '', 
-       `which` int NOT NULL DEFAULT '0',
-       `count` int DEFAULT NULL,
-       `lasttime` datetime DEFAULT NULL,
-       PRIMARY KEY (`ip`,`agent`(254),`date`,`site`,`which`)
-     ) ENGINE=InnoDB DEFAULT CHARSET=latin1
-     Things enter the bots table from 'robots.txt', 'Sitemap.xml' and BOTS_CRON_ZERO from checktracker2.php.
-     Also if we have found BOTS_MATCH or BOTS_TABLE we enter it here.
-   */
-
-  protected function trackbots():void {
-    $siteClass = BOTS_SITECLASS;
-
-    if($this->isBot && $this->dbinfo->engine != "sqlite") { // BLP 2025-03-28 - Add !$this->isBot.
-      $agent = $this->agent;
-
-      $siteBit = BOTS_SITEBITMAP[$this->siteDomain] ?? 0; // BLP 2025-04-03 - siteName is now the domain name for the site.
-      //error_log("Database: siteBit=$siteBit, siteName=$this->siteName, line=".__LINE__);
-      
-      $this->sql("insert into $this->masterdb.bots3 (ip, agent, count, robots, site, created) ".
-                 "values('$this->ip', '$agent', 1, $siteClass, $siteBit, now()) ".
-                 "on duplicate key update robots=robots|$siteClass, site=site|$siteBit");
-    }
-  }
-   
-  /**
-   * BLP 2023-10-05 - Added `browser`.
-   *
    * tracker()
-   * track if java script or not.
-   * CREATE TABLE `tracker` (
-   *  `id` bigint NOT NULL AUTO_INCREMENT,
-   *  `botAs` varchar(30) DEFAULT NULL,
-   *  `site` varchar(25) DEFAULT NULL,
-   *  `page` varchar(255) NOT NULL DEFAULT '',
-   *  `finger` varchar(50) DEFAULT NULL,
-   *  `nogeo` tinyint(1) DEFAULT NULL,
-   *  `browser` varchar(50) DEFAULT NULL,
-   *  `ip` varchar(40) DEFAULT NULL,
-   *  `count` int DEFAULT 1,
-   *  `agent` text,
-   *  `referer` varchar(255) DEFAULT '',
-   *  `starttime` datetime DEFAULT NULL,
-   *  `endtime` datetime DEFAULT NULL,
-   *  `difftime` varchar(20) DEFAULT NULL,
-   *  `isJavaScript` int DEFAULT '0',
-   *  `error` varchar(256) DEFAULT NULL,
-   *  `lasttime` datetime DEFAULT NULL,
-   *  PRIMARY KEY (`id`),
-   *  KEY `site` (`site`),
-   *  KEY `ip` (`ip`),
-   *  KEY `lasttime` (`lasttime`),
-   *  KEY `starttime` (`starttime`)
-   * ) ENGINE=MyISAM AUTO_INCREMENT=6708643 DEFAULT CHARSET=utf8mb3;
-   */
+   * NOTE: botAs is a bitmap! I will remove the botAs field as soon as I get everything working.
+CREATE TABLE `tracker` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `botAs` varchar(100) DEFAULT NULL,
+  `botAsBits` int DEFAULT '0',
+  `site` varchar(25) DEFAULT NULL,
+  `page` varchar(255) NOT NULL DEFAULT '',
+  `finger` varchar(50) DEFAULT NULL,
+  `nogeo` tinyint(1) DEFAULT NULL,
+  `browser` varchar(50) DEFAULT NULL,
+  `ip` varchar(40) DEFAULT NULL,
+  `count` int DEFAULT '1',
+  `agent` text,
+  `referer` varchar(255) DEFAULT '',
+  `starttime` datetime DEFAULT NULL,
+  `endtime` datetime DEFAULT NULL,
+  `difftime` varchar(20) DEFAULT NULL,
+  `isJavaScript` int DEFAULT '0',
+  `error` varchar(256) DEFAULT NULL,
+  `lasttime` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `site` (`site`),
+  KEY `ip` (`ip`),
+  KEY `lasttime` (`lasttime`),
+  KEY `starttime` (`starttime`)
+) ENGINE=MyISAM AUTO_INCREMENT=7626952 DEFAULT CHARSET=utf8mb3;
+  */
 
   protected function tracker():void {
     $agent = $this->agent;
@@ -277,13 +261,19 @@ class Database extends dbPdo {
       }
     }
     // BLP 2023-10-05 - end `browser` logic.
+
+    // Look for iPhone or Android
+
+    if(preg_match("~android|iphone~i", $agent, $m) === 1) {
+      $name = "{$m[0]},$name";
+    }
     
     // BLP 2021-12-28 -- Explanation.
     // Here we set $java (isJavaScript) to TRACKER_BOT or zero.
     // We then look at isBot and if nothing was found in the bots table and the regex did not
     // match something in the list then isJavaScript will be zero.
-    // The visitor was probably a bot and will be added to the bots table as a 0x100 by the cron
-    // job checktracker2.php and to the bots2 table. The bot was more than likely curl,
+    // The visitor was probably a bot and will be added to the bots table as BOTS_CRON_CHECKTRACKER
+    // by the cron job checktracker2.php and to the bots2 table. The bot was more than likely curl,
     // wget, python or the like that sets its user-agent to something that would not trigger my
     // regex. Such visitor leave very little footprint.
 
@@ -301,15 +291,27 @@ class Database extends dbPdo {
     
     // The primary key is id which is auto incrementing so every time we come here we create a
     // new record.
-    // BLP 2025-04-05 - $this->botAs is a bitmap. The field botAs is still in the table and used by
-    // other files like tracker.php, beacon.php, robots.php and sitemap.php. I will eventually
-    // remove botAs all together. dbPdo sets $this->botAs as an integer bitmap!
-    
-    $this->sql("insert into $this->masterdb.tracker (site, page, ip, browser, agent, botAsBits, starttime, isJavaScript) ".
-                 "values('$this->siteName', '$this->self', '$this->ip', '$name', '$agent', $this->botAs, now(), $java)");
+
+    // BLP 2025-04-05 - $this->botAs is a bitmap. The field botAs is still in the table.
+    // I will eventually remove botAs all together.
+    // The isBot() function in dbPdo sets $this->botAs as an integer bitmap!
+
+    $page = basename($this->self); // only the file name.
+
+    $this->sql("insert into $this->masterdb.tracker ".
+               "(site, page, ip, browser, agent, botAsBits, starttime, isJavaScript) ".
+               "values('$this->siteName', '$page', '$this->ip', '$name', ".
+               "'$agent', $this->botAs, now(), $java)");
 
     $this->LAST_ID = $this->getLastInsertId();
 
+    // Now update the bots3 table. 'site' can be either an integer or a string.
+    
+    $this->updateBots3($this->ip, $agent, $page, $this->siteName, $this->botAs);
+    
+    // BLP 2025-04-11 - in the constructor we do trackbots() first and then tracker(). The bots3
+    // information should be added in trackbots().
+    
     if(DEBUG_TRACKER_BOTINFO === true && $this->isBot) {
       $hexbotinfo = dechex($this->trackerBotInfo);
       $javahex = dechex($java);

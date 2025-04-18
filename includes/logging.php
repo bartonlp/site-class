@@ -34,6 +34,7 @@ if($_POST) {
   $ip = $_POST['ip'] ?? $_SERVER['REMOTE_ADDR'];
   $site = $_POST['site'] ?? '';
   $page = $_POST['page'] ?? '';
+  $agent = $_POST['agent'] ?? '';
   $ts = $_POST['ts']/1000 ?? time();
   $ts =  date("Y-m-d H:i:s", $ts);
 
@@ -53,11 +54,18 @@ if($_POST) {
     // to one. I am using concat_ws(',', event, '$event'). It pust a comma in front of $event if it
     // is not null. Again, the events should only happen once per $id because of the JavaScript
     // (logging.js).
-    
+
     $S->sql("insert into $S->masterdb.interaction (id, ip, site, page, event, time, created, lasttime) ".
             "values('$id', '$ip', '$site', '$page', '$event', '$ts', now(), now()) ".
             "on duplicate key update event=concat_ws(',', event, '$event'), count=count+1, lasttime=now()");
 
+    // BLP 2025-04-18 - Use New logic to create a $db for updateBots3();
+
+    $_site->nojquery = true;
+
+    $db = Database::create($_site);
+    $db->updateBots3($ip, $agent, $page, $site, BOTS_HAS_INTERACTION);
+    
     $S->sql("update $S->masterdb.tracker set botAsBits=botAsBits|". BOTS_HAS_INTERACTION . ", count=count+1 where id=$id");
   }
   
