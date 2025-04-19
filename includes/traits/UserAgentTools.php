@@ -1,10 +1,12 @@
 <?php
 // site-class/includes/traits/UserAgentTools.php
+// BLP 2025-04-19 - moved setSiteCookie() here from Database. Also getIp()
+// BLP 2025-04-19 - Change botAs to botAsBits
 
 trait UserAgentTools {
   public function isMyIp(string $ip): bool {
     if ($this->isMeFalse === true) {
-      $this->botAs |= BOTS_ISMEFALSE;
+      $this->botAsBits |= BOTS_ISMEFALSE;
       return false;
     }
     return in_array($ip, $this->myIp ?? []);
@@ -17,17 +19,16 @@ trait UserAgentTools {
   public function isBot(?string $agent = null): bool {
     if ($this->forceBot === true) {
       $this->isBot = true;
-      $this->botAs = BOTS_FORCE | BOTS_SITECLASS;
+      $this->botAsBits = BOTS_FORCE | BOTS_SITECLASS;
     } else {
       $this->isBot = false;
-      $this->botAs = 0;
+      $this->botAsBits = 0;
     }
 
     $ip = $this->ip ?? '';
     $agent = $agent ?? $this->agent ?? '';
     $page = basename($this->self ?? '');
 
-    // BLP 2025-04-04 - create the robots to $botAS, $type matrix
     // I use this map to take apart the robots fields from ALL of the bots3 records.
     // Some of these have TRACKER_... or BEACON_... values but many have none.
     // See the logic in the section that loops through ALL of the bots3 records below.
@@ -44,9 +45,9 @@ trait UserAgentTools {
       if(($x = preg_match("~@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
                           "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
                           "http client|PECL::HTTP|Go-|python~i", $agent)) === 1) { // 1 means a match
-        $this->isBot = true;
-        $this->botAs |= BOTS_MATCH;
 
+        $this->isBot = true;
+        $this->botAsBits |= BOTS_MATCH;
       } elseif($x === false) { // false is error
         // This is an unexplained ERROR
         throw new PdoException(__CLASS__ . " " . __LINE__ . ": preg_match() returned false", -300);
@@ -54,18 +55,19 @@ trait UserAgentTools {
 
       if(($x = preg_match("~\+?https?://~", $agent)) === 1) {
         $this->isBot = true;
-        $this->botAs |= BOTS_GOODBOT; // BLP 2025-04-03 - bitmap
+        $this->botAsBits |= BOTS_GOODBOT; // BLP 2025-04-03 - bitmap
       } elseif($x === false) {
         throw new PdoException(__CLASS__ . " " . __LINE__ . ": preg_match() for +https? false", -301);
       }
     } else {
-      $this->botAs |= BOTS_NOAGENT; // BLP 2025-04-05 - bitmap
-      $this->isBot = true;
+      $this->botAsBits |= BOTS_NOAGENT; // BLP 2025-04-05 - bitmap
+      $this->isBotBits = true;
     }
 
-    // BLP 2025-04-04 - New logic to take apart the robots field and 'or' the corresponding values
+    // New logic to take apart the robots field and 'or' the corresponding values
     // into $this->bottAs and $this->trackerBotInfo variables which are used later in Database
     // tracker().
+
     // Look at ALL of the bots3 records for this ip, agent, page.
     
     if($this->sql("select robots from $this->masterdb.bots3 where ip='$ip' and agent='$agent' and page='$page'")) { // Found some.
@@ -79,30 +81,31 @@ trait UserAgentTools {
 
         foreach($robotMap as $bit => $flag) {
           if($robots & $bit) {
-            $this->botAs |= $bit;
+            $this->botAsBits |= $bit;
             if(isset($flag)) {
               $this->trackerBotInfo |= $flag;
             }
           }
         }
         
-        // Now $this->trackerBotInfo and $this->botAs are set.
+        // Now $this->trackerBotInfo and $this->botAsBits are set.
       }
 
-      if($this->botAs & BOTS_HAS_DIFFTIME) { // true if difftime was present
+      if($this->botAsBits & BOTS_HAS_DIFFTIME) { // true if difftime was present
         error_log("***dbPdo remove bot bit: ip=$ip, agent=$agent, page=$page, line=". __LINE__);
         $this->trackerBotInfo &= ~TRACKER_BOT; // BLP 2025-04-14 - If we have difftime remove the bots bit from trackerBotInfo.
-        $this->botAs &= ~BOTS_SITECLASS; // BLP 2025-04-14 - remove bot from botAs.
+        $this->botAsBits &= ~BOTS_SITECLASS; // BLP 2025-04-14 - remove bot from botAsBits.
       }
 
       $hexTrackerBotInfo = dechex($this->trackerBotInfo);
-      $hexBotAs = dechex($this->botAs);
-      //error_log("***dbPdo: ip=$ip, agent=$agent, page=$page, trackerBotInfo=$hexTrackerBotInfo, botAs=$hexBotAs");
+      $hexBotAsBits = dechex($this->botAsBits);
+      //error_log("***dbPdo: ip=$ip, agent=$agent, page=$page, trackerBotInfo=$hexTrackerBotInfo,
+      //botAsBits=$hexBotAsBits");
       
-      // BLP 2025-03-09 - $this->botAs and $this->trackerBotInfo used in tracker in Database.
-      // Now only if botAs has the BOTS_SITECLASS bit set is this a bot.
+      // BLP 2025-03-09 - $this->botAsBits and $this->trackerBotInfo used in tracker in Database.
+      // Now only if botAsBits has the BOTS_SITECLASS bit set is this a bot.
 
-      if($this->botAs & BOTS_SITECLASS) { //if not zero
+      if($this->botAsBits & BOTS_SITECLASS) { //if not zero
         $this->isBot = true;
       }
     }
@@ -112,8 +115,46 @@ trait UserAgentTools {
     // If the agent had an http address for information then BOTS_GOODBOT is set.
     // If there was 'no agent' then BOTS_NOAGENT is set.
     // If any of the above happened then isBot is true.
-    // If we did not find anything then $this->botAs=0 and isBot=false.
+    // If we did not find anything then $this->botAsBits=0 and isBot=false.
 
     return $this->isBot;
+  }
+
+  /**
+   * setSiteCookie()
+   * @return bool true if OK else false
+   * BLP 2021-12-20 -- add $secure, $httponly and $samesite as default
+   */
+
+  public function setSiteCookie(string $cookie, string $value, int $expire, string $path="/", ?string $thedomain=null,
+                                bool $secure=true, bool $httponly=false, string $samesite='Lax'):bool
+  {
+    $ref = $thedomain ?? "." . $this->siteDomain; // BLP 2021-10-16 -- added dot back to ref.
+    
+    $options =  array(
+                      'expires' => $expire,
+                      'path' => $path,
+                      'domain' => $ref, // (defaults to $this->siteDomain with leading period.
+                      'secure' => $secure,
+                      'httponly' => $httponly,    // If true javascript can't be used (defaults to false.
+                      'samesite' => $samesite    // None || Lax  || Strict (defaults to Lax)
+                     );
+
+    if(!setcookie($cookie, $value, $options)) {
+      error_log("Database setSiteCookie: failed, site=$this->siteName, page=$this->self, line=". __LINE__);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * getIp()
+   * Get the ip address
+   * @return int ip address
+   */
+
+  public function getIp():string {
+    return $this->ip;
   }
 }

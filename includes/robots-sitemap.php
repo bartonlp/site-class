@@ -50,7 +50,7 @@ $S->sql("insert into $S->masterdb.logagent (site, ip, agent, count, created, las
 
 if($S->isBot($agent)) {
   $java |= $S->trackerBotInfo;
-  $botBits |= $S->botAs;
+  $botBits |= $S->botAsBits;
 }
 
 // Add to tracker

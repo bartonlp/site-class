@@ -26,6 +26,7 @@
 */
 
 $_site = require_once getenv("SITELOADNAME");
+$_site->noTrack = true;
 $S = new dbPdo($_site);
 
 if($_POST) {

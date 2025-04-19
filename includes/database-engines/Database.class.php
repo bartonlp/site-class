@@ -3,10 +3,11 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.2.0database-pdo"); // BLP 2025-04-12 - remove trackbots()
+define("DATABASE_CLASS_VERSION", "1.2.1database-pdo"); // BLP 2025-04-19 - moved setSiteCookie() to traits.
+                                                       // BLP 2025-04-12 - remove trackbots()
                                                        // add it to tracker().
 
-define("DEBUG_TRACKER_BOTINFO", true); // Change this to false if you don't want the error
+define("DEBUG_TRACKER_BOTINFO", false); // Change this to false if you don't want the error
 
 /**
  * Database wrapper class
@@ -94,34 +95,6 @@ class Database extends dbPdo {
     }
   } // END Construct
 
-  /**
-   * setSiteCookie()
-   * @return bool true if OK else false
-   * BLP 2021-12-20 -- add $secure, $httponly and $samesite as default
-   */
-
-  public function setSiteCookie(string $cookie, string $value, int $expire, string $path="/", ?string $thedomain=null,
-                                bool $secure=true, bool $httponly=false, string $samesite='Lax'):bool
-  {
-    $ref = $thedomain ?? "." . $this->siteDomain; // BLP 2021-10-16 -- added dot back to ref.
-    
-    $options =  array(
-                      'expires' => $expire,
-                      'path' => $path,
-                      'domain' => $ref, // (defaults to $this->siteDomain with leading period.
-                      'secure' => $secure,
-                      'httponly' => $httponly,    // If true javascript can't be used (defaults to false.
-                      'samesite' => $samesite    // None || Lax  || Strict (defaults to Lax)
-                     );
-
-    if(!setcookie($cookie, $value, $options)) {
-      error_log("Database setSiteCookie: failed, site=$this->siteName, page=$this->self, line=". __LINE__);
-      return false;
-    }
-
-    return true;
-  }
-
   public function getClassName() {
     return __CLASS__;
   }
@@ -137,17 +110,7 @@ class Database extends dbPdo {
     return DATABASE_CLASS_VERSION;
   }
   
-  /**
-   * getIp()
-   * Get the ip address
-   * @return int ip address
-   */
-
-  public function getIp():string {
-    return $this->ip;
-  }
-
-  // updateBots3 helper function used by tracker.php, beacon.php, robots.php and sitemap.php
+  // updateBots3 helper function used by tracker.php, beacon.php, robots-sitemap.php etc.
   // update the bots3 table
   // @param $ip, the ip address (key)
   // @param $agent, the agent (key)
@@ -174,6 +137,7 @@ class Database extends dbPdo {
       $err = $e->getCode();
       $errmsg = $e->getMessage();
       error_log("Database updateBots3: ip=$ip, agent=$agent, page=$page, robots=$botAsBits, err=$err, errmsg=$errmsg, line=". __LINE__);
+      throw new Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
     }
   }
 
@@ -188,10 +152,8 @@ class Database extends dbPdo {
 
   /**
    * tracker()
-   * NOTE: botAs is a bitmap! I will remove the botAs field as soon as I get everything working.
 CREATE TABLE `tracker` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `botAs` varchar(100) DEFAULT NULL,
   `botAsBits` int DEFAULT '0',
   `site` varchar(25) DEFAULT NULL,
   `page` varchar(255) NOT NULL DEFAULT '',
@@ -292,22 +254,18 @@ CREATE TABLE `tracker` (
     // The primary key is id which is auto incrementing so every time we come here we create a
     // new record.
 
-    // BLP 2025-04-05 - $this->botAs is a bitmap. The field botAs is still in the table.
-    // I will eventually remove botAs all together.
-    // The isBot() function in dbPdo sets $this->botAs as an integer bitmap!
-
     $page = basename($this->self); // only the file name.
 
     $this->sql("insert into $this->masterdb.tracker ".
                "(site, page, ip, browser, agent, botAsBits, starttime, isJavaScript) ".
                "values('$this->siteName', '$page', '$this->ip', '$name', ".
-               "'$agent', $this->botAs, now(), $java)");
+               "'$agent', $this->botAsBits, now(), $java)");
 
     $this->LAST_ID = $this->getLastInsertId();
 
     // Now update the bots3 table. 'site' can be either an integer or a string.
     
-    $this->updateBots3($this->ip, $agent, $page, $this->siteName, $this->botAs);
+    $this->updateBots3($this->ip, $agent, $page, $this->siteName, $this->botAsBits);
     
     // BLP 2025-04-11 - in the constructor we do trackbots() first and then tracker(). The bots3
     // information should be added in trackbots().
@@ -318,9 +276,9 @@ CREATE TABLE `tracker` (
 
       // BLP 2025-04-03 - botAs is a bitmap.
 
-      $hexBotAs = dechex($this->botAs);
+      $hexBotAsBits = dechex($this->botAs);
       error_log("Database tracker trackerBotInfo=$hexbotinfo: id=$this->LAST_ID, ip=$this->ip, ".
-                "site=$this->siteName, page=$this->self, bitmap-botAs=$hexBotAs, java=$javahex, agent=$this->agent, line=".__LINE__);
+                "site=$this->siteName, page=$this->self, botAsBits=$hexBotAsBits, java=$javahex, agent=$this->agent, line=".__LINE__);
     }    
   }
 
@@ -338,9 +296,10 @@ CREATE TABLE `tracker` (
     try {
       $this->sql("insert into $this->masterdb.counter (site, filename, count, lasttime) values('$this->siteName', '$filename', 1, now())");
     } catch(Exception $e) {
-      if($e->getCode() != 23000) {
+      if(($err = $e->getCode()) != 23000) {
+        $errmsg =$e->getMessage();
         error_log("Database counter: Error, code=" . $e->getCode() . ", Message=" . $e->getMessage() . ", e=|" .print_r($e, true)."|");
-        throw new Exception(__CLASS__ . " " . __LINE__ . ":$e", $this);
+        throw new Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
       }
     }
 
@@ -392,11 +351,12 @@ CREATE TABLE `tracker` (
       try {
         $this->sql($sql);
       } catch(Exception $e) {
-        if($e->getCode() == "23000") {
+        if(($err = $e->getCode()) == "23000") {
           $this->sql("update logagent set count=count+1, lasttime=datetime('now') ".
                      "where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
         } else {
-          throw $e;
+          $errmsg = $e->getMessage();
+          throw new Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
         }
       }
     }
@@ -423,7 +383,7 @@ CREATE TABLE `tracker` (
     $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
 
     if(!$this->sql($sql)) {
-      $this->debug("SiteClass $this->siteName: update of myip failed, ip: $this->ip, " .__LINE__, true); // this should not happen
+      throw new Exception(__CLASS__. " ". __LINE__. ": site=$this->siteName, update of myip failed, ip: $this->ip"); // this should not happen
     }
   }
 
@@ -437,7 +397,7 @@ CREATE TABLE `tracker` (
     // If we are NOT using the sqlite driver we can do a show.
     
     if($this->dbinfo->engine == "sqlite") {
-      throw new Exception("Can not use CheckIfTablesExist method with sqlite driver");
+      throw new Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
     }
 
     // Do all of the table checks once here.
@@ -450,9 +410,11 @@ CREATE TABLE `tracker` (
       $tbls[] = $tbl;
     }
 
-    $ar = array_diff(['badplayer', 'bots', 'bots2', 'counter', 'counter2', 'myip', 'logagent', 'geo'], $tbls);
+    $ar = array_diff(['badplayer', 'bots3', 'counter', 'myip', 'logagent', 'geo', 'interaction'], $tbls);
     if(!empty($ar)) {
-      throw new Exception("Database.class.php: Missing tables -- " . implode(',', $ar));
+      [$err, $errmsg, $errfile, $errline] = error_get_last();
+      
+      throw new Exception("Database.class.php: Missing tables -- $errmsg, $errfile, $errline", $err);
     }
     
     $this->sql("select myIp from $this->masterdb.myip");

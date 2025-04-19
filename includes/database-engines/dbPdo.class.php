@@ -14,14 +14,15 @@
 
 use SendGrid\Mail\Mail; // Use SendGrid for email
 
-define("PDO_CLASS_VERSION", "1.2.3pdo"); // BLP 2025-04-18 - add create() to allow me to use updateBot3() function when I do new dbPdo(...).
+define("PDO_CLASS_VERSION", "1.2.4pdo"); // BLP 2025-04-19 - add the trait.
+                                         // BLP 2025-04-18 - add create() to allow me to use updateBot3() function when I do new dbPdo(...).
                                          // BLP 2025-04-13 - new version of $robotMap. Added SAPI in constructor
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 /**
- * @package PDO Database
- * This is the base class for Database. SiteClass extends Database.
+ * @package dbPdo
+ * SiteClass extend Database, Database extends dbPdo, dbPdo extends PDO from PHP 
  * This class can also be used standalone. $siteInfo must have a dbinfo with host, user, database and optionally port.
  * The password is optional and if not pressent is picked up form my $HOME.
  */
@@ -33,8 +34,8 @@ class dbPdo extends PDO {
   static public $lastQuery = null; // for debugging
   static public $lastNonSelectResult = null; // for insert, update etc.
 
-  use UserAgentTools;
-  
+  use UserAgentTools; // BLP 2025-04-19 - This is a trait for isMe(), isMyIp(), isBot(), setSiteCookie() and getIp().
+                      // Putting it here means these are available to the entire hierarchy.
   /**
    * Constructor
    * @param object $siteInfo. Has the mysitemap.json info
@@ -97,6 +98,8 @@ class dbPdo extends PDO {
   // BLP 2025-04-18 -
   // create a class from the caller.
   // This is a STATIC function.
+  // It can be used like this: $db = Database::create($s)
+  // where $s is the $this or the $S or $_site.
   
   public static function create(object $s) {
     return new static($s);
@@ -273,7 +276,7 @@ class dbPdo extends PDO {
   
   public function queryfetch($query, $type=null, $returnarray=null) {
     if(stripos($query, 'select') === false) { // Can't be anything but 'select'
-      throw new Exception($query, $this);
+      throw new Exception(__CLASS__ . " ". __LINE__ .": Query must be a select: $query");
     }
 
     // queryfetch() can be
@@ -311,11 +314,11 @@ class dbPdo extends PDO {
   public function fetchrow($result=null, $type="both") {
     if(is_string($result)) { // a string like num, assoc, obj or both
       $type = $result;
-      $result = $this->result;
+      $result = $this->result; // was set in sql(...).
     }
     
     if(!$result) {
-      throw new Exception(__METHOD__ . ": result is null");
+      throw new Exception(__METHOD__ ." ". __LINE__ .": result is null");
     }
 
     try {
@@ -438,8 +441,12 @@ class dbPdo extends PDO {
       $userId = "User: " . ErrorGetId();
     }
 
-    if(!$userId) $userId = "agent: $this->agent\n";
-
+    if(!$userId) {
+      // This is the same default userId that ErrorGetId() would return
+      
+      $userId = "IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
+    }
+    
     /* BLP 2024-07-01 - NEW VERSION using sendgrid */
 
     if(ErrorClass::getNoEmail() !== true) {
@@ -506,22 +513,6 @@ EOF;
       //***********************
     }
     return;
-  }
-
-  /*
-   * debug
-   * Displays $msg
-   * if $exit is true throw an exception.
-   * else error_log and return.
-   */
-  
-  public function debug($msg, $exit=null) {
-    if($exit === true) {
-      throw new Exception($msg);
-    } else {
-      error_log("dbPdo.class.php: Error=$msg");
-      return;
-    }
   }
 }
 

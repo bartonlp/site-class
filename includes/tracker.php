@@ -16,7 +16,6 @@ Modified tracker to make id a bigint.
 
 CREATE TABLE `tracker` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `botAs` varchar(100) DEFAULT NULL,
   `botAsBits` int DEFAULT 0,
   `site` varchar(25) DEFAULT NULL,
   `page` varchar(255) NOT NULL DEFAULT '',
@@ -384,7 +383,7 @@ if($type = $_GET['page']) {
     // NORMAL or NOSCRIPT has happened. So I do the DEBUG test first and then 'or' in the new
     // value.
 
-    $botAsBits |= $S->botAs;
+    $botAsBits |= $S->botAsBits;
     
     if(empty($site)) $site = "NO_SITE";
     if(empty($thepage)) $thepage = "NO_PAGE";
@@ -607,7 +606,7 @@ if($_POST['page'] == 'start') {
   $js2 = dechex($js);
 
   if(!$S->isMyIp($ip) && $DEBUG_START) {
-    error_log("tracker START3: id=$id, ip=$ip, site=$site, page=$thepage, botAs=$hexBotAsBits, referer=$ref, jsin=$java, jsout=$js2, line=". __LINE__);
+    error_log("tracker START3: id=$id, ip=$ip, site=$site, page=$thepage, botAsBits=$hexBotAsBits, referer=$ref, jsin=$java, jsout=$js2, line=". __LINE__);
   }
 
   $S->sql("update $S->masterdb.tracker set isJavaScript=$js, referer='$ref', count=count+1 where id=$id"); // BLP 2025-03-29 - 
@@ -703,13 +702,13 @@ if($_POST['page'] == 'timer') {
 
   if(!empty($agent)) {
     if($S->isBot($agent)) {
-      $hexBotAsBits = dechex($S->botAs); // Here botAs is a bitmap
+      $hexBotAsBits = dechex($S->botAsBits);
 
       if($DEBUG_ISABOT)
         error_log("tracker TIMER_ISABOT1: id=$id, ip=$ip, site=$site, page=$thepage, time=$time, difftime=$difftime, ".
-                  "botAs=$hexBotAsBits, visits=$visits, jsin=$java, jsout=$js2, agent=$agent, line=".__LINE__);
+                  "botAsBits=$hexBotAsBits, visits=$visits, jsin=$java, jsout=$js2, agent=$agent, line=".__LINE__);
       
-      echo "Timer1: botAs=$hexBotAsBits. This is a BOT, $id, $ip, $site, $thepage";
+      echo "Timer1: botAsBits=$hexBotAsBits. This is a BOT, $id, $ip, $site, $thepage";
       exit(); // If this is a bot don't bother
     }
   } else {
@@ -794,11 +793,17 @@ function goaway($msg, $type=false) {
       $finger = $S->fetchrow('num')[0] ?? "NONE";
     }
 
-    $request = $_REQUEST ? ", \$_REQUEST: " . print_r($_REQUEST, true) : '';
+    $req = '';
+    foreach($_REQUEST as $k=>$v) {
+      $req .= "$k=>$v, ";
+    }
+    $req = rtrim($req, ', ');
+    
+    $req = $_REQUEST ? ", \$_REQUEST $req" : '';
     $id = $id ?? "NO_ID";
 
     error_log("tracker GOAWAY: id=$id, ip=$S->ip, site=$S->siteName, page=$S->self, msg=$msg, ".
-              "\$S->agent=$S->agent, agent=$agent finger=$finger{$request}, line=". __LINE__);
+              "\$S->agent=$S->agent, agent=$agent finger=$finger{$req}, line=". __LINE__);
   }
 
   $version = TRACKER_VERSION;

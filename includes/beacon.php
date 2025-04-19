@@ -24,7 +24,7 @@ CREATE TABLE `badplayer` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2141 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("BEACON_VERSION", "4.0.16beacon-pdo"); // BLP 2025-04-11 - botAsBits added. BLP 2025-04-14 - removed all botAs.
+define("BEACON_VERSION", "4.0.17beacon-pdo"); // BLP 2025-04-19 - 
 
 // BLP 2023-01-30 - If you want the version defined ONLY and no other information.
 // If we have a valid $_site or the $__VERSION_ONLY, then just return the version info.
@@ -77,8 +77,6 @@ if(!is_numeric($id)) {
 
   error_log("beacon: NO ID, $ip, $site, $msg -- \$S->ip=$S->ip, \$S->self=$S->self, \$S->agent=$S->agent, time=" . (new DateTime)->format('H:i:s:v'));
 
-  // BLP 2025-04-11 - remove botAs.
-  
   $S->sql("insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime) " .
             "values('$S->ip', '$site', '$S->self', '{$msg}_BEACON_GOAWAY', '$errno', 'NO ID Go away', '$S->agent', now(), now())");
 
@@ -88,7 +86,7 @@ if(!is_numeric($id)) {
   exit();
 }
 
-// Now get botAs and isJavaScrip etc. from the tracker table.
+// Now get botAsBits and isJavaScrip etc. from the tracker table.
 // BLP 2024-12-17 - remove $java and hex(isJavaScript).
 // BLP 2025-02-26 - get 'error' into $beacon_exit.
 
