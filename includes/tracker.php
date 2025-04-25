@@ -80,7 +80,8 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "4.1.7tracker-pdo"); // BLP 2025-04-15 - remove some error logic and change how I update tracker and bots3
+define("TRACKER_VERSION", "4.1.8tracker-pdo"); // BLP 2025-04-23 - Add BOTS_BOT
+                                               // BLP 2025-04-15 - remove some error logic and change how I update tracker and bots3
 
 $DEBUG_START = true; // start
 $DEBUG_LOAD = true; // load
@@ -89,7 +90,6 @@ $DEBUG_LOAD = true; // load
 //$DEBUG_DAYCOUNT = true; // Timer real+1
 $DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
-//$DEBUG_ISABOT1 = true; // This is in the 'timer' logic
 $DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
 //$DEBUG_NOSCRIPT = true; // no script
 
@@ -154,16 +154,12 @@ EOF;
 // **********************************
 
 // Special case for 'csstest'. It does not have an ip, agent or page so we can't log into bots3
-// table.
+// table, and it does not have 'mysitemap'!
 
 if($_GET['page'] == "csstest") {
   $msg = strtoupper($_GET['page']);
   $id = $_GET['id'];
 
-  if(!is_numeric($id)) {
-    error_log("tracker CSSTEST: id not numeric, id=$id, line=" . __LINE__);
-  }
-  
   $_site->noTrack = true; // BLP 2025-01-06 - 
   $_site->noGeo = true;   // BLP 2025-01-06 - 
 
@@ -191,7 +187,7 @@ if($_GET['page'] == "csstest") {
   } catch(Exception $e) {
     $errno = $e->getCode();
     $errmsg = $e->getMessage();
-    error_log("tracker csstest: can't select tracker id=$id, line=". __LINE__);
+    error_log("tracker $msg: id=$id, errno=$errno, errmsg=$errmsg, line=". __LINE__);
     exit();
   }
 
@@ -219,67 +215,46 @@ if($type = $_GET['page']) {
   $msg = strtoupper($type);
   $mysitemap = $_GET['mysitemap'];
 
-  // If we have $mysitemap get the mysitemap.json from the caller.
-  // This should happend for all types.
-  // Get $_site just incase we have an early error and goaway().
-  // This $_site will be overwritten by the values we get from the GET 'mysitemap' query parameter.
+  // If $mysitemap is empty we can't proceed.
 
-  // BLP 2025-02-25 - add in_array() logic
-  
   if(empty($mysitemap)) {
-    // If $mysitemap is empty we can't proceed.
-
-    $_site = require_once getenv("SITELOADNAME"); // Get the tracker mysitemap.json. We will throw this away.
-
-    if(!is_array($_site)) {
-      error_log("***tracker require failed: id=$id, type=$type, image=$image, \$_site=$_site, line=". __LINE__ );
-      exit();
-    }
-
+    // We have $_site from the top. It is the $_site from this directory not the callers!
+    
     $_site->noTrack = true; // Don't track
     $_site->noGeo = true;   // No Geo
 
-    if(!$_SERVER) error_log("tracker GET: NO \$_SERVER");
-    
-    $xip = $_SERVER['REMOTE_ADDR'] ?? "NO_IP";
-    $xsite = $_SERVER['HTTP_HOST'] ?? "NO_SITE";
-    $xpage = basename($_SERVER['PHP_SELF']) ?? "NO_PAGE";
-    
-    error_log("tracker NO_MYSITEMAP: id=$id, xip=$xip, xsite=$xsite, xpage=$xpage, type=$msg, image=$image, line=". __LINE__);
-    
-    // Here we are using the $_site from the require_once at the start of this GET.
-    
     $S = new Database($_site); // This is for goaway which need $S
 
     // Do I have an $id?
     
     if(is_numeric($id)) {
-      // Yes $id is not null or zero.
+      // Yes $id is a number
       // See if I can get real info for $id?
 
-      if($S->sql("select ip, page, site, agent from $S->masterdb.tracker where id=$id")) {
-        [$ip, $page, $site, $agent] = $S->fetchrow('num');
+      if($S->sql("select ip, page, site, agent, botAsBits, isJavaScript from $S->masterdb.tracker where id=$id")) {
+        [$ip, $page, $site, $agent, $botAsBits, $java] = $S->fetchrow('num');
       } else {
-        goaway("No tracker entry for id=$id"); // GOAWAYNOW
-        exit();
+        goaway("tracker: No tracker entry for id=$id", __LINE__); // GOAWAYNOW
       }
 
       // It looks like I have a real id and ip, page, site and agent my be real.
-      
+      $botAsBits |= BOTS_NO_MYSITEMAP;
+      $java |= TRACKER_BOT;
       try {
-        $S->sql("update $S->masterdb.tracker set botAsBits=botAsBits|". BOTS_NO_MYSITEMAP . " where id=$id");
+        $S->sql("update $S->masterdb.tracker set botAsBits=$botAsBits, isJavaScript=$java where id=$id");
 
-        $S->updateBots3($ip, $agent, $thepage, $site, BOTS_NO_MYSITEMAP);
+        $S->updateBots3($ip, $agent, $page, $site, BOTS_NO_MYSITEMAP);
       } catch(Exception $e) {
         $err = $e->getCode();
         $errmsg = $e->getMessage();
-        error_log("tracker.php: id=$id, err=$err, errmsg=$errmsg, line=". __LINE__);
+        error_log("tracker.php updates failed: id=$id, err=$err, errmsg=$errmsg, line=". __LINE__);
       }
     }
-    goaway("GET $msg no mysitemap.json"); // GOAWAYNOW
-    exit();
+    goaway("tracker GET $msg no mysitemap.json: id=$id", __LINE__); // GOAWAYNOW
   }    
 
+  // If we have $mysitemap get the mysitemap.json from the caller.
+  // This should happend for both types.
   // Here I am looking for just the part that looks like the domain name.
   // All of my server directory names are the same as the domain name without any prefix like
   // 'www' etc.
@@ -293,19 +268,20 @@ if($type = $_GET['page']) {
   {
     // NOT one of my domains.
 
-    error_log("tracker require is not from my domains ($x): id=$id, type=$msg, mysitemap=$mysitemap, line=". __LINE__);
-
+    $id = $id ?? $S->LAST_ID;
+    
+    // We have $_site from the very top of this file.
+    
     $S = new Database($_site); // This is for goaway which need $S. This is the default $_site from tracker.php mysitemap.json
 
-    goaway("tracker $msg, require is not form my domains ($x)"); // GOAWAYNOW.
-    exit();
+    goaway("tracker $msg, require is not form my domains ($x): id=$id, type=$type, mysitemap=$mysitemap", __LINE__); // GOAWAYNOW.
   }
 
   // This is from one of my domains so get the mysitemap.json informaton from the passed in
   // $mysitemap. We need to capture the output and put it into $tmp.
 
   ob_start();
-  require $mysitemap;
+  require $mysitemap; // This is not PHP it is JSON so no returned value.
   $tmp = ob_get_contents();
   ob_end_clean();
 
@@ -328,16 +304,13 @@ if($type = $_GET['page']) {
     $errno = "-100";
     $errmsg = "ID is not numeric: $id";
 
-    // No id, and ip, site, thepage, and agent are not yet valid. Use $S->...
+    // No id, and ip, site, page, and agent are not yet valid. Use $S->...
 
     $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime) ".
            "values('$S->ip', '$S->siteName', '$S->self', '$msg', '$errno', '$errmsg', '$S->agent', now(), now())";
 
-    error_log("tracker GET ID_IS_NOT_NUMERIC: id=$id, ip=$S->ip, site=$S->siteName, errno=$errno, errmsg=$errmsg, agent=$S->agent");
-
     $S->sql($sql);
-    goaway($errmsg, true); // If the goaway() message is 'now' we already have a valid $S.
-    exit();
+    goaway("tracker GET ID_IS_NOT_NUMERIC: id=$id, ip=$S->ip, site=$S->siteName, errno=$errno, errmsg=$errmsg, agent=$S->agent", __LINE__, true);
   }
 
   // $S values are from the original pages mysitemap.json for every thing exept type 'csstest'..
@@ -350,31 +323,27 @@ if($type = $_GET['page']) {
       $or = TRACKER_NOSCRIPT;
       break;
      default:
-      error_log("tracker GET: Switch Error: $S->ip, $S->siteName, type=$type");
-      goaway("Switch Error: $type", true);
-      exit();
+      goaway("tracker GET: Switch Error: ip=$S->ip, site=$S->siteName, type=$type", __LINE__, true);
   }
 
   // Get information from tracker.
 
   if($S->sql("select site, ip, page, finger, isJavaScript, agent, botAsBits, difftime from $S->masterdb.tracker where id=$id")) {
-    [$site, $ip, $thepage, $finger, $js, $agent, $botAsBits, $difftime] = $S->fetchrow('num');
+    [$site, $ip, $page, $finger, $js, $agent, $botAsBits, $difftime] = $S->fetchrow('num');
   } else {
-    error_log("tracker GET, NO RECORD: id=$id, type=$type, line=". __LINE__);
-    goaway("NO RECORD", true);
-    exit();
+    goaway("tracker GET, NO RECORD: id=$id, type=$type", __LINE__, true);
   }
   
-  // I HAVE A VALID 'tracker' RECORD, with $id, $ip, $site, $thepage, $finger, $js, $agent,
+  // I HAVE A VALID 'tracker' RECORD, with $id, $ip, $site, $page, $finger, $js, $agent,
   // $botAsBits, $difftime.
   // The variables, except for $id, may still my be empty if the original values in tracker were not correct.
 
-  $page = basename($thepage);
+  $page = basename($page);
   $java = dechex($js);
   $hexBotAsBits = dechex($botAsBits);
   
   if($DEBUG_GET1)
-     error_log("tracker GET: $id, $ip, $site, $thepage, $msg, botAsBits=$hexBotAsBits, java=$java, line=". __LINE__);
+     error_log("tracker GET: $id, $ip, $site, $page, $msg, botAsBits=$hexBotAsBits, java=$java, line=". __LINE__);
 
   $ref = $_SERVER["HTTP_REFERER"];
 
@@ -386,39 +355,40 @@ if($type = $_GET['page']) {
     $botAsBits |= $S->botAsBits;
     
     if(empty($site)) $site = "NO_SITE";
-    if(empty($thepage)) $thepage = "NO_PAGE";
+    if(empty($page)) $page = "NO_PAGE";
     if(empty($agent)) {
       $agent = "NO_AGENT";
       $botAsBits |= BOTS_NOAGENT;
     }
 
+    // BLP 2025-04-23 - Do I expect $difftime to ever be true?
+    // This is happening because of a NORMAL or NOSCRIPT. I don't think it should be set yet.
+
     if($difftime) {
+      error_log("***tracker HAS DIFFTIME: ip=$ip, line=". __LINE__);
+/*    if($difftime) {
       error_log("***tracker remove bot: ip=$ip, line=". __LINE__);
       $botAsBits &= ~BOTS_SITECLASS;
       $botAsBits |= BOTS_HAS_DIFFTIME | BOTS_COUNTED;
       $js &= ~TRACKER_BOT;
+*/      
     } else {
-      $botAsBits |= BOTS_COUNTED | BOTS_SITECLASS; 
+      //$botAsBits |= BOTS_COUNTED | BOTS_BOT;
+      $botAsBits |= BOTS_COUNTED; // BLP 2025-04-23 -  
       $js |= $or | TRACKER_BOT;
     }
     
     $hexBotAsBits = dechex($botAsBits);
     $java = dechex($js);
 
-    //error_log("***tracker GET: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, botAsBits=$hexBotAsBits, java=$java");
-
     // At this point we know that either $agent was empty of isBot() is true.
     
-    if($DEBUG_ISABOT1 && ($js & (TRACKER_NORMAL | TRACKER_NOSCRIPT) === 0))
-      error_log("tracker GET ISABOT1_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, ".
-                "botAsBits=$botAsBits, java=$java, image=$image, agent=$agent, line=". __LINE__);
-
     if($DEBUG_ISABOT2) {
       $hexBotAsBits = dechex($botAsBits);
-      if($msg == "NOSCRIPT") {
+      if($type == "noscript") {
         error_log("tracker GET ISABOT2_$msg: id=$id, botAsBits=$hexBotAsBits, java=$java, line=". __LINE__);
       } else {
-        error_log("tracker GET ISABOT2_$msg: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, ".
+        error_log("tracker GET ISABOT2_$msg: id=$id, ip=$ip, site=$site, page=$page, type=$type, ".
                   "isBot=$S->isBot, botAsBits=$hexBotAsBits, java=$java, image=$image, agent=$agent, line=". __LINE__);
       }
     }
@@ -432,7 +402,12 @@ if($type = $_GET['page']) {
     
     $js |= $or; 
     $java = dechex($js);
-    $botAsBits |= BOTS_COUNTED | (empty($difftime) ? BOTS_SITECLASS : BOTS_HAS_DIFFTIME);
+
+    // BLP 2025-04-23 - Again I don't think $difftime would be set yet.
+    
+    //$botAsBits |= BOTS_COUNTED | (empty($difftime) ? BOTS_BOT : BOTS_HAS_DIFFTIME);
+
+    $botAsBits |= BOTS_COUNTED; // BLP 2025-04-23 - 
     
     $S->sql("update $S->masterdb.tracker set count=count+1, botAsBits=botAsBits|$botAsBits, isJavaScript=isJavaScript|$js, referer='$ref' ".
             "where id=$id");
@@ -442,7 +417,7 @@ if($type = $_GET['page']) {
 
   $hexBotAsBits = dechex($botAsBits);
   
-  if($DEBUG_GET2) error_log("tracker GET: id=$id, ip=$ip, site=$site, page=$thepage, ".
+  if($DEBUG_GET2) error_log("tracker GET: id=$id, ip=$ip, site=$site, page=$page, ".
                             "botAsBits=$hexBotAsBits, java=$java type=$msg, referer=$ref, line=". __LINE__);
 
   // $S->defaultImage is from the mysitemap.json before anything in the original
@@ -476,7 +451,7 @@ if($type = $_GET['page']) {
   // BLP 2024-12-30 - add $DEBUG_NOSCRIPT   
   
   if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) {
-    error_log("tracker GET NOSCRIPT, difftime=$difftime: id=$id, ip=$ip, site=$site, page=$thepage, type=$msg, ".
+    error_log("tracker GET NOSCRIPT, difftime=$difftime: id=$id, ip=$ip, site=$site, page=$page, type=$msg, ".
               "botAsBits=$hexBotAsBits, java=$java, agent=$agent, line=". __LINE__);
   }
   
@@ -739,27 +714,31 @@ if($_POST['page'] == 'timer') {
 // GOAWAY is only used by the GET logic.
 // goaway($msg, $type). if $type is true enter into badplayer.
 // GOAWAYNOW.
+// @param: $msg string.  $msg should have a full header plus a message. That is it should have "tracker ...: other info.
+// @param: $line int. The line number where this occured. Default is null
+// @param: $type bool. False if $S is from the tracker mysitemap.json, true if from callers
+// mysitemap.json. Default to false.
+// @return: does not return it does an exit().
 
-function goaway($msg, $type=false) {
+function goaway(string $msg, ?int $line=null, bool $type=false): void {
   global $S;
   
   // If $type === true then skip the first part and do the GOAWAYNON logic only.
   // The information is from the tracker.php mysitemap.json NOT the site that called this.
-  
+
   if($type !== true) {
     $errno = "-105";
     $errmsg = $msg; // Pass the message along.
-
+    
     // We don't have any real values. We instantiated Database from the tracker.php mysitemap.json
     // not from the $mysitemap variable because it was not there.
     
     $S->sql("insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg', '$S->agent', now(), now())");
+            "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAYNOW', '$errno', '$errmsg', '$S->agent', now(), now())");
 
     // This is the GOAWAYNOW logic.
 
-    error_log("tracker GOAWAYNOW: ip=$S->ip, site=$S->siteName, page=$S->self, errno=$errno, errmsg=$errmsg, ".
-              "\$S->agent=$S->agent, line=". __LINE__);
+    error_log("$msg, GOAWAYNOW, errno=$errno, errmsg=$errmsg, line=$line");
   } else {
     // Here we have a valid mysitemap.json from the caller via $mysitemap.
     
@@ -767,7 +746,7 @@ function goaway($msg, $type=false) {
 
     if(!is_numeric($id)) {
       $errno = "-103";  
-      $errmsg = "$msg: NO ID, No tracker logic triggered";
+      $errmsg = "$msg, NO ID, No tracker logic triggered, line=$line";
 
       // No id
 
@@ -778,14 +757,16 @@ function goaway($msg, $type=false) {
       // Here $S->ip etc are from the $mysitemap.
 
       $trackerGoaway = TRACKER_GOAWAY;
-      $botAsBits = BOTS_SITECLASS;
+      $botAsBits = BOTS_BOT;
       
       $S->sql("insert into $S->masterdb.tracker (id, site, ip, agent, botAsBits, isJavaScript, starttime) ".
               "values($id, '$S->ip', '$S->siteName', '$S->agent', $botAsBits, $trackerGoaway, now()) ".
               "on duplicate key update count=count+1, botAsBits=botAsBits|$botAsBits, isJavaScript=isJavaScript|$trackerGoaway"); // BLP 2025-03-29 - 
 
-      $errmsg = "$msg: No id.  No tracker logic triggered";
+      $errmsg = "$msg, No id. No tracker logic triggered";
 
+      error_log("$errmsg, line=$line");
+      
       $S->sql("insert into $S->masterdb.badplayer (ip, id, site, page, type, errno, errmsg, agent, created, lasttime) " .
               "values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg', '$S->agent', now(), now())");
 
@@ -802,8 +783,20 @@ function goaway($msg, $type=false) {
     $req = $_REQUEST ? ", \$_REQUEST $req" : '';
     $id = $id ?? "NO_ID";
 
-    error_log("tracker GOAWAY: id=$id, ip=$S->ip, site=$S->siteName, page=$S->self, msg=$msg, ".
-              "\$S->agent=$S->agent, agent=$agent finger=$finger{$req}, line=". __LINE__);
+    error_log("$msg, finger=$finger{$req}, line=$line");
+
+    // Now try to update the tracker record (if it exists) with TRACKER_GOAWAY.
+
+    try {
+      $java = TRACKER_GOAWAY;
+      $S->sql("update $S->masterdb.tracker set isJavaScript=isJavaScript|$java where id=$id");
+    } catch(Exception $e) {
+      // There may not be a tracker record for this id or id may be empty.
+
+      $err = $e->getCode();
+      $errmsg = $e->getMessage();
+      error_log("$msg, No tracker record to update, line=$line");
+    }
   }
 
   $version = TRACKER_VERSION;
@@ -823,6 +816,7 @@ function goaway($msg, $type=false) {
 </body>
 </html>
 EOF;
+  exit();
 }
 
 header("Location: NotAuthorized.php");

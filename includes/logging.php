@@ -4,25 +4,25 @@
 // which does the logging.
 // I have created a new table.
 /*
-// BLP 2025-03-29 - 
-// `event` is a string of name1,name2... These is the $event value. It is concatinated onto the
-// value if there is a value. These events should only happen once per $id, so you could have
-// scroll,click,...
+BLP 2025-03-29 - 
+  `event` is a string of name1,name2... These is the $event value. It is concatinated onto the
+  value if there is a value. These events should only happen once per $id, so you could have
+  scroll,click,...
 
- CREATE TABLE `interaction` (
-  `index` int NOT NULL AUTO_INCREMENT,
-  `id` int DEFAULT NULL,
-  `ip` varchar(20) DEFAULT NULL,
-  `site` varchar(100) DEFAULT NULL,
-  `page` varchar(100) DEFAULT NULL,
-  `event` varchar(256) DEFAULT NULL,
-  `time` varchar(100) DEFAULT NULL,
-  `created` timestamp NULL DEFAULT NULL,
-  `lasttime` timestamp NULL DEFAULT NULL,
-  `count` int DEFAULT '1',
-  PRIMARY KEY (`index`),
-  UNIQUE KEY `id_ip_site_page` (`id`,`ip`,`site`,`page`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `interaction` (
+`index` int NOT NULL AUTO_INCREMENT,
+`id` int DEFAULT NULL,
+`ip` varchar(20) DEFAULT NULL,
+`site` varchar(100) DEFAULT NULL,
+`page` varchar(100) DEFAULT NULL,
+`event` varchar(256) DEFAULT NULL,
+`time` varchar(100) DEFAULT NULL,
+`created` timestamp NULL DEFAULT NULL,
+`lasttime` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+`count` int DEFAULT '1',
+PRIMARY KEY (`index`),
+UNIQUE KEY `id_ip_site_page` (`id`,`ip`,`site`,`page`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
 $_site = require_once getenv("SITELOADNAME");
@@ -43,22 +43,14 @@ if($_POST) {
   // want to not look at my ip.
   
   if($ip !== MY_IP) {
-    $result = file_put_contents("./interaction.log", "[$ts] Interaction: id=$id, ip=$ip, site=$site, page=$page, event=$event\n", FILE_APPEND);
-    if($result === false) {
-      // Use error_log as backup.
-      
-      $err = error_get_last();
-      error_log("logging.php Error={$err['message']}: id=$id, ip=$ip, site=$site, page=$page, event=$event, time=$ts, line=". __LINE__); 
-    }
-
-    // BLP 2025-03-29 - We now have a primary key `index` and a unique key `id`. `count` defaults
+    // We have a primary key `index` and a unique key `id`. And `count` defaults
     // to one. I am using concat_ws(',', event, '$event'). It pust a comma in front of $event if it
     // is not null. Again, the events should only happen once per $id because of the JavaScript
     // (logging.js).
 
-    $S->sql("insert into $S->masterdb.interaction (id, ip, site, page, event, time, created, lasttime) ".
-            "values('$id', '$ip', '$site', '$page', '$event', '$ts', now(), now()) ".
-            "on duplicate key update event=concat_ws(',', event, '$event'), count=count+1, lasttime=now()");
+    $S->sql("insert into $S->masterdb.interaction (id, ip, site, page, event, time, created) ".
+            "values('$id', '$ip', '$site', '$page', '$event', '$ts', now()) ".
+            "on duplicate key update event=concat_ws(',', event, '$event'), count=count+1");
 
     // BLP 2025-04-18 - Use New logic to create a $db for updateBots3();
 

@@ -11,12 +11,13 @@ CREATE TABLE `interaction` (
 `ip` varchar(20) DEFAULT NULL,
 `site` varchar(100) DEFAULT NULL,
 `page` varchar(100) DEFAULT NULL,
-`event` varchar(100) DEFAULT NULL,
+`event` varchar(256) DEFAULT NULL,
 `time` varchar(100) DEFAULT NULL,
 `created` timestamp NULL DEFAULT NULL,
-`lasttime` timestamp NULL DEFAULT NULL,
+`lasttime` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
 `count` int DEFAULT '1',
-PRIMARY KEY (`index`)
+PRIMARY KEY (`index`),
+UNIQUE KEY `id_ip_site_page` (`id`,`ip`,`site`,`page`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
@@ -54,6 +55,5 @@ var loggingphp;
   const events = ['scroll', 'click', 'mousemove', 'keydown', 'touchstart', 'resize'];
 
   events.forEach(evt => window.addEventListener(evt, () =>
-    logInteraction(evt),
-                                                { once: true }));
+    logInteraction(evt), { once: true }));
 })();

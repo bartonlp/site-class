@@ -3,11 +3,12 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-define("DATABASE_CLASS_VERSION", "1.2.1database-pdo"); // BLP 2025-04-19 - moved setSiteCookie() to traits.
+define("DATABASE_CLASS_VERSION", "1.2.1database-pdo"); // BLP 2025-04-21 - enhance detection logic
+                                                       // BLP 2025-04-19 - moved setSiteCookie() to traits.
                                                        // BLP 2025-04-12 - remove trackbots()
                                                        // add it to tracker().
 
-define("DEBUG_TRACKER_BOTINFO", false); // Change this to false if you don't want the error
+define("DEBUG_TRACKER_BOTINFO", true); // Change this to false if you don't want the error
 
 /**
  * Database wrapper class
@@ -73,8 +74,11 @@ class Database extends dbPdo {
         $this->logagent();
       }
     } else {
+      // The enbine is NOT 'sqlite' so this must be 'mysql'.
+      // Check if we allow tracking.
+      
       if($this->noTrack !== true) {
-        $this->logagent();   // This logs Me and everybody else! This is done regardless of $this->isBot or $this->isMe().
+        $this->logagent();   // This logs Me and everybody else! This is done regardless of $this->isBot() or $this->isMe().
 
         $this->isBot($this->agent); // This set $this->isBot, it also does isMe() so I never get set as a bot!
 
@@ -152,134 +156,96 @@ class Database extends dbPdo {
 
   /**
    * tracker()
-CREATE TABLE `tracker` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `botAsBits` int DEFAULT '0',
-  `site` varchar(25) DEFAULT NULL,
-  `page` varchar(255) NOT NULL DEFAULT '',
-  `finger` varchar(50) DEFAULT NULL,
-  `nogeo` tinyint(1) DEFAULT NULL,
-  `browser` varchar(50) DEFAULT NULL,
-  `ip` varchar(40) DEFAULT NULL,
-  `count` int DEFAULT '1',
-  `agent` text,
-  `referer` varchar(255) DEFAULT '',
-  `starttime` datetime DEFAULT NULL,
-  `endtime` datetime DEFAULT NULL,
-  `difftime` varchar(20) DEFAULT NULL,
-  `isJavaScript` int DEFAULT '0',
-  `error` varchar(256) DEFAULT NULL,
-  `lasttime` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `site` (`site`),
-  KEY `ip` (`ip`),
-  KEY `lasttime` (`lasttime`),
-  KEY `starttime` (`starttime`)
-) ENGINE=MyISAM AUTO_INCREMENT=7626952 DEFAULT CHARSET=utf8mb3;
+   * This method is called directly from the constructor.
+    CREATE TABLE `tracker` (
+      `id` bigint NOT NULL AUTO_INCREMENT,
+      `botAsBits` int DEFAULT '0',
+      `site` varchar(25) DEFAULT NULL,
+      `page` varchar(255) NOT NULL DEFAULT '',
+      `finger` varchar(50) DEFAULT NULL,
+      `nogeo` tinyint(1) DEFAULT NULL,
+      `browser` varchar(50) DEFAULT NULL,
+      `ip` varchar(40) DEFAULT NULL,
+      `count` int DEFAULT '1',
+      `agent` text,
+      `referer` varchar(255) DEFAULT '',
+      `starttime` datetime DEFAULT NULL,
+      `endtime` datetime DEFAULT NULL,
+      `difftime` varchar(20) DEFAULT NULL,
+      `isJavaScript` int DEFAULT '0',
+      `error` varchar(256) DEFAULT NULL,
+      `lasttime` datetime DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (`id`),
+      KEY `site` (`site`),
+      KEY `ip` (`ip`),
+      KEY `lasttime` (`lasttime`),
+      KEY `starttime` (`starttime`)
+    ) ENGINE=MyISAM AUTO_INCREMENT=7626952 DEFAULT CHARSET=utf8mb3;
   */
 
   protected function tracker():void {
     $agent = $this->agent;
-
-    // BLP 2023-10-05 - This is the `browser` logic. It sets $name.
-
-    $pat2 = "~ Edge/| Edg/|firefox|chrome|crios|safari|trident|msie|opera|konqueror~i";
-
-    if(preg_match_all($pat2, $agent, $m)) {
-      $m = array_map('strtolower', $m[0]);
-      $mm = $m[count($m)-1];
-
-      switch($mm) {
-        case 'opera':
-          $name = 'Opera';
-          break;
-        case ' edg/':
-        case ' edge/':
-          $name = 'MS-Edge';
-          break;
-        case 'trident':
-        case 'msie':
-          $name = 'MsIe';
-          break;
-        case 'chrome':
-          $name = 'Chrome';
-          break;
-        case 'safari':
-          if(($m[count($m)-2] == 'chrome') || ($m[count($m)-2] == 'crios')) {
-            $name = 'Chrome';
-          } else {
-            $name = 'Safari';
-          }
-          break;
-        case 'firefox':
-          $name = 'Firefox';
-          break;
-        case 'konqueror':
-          $name = 'Konqueror';
-          break;
-        default:
-          error_log("Database tracker: Error, BROWSER pattern: $mm[0], line=".__LINE__);
-          continue;
-      }
-    }
-    // BLP 2023-10-05 - end `browser` logic.
-
-    // Look for iPhone or Android
-
-    if(preg_match("~android|iphone~i", $agent, $m) === 1) {
-      $name = "{$m[0]},$name";
-    }
+    $java = 0;
     
-    // BLP 2021-12-28 -- Explanation.
+    [$browser, $engine, $botbits, $trackerbits, $isBot] = getBrowserInfo($agent); // from helper-functions.php
+
+    // BLP 2025-04-21 - we output this information below.
+
+    $this->isBot = $isBot; // true | false = true. false | true = true.
+    $isBot = $isBot === true ? "true" : 'false'; // Now make $isBot 'true' or 'false' for error_log() below.
+
+    // Explanation.
     // Here we set $java (isJavaScript) to TRACKER_BOT or zero.
     // We then look at isBot and if nothing was found in the bots table and the regex did not
-    // match something in the list then isJavaScript will be zero.
+    // match something in the list and $isBot from getBrowserInfo() is false
+    // then isJavaScript will be zero.
     // The visitor was probably a bot and will be added to the bots table as BOTS_CRON_CHECKTRACKER
-    // by the cron job checktracker2.php and to the bots2 table. The bot was more than likely curl,
+    // by the cron job checktracker2.php. The bot was more than likely curl,
     // wget, python or the like that sets its user-agent to something that would not trigger my
     // regex. Such visitor leave very little footprint.
 
     $java = $this->isMe() ? TRACKER_ME : TRACKER_ZERO;
 
     if($this->isBot) {
-      $java = TRACKER_BOT;
+      $java |= TRACKER_BOT;
+      $botAsBits |= $botbits | BOTS_SITECLASS; // BLP 2025-04-23 -  
     }
 
-    $java |= $this->trackerBotInfo; // BLP 2025-01-12 - or in trackerBotInfo from isBot().
-                                    // These are the TRACKER_ROBOT or TRACKER_SITEMAP or
-                                    // TRACKER_BOT. 
-                                    // The values from the bots table for this ip. The first two are
-                                    // high order bits and TRACKER_BOT is 0x200.
+    $java |= $trackerbits;
     
     // The primary key is id which is auto incrementing so every time we come here we create a
-    // new record.
+    // NEW RECORD.
 
     $page = basename($this->self); // only the file name.
 
+    // This is the initial insert into tracker. It should happen before anything else.
+    // Combine $browser and $engine into $name.
+
+    $name = "$browser,$engine";
+    
     $this->sql("insert into $this->masterdb.tracker ".
                "(site, page, ip, browser, agent, botAsBits, starttime, isJavaScript) ".
                "values('$this->siteName', '$page', '$this->ip', '$name', ".
                "'$agent', $this->botAsBits, now(), $java)");
 
-    $this->LAST_ID = $this->getLastInsertId();
+    // Get the id of this insert.
+    
+    $this->LAST_ID = $this->id = $this->getLastInsertId(); // BLP 2025-04-25 - new $this->id
 
-    // Now update the bots3 table. 'site' can be either an integer or a string.
+    // Now update the bots3 table. 'site' can be either an integer or a string. This should also be
+    // a NEW RECORD even though this method does an insert/update.
     
     $this->updateBots3($this->ip, $agent, $page, $this->siteName, $this->botAsBits);
     
-    // BLP 2025-04-11 - in the constructor we do trackbots() first and then tracker(). The bots3
-    // information should be added in trackbots().
-    
-    if(DEBUG_TRACKER_BOTINFO === true && $this->isBot) {
-      $hexbotinfo = dechex($this->trackerBotInfo);
-      $javahex = dechex($java);
+    if(DEBUG_TRACKER_BOTINFO === true && !$this->isMe()) {
+      $hexjava = dechex($java);
+      $hexBotAsBits = dechex($this->botAsBits);
 
-      // BLP 2025-04-03 - botAs is a bitmap.
-
-      $hexBotAsBits = dechex($this->botAs);
-      error_log("Database tracker trackerBotInfo=$hexbotinfo: id=$this->LAST_ID, ip=$this->ip, ".
-                "site=$this->siteName, page=$this->self, botAsBits=$hexBotAsBits, java=$javahex, agent=$this->agent, line=".__LINE__);
-    }    
+      // $isBot is 'true'/'false' from above.
+      
+      error_log("Database browserInfo: id=$this->id, ip=$this->ip, site=$this->siteName, page=$this->self, ".
+                "botAsBits=$hexBotAsBits, java=$hexjava, browser=$browser, engine=$engine, isBot=$isBot, agent=$this->agent, line=". __LINE__);
+    }
   }
 
   /**
@@ -288,42 +254,32 @@ CREATE TABLE `tracker` (
    * By default this uses a table 'counter' with 'filename', 'count', and 'lasttime'.
    *  'filename' is the primary key.
    * counter() updates $this->hitCount
+   * CREATE TABLE `counter` (
+   * `filename` varchar(255) NOT NULL,
+   * `site` varchar(50) NOT NULL DEFAULT '',
+   * `count` int DEFAULT NULL,
+   * `realcnt` int DEFAULT '0',
+   * `lasttime` datetime DEFAULT CURRENT_TIMESTAMP,
+   * PRIMARY KEY (`filename`,`site`),
+   * KEY `site` (`site`)
+   * ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3
    */
 
   protected function counter():void {
     $filename = $this->self; // get the name of the file
-
-    try {
-      $this->sql("insert into $this->masterdb.counter (site, filename, count, lasttime) values('$this->siteName', '$filename', 1, now())");
-    } catch(Exception $e) {
-      if(($err = $e->getCode()) != 23000) {
-        $errmsg =$e->getMessage();
-        error_log("Database counter: Error, code=" . $e->getCode() . ", Message=" . $e->getMessage() . ", e=|" .print_r($e, true)."|");
-        throw new Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
-      }
-    }
-
-    // Is it me?
+    $realcnt = 0;
     
-    if(!$this->isMe()) { // No it is NOT me.
-      // realcnt is ONLY NON BOTS
-
-      $realcnt = $this->isBot ? 0 : 1;
-
-      // count is total of ALL hits that are NOT ME!
-
-      $sql = "update $this->masterdb.counter set count=count+1, realcnt=realcnt+$realcnt, lasttime=now() ".
-             "where site='$this->siteName' and filename='$filename'";
-
-      $this->sql($sql);
+    if(!$this->isMe()) {
+      $realcnt = $this->isBot ? 0 : 1; // $realcnt is the number of NON robots
     }
+    
+    $this->sql("insert into $this->masterdb.counter (site, filename, count) values('$this->siteName', '$filename', 1) ".
+               "on duplicate key update count=count+1, realcnt=realcnt+$realcnt");
 
     // Now retreive the hit count value after it may have been incremented above. NOTE, I am NOT
     // included here.
 
-    $sql = "select realcnt from $this->masterdb.counter where site='$this->siteName' and filename='$filename'";
-
-    $this->sql($sql);
+    $this->sql("select realcnt from $this->masterdb.counter where site='$this->siteName' and filename='$filename'");
 
     $this->hitCount = ($this->fetchrow('num')[0]) ?? 0; // This is the number of REAL (non BOT) accesses and NOT Me.
   }

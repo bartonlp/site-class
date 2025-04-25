@@ -4,7 +4,8 @@
 define("DO_SERVER", "192.241.132.229"); // My server IP address through DigitalOcean
 define("MY_IP", "195.252.232.86"); // My personal static IP address through MetroNet
 
-define("DEFINES_VERSION", "1.2.3defines-pdo"); // BLP 2025-04-16 - changed to TRACKER_CHECKTRACKER
+define("DEFINES_VERSION", "1.2.4defines-pdo"); // BLP 2025-04-22 - add BOTS_BOT
+                                               // BLP 2025-04-16 - changed to TRACKER_CHECKTRACKER
                                                // BLP 2025-04-15 - removed BOTSAS_...
                                                // BLP 2025-04-10 - new BOTS_... for NO_MYSITEMAP and HAS_INTEACTION. NO_SITE.
 
@@ -31,6 +32,7 @@ define("BOTS_NO_MYSITEMAP", 0x10000); // No mysitemap.json passed to tracker.php
 define("BOTS_HAS_INTERACTION", 0x20000); // has interaction from events like scroll, mousemove, click etc.
 define("BOTS_ISMEFALSE", 0x40000); // used the $this-isMeFalse === true. BLP 2025-04-04 - 
 define("BOTS_FORCE", 0x80000); // used the $this->forceBot === true. BLP 2025-04-04 - 
+define("BOTS_BOT", 0x100000); // If a bot detected in files other than my class files (tracker.php, beacon.php, robots-sitemap.php etc)
 
 // The values for site in bots3 table 'site' field.
 // Used to encode and decode the 'site' field.

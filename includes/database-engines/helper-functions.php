@@ -311,3 +311,141 @@ function getErrorConstantName(int $type, string $prefix='BOTS_', string $section
   return $vkmap[$type] ?? "UNKNOWN ($type)";
 }
 
+// Helper for preg_match that lets me look into an array of items.
+// @param: $pattern string. Search patteren.
+// @param: $inputs array. An array of items to seach through.
+// @return: bool.
+// @side-affect: $m array if any matches. The array is zero based and if NOT empty $m[0] is the
+// first item in the array and $m[1] the second etc.
+
+function preg_match_any(string $pattern, array $inputs, ?array &$m=null): bool {
+  foreach ($inputs as $input) {
+    if(preg_match($pattern, $input)) {
+      echo "$input, true";
+      $m[] = true;
+    } 
+  }
+  if(empty($m)) return false;
+  return true;
+}
+
+/**
+ * getBrowserInfo. Try to determin if this agent is a BOT using the User Agent String.
+ * @param: string $agent. The User Agent String.
+ * @return: array. [$browser, $isBot]. $browser is a name for the browser plus the name of the engine
+ *   seperated by a comma. $isBot is a bool indicating if we think this agent is a bot.
+ * This helper function does NO database logic.
+ **/
+
+function getBrowserInfo(string $agent): array {
+  if(empty($agent)) {
+    $botbits = BOTS_NOAGENT;
+
+    // Without an agent the rest of this makes no sense.
+    // $browser='NO_AGENT', $engin='NO_ENGINE', $botbits=BOTS_NOAGENT, $trackerbits=0, $isBot=true.
+    
+    return ['NO_AGENT', 'NO_ENGINE', BOTS_NOAGENT, 0, true]; 
+  }
+
+  $pattern = "~duckduckgo|googlebot|bingbot|slurp|yandex|baiduspider|telegrambot|facebookexternalhit|".
+             "brave|edg/|edge/|firefox|chrome|crios|safari|trident|msie|opera|konqueror~i";
+
+  $isBot = false;
+  $browser = 'Unknown'; // If not found in preg_match_all this is the default.
+
+  if(preg_match_all($pattern, $agent, $matches)) {
+    $tokens = array_map('strtolower', $matches[0]);
+    $last = end($tokens);
+
+    switch ($last) {
+      case 'duckduckgo':
+        $browser = 'DuckDuckGo Bot'; $isBot = true; break;
+      case 'googlebot':
+        $browser = 'Googlebot'; $isBot = true; break;
+      case 'bingbot':
+        $browser = 'Bingbot'; $isBot = true; break;
+      case 'slurp':
+        $browser = 'Yahoo! Slurp'; $isBot = true; break;
+      case 'yandex':
+        $browser = 'Yandex Bot'; $isBot = true; break;
+      case 'baiduspider':
+        $browser = 'Baidu Spider'; $isBot = true; break;
+      case 'telegrambot':
+        $browser = 'Telegram Bot'; $isBot = true; break;
+      case 'facebookexternalhit':
+        $browser = 'Facebook Bot'; $isBot = true; break;
+      case 'brave':
+        $browser = 'Brave'; break;
+      case ' edg/':
+      case 'edge/':
+        $browser = 'MS Edge'; break;
+      case 'trident':
+      case 'msie':
+        $browser = 'Internet Explorer'; break;
+      case 'crios':
+      case 'chrome':
+        $browser = 'Chrome'; break;
+      case 'safari':
+        $penult = $tokens[count($tokens) - 2] ?? '';
+        $browser = in_array($penult, ['chrome', 'crios']) ? 'Chrome' : 'Safari';
+        break;
+      case 'firefox':
+        $browser = 'Firefox'; break;
+      case 'opera':
+        $browser = 'Opera'; break;
+      case 'konqueror':
+        $browser = 'Konqueror'; break;
+      default:
+        $browser = 'Unknown';
+        error_log("Database Unrecognized browser: line=". __LINE__ . "\n" . print_r($tokens, true));
+    }
+  }
+
+  // Detect engine
+
+  if(stripos($agent, 'Gecko') !== false && stripos($agent, 'like Gecko') === false) {
+    $engine = 'Gecko';
+  } elseif(stripos($agent, 'AppleWebKit') !== false) {
+    $engine = 'WebKit';
+  } elseif(stripos($agent, 'Chrome') !== false || stripos($agent, 'Brave') !== false) {
+    $engine = 'Blink';
+  } else {
+    $engine = 'Unknown';
+  }
+
+  if($x = preg_match("~@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
+                     "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
+                     "http client|PECL::HTTP|Go-|python~i", $agent) === 1)
+  { 
+    // If we got a 1 this is a match
+
+    $isBot = true;
+    $botbits |= BOTS_MATCH;
+  }
+
+  // BLP 2025-04-21 - Look for iPhone or Android
+
+  if(preg_match("~android|iphone~i", $agent, $m) === 1) {
+    if(stripos($agent, 'android') !== false && stripos($agent, 'chrome') !== false) {
+      $browser = "{$m[0]},Chrome,Blink";
+    } 
+    $browser = "{$m[0]},$browser";
+  }
+
+  if(preg_match("~\+?https?://~", $agent) === 1) {
+    $isBot = true;
+    $botbits |= BOTS_GOODBOT;
+  }
+
+  if($botbits & (BOTS_GOODBOT | BOTS_NOAGENT | BOTS_MATCH)) {
+    $trackerbits = TRACKER_BOT;
+  }
+  
+  return [
+          $browser,
+          $engine,
+          $botAsBits,
+          $trackerinfo,
+          $isBot,
+         ];
+}

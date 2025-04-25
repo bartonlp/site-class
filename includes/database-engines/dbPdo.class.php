@@ -11,10 +11,12 @@
  * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
  */
 // BLP 2024-04-20 - set mysql timezone!
+// BLP 2025-04-20 - at some point I may add more type hints to this file.
 
 use SendGrid\Mail\Mail; // Use SendGrid for email
 
-define("PDO_CLASS_VERSION", "1.2.4pdo"); // BLP 2025-04-19 - add the trait.
+define("PDO_CLASS_VERSION", "1.2.5pdo"); // BLP 2025-04-24 - new sql() method from ChatGpt
+                                         // BLP 2025-04-19 - add the trait.
                                          // BLP 2025-04-18 - add create() to allow me to use updateBot3() function when I do new dbPdo(...).
                                          // BLP 2025-04-13 - new version of $robotMap. Added SAPI in constructor
 
@@ -134,54 +136,95 @@ class dbPdo extends PDO {
 
   /**
    * sql()
-   * Query database table
-   * BLP 2016-11-20 -- Query is for a SINGLE query ONLY. Don't do multiple querys!
-   * @param string $query SQL statement.
-   * @return: if $result === true returns the number of affected_rows (delete, insert, etc). Else ruturns num_rows.
-   * if $result === false throws Exception().
+   * Execute a single SQL statement with optional prepared parameters.
+   * Supports SELECT, INSERT, UPDATE, DELETE (DML), as well as CREATE, DROP, ALTER, TRUNCATE (DDL),
+   * and GRANT, REVOKE, SET, USE (DCL). Automatically uses prepare/execute if parameters are supplied.
+   *
+   * @param string $query  The SQL statement to execute.
+   * @param array  $params Optional array of values to bind to the statement (for prepared execution).
+   * @return int|bool   - Row count for INSERT, UPDATE, DELETE
+   *                    - True for successful DDL/DCL statements
+   *                    - Row count for SELECT/SHOW/EXPLAIN (and sets $this->result)
+   *                    - 0 for suppressed tracking query failures
+   *                    - false only if something unusual occurs
+   * @throws Exception  - On SQL preparation or execution failure.
+   * @site-effect       - For SELECT/SHOW/EXPLAIN sets $this->result.
+   * NOTE: $query must be a single line with no newlines.
    */
-
-  public function sql($query) {
-    self::$lastQuery = $query; // for debugging
-
-    $m = null;
-    preg_match("~^(\w+).*$~", $query, $m);
-    $m = $m[1];
-
-    //echo "m=$m<br>";
-
-    if($m == 'insert' || $m == 'delete' || $m == 'update') {
-      try {
-        $numrows = $this->exec($query);
-      } catch (Exception $e) {
-        throw $e;
-      }
-    } else { // could be select, create, etc.
-      try {
-        $result = $this->query($query);
-      } catch(Exception $e) {
-        if(str_contains($query, "by+lasttime")) {
-          error_log("dbPdo.class.php, by+lasttime: ip=$this->ip, site=$this->siteName, page=$this->self, agent=$this->agent");
-          return;
-        }
-        throw $e;
-      }
-
-      $this->result = $result;
-
-      if($this->dbinfo->engine == 'mysql') {
-        $numrows = $result->rowCount();
-      } elseif($m == 'select') {
-        $last = self::$lastQuery;
-        $last = preg_replace("~^(select) .*?(from .*)$~", "$1 count(*) $2", $last);
-        $stm = $this->query($last);
-        $numrows = $stm->fetchColumn();
-        //echo "numrows=$numrows<br>";
-      } else $numrows = 0;
-    }
-    return $numrows;
-  }
+  // BLP 2025-04-24 - new logic from ChatGpt.
   
+  public function sql($query, array $params = []): int|bool {
+    self::$lastQuery = $query;
+
+    // Extract the command type (first word in SQL)
+    
+    preg_match("~^(\w+).*$~", $query, $m); // This only works if $query is a single line.
+    $m = strtolower($m[1]);
+
+    // Classify SQL command types
+    
+    //$dml = ['select', 'insert', 'update', 'delete']; // Just for documentation.
+    //$ddl = ['create', 'drop', 'alter', 'truncate'];
+    //$dcl = ['grant', 'revoke', 'set', 'use'];
+    
+    // Prepared execution path
+
+    try {
+      // This array is basically $dml, $ddl and $dcl minus 'select'.
+      
+      if(in_array($m, ['insert', 'update', 'delete', 'create', 'drop', 'alter', 'truncate', 'set', 'grant', 'revoke', 'use'])) {
+        if($params) {
+          $stmt = $this->prepare($query);
+          $stmt->execute($params);
+          return in_array($m, ['insert', 'update', 'delete']) ? $stmt->rowCount() : true;
+        } else {
+          $rows = $this->exec($query);
+          return in_array($m, ['insert', 'update', 'delete']) ? $rows : true;
+        }
+      } else {
+        // SELECT, SHOW, DESCRIBE, EXPLAIN, etc. These all return a $result.
+
+        if($params) {
+          $stmt = $this->prepare($query);
+          $stmt->execute($params);
+          $this->result = $stmt;
+        } else {
+          $this->result = $this->query($query);
+        }
+
+        $result = $this->result;
+
+        // Row counting logic
+        
+        if($this->dbinfo->engine == 'mysql') {
+          $numrows = $result->rowCount();
+        } elseif($m == 'select') {
+          // If engine is not 'mysql' then it is 'sqlite' as those are the only two databases I
+          // support. So use count(*) to get the number of lines.
+          
+          $last = self::$lastQuery; // Get the query back
+
+          // No remove 'select' the 'from ...' and create 'select count(*) from ...
+          
+          $last = preg_replace("~^(select) .*?(from .*)$~i", "$1 count(*) $2", $last);
+          $stm = $this->query($last);
+          $numrows = $stm->fetchColumn();
+        } else {
+          $numrows = 0;
+        }
+
+        return $numrows;
+      }
+    } catch (Exception $e) {
+      // Optional targeted debug logic
+      if (str_contains($query, "by+lasttime")) {
+        error_log("dbPdo, by+lasttime: ip=$this->ip, site=$this->siteName, page=$this->self, agent=$this->agent, line=". __LINE__);
+        return true; // Did not process this query!
+      }
+      throw $e;
+    }
+  }
+
   /**
    * sqlPrepare()
    * This method works with fully formed queries! That is no :name or =? that need to be prepared!
