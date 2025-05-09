@@ -1,0 +1,130 @@
+/*
+ * Example of mysitemap.json
+ * ITEMS in UPPER_CASE need to be added for you site
+ * 
+ * SPECIAL json for use by siteload.php. Normal json will not allow
+ * comments. The siteload.php program removes the comments and then
+ * passes the result to json_decode(), so after the comments are
+ * revomve the file MUST be legal parsable json.
+ * 
+ * Note that the entries marked 'only $this' could be changed after
+ * SiteClass or Database class are instantiated but it would have
+ * little to no affect. Some items make sense to be placed into the
+ * class properties because they will be used in the 'getPage...()'
+ * functions which are methods of SiteClass. See
+ * https://github.com/bartonlp/site-class for more information. Look
+ * specifically at SiteClass.class.php and the getPace*() methods which
+ * are pretty well documented.
+ * This file is read by the siteload.php program like this:
+ * $_site = require_once getenv("SITELOADNAME);
+ * $S = new SiteClass($_site);
+ * Therefore to change things like siteName or any of the items marked
+ * as 'only $this' the values of $_site need to be changes.
+ * They can be changed via $S but it will not have any effect on the
+ * values of $this which are set by the class constructor.
+ * Note: a list of all of the possible values can be found here.
+ */
+{
+    "siteDomain": "YOUR_DOMAIN.com", // only $this
+    "siteName": "YOUR_SITENAME.com", // only $this
+    "mainTitle": "<h1>YOUR Home Page</h1>", // also $S
+    "path": "/var/www/PATH_TO_THIS_PAGE", // only $this
+    "className": "SiteClass", // only $this. Not all programs use this, some instantiate SiteClass directly
+    "copyright": "YOUR_NAME", // also via $S
+    "author": "YOUR_NAME", // also via $S
+    "address": "YOUR_ADDRESS", // This goes in the footer and can be set via $S->address also
+    "favicon": "YOUR_ICON.ico",
+    "canonical": "https://YOUR_MAIN_SITE.com",
+    // "defaultCss": false, // If this is set to false then NO default
+    // header at all.
+    "masterdb": "YOUR_DATABASE", // only $this
+    "dbinfo": { // only $this
+      "host": "localhost",
+      "user": "YOUR_USER_NAME", 
+      "database": "BASE_NAME_FOR_DATABASE",
+      // "password": "", // Usually not used as the valuse is retrieved
+      // from a file on disk.
+      // "port": "", // if we need to change the port from the default.
+      // "socket": "", // as above.
+      "engine": "mysql", // Only used with PDO 
+      "DUMMY": null // DUMMY at end with no comma    
+    },
+    /* NOTE the errorMode entries are all controlled by statics so they can be set or unset at any time.
+     * They are all available via the ErrorClass.
+     * ErrorClass::set{item name leading capital}() or
+     * ErrorClass::get{item name leading capital}()
+     */ 
+    "errorMode": { // only $this. 
+      "development": false,    // development automatically sets email to true.
+                               // If development is true then noEmail will be
+                               // set to true unless noEmail is set to false!
+                               // Only false not null or just missing.
+                               // The default is false.
+      "noEmail": null,         // Set it to null will not affect the true above which sets it to true also.
+                               // The default is false.
+      // "noHtml": false,      // This is the default.
+      // "noOutput": false,    // This is the default.
+      // "noBacktrace": false, // this is the default.
+      // "errLast": false,     // this is the default. If true the file that
+                               // caused the error is shown.
+      // "exitonError": true   // this is the default. If false then we
+                               // return to the caller.
+      "DUMMY": null            // DUMMY at end with no comma
+    },
+    "memberTable": "members",  // only $this. Currently bartonphillips.com is the ONLY one with a member table!
+    // BLP 2022-01-15 -- NOTE these are include via require() so these must be absolute
+    // or relative paths not URLs
+    "headFile": "/var/www/YOUR_APACHE_DOC_ROOT/includes/head.i.php",
+    "bannerFile": "/var/www/YOUR_APACHE_DOC_ROOT/includes/banner.i.php",
+    "footerFile": "/var/www/YOUR_APACHE_DOC_ROOT/includes/footer.i.php",
+    "count": true, // only $this
+    "ctrmsg": "Counter Reset: DATE", // also via $S for footer. The counter reset message.
+    // The following can also be set via $S 
+    //
+    // "nodb": true, // if true then we do not load Database
+    // "noTrack": true, // if true we do not load tracker.js or tracker.php
+    // "base": "path to the base",
+    // "preheadercomment": "<!--Commint wrapped in comment marks-->",
+    // "lang": "en",
+    // "htmlextra": "something extra",
+    // "doctype", "<!DOCTYPE html>",
+    // "defaultCss": false, // also via $S
+    // "defaultImage": "This is the image that is used by tracker
+    // instead of https://bartonphillips.net/images/plank.png
+    // "imageLocation": "This is the location of images instead of the
+    // default of https://bartonphillips.net.
+    // "title": "goes in <title>",
+    // "desc": "some description",
+    // "keywords": "bunch of keywords",
+    //
+    // The following can also be set via $S for the footer 
+    //
+    // "msg": "some message", 
+    // "msg2": "some message",
+    // "msg2": "some message",
+    // "noCounter": true,
+    // "nofooter": true,
+    // "noLastmod": true,
+    // "noCopyright": true,
+    // "copyright": "This is the copyright",
+    // "aboutwebsite": "<h2><a target='_blank' href='phpinfo.php'>Something Special</a></h2>",
+    // "noAddress": true,
+    // "address": "Here at Home",
+    // "noEmailAddress": true,
+    //
+    // The ***Location entries let me put the elements of SiteClass in
+    // other locations. This would be required if someone downloaded
+    // SiteClass etc. and was using the examples.
+    //"trackerLocation": "the location of tracker.php",
+    //"trackerLocationJs": "the location of tracker.js",
+    //"beaconLocation": "the location of beacon.php",
+    //"geoLocation": "Your location", // you can find geo.js and
+    //"imagesLocation": "https://YOUR_LOCATION_FOR_IMAGES",
+    //"defaultImage": "YOUR_DEFAULT_IMAGE",
+    "trackerImg1": "/images/YOUR_IMAGE",        // only $this. The trackerImg must have a slash before or make them a full url.
+    //"trackerImgPhone": "/images/YOUR_IMAGE",  // use the same photo for desktop and phone
+    "trackerImg2": "/images/YOUR_IMAGE",        // only $this
+    "EMAILADDRESS": "YOUR_EMAIL_ADDRESS",       // only $this
+    "EMAILRETURN": "YOUR_EMAIL_ADDRESS",        // only $this
+    "EMAILFROM": "webmaster@YOUR_DOMAIN"        // only $this
+}

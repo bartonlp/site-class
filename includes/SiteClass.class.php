@@ -3,56 +3,61 @@
 // Note that the constructor calls the Database constructor which in turn call the
 // dbPdoconstructor which does all of the heavy lifting.
 
-// This is using PDO.
-
-define("SITE_CLASS_VERSION", "5.2.0pdo"); // BLP 2025-04-08 - changed getPageBanner() to use $b->names. Changed getPageFooter() to use $f->names.
-                                          // Added theagent='$this->agent' to $trackerStr. This is
-                                          // for the bots3 table which uses ip, agent, page as its
-                                          // key.
-                                          // Added more comments and removed old BLP labels.
-                                          // The $this->b_... and $this->h_..., which are usually set by
-                                          // $S->b_... and $S->h_..., remain the same in all of my
-                                          // files.
+namespace bartonlp\SiteClass;
+   
+/**
+ * @file SiteClass.class.php
+ * @package SiteClass
+ */
+define("SITE_CLASS_VERSION", "5.2.2pdo"); // BLP 2025-05-01 - new cssLink and defaultCss. Both do filetime().
+                                          // BLP 2025-04-26 - add id to jQuery insert.
 
 // One class for all my sites
 /**
- * SiteClass
+ * SiteClass. Top of the SiteClass framework.
+ *
+ * This is the top of the framework.
+ * SiteClass extends Database.
+ * Database extends dbPdo.
+ * dbPdo extends PDO. This is the standard PHP PDO class.
  *
  * @package SiteClass
  * @author Barton Phillips <barton@bartonphillips.com>
  * @link http://www.bartonphillips.com
- * @copyright Copyright (c) 2022, Barton Phillips
- * @license  MIT
+ * @copyright Copyright (c) 2025, Barton Phillips
+ * @license MIT
+ * @see https://github.com/bartonlp/site-class My GitHub repository
  */
-
-/**
- * @package SiteClass
- * This class can be extended to handle special issues and add methods.
- */
-
-/*
-BLP 2024-12-17 - this has been removed from siteload.php
-use \bartonlp\siteload\getinfo as load;
-*/
-
 class SiteClass extends Database {
   // Give these default values incase they are not mentioned in mysitemap.json.
   // Note they could still be null from mysitemap.json!
 
+  /**
+   * Whether to display the hit counter widget.
+   *
+   * If true, the hit count will be shown in the counter widget.
+   * @var bool 
+   */
   public $count = true;
+
+  /**
+   * The document type declaration (e.g., `<!DOCTYPE html>`).
+   *
+   * Starts with a default value unless overridden.
+   *
+   * @var string
+   */
   public $doctype = "<!DOCTYPE html>";
 
   /**
-   * Constructor
+   * SiteClass constructor.
    *
-   * @param object $s. If this is not an object we get an error!
-   *  The $s is almost always from mysitemap.json.
-   *  Once in a while they can be changed by the program instantiating the class.
-   *  'count' is default true.
-   *  $s has the values from $_site = require_once getenv("SITELOADNAME");
-   *  which uses siteload.php to gets values from mysitemap.json.
+   * The object passed in is usually from mysitemap.json, which contains all
+   * important configuration settings.
+   *
+   * @param object $s Configuration object from mysitemap.json
+   * @see https://bartonlp.org/docs/mysitemap.json for full details
    */
-  
   public function __construct(object $s) {
     // Do the parent Database constructor which does the dbPdo constructor.
     
@@ -66,57 +71,67 @@ class SiteClass extends Database {
   } // End of constructor.
 
   /**
-   * getVersion()
-   * @return string version number
+   * Get the version of SiteClass
+   *
+   * @return string The version from the define at the start of SiteClass
    */
-
   public static function getVersion():string {
     return SITE_CLASS_VERSION;
   }
 
   /**
-   * getHitCount()
+   * getHitCount() Gets the number of times someone visited our page
+   *
+   * @return int
    */
-
   public function getHitCount():int {
     return $this->hitCount;
   }
 
   /**
-   * getDoctype()
-   * Returns the CURRENT DocType used by this program
+   * Get the `<!DOCTYPE ...>` 
+   *
+   * @return string
    */
-
   public function getDoctype():string {
     return $this->doctype;
   }
 
   /**
-   * getPageTopBottom()
-   * This is the MOST used method. All of the other getPage... methods usually get called from here.
-   * Get Page Top (<head> and <header> ie banner) and Footer
-   * @return array top, footer
+   * Get the top and bottom of the page
+   *
+   * Get the top of the page i.e. `<head>` information,
+   * and the bottom bottom of the page i.e. `<footer>` and JavaScrip that apears just before `</body>`
+   * The method is usually used like this: `'[$top, $bottom] = $S->getPageTopBottom()'`.
+   * When the page is rendered with an `'echo <<<EOF'`, the first line is $top,
+   * and the last line is $bottom followed by EOF;
+   * The content is usually placed between these two variables.
+   *
+   * @return array{0: string, 1: string} [$top, $bottom]
    */
-
   public function getPageTopBottom():array {
     // Do getPageTop and getPageFooter
 
     $top = $this->getPageTop();
 
-    $footer = $this->footer ?? $this->getPageFooter(); // We could have a different pageFooter.
+    $bottom = $this->footer ?? $this->getPageFooter(); // We could have a different pageFooter.
 
     // return the array which we usually get via '[$top, $footer] = $S->getPageTopBottom()'
 
-    return [$top, $footer];
+    return [$top, $bottom];
   }
 
   /**
-   * getPageTop()
-   * Get Page Top
-   * Gets both the page <head> and <header> sections
-   * @return string with the <head>  and <header> (ie banner) sections
+   * Get the top of the page
+   *
+   * Gets all of the `<head>` info and the `<body>` tag, and usually the `<div id="content">`.
+   * It also gets the banner information.
+   * The ending `</div>` is supplied in the $bottom variable. 
+   *
+   * @return string
+   * @see https://bartonlp.org/docs/head.i.php
+   * @see https://bartonlp.org/banner.i.php
    */
-  
   public function getPageTop():string {
     // Get the page <head> section
 
@@ -130,14 +145,17 @@ class SiteClass extends Database {
   }
 
   /**
-   * getPageHead()
-   * Get the page <head></head> stuff including the doctype and the beginning <body> tag.
-   * @return string $pageHead
-   * Uses $h. However the old values are still available for old includes.
+   * Get the `<head>` content
+   *
+   * This method does a lot of work. It looks at all of the items that come from mysitemap.json.
+   * It looks to see if a value is set and if not provides defaults if applicable.
+   * It creates the $h standard class that is passed to the head.i.php file,
+   * which is (usually) in the includes directory of the document root of the website.
+   *
+   * @return string
+   * @throws \Exception If require headfile returns 1.
+   * @see https://bartonlp.org/docs/head.i.php.
    */
-
-  // BLP 2025-02-15 - Add nonce.
-  
   public function getPageHead():string {
     // Instantiate a stdClass so we can pass things to the headFile.
     
@@ -163,20 +181,39 @@ class SiteClass extends Database {
     $h->favicon = $this->favicon ? "<link rel='shortcut icon' href='$this->favicon'>" :
                   "<link rel='shortcut icon' href='https://bartonphillips.net/images/favicon.ico'>";
 
-    // The default css should be a URL (relative or absolute) or if true or false it is set to null
-    
-    if($this->defaultCss === false || $this->defaultCss === true) { 
+    // Get the defaultCss if available. It hust be a string or false or null.
+
+    if($this->defaultCss === false) { 
       $h->defaultCss = null;
-    } else { // Else either add the value or the default.
-      $h->defaultCss = $this->defaultCss ? "<link rel='stylesheet' href='$this->defaultCss' title='default'>" :
-                       "<link rel='stylesheet' href='https://bartonphillips.net/css/blp.css' title='default'>";
+    } else {
+      $h->defaultCss = $this->defaultCss ?? "https://bartonphillips.net/css/blp.css";
+        
+      [$css, $filetime] = $this->resolveCssAndFiletime($h->defaultCss);
+
+      $h->defaultCss = $css ? "<link rel='stylesheet' href='$css?v=$filetime' title='default'>" : null;
     }
 
     // These need to have the <style> or <script> tabs added.
     
     $h->css = $this->css ? "<style>\n$this->css\n</style>" : null;
     $h->inlineScript = $this->h_inlineScript ? "<script nonce='$this->nonce'>\n$this->h_inlineScript\n</script>" : null;
+
+    // BLP 2025-05-01 - If I have $this->cssLink then create the external link
+    // The cssLink can be an string or an array of strings.
+    // Like $S->cssLink = ['one.css', 'two.css']; or $S->css = 'one.css';
     
+    if($this->cssLink) {
+      $cssLinks = is_array($this->cssLink) ? $this->cssLink : [$this->cssLink];
+      $h->cssLink = '';
+
+      foreach($cssLinks as $link) {
+        [$css, $filetime] = $this->resolveCssAndFiletime($link);
+        if($css) {
+          $h->cssLink .= "<link rel='stylesheet' href='$css?v=$filetime'>\n";
+        }
+      }
+    }
+
     // The rest, $h->link, $h->script and $h->extra need to have the full '<link' or '<script' tags
     // in the variables.
 
@@ -195,10 +232,11 @@ class SiteClass extends Database {
     
     if($this->nojquery !== true) {
       // Add the jQuery info and the JavaScript var items.
+      // BLP 2025-04-26 - Add id to jQuery so I can locate it in tracker.js and add the csstest.
       
       $jQuery = <<<EOF
   <!-- BLP 2024-12-31 - Latest version 3.7.1 and migrate 3.5.2 -->
-  <script nonce="$this->nonce" src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script nonce="$this->nonce" id='jQuery' src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
   <script nonce="$this->nonce" src="https://code.jquery.com/jquery-migrate-3.5.2.min.js" integrity="sha256-ocUeptHNod0gW2X1Z+ol3ONVAGWzIJXUmIs+4nUeDLI=" crossorigin="anonymous"></script>
   <script nonce="$this->nonce">jQuery.migrateMute = false; jQuery.migrateTrace = false;</script>
 EOF;
@@ -361,8 +399,11 @@ EOF;
 
     if(!is_null($this->headFile)) {
       if(($p = require($this->headFile)) !== 1) {
+        // $p has the contents of the header file.
         $pageHeadText = "{$html}\n$p";
       } else {
+        // require returned 1 which is wrong!!
+        
         throw new Exception(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1");
       }
     } else {
@@ -403,13 +444,14 @@ EOF;
   }
   
   /**
-   * getPageBanner()
-   * Get Page Banner
-   * @return string banner
-   * NOTE: The body tag is done HERE!
+   * Get the banner information.
+   *
+   * The information goes into the `<header>` section of the page.
+   * It usually has header images etc.
+   *
+   * @return string
+   * @see https://bartonlp.org/docs/banner.i.php
    */
-  // BLP 2025-04-08 - I should use $b = new stdClass and make everything $b->name.
-  
   public function getPageBanner():string {
     $b = new stdClass; // b is for banner
 
@@ -466,13 +508,14 @@ EOF;
   }
 
   /**
-   * getPageFooter()
-   * Get Page Footer
+   * Get the page footer
+   *
+   * Gets the bottom (footer) of the page. This (usually) has the ending `</div>` for the
+   * `<div id='content'>` in the top of the page.
+   *
    * @return string
-   * Uses $b, however the old values are still available for old includes.
+   * @see https://bartonlp.org/docs/footer.i.php
    */
-  // BLP 2025-04-08 - changed all $b=>name to $f->name. $f for footer.
-  
   public function getPageFooter():string {
     // If nofooter is true just return an empty footer
 
@@ -527,7 +570,7 @@ EOF;
     // Add noGeo
 
     if($this->noGeo !== true && $this->noTrack !== true && $this->nodb !== true) {
-      $geo = $this->gioLocation ?? "https://bartonphillips.net/js";
+      $geo = $this->geoLocation ?? "https://bartonphillips.net/js";
       
       $geo = "<script src='$geo/geo.js'></script>";
     }
@@ -563,9 +606,13 @@ EOF;
   }
 
   /**
-   * getCounterWigget()
+   * Get the footer counter widget
+   *
+   * Uses the hit count from the barton.counter table realcnt field.
+   
+   * @return string
+   * @see \Database::counter() method, does page counting.
    */
-
   public function getCounterWigget(?string $msg="Page Hits"):?string {
     // Counter at bottom of page
     // hitCount is updated by 'counter()' in Database.
@@ -594,10 +641,52 @@ EOF;
   }
 
   /**
-   * __toString();
+   * Get the class name
+   *
+   * The class name is returned
+   * @return string
    */
-
-  public function __toString() {
+  public function __toString(): string {
     return __CLASS__;
+  }
+
+  /**
+   * Adds a cache buster to the css file
+   *
+   * @param string $css
+   * @return array{0: string, 1: int} [$css, $filetime] $css is a string, $filetime is a UNIX timestamp
+   */
+  private function resolveCssAndFiletime(string $css): array {
+    // The default css should be a URL (relative or absolute) or if true or false it is set to null
+    // Else either add the value or the default.
+    // BLP 2025-05-01 - use $tmp, get filemtime($tmp) then make $h-defaultCss with the query
+    // v=$filetime. This is for cache busting.
+    // Restrictions: the file must either be from my bartonphillips.net direcotry or be a
+    // relative path within the host.
+
+    if(preg_match("~^(https://)?(bartonphillips\.net/)?(.*$)~", $css, $m) === 1) {
+      if(!$m[1]) {
+        $tmp = $m[3]; // This is $css
+      } elseif($m[1] && $m[2] && $m[3]) {
+        // If I have the whole line then /var/www/ plus $m[2] and $m[3]
+        $tmp = "/var/www/{$m[2]}{$m[3]}";
+      } else {
+        // This is an error.
+        error_log("SiteClass getPageHead invalid css=$css: ".
+                  "id=$this->id, ip=$this->ip, site=$this->siteName, page=$this->self, agent=$this->agent, line=". __LINE__);
+        exit();
+      }
+      // Now we have the filesystem path, relative or absolute in $tmp
+
+      if(file_exists($tmp)) {
+        $filetime = filemtime($tmp);
+      } else {
+        $css = null;
+      }
+    } else {
+      $css = null;
+    }
+
+    return [$css, $filetime];
   }
 } // End of Class

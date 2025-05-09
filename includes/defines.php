@@ -4,7 +4,8 @@
 define("DO_SERVER", "192.241.132.229"); // My server IP address through DigitalOcean
 define("MY_IP", "195.252.232.86"); // My personal static IP address through MetroNet
 
-define("DEFINES_VERSION", "1.2.4defines-pdo"); // BLP 2025-04-22 - add BOTS_BOT
+define("DEFINES_VERSION", "1.2.5defines-pdo"); // BLP 2025-05-01 - add MY_HOSTS
+                                               // BLP 2025-04-22 - add BOTS_BOT
                                                // BLP 2025-04-16 - changed to TRACKER_CHECKTRACKER
                                                // BLP 2025-04-15 - removed BOTSAS_...
                                                // BLP 2025-04-10 - new BOTS_... for NO_MYSITEMAP and HAS_INTEACTION. NO_SITE.
@@ -97,3 +98,16 @@ define("BOTS_ROBOTMAP", [
                          BOTS_FORCE => null,
                         ]);
 
+// Array of my servers.
+
+define("MY_HOSTS", [
+                    "bartonphillips.com",
+                    "bartonphillips.net",
+                    "bartonlp.com",
+                    "bartonlp.org",
+                    "bonnieburch.com",
+                    "newbernzig.com",
+                    "newbern-nc.info",
+                    "jt-lawnservice.com",
+                    "swam.us"
+                   ]);

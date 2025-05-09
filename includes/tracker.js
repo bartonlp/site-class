@@ -3,9 +3,7 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.10trackerjs-pdo"; // BLP 2025-04-08 - add comments etc.
-                                                 // Add theagent to all
-                                                 // $.ajax calls.
+const TRACKERJS_VERSION = "3.1.11trackerjs-pdo"; // BLP 2025-04-26 - fix csstest
                                                  
 // SiteClass places a <script> tag in the head.i.php file via
 // $h->tracjerStr. That variable has a full list of JavaScript
@@ -137,7 +135,9 @@ jQuery(document).ready(function($) {
   runtimer(); // First thing, start the timer.
 
   if(noCssLastId !== '1') {
-    $("script[data-lastid]").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
+    // BLP 2025-04-26 - New logic. This replaces [data-lastid] with the
+    // new id.
+    $("#jQuery").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
   }
   
   // BLP 2023-08-08 - desktopImg and phoneImg are supplied by

@@ -3,6 +3,8 @@
 // BLP 2025-04-19 - moved setSiteCookie() here from Database. Also getIp()
 // BLP 2025-04-19 - Change botAs to botAsBits
 
+namespace bartonlp\SiteClass;
+
 /*
 CREATE TABLE `tracker` (
   `id` bigint NOT NULL AUTO_INCREMENT,
@@ -115,8 +117,10 @@ trait UserAgentTools {
       $this->isBot = true;
     }
 
-    [$browser, $botbits, $trackerbits, $isBot] = getBrowserInfo($agent); // from helper-functions.php
-    
+    [$browser, $engine, $botbits, $trackerbits, $isBot] = getBrowserInfo($agent); // from helper-functions.php
+
+    $this->browser = $browser; // BLP 2025-04-25 - new
+    $this->engine = $engine;   // BLP 2025-04-25 - new
     $this->isBot |= $isBot;
     $this->botAsBits |= $botbits;  
     $this->trackerBotInfo |= $trackerbits;

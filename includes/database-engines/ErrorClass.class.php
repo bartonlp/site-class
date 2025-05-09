@@ -1,18 +1,19 @@
 <?php
 /* MAINTAINED and WELL TESTED */
 
-define("ERROR_CLASS_VERSION", "4.0.1error-pdo");
+define("ERROR_CLASS_VERSION", "4.0.2.1error-pdo"); // BLP 2025-04-29 - removed errLast and added noLastQuery
 
 // Error class.
 
 class ErrorClass {
-  private static $noEmail = false;
+  private static $noEmail = true;
   private static $development = false;
   private static $noHtml = false;
   private static $errType = null;
   private static $noOutput = false;
   private static $noBacktrace = false; // BLP 2023-06-22
-  private static $errLast = false; // BLP 2023-06-22
+  private static $noLastQuery = false; // BLP 2025-04-29 -
+  private static $noErrorId = false; // BLP 2025-04-29 -
   
   static public function setErrorType($bits) {
     self::$errType = $bits;
@@ -30,24 +31,31 @@ class ErrorClass {
     return self::$errType;
   }
 
-  // BLP 2023-06-22 - START
-  static public function setNobacktrace($b) {
+  static public function setNoErrorId($b) {
+    self::$noErrorId = $b;
+  }
+
+  static public function getNoErrorId() {
+    return self::$noErrorId;
+  }
+  
+  static public function setNoLastQuery($b) {
+    self::$noLastQuery = $b;
+  }
+
+  static public function getNoLastQuery() {
+    return self::$noLastQuery;
+  }
+  
+  static public function setNoBackTrace($b) {
     self::$noBacktrace = $b;
   }
 
-  static public function getNobacktrace() {
+  static public function getNoBackTrace() {
     return self::$noBacktrace;
   }
 
-  static public function setErrlast($b) {
-    self::$errLast = $b;
-  }
-
-  static public function getErrlast() {
-    return self::$errLast;
-  }
-
-  //BLP 2021-03-15 -- if we set development also set noEmai!
+  // if we set development also set noEmai!
   
   static public function setDevelopment($b) {
     self::$development = $b;

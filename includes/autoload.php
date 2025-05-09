@@ -29,6 +29,8 @@ require(__DIR__."/database-engines/helper-functions.php");
 
 \ErrorClass::setDevelopment(true);
 
+SiteExceptionHandler::init(); // Initialize the exception handler.
+
 date_default_timezone_set('America/New_York'); // Done here and in dbPdo.class.php constructor.
 
 // BLP 2024-01-31 -  If this is /var/www/html just return and get the info from mysitemap.json.

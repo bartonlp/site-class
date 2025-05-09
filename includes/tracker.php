@@ -199,7 +199,7 @@ if($_GET['page'] == "csstest") {
 
   // Now we can do the bots3 update because we have ip, agent, and page.
 
-  $S->updateBot3($ip, $agent, $page, $site, $botAsBits);
+  $S->updateBots3($ip, $agent, $page, $site, $botAsBits);
   
   header("Content-Type: text/css");
   echo "/* csstest.css */";

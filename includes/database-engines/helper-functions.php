@@ -2,7 +2,11 @@
 /* HELPER FUNCTIONS. Well tested and maintained */
 // BLP 2023-10-04 - added varexport() functions.
 
+namespace bartonlp\SiteClass;
+
 define("HELPER_FUNCTION_VERSION", "1.2.0helper-pdo"); // BLP 2025-04-03 - add logic for decoding bitmap
+
+$DEBUG = true;
 
 /**
  * Helper Functions
@@ -195,10 +199,10 @@ if(!function_exists('ErrorGetId')) {
 
     if(empty($siteId)) {
       // This is the generic version
-      $id = "IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
+      $id = "ip={$_SERVER['REMOTE_ADDR']}, agent={$_SERVER['HTTP_USER_AGENT']}";
     } else {
       // This is for members
-      $id = "SiteId=$siteId, IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
+      $id = "SiteId=$siteId, ip={$_SERVER['REMOTE_ADDR']}, agent={$_SERVER['HTTP_USER_AGENT']}";
     }
     return $id;
   }
@@ -348,14 +352,14 @@ function getBrowserInfo(string $agent): array {
   }
 
   $pattern = "~duckduckgo|googlebot|bingbot|slurp|yandex|baiduspider|telegrambot|facebookexternalhit|".
-             "brave|edg/|edge/|firefox|chrome|crios|safari|trident|msie|opera|konqueror~i";
+             "brave| edg/|edge/|firefox|chrome|crios|safari|trident|msie|opera|konqueror~i";
 
   $isBot = false;
   $browser = 'Unknown'; // If not found in preg_match_all this is the default.
 
   if(preg_match_all($pattern, $agent, $matches)) {
     $tokens = array_map('strtolower', $matches[0]);
-    $last = end($tokens);
+    $last = end($tokens); // end() looks at last element
 
     switch ($last) {
       case 'duckduckgo':
@@ -397,12 +401,14 @@ function getBrowserInfo(string $agent): array {
         $browser = 'Konqueror'; break;
       default:
         $browser = 'Unknown';
-        error_log("Database Unrecognized browser: line=". __LINE__ . "\n" . print_r($tokens, true));
+        if($DEBUG) error_log("helper-functions Unrecognized browser: agent=$agent, line=". __LINE__);
     }
   }
 
   // Detect engine
 
+  $engine = "Unknown";
+  
   if(stripos($agent, 'Gecko') !== false && stripos($agent, 'like Gecko') === false) {
     $engine = 'Gecko';
   } elseif(stripos($agent, 'AppleWebKit') !== false) {
@@ -413,9 +419,9 @@ function getBrowserInfo(string $agent): array {
     $engine = 'Unknown';
   }
 
-  if($x = preg_match("~@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
-                     "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
-                     "http client|PECL::HTTP|Go-|python~i", $agent) === 1)
+  if(preg_match("~@|bot|spider|scan|HeadlessChrome|python|java|wget|nutch|perl|libwww|lwp-trivial|curl|PHP/|urllib|".
+                "crawler|GT::WWW|Snoopy|MFC_Tear_Sample|HTTP::Lite|PHPCrawl|URI::Fetch|Zend_Http_Client|".
+                "http client|PECL::HTTP|Go-|python~i", $agent) === 1)
   { 
     // If we got a 1 this is a match
 
@@ -427,9 +433,11 @@ function getBrowserInfo(string $agent): array {
 
   if(preg_match("~android|iphone~i", $agent, $m) === 1) {
     if(stripos($agent, 'android') !== false && stripos($agent, 'chrome') !== false) {
-      $browser = "{$m[0]},Chrome,Blink";
-    } 
-    $browser = "{$m[0]},$browser";
+      $browser = "{$m[0]},Chrome";
+      $engine = "Blink";
+    } else { 
+      $browser = "{$m[0]},$browser";
+    }
   }
 
   if(preg_match("~\+?https?://~", $agent) === 1) {
@@ -437,15 +445,99 @@ function getBrowserInfo(string $agent): array {
     $botbits |= BOTS_GOODBOT;
   }
 
-  if($botbits & (BOTS_GOODBOT | BOTS_NOAGENT | BOTS_MATCH)) {
+  // If goodbot, no agent or match is set then add bot to the list.
+  
+  if($botbits & (BOTS_GOODBOT | BOTS_NOAGENT | BOTS_MATCH)) { // If this is true (not zero)
+    $botbits |= BOTS_BOT;
     $trackerbits = TRACKER_BOT;
   }
   
   return [
           $browser,
           $engine,
-          $botAsBits,
-          $trackerinfo,
+          $botbits,
+          $trackerbits,
           $isBot,
          ];
 }
+
+/*
+ * xjson_decode. Decodes a json string and throws an exception if there is a problem
+ * @param: string $exp
+ * @param: bool $assoc. Defalt false
+ * @param: int $depth. Defalt 512
+ * @param: int $flag. Default JSON_THROW_ON_ERROR
+ * @return: array|object
+ * On failure throws an exception.
+ */
+
+function xjson_decode(string $exp, bool $assoc=false, int $depth=512, int $flag=JSON_THROW_ON_ERROR): mixed {
+  return json_decode($exp, $assoc, $depth, $flag);
+}
+
+/*
+ * xjson_encode. Encodes a PHP value (variable) and throws an exception if there is a problem
+ * @param: mixed $exp
+ * @param: int $flag. Default JSON_THROW_ON_ERROR
+ * @param: int $depth. Defalt 512
+ * @return: string
+ * On failure throws an exception.
+ */
+
+function xjson_encode(mixed $exp, int $flag=JSON_THROW_ON_ERROR, int $depth=512): string {
+  return json_encode($exp, $flag, $depth);
+}
+
+/*
+ * br2nl. Change <br> to \n
+ * @param: string $input
+ * @return: string
+ */
+
+function br2nl(string $input): string {
+  return preg_replace('~<br\s*/?>~i', "\n", $input);
+}
+
+/**
+ * Adds prefixed classes to <td> elements based on column names or numeric indices.
+ *
+ * @param: string &$desc. The HTML table row string to modify.
+ * @param: array $columns. Either a list of column names (ordered) or an index => class map.
+ * @param: string $prefix. Optional prefix to namespace the class names.
+ * @return: string
+ */
+
+function addClassesToTableColumns(string $desc, array $columns, string $prefix = ''): string {
+  // Convert from list to 1-based map if needed
+
+  if(array_values($columns) === $columns) {
+    $map = [];
+    foreach($columns as $i => $name) {
+      $map[$i + 1] = $prefix . $name;
+    }
+  } else {
+    $map = [];
+    foreach($columns as $i => $name) {
+      $map[$i] = $prefix . $name;
+    }
+  }
+
+  return preg_replace_callback('~<tr>(.*?)</tr>~s', function($matches) use ($map) {
+    $tds = explode('</td>', $matches[1]);
+    foreach($tds as $i => &$td) {
+      $colIndex = $i + 1;
+      if(isset($map[$colIndex])) {
+        if(preg_match('~<td([^>]*)class=[\'"]([^\'"]+)[\'"]~', $td, $m)) {
+          // Append to existing class
+          $existing = $m[2];
+          $td = preg_replace('~class=[\'"][^\'"]+[\'"]~', "class='$existing {$map[$colIndex]}'", $td);
+        } else {
+          // Add new class
+          $td = preg_replace('~<td(.*?)>~', "<td$1 class='{$map[$colIndex]}'>", $td);
+        }
+      }
+    }
+    return '<tr>' . implode('</td>', $tds) . '</tr>';
+  }, $desc);
+}
+

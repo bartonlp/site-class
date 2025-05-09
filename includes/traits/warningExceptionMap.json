@@ -1,0 +1,40 @@
+{
+  "regex": [
+            "preg_match",
+            "preg_replace",
+            "preg_match_all",
+            "preg_split"
+           ],
+  "filesystem": [
+                 "fopen",
+                 "file_get_contents",
+                 "file_put_contents",
+                 "unlink",
+                 "mkdir",
+                 "rmdir",
+                 "opendir",
+                 "filesize",
+                 "stat",
+                 "lstat"
+                ],
+  "network": [
+              "fsockopen",
+              "stream_socket_client",
+              "stream_select"
+             ],
+  "encoding": [
+               "mb_convert_encoding",
+               "htmlspecialchars",
+               "hex2bin"
+              ],
+  "dynamic": [
+              "include",
+              "require",
+              "eval"
+             ],
+  "misc": [
+           "getimagesize",
+           "header",
+           "session_start"
+          ]
+}

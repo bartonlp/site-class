@@ -1,20 +1,10 @@
 <?php
 /* MAINTAINED and WELL TESTED. This is the default Database and has received extensive testing */
-/**
- * dbPdo Class
- *
- * Wrapper around PDO Database Class. 
- * @package dbPdo
- * @author Barton Phillips <barton@bartonphillips.com>
- * @link http://www.bartonphillips.com
- * @copyright Copyright (c) 2010, Barton Phillips
- * @license http://opensource.org/licenses/gpl-3.0.html GPL Version 3
- */
 // BLP 2024-04-20 - set mysql timezone!
 // BLP 2025-04-20 - at some point I may add more type hints to this file.
 
-use SendGrid\Mail\Mail; // Use SendGrid for email
-
+namespace bartonlp\SiteClass;
+   
 define("PDO_CLASS_VERSION", "1.2.5pdo"); // BLP 2025-04-24 - new sql() method from ChatGpt
                                          // BLP 2025-04-19 - add the trait.
                                          // BLP 2025-04-18 - add create() to allow me to use updateBot3() function when I do new dbPdo(...).
@@ -23,34 +13,66 @@ define("PDO_CLASS_VERSION", "1.2.5pdo"); // BLP 2025-04-24 - new sql() method fr
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
 /**
- * @package dbPdo
- * SiteClass extend Database, Database extends dbPdo, dbPdo extends PDO from PHP 
- * This class can also be used standalone. $siteInfo must have a dbinfo with host, user, database and optionally port.
- * The password is optional and if not pressent is picked up form my $HOME.
+ * dbPdo. Bottom of the SiteClass framework
+ *
+ * Wrapper around PHP standard PDO Database Class.
+ * Class hierarchy:
+ *   SiteClass extend Database,
+ *   Database extends dbPdo,
+ *   dbPdo extends PDO from PHP 
+ * This class can also be used standalone. 
+ *
+ * @package SiteClass
+ * @author Barton Phillips <barton@bartonphillips.com>
+ * @link http://www.bartonphillips.com
+ * @copyright Copyright (c) 2025, Barton Phillips
+ * @license MIT
+ * @see https://github.com/bartonlp/site-class My GitHub repository
  */
-
-define("DEBUG_CONSTRUCTOR", false); // To disable change to false.
-
 class dbPdo extends PDO {
-  private $result; // for select etc. a result set.
-  static public $lastQuery = null; // for debugging
-  static public $lastNonSelectResult = null; // for insert, update etc.
+  /**
+   * The PDOstatement from the last sql query
+   *
+   * @var PDOStatement $result
+   */
+  private \PDOStatement $result; // for select etc. a result set.
+
+  /**
+   * The last query that was executed
+   *
+   * @var string $lastQuery
+   */
+  static public ?string $lastQuery = null; // for debugging
 
   use UserAgentTools; // BLP 2025-04-19 - This is a trait for isMe(), isMyIp(), isBot(), setSiteCookie() and getIp().
                       // Putting it here means these are available to the entire hierarchy.
+  use WarningToExceptionHandler; // BLP 2025-04-25 - New trait to fix E_WARNING to Exceptions.
+  
   /**
    * Constructor
-   * @param object $siteInfo. Has the mysitemap.json info
-   * as a side effect opens the database, that is connects the database
+   *
+   * If the dbPdo class is to be run standalone object $s in the constructor
+   * must have a dbinfo with host, user, database and optionally port.
+   * The password is optional and if not pressent is picked up form my $HOME.
+   * As a side effect opens the database, either the sqlite3 or MySql database via PDO
+   *
+   * @param object $s Has the mysitemap.json info
+   * @see https://bartonlp.org/docs/mysitemap.json
    */
-
   public function __construct(object $s) {
-    set_exception_handler("dbPdo::my_exceptionhandler"); // Set up the exception handler
-
     date_default_timezone_set('America/New_York');
 
     header("Accept-CH: Sec-Ch-Ua-Platform,Sec-Ch-Ua-Platform-Version,Sec-CH-UA-Full-Version-List,Sec-CH-UA-Arch,Sec-CH-UA-Model"); 
 
+    $mapWarnToException = [
+                           "preg_match",
+                           "preg_replace",
+                           "preg_match_all",
+                           "preg_split",
+                          ];
+                              
+    $this->registerWarningHandlers($mapWarnToException);
+    
     // BLP 2025-04-13 - CLI has no REMOTE_ADDR or HTTP_USER_AGENT or REQUEST_URI
 
     if(PHP_SAPI === 'cli') {
@@ -85,57 +107,63 @@ class dbPdo extends PDO {
     } else {
       parent::__construct("$engine:dbname=$database; host=$host; user=$user; password=$password");
     }
-    $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
     $this->sql("set time_zone='America/New_York'"); 
     
     $this->database = $database;
 
-    if(DEBUG_CONSTRUCTOR === true) {
-      if($this->ip != MY_IP)
-        error_log("dbPdo constructor: ip=$this->ip, site=$this->siteName, page=$this->self, line=". __LINE__);
-    }
+    if($this->ip != MY_IP)
+      error_log("dbPdo constructor: ip=$this->ip, site=$this->siteName, page=$this->self, line=". __LINE__);
   } // End of constructor.
 
-  // BLP 2025-04-18 -
-  // create a class from the caller.
-  // This is a STATIC function.
-  // It can be used like this: $db = Database::create($s)
-  // where $s is the $this or the $S or $_site.
-  
-  public static function create(object $s) {
+  /**
+   * Create a class from the caller
+   *
+   * This is a STATIC function.
+   * It can be used like this: $db = Database::create($s)
+   * where $s is the $this or the $S or $_site.
+   *
+   * @param object $s like with the constructor.
+   * @return static A new static class
+   */
+  public static function create(object $s): static {
     return new static($s);
   }
     
   /*
-   * getVersion.
+   * Get the version of the dbPdo class
+   *
    * @return the version of the pdo class.
    */
   
-  public static function getVersion() {
+  public static function getVersion(): string {
     return PDO_CLASS_VERSION;
   }
 
   /*
-   * getDbErrno
+   * Get the last database error
+   *
    * @returns $this->db-errno from PDO.
    */
   
-  public function getDbErrno() {
+  public function getDbErrno(): int {
     return $this->errno;
   }
 
   /*
-   * getDbError
+   * Get the last database error message
+   *
    * @returns $this->db->error from PDO
    */
   
-  public function getDbError() {
+  public function getDbError(): string {
     return $this->error;
   }
 
   /**
-   * sql()
+   * Execute a Sql statment
+   *
    * Execute a single SQL statement with optional prepared parameters.
    * Supports SELECT, INSERT, UPDATE, DELETE (DML), as well as CREATE, DROP, ALTER, TRUNCATE (DDL),
    * and GRANT, REVOKE, SET, USE (DCL). Automatically uses prepare/execute if parameters are supplied.
@@ -151,9 +179,7 @@ class dbPdo extends PDO {
    * @site-effect       - For SELECT/SHOW/EXPLAIN sets $this->result.
    * NOTE: $query must be a single line with no newlines.
    */
-  // BLP 2025-04-24 - new logic from ChatGpt.
-  
-  public function sql($query, array $params = []): int|bool {
+  public function sql($query, array $params = []): \PDOStatement|int|bool {
     self::$lastQuery = $query;
 
     // Extract the command type (first word in SQL)
@@ -215,9 +241,9 @@ class dbPdo extends PDO {
 
         return $numrows;
       }
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
       // Optional targeted debug logic
-      if (str_contains($query, "by+lasttime")) {
+      if(str_contains($query, "by+lasttime")) {
         error_log("dbPdo, by+lasttime: ip=$this->ip, site=$this->siteName, page=$this->self, agent=$this->agent, line=". __LINE__);
         return true; // Did not process this query!
       }
@@ -226,7 +252,9 @@ class dbPdo extends PDO {
   }
 
   /**
-   * sqlPrepare()
+   * Does a SQL prepare
+   *
+   * BLP 2025-05-07 - OLD LOGIC
    * This method works with fully formed queries! That is no :name or =? that need to be prepared!
    * It also seems to work with =|<|>|<=|>=|!=|like. It also seems to work with 'between'.
    * It only worked with ':named' parameters but not with '?' parameters.
@@ -244,14 +272,19 @@ class dbPdo extends PDO {
    * NOTE: we do not have a bind_param(), execute(), bind_result() or fetch() functions in this module.
    * You will have to use the native PHP functions with the returned $stm.
    * NOTE: As of PHP 8 PDO uses exception as the default: PDO::ERRMODE_EXCEPTION.
+   *
+   * @param string $query
+   * @param array $values Default null
+   * @return bool|int
+   * @throws Exception
    */
   
-  public function sqlPrepare(string $query, ?array $values=null) {
+  public function sqlPrepare(string $query, ?array $values=null): bool|int {
     self::$lastQuery = $query; // for debugging
     
     try {
       $stm = $this->prepare($query);
-    } catch(Exception $e) {
+    } catch(\Exception $e) {
       throw $e;
     }
 
@@ -305,21 +338,22 @@ class dbPdo extends PDO {
   }
 
   /**
-   * queryfetch()
-   * Dose a query and then fetches the associated rows
-   * @param string, the query
-   * @param string|null, $type can be 'num', 'assoc', 'obj' or 'both'. If null then $type='both'
-   * @param bool|null, if null then false.
-   *   if param1, param2=bool then $type='both' and $returnarray=param2
-   * @return:
+   * Does a sql query and returns all rows
+   *
+   * Dose a query and then fetches all the rows
+   * NOTE the $query must be a 'select' that returns a result set. It can't be 'insert', 'delete', etc.
+   *
+   * @param string $query
+   * @param string|null Can be 'num', 'assoc', 'obj' or 'both'. If null then $type='both'
+   * @param bool|null $returnarray
+   *   If param 2 type is null, then $type='both' and $returnarray=param 2.
+   * @return array
    *   1) if $returnarray is false returns the rows array.
    *   2) if $returnarray is true returns an array('rows'=>$rows, 'numrows'=>$numrows).
-   * NOTE the $query must be a 'select' that returns a result set. It can't be 'insert', 'delete', etc.
    */
-  
   public function queryfetch($query, $type=null, $returnarray=null) {
     if(stripos($query, 'select') === false) { // Can't be anything but 'select'
-      throw new Exception(__CLASS__ . " ". __LINE__ .": Query must be a select: $query");
+      throw new \Exception(__CLASS__ . " ". __LINE__ .": Query must be a select: $query");
     }
 
     // queryfetch() can be
@@ -347,67 +381,79 @@ class dbPdo extends PDO {
   }
 
   /**
-   * fetchrow()
-   * @param resource identifier returned from query.
-   * @param string, type of fetch: assoc==associative array, num==numerical array, obj==object, or both (for num and assoc).
-   * @return array, either assoc or numeric, or both
+   * Fetch one row
+   *
    * NOTE: if $result is a string then $result is the $type and we use $this->result for result.
+   *
+   * @param PDOStatement|string|null $result
+   *   Identifier returned from previous query, or a string null.
+   *   If null then then the second parameter is moved into $result (the type).
+   *   This allow $this-fetchrow('num') for example.
+   * @param string $type Default 'both'.
+   *   It can be assoc=associative array, num=numerical array, obj=object, or both (for num and assoc).
+   * @return array|null
+   *   When there are no more rows this returns null otherwise
+   *   either an assoc or numeric array, or an array with both numeric indices and associative indices.
+   * @throws Exception|PDOException On Sql error, $this->result is null or $type is not allowed.
    */
-  
-  public function fetchrow($result=null, $type="both") {
+  public function fetchrow(\PDOStatement|string|null $result=null, string $type="both"): array|null {
     if(is_string($result)) { // a string like num, assoc, obj or both
       $type = $result;
       $result = $this->result; // was set in sql(...).
     }
     
     if(!$result) {
-      throw new Exception(__METHOD__ ." ". __LINE__ .": result is null");
+      throw new \Exception(__METHOD__ .", PDOStatment 'result' is null, line=". __LINE__);
     }
 
-    try {
-      switch($type) {
-        case "assoc": // associative array
-          $row = $result->fetch(PDO::FETCH_ASSOC);
-          break;
-        case "num":  // numerical array
-          $row = $result->fetch(PDO::FETCH_NUM);
-          break;
-        case "obj": // object BLP 2021-12-11 -- added
-          $row = $result->fetch(PDO::FETCH_OBJ);
-          break;
-        case "both":
-        default:
-          $row = $result->fetch(PDO::FETCH_BOTH); // This is the default
-          break;
-      }
-    } catch(Exception $e) {
-      throw $e;
+    switch($type) {
+      case "assoc": // associative array
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        break;
+      case "num":  // numerical array
+        $row = $result->fetch(PDO::FETCH_NUM);
+        break;
+      case "obj": // object BLP 2021-12-11 -- added
+        $row = $result->fetch(PDO::FETCH_OBJ);
+        break;
+      case "both":
+        $row = $result->fetch(PDO::FETCH_BOTH); // This is the default
+        break;
+      default:
+        throw new \Exception(__METHOD__. ", invalid type=$type, line=". __LINE__);
     }
+
+    if($row === false) $row = null;
+    
     return $row;
   }
   
   /**
-   * getLastInsertId()
-   * See the comments below. The bottom line is we should NEVER do multiple inserts
-   * with a single insert command! You just can't tell what the insert id is. If we need to do
-   * and 'insert ... on duplicate key' we better not need the insert id. If we do we should do
+   * Get the ID from the last insert
+   *
+   * WARNING NEVER do multiple inserts with AUTO_INCREMENT without doing this method in between.
+   * If we need to do
+   * 'insert ... on duplicate key' we better not need the insert id. If we do we should do
    * an insert in a try block and an update in a catch. That way if the insert succeeds we can
    * do the getLastInsertId() after the insert. If the insert fails for a duplicate key we do the
    * update in the catch. And if we need the id we can do a select to get it (somehow).
-   * Note if the insert fails because we did a 'insert ignore ...' then last_id is zero and we return
-   * zero.
-   * @return the last insert id if this is done in the right order! Otherwise who knows.
+   * Note if the insert fails because we did a 'insert ignore ...'
+   * then last_id is zero and we return zero.
+   *
+   * @return int Last insert id
    */
-
-  public function getLastInsertId() {
+  public function getLastInsertId(): int {
     return $this->lastInsertId();
   }
-  
-  /**
-   * getNumRows()
-   */
 
-  public function getNumRows($result=null) {
+  // BLP 2025-05-07 - I don't think this works!
+  /**
+   * Get the number of rows
+   *
+   * @param PDOStatement|null $result.
+   * @return int Affected rows or number of rows
+   */
+  public function getNumRows($result=null): int {
     if(!$result) $result = $this->result;
     if($result === true) {
       return $this->affected_rows;
@@ -417,32 +463,43 @@ class dbPdo extends PDO {
   }
 
   /**
-   * getResult()
+   * Get the last PDOStatement
+   *
    * This is the result of the most current query. This can be passed to
-   * fetchrow() as the first parameter.
+   *   fetchrow() as the first parameter.
+   *
+   * @return PDOStatement
    */
-  
   public function getResult() {
     return $this->result;
   }
 
   /**
-   * getErrorInfo()
-   * get the error info from the most recent query
+   * Get error information from most recent query
+   *
+   * @return string
    */
-  
-  public function getErrorInfo() {
+  public function getErrorInfo(): string {
     return ['errno'=>$this->getDbErrno(), 'error'=>$this->getDbError()];
   }
   
-  // real_escape_string
-  // BLP 2024-01-24 - Just escape '.
-  
+  /**
+   * Escape a string for PDO
+   *
+   * @param string $string
+   * @return string After apostrophes have been replaced with backslash apostrophes.
+   */
   public function escape($string) {
     return str_replace("'", "\\'", $string);
   }
 
-  public function escapeDeep($value) {
+  /**
+   * A Deep escape replacement of apostrophies
+   *
+   * @param string
+   * @return string
+   */
+  public function escapeDeep(string $value): string {
     if(is_array($value)) {
       foreach($value as $k=>$v) {
         $val[$k] = $this->escapeDeep($v);
@@ -453,109 +510,114 @@ class dbPdo extends PDO {
     }
   }
 
+  /**
+   * Macic toString return the class name
+   *
+   * @return string Class name
+   */
   public function __toString() {
     return __CLASS__;
   }
 
   /*
-   * my_exceptionhandler
-   * Must be a static
+   * Get the column names for the last sql query.
+   *
+   * @param: string $prefix. Default null
+   * @return: array. The column names in an array.
    */
+  public function getColumnNames(string $prefix=null): array {
+    if(!$this->result) return [];
+    $cols = [];
+    for($i = 0; $i < $this->result->columnCount(); $i++) {
+      $meta = $this->result->getColumnMeta($i);
+      $cols[] = "$prefix{$meta['name']}";
+    }
+    return $cols;
+  }
 
-  public static function my_exceptionhandler($e) {
-    $from =  get_class($e);
+  /*
+   * Get the column names from the most recient sql select.
+   *
+   * @param: string $sql The sql statement
+   * @param: array $attr
+   *    An array ['prefix'=>$prefix, 'hdr'=>$hdr, 'features'=>$features,
+   *   'hdrcallback'=>$hdrcallback, 'bodycallback'=>$bodycallback, 'ftrcallback'=>$ftrcallback].
+   *   'features' can be a string of attributes for the <table> e.g. "class='myclass' id='myid' border='1'..."
+   *   'prefix' if present. $prefix null|string.
+   *   'hdr' if present. $hdr null, true, string.
+   *   *callback if present. A callback function.
+   *   Signitures of callbacks:
+   *    hdrcallback(string $col): mixed.
+   *    bodycallback(string $con, mixed, $val, array $row): mixed.
+   *    ftrcallback(string $col): mixed.
+   *
+   * @return: string
+   *   A fully formed table. If the sql($sql) returns 0 then returns null.
+   *   By returning null we can do ?? and something.
+   */
+  public function maketableFromRows(string $sql, array $attr = null): string|null {
+    if(!$this->sql($sql)) return null;
 
-    $error = $e; // get the full error message
+    // Safeguarded options
+    $prefix        = $attr['prefix']        ?? '';
+    $hdr           = $attr['hdr']           ?? null;
+    $ftr           = $attr['ftr']           ?? null;
+    $features      = $attr['features']      ?? '';
+    $hdrcallback   = $attr['hdrcallback']   ?? null;
+    $bodycallback  = $attr['bodycallback']  ?? null;
+    $ftrcallback   = $attr['ftrcallback']   ?? null;
 
-    // Remove all html tags.
-
-    $err = html_entity_decode(preg_replace("/<.*?>/", '', $error));
-    $err = preg_replace("/^\s*$/", '', $err); // remove blank lines
-
-    // BLP 2024-09-02 - Get dbPdo::$lastQuery
-
-    $last = dbPdo::$lastQuery;
-    
-    // Callback to get the user ID if the callback exists
-
-    $userId = '';
-
-    if(function_exists('ErrorGetId')) {
-      $userId = "User: " . ErrorGetId();
+    // Collect column names and class names
+    $colnames   = [];
+    $classnames = [];
+    for($i = 0; $i < $this->result->columnCount(); $i++) {
+      $meta = $this->result->getColumnMeta($i);
+      $colnames[] = $meta['name'];
+      $classnames[] = $prefix . $meta['name'];
     }
 
-    if(!$userId) {
-      // This is the same default userId that ErrorGetId() would return
-      
-      $userId = "IP={$_SERVER['REMOTE_ADDR']} \nAGENT={$_SERVER['HTTP_USER_AGENT']}";
-    }
-    
-    /* BLP 2024-07-01 - NEW VERSION using sendgrid */
-
-    if(ErrorClass::getNoEmail() !== true) {
-      $s = $GLOBALS["_site"];
-
-      $email = new Mail();
-
-      $email->setFrom("ErrorMessage@bartonphillips.com");
-      $email->setSubject($from);
-      $email->addTo($s->EMAILADDRESS);
-
-      $contents = preg_replace(["~\"~", "~\\n~"], ['','<br>'], "$err<br>lastQuery: $last<br>$userId");
-
-      $email->addContent("text/plain", $contents); // BLP 2025-02-19 - 
-
-      $email->addContent("text/html", $contents);
-
-      $apiKey = require "/var/www/PASSWORDS/sendgrid-api-key";
-      $sendgrid = new \SendGrid($apiKey);
-
-      $response = $sendgrid->send($email);
-
-      // BLP 2024-12-17 - add $resp and use it below. I had in error_log $response->statusCode()
-      // instead of response and that caused an error.
-      
-      if(($resp = $response->statusCode()) > 299) {
-        error_log("dbPod.class.php: sendgrid error, $resp, response header: " . print_r($response->headers()));
+    // Build header
+    if($hdr === true) {
+      $hdr = "<thead><tr>";
+      foreach($colnames as $col) {
+        $val = $hdrcallback ? $hdrcallback($col) : $col;
+        $hdr .= "<th>" . htmlspecialchars($val) . "</th>";
       }
-    }
-
-    /* BLP 2024-07-01 - END NEW VERSION */
-    
-    // Log the raw error info.
-    // This error_log should always stay in!! *****************
-    error_log("dbPdo.class.php: $from\n$err\nlastQuery: $last\n$userId");
-    // ********************************************************
-
-    if(ErrorClass::getDevelopment() !== true) {
-      // Minimal error message
-      $error = <<<EOF
-<p>The webmaster has been notified of this error and it should be fixed shortly. Please try again in
-a couple of hours.</p>
-
-EOF;
-      $err = " The webmaster has been notified of this error and it should be fixed shortly." .
-      " Please try again in a couple of hours.";
-    }
-
-    if(ErrorClass::getNoHtml() === true) {
-      $error = "$from: $err";
+      $hdr .= "</tr></thead>\n<tbody>\n";
+    } elseif(is_string($hdr)) {
+      $hdr = "<thead>$hdr</thead>\n<tbody>\n";
     } else {
-      $error = <<<EOF
-<div style="text-align: center; background-color: white; border: 1px solid black; width: 85%; margin: auto auto; padding: 10px;">
-<h1 style="color: red">$from</h1>
-$error
-</div>
-EOF;
+      $hdr = "<tbody>\n";
     }
 
-    if(ErrorClass::getNoOutput() !== true) {
-      //************************
-      // Don't remove this echo
-      echo $error; // BLP 2022-01-28 -- on CLI this outputs to the console, on apache it goes to the client screen.
-      //***********************
+    // Build body
+    $lines = '';
+    while($row = $this->fetchrow($this->result, 'num')) {
+      $lines .= "<tr>";
+      foreach($row as $i => $v) {
+        $val = $bodycallback ? $bodycallback($colnames[$i], $v, $row) : $v;
+        $lines .= "<td class='" . htmlspecialchars($classnames[$i]) . "'>" . htmlspecialchars($val) . "</td>";
+      }
+      $lines .= "</tr>\n";
     }
-    return;
+
+    // Build footer
+    if($ftr === true) {
+      $ftr = "<tfoot><tr>";
+      foreach($colnames as $col) {
+        $ftr .= "<td></td>"; // or some default cell
+      }
+      $ftr .= "</tr></tfoot>\n";
+    } elseif(is_string($ftr)) {
+      $ftr = "<tfoot>$ftr</tfoot>\n";
+    } elseif(is_callable($ftrcallback)) {
+      $ftr = "<tfoot>" . $ftrcallback($colnames) . "</tfoot>\n";
+    } else {
+      $ftr = ''; // no footer
+    }
+
+    return "<table $features>\n$hdr$lines</tbody>\n$ftr</table>\n";
   }
 }
-
+// End of class
+  

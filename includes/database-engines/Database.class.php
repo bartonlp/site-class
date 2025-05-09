@@ -3,28 +3,51 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
+namespace bartonlp\SiteClass;
+
+/**
+ * @file database/Database.class.php
+ * @package SiteClass
+ */
 define("DATABASE_CLASS_VERSION", "1.2.1database-pdo"); // BLP 2025-04-21 - enhance detection logic
                                                        // BLP 2025-04-19 - moved setSiteCookie() to traits.
                                                        // BLP 2025-04-12 - remove trackbots()
                                                        // add it to tracker().
-
+/**
+ * @file database/Database.class.php
+ * @package SiteClass
+ */
 define("DEBUG_TRACKER_BOTINFO", true); // Change this to false if you don't want the error
 
 /**
- * Database wrapper class
+ * Database. Second in the SiteClass framework
+ *
+ * Database extends dbPdo.
+ * dbPdo extends PDO. This is the standard PHP PDO class.
+ *
+ * @package SiteClass
+ * @author Barton Phillips <barton@bartonphillips.com>
+ * @link http://www.bartonphillips.com
+ * @copyright Copyright (c) 2025, Barton Phillips
+ * @license MIT
+ * @see https://github.com/bartonlp/site-class My GitHub repository
  */
-
 class Database extends dbPdo {
-  /**
-   * constructor
-   * @param $s object.
-   * $s should have all of the $this from SiteClass or $_site from mysitemap.json
-   * To just pass in the required database options set $s->dbinfo = (object) $ar
-   * where $ar is an assocative array with ["host"=>"localhost",...]
-   */
-
   protected $hitCount = 0;
-
+  public array $myIp;
+  public $nodb;
+  public $noTrack;
+  public $noGeo;
+  
+  /**
+   * Database constructor.
+   *
+   * The object passed in is usually from mysitemap.json, which contains all
+   * important configuration settings.
+   *
+   * @param object $s Configuration object from mysitemap.json
+   * @see https://bartonlp.org/docs/mysitemap.json for full details
+   */
   public function __construct(object $s) {
     // If no 'dbinfo' (no database) in mysitemap.json set everything so the database is not loaded.
 
@@ -99,31 +122,37 @@ class Database extends dbPdo {
     }
   } // END Construct
 
-  public function getClassName() {
+  /**
+   * Get class Name
+   *
+   * @return string
+   */
+  public function getClassName(): string {
     return __CLASS__;
   }
 
   /**
-   * getVersion()
-   * @return string version number
-   * Because there is no $this in the function we can all it on $S->getVersion or Database::getVersion().
-   * When $S is SiteClass this is overloaded with the $S of SiteClass.
+   * Get the version of SiteClass
+   *
+   * @return string The version from the define at the start of SiteClass
    */
-
   public static function getVersion():string {
     return DATABASE_CLASS_VERSION;
   }
   
-  // updateBots3 helper function used by tracker.php, beacon.php, robots-sitemap.php etc.
-  // update the bots3 table
-  // @param $ip, the ip address (key)
-  // @param $agent, the agent (key)
-  // @param $page, the page (key)
-  // @param $site, string/integer value for the site
-  // @param $botAsBits, the bitmap value of BOTS_...
-
-  public function updateBots3($ip, $agent, $page, $site, $botAsBits) {
-    if($this->isMe()) return; // BLP 2025-04-12 - Can not be me!
+  /**
+   * Insert/Update the MySql bots3 table.
+   *
+   * @param string $ip
+   * @param string $agent
+   * @param string $page
+   * @param string|int $site Either a string or a bitmapped integer
+   * @param int $botAsBits A bitmapped value
+   * @return int|null A bitmapped integer or void if it is ME.
+   * @throws Exception If a sql error.
+   */
+  public function updateBots3(string $ip, string $agent, string $page, string|int $site, int $botAsBits) {
+    if($this->isMe()) return null; // BLP 2025-04-12 - Can not be me!
     
     // $site can be either a string or a bitmapped integer.
     
@@ -141,7 +170,7 @@ class Database extends dbPdo {
       $err = $e->getCode();
       $errmsg = $e->getMessage();
       error_log("Database updateBots3: ip=$ip, agent=$agent, page=$page, robots=$botAsBits, err=$err, errmsg=$errmsg, line=". __LINE__);
-      throw new Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
+      throw new \Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
     }
   }
 
@@ -155,34 +184,26 @@ class Database extends dbPdo {
   // ***************
 
   /**
-   * tracker()
-   * This method is called directly from the constructor.
-    CREATE TABLE `tracker` (
-      `id` bigint NOT NULL AUTO_INCREMENT,
-      `botAsBits` int DEFAULT '0',
-      `site` varchar(25) DEFAULT NULL,
-      `page` varchar(255) NOT NULL DEFAULT '',
-      `finger` varchar(50) DEFAULT NULL,
-      `nogeo` tinyint(1) DEFAULT NULL,
-      `browser` varchar(50) DEFAULT NULL,
-      `ip` varchar(40) DEFAULT NULL,
-      `count` int DEFAULT '1',
-      `agent` text,
-      `referer` varchar(255) DEFAULT '',
-      `starttime` datetime DEFAULT NULL,
-      `endtime` datetime DEFAULT NULL,
-      `difftime` varchar(20) DEFAULT NULL,
-      `isJavaScript` int DEFAULT '0',
-      `error` varchar(256) DEFAULT NULL,
-      `lasttime` datetime DEFAULT CURRENT_TIMESTAMP,
-      PRIMARY KEY (`id`),
-      KEY `site` (`site`),
-      KEY `ip` (`ip`),
-      KEY `lasttime` (`lasttime`),
-      KEY `starttime` (`starttime`)
-    ) ENGINE=MyISAM AUTO_INCREMENT=7626952 DEFAULT CHARSET=utf8mb3;
-  */
-
+   * Tracks the current visitor and logs tracking data to the database.
+   *
+   * This method:
+   * - Analyzes the user-agent string to determine browser, engine, bot status, and tracker bits.
+   * - Logs the visitor into the `tracker` table with appropriate flags.
+   * - Updates the `bots3` table to record bot signature behavior.
+   * - Sets internal tracking variables used elsewhere in the request lifecycle.
+   * - Optionally logs diagnostic information if `DEBUG_TRACKER_BOTINFO` is enabled.
+   *
+   * Side effects:
+   * - Sets `$this->id` and `$this->LAST_ID` to the ID of the inserted `tracker` record.
+   * - Updates `$this->isBot` based on `getBrowserInfo()`.
+   * - May emit a line to the PHP error log.
+   *
+   * @internal
+   * @return void
+   * @throws \PDOException If the SQL insert or bot update fails
+   * @see getBrowserInfo() For parsing the user-agent string
+   * @see updateBots3() For bot signature updates
+   */
   protected function tracker():void {
     $agent = $this->agent;
     $java = 0;
@@ -249,22 +270,21 @@ class Database extends dbPdo {
   }
 
   /**
-   * counter()
-   * This is the page counter feature in the footer
-   * By default this uses a table 'counter' with 'filename', 'count', and 'lasttime'.
-   *  'filename' is the primary key.
-   * counter() updates $this->hitCount
-   * CREATE TABLE `counter` (
-   * `filename` varchar(255) NOT NULL,
-   * `site` varchar(50) NOT NULL DEFAULT '',
-   * `count` int DEFAULT NULL,
-   * `realcnt` int DEFAULT '0',
-   * `lasttime` datetime DEFAULT CURRENT_TIMESTAMP,
-   * PRIMARY KEY (`filename`,`site`),
-   * KEY `site` (`site`)
-   * ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3
+   * Updates and retrieves the real (non-bot, non-me) page hit count.
+   *
+   * This method:
+   * - Increments the `counter` table for the current page and site.
+   * - Increments `realcnt` only if the visitor is not a bot and not the site owner (`isMe()`).
+   * - Retrieves the updated `realcnt` value and stores it in `$this->hitCount`.
+   *
+   * Side effects:
+   * - Modifies the `counter` table in the database.
+   * - Sets `$this->hitCount` to the current real (non-bot) hit count.
+   *
+   * @internal
+   * @return void
+   * @throws \PDOException If the SQL insert or select fails
    */
-
   protected function counter():void {
     $filename = $this->self; // get the name of the file
     $realcnt = 0;
@@ -285,12 +305,27 @@ class Database extends dbPdo {
   }
 
   /**
-   * logagent()
-   * Log logagent
-   * This counts everyone!
-   * logagent is used by 'analysis.php'
+   * Logs or updates the agent information for the current visitor.
+   *
+   * This method:
+   * - Records the visitor's site, IP, and user-agent string into the `logagent` table.
+   * - Increments a hit counter (`count`) and updates `lasttime` on repeated visits.
+   * - Supports both MySQL and SQLite, using conditional SQL syntax and error handling.
+   *
+   * Behavior notes:
+   * - In SQLite, handles duplicate keys by catching the exception and issuing a manual `UPDATE`.
+   * - MySQL uses `ON DUPLICATE KEY UPDATE` for efficiency.
+   *
+   * Side effects:
+   * - Writes to the `logagent` table in `$this->masterdb`.
+   * - May throw a wrapped exception in case of an unexpected database error.
+   *
+   * @internal
+   * @return void
+   * @throws \Exception If SQLite update fails for a reason other than a duplicate key
+   * @throws \PDOException If the underlying `sql()` call fails in MySQL
+   * @see sql() Framework method used to execute database queries
    */
-  
   protected function logagent():void {
     // site, ip and agent(256) are the primary key. Note, agent is a text field so we look at the
     // first 256 characters here (I don't think this will make any difference).
@@ -312,7 +347,7 @@ class Database extends dbPdo {
                      "where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
         } else {
           $errmsg = $e->getMessage();
-          throw new Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
+          throw new \Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
         }
       }
     }
@@ -323,10 +358,19 @@ class Database extends dbPdo {
   // ************
 
   /**
-   * updatemyip()
-   * This is NOT done if we are not using a database or isMe() is false. That is it is NOT me.
+   * Updates the visit count for your personal IP in the `myip` table.
+   *
+   * This method:
+   * - Increments the visit count for `$this->ip` only if the visitor is "me" and not the DO server.
+   * - Helps track personal use separate from general site traffic.
+   *
+   * Side effects:
+   * - Issues an `UPDATE` query to the `myip` table in `$this->masterdb`.
+   *
+   * @internal
+   * @return void
+   * @throws \Exception If the SQL update fails
    */
-
   protected function updatemyip():void {
     if($this->ip == DO_SERVER || $this->isMe() === false) {
       // If it is my DigitalOcean server or it is not ME. If it is my server we don't look at the OR.
@@ -339,21 +383,32 @@ class Database extends dbPdo {
     $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
 
     if(!$this->sql($sql)) {
-      throw new Exception(__CLASS__. " ". __LINE__. ": site=$this->siteName, update of myip failed, ip: $this->ip"); // this should not happen
+      throw new \Exception(__CLASS__. " ". __LINE__. ": site=$this->siteName, update of myip failed, ip: $this->ip"); // this should not happen
     }
   }
 
-  /*
-   * CheckIfTablesExist()
-   * Uses 'show table;' and array_deff() to determin if the table we need are there.
-   * @return: myIp
+  /**
+   * Verifies the existence of required tables in the current database.
+   *
+   * This method:
+   * - Checks for the presence of all required tables using `SHOW TABLES`.
+   * - Throws an exception if any required table is missing.
+   * - Retrieves and returns all IPs from the `myip` table, including the DO server.
+   *
+   * Only runs on MySQL-compatible engines. SQLite will trigger an exception.
+   *
+   * Side effects:
+   * - Throws if critical schema components are missing.
+   *
+   * @internal
+   * @return array List of known IPs, including `DO_SERVER`
+   * @throws \Exception If SQLite is used, or required tables are missing
    */
-  
-  private function CheckIfTablesExist():array {
+  private function CheckIfTablesExist(): array {
     // If we are NOT using the sqlite driver we can do a show.
     
     if($this->dbinfo->engine == "sqlite") {
-      throw new Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
+      throw new \Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
     }
 
     // Do all of the table checks once here.
@@ -370,7 +425,7 @@ class Database extends dbPdo {
     if(!empty($ar)) {
       [$err, $errmsg, $errfile, $errline] = error_get_last();
       
-      throw new Exception("Database.class.php: Missing tables -- $errmsg, $errfile, $errline", $err);
+      throw new \Exception("Database.class.php: Missing tables -- $errmsg, $errfile, $errline", $err);
     }
     
     $this->sql("select myIp from $this->masterdb.myip");
@@ -384,7 +439,12 @@ class Database extends dbPdo {
     return $myIp;
   }
 
-  public function __toString() {
+  /**
+   * Returns the class name as a string.
+   *
+   * @return string The name of the class (`Database` or subclass)
+   */
+  public function __toString(): string {
     return __CLASS__;
   }
 }

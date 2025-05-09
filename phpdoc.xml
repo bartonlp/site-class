@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdoc>
+  <title>SiteClass Framework Documentation</title>
+
+  <parser>
+    <!-- Intermediate parsed XML (optional but useful for advanced use) -->
+    <target>newdocs/xml</target>
+  </parser>
+
+  <transformer>
+    <!-- Final HTML output to your GitHub Pages docs directory -->
+    <target>newdocs</target>
+  </transformer>
+
+  <files>
+    <!-- Manually listed files, incrementally add more as you refine them -->
+    <file>includes/SiteClass.class.php</file>
+    <file>includes/database-engines/Database.class.php</file>
+    <file>includes/database-engines/dbPdo.class.php</file>
+  </files>
+</phpdoc>

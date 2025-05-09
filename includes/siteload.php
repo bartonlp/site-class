@@ -16,6 +16,10 @@ define("SITECLASS_DIR", __DIR__);
 require_once("/var/www/vendor/autoload.php");
 require_once(SITECLASS_DIR . "/database-engines/helper-functions.php");
 
+ob_start(); // Start buffering. We will stop buffering in the shutdown logic.
+
+SiteExceptionHandler::init(); // Initialize the exception handler.
+
 // If we only want the version info $__VERSION is set. We do this in whatisloaded.class.php.
 // It can also be done to get the versions of beacon.php and tracker.php.
 
