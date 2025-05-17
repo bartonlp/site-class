@@ -1,6 +1,8 @@
 <?php
 /* MAINTAINED and WELL TESTED */
 
+//namespace bartonlp\SiteClass;
+
 define("ERROR_CLASS_VERSION", "4.0.2.1error-pdo"); // BLP 2025-04-29 - removed errLast and added noLastQuery
 
 // Error class.

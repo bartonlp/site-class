@@ -2,8 +2,6 @@
 /* HELPER FUNCTIONS. Well tested and maintained */
 // BLP 2023-10-04 - added varexport() functions.
 
-namespace bartonlp\SiteClass;
-
 define("HELPER_FUNCTION_VERSION", "1.2.0helper-pdo"); // BLP 2025-04-03 - add logic for decoding bitmap
 
 $DEBUG = true;
@@ -501,7 +499,7 @@ function br2nl(string $input): string {
 /**
  * Adds prefixed classes to <td> elements based on column names or numeric indices.
  *
- * @param: string &$desc. The HTML table row string to modify.
+ * @param: string $desc. The HTML table row string to modify.
  * @param: array $columns. Either a list of column names (ordered) or an index => class map.
  * @param: string $prefix. Optional prefix to namespace the class names.
  * @return: string

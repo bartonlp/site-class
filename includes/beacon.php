@@ -73,8 +73,9 @@ if(!is_numeric($id)) {
   
   $errno = "-200: No id";
 
-  $S->sql("insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', '$site', '$S->self', '{$msg}_BEACON_GOAWAY', '$errno', '$msg', '$S->agent', now(), now())");
+  $S->sql("
+insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime)
+values('$S->ip', '$site', '$S->self', '{$msg}_BEACON_GOAWAY', '$errno', '$msg', '$S->agent', now(), now())");
 
   $xip = $_SERVER['REMOTE_ADDR'];
   error_log("beacon GO_AWAY NO_ID: id=$id,  xip=$xip, ip=$ip, site=$site, page=$thepage, ".
@@ -156,9 +157,10 @@ if($agent && $S->isBot($agent) && ($botAsBits & BOTS_HAS_DIFFTIME) === 0) {
   $botAsBits |= BOTS_BOT;
 }
 
-$S->sql("update $S->masterdb.tracker set botAsBits=botAsBits|$botAsBits, endtime=now(), count=count+1, ".
-        "difftime=timestampdiff(second, starttime, now()), ".
-        "isJavaScript='$js' where id=$id");
+$S->sql("
+update $S->masterdb.tracker set botAsBits=botAsBits|$botAsBits, endtime=now(), count=count+1,
+difftime=timestampdiff(second, starttime, now()),
+isJavaScript='$js' where id=$id");
 
 // BLP 2025-04-11 - update bots3 table.
 

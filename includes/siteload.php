@@ -14,6 +14,17 @@ error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
 define("SITELOAD_VERSION", "2.2.6siteload-pdo"); // BLP 2024-12-17 - add mysitemap to returned value
 define("SITECLASS_DIR", __DIR__);
 require_once("/var/www/vendor/autoload.php");
+
+use bartonlp\SiteClass\SiteClass;
+use bartonlp\SiteClass\Database;
+use bartonlp\SiteClass\dbPdo;
+use bartonlp\SiteClass\dbTables;
+
+class_alias(SiteClass::class, 'SiteClass');
+class_alias(Database::class, 'Database');
+class_alias(dbPdo::class, 'dbPdo');
+class_alias(dbTables::class, 'dbTables');
+
 require_once(SITECLASS_DIR . "/database-engines/helper-functions.php");
 
 ob_start(); // Start buffering. We will stop buffering in the shutdown logic.

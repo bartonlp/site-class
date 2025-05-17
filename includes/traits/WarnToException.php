@@ -45,10 +45,10 @@ trait WarningToExceptionHandler {
    */
 
   public function warningToExceptionHandler(int $errno, string $errstr, string $errfile, int $errline): bool {
-    if($errno === E_WARNING) {
+    if($errno === \E_WARNING) {
       foreach($this->exceptionTriggers as $fn) {
         if(str_contains($errstr, $fn)) {
-          throw new Exception($errstr);
+          throw new \Exception($errstr);
         }
       }
     }

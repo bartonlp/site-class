@@ -244,10 +244,11 @@ class Database extends dbPdo {
 
     $name = "$browser,$engine";
     
-    $this->sql("insert into $this->masterdb.tracker ".
-               "(site, page, ip, browser, agent, botAsBits, starttime, isJavaScript) ".
-               "values('$this->siteName', '$page', '$this->ip', '$name', ".
-               "'$agent', $this->botAsBits, now(), $java)");
+    $this->sql("
+insert into $this->masterdb.tracker
+(site, page, ip, browser, agent, botAsBits, starttime, isJavaScript) 
+values('$this->siteName', '$page', '$this->ip', '$name',
+'$agent', $this->botAsBits, now(), $java)");
 
     // Get the id of this insert.
     
@@ -293,8 +294,10 @@ class Database extends dbPdo {
       $realcnt = $this->isBot ? 0 : 1; // $realcnt is the number of NON robots
     }
     
-    $this->sql("insert into $this->masterdb.counter (site, filename, count) values('$this->siteName', '$filename', 1) ".
-               "on duplicate key update count=count+1, realcnt=realcnt+$realcnt");
+    $this->sql("
+insert into $this->masterdb.counter
+(site, filename, count) values('$this->siteName', '$filename', 1)
+on duplicate key update count=count+1, realcnt=realcnt+$realcnt");
 
     // Now retreive the hit count value after it may have been incremented above. NOTE, I am NOT
     // included here.
@@ -331,20 +334,24 @@ class Database extends dbPdo {
     // first 256 characters here (I don't think this will make any difference).
 
     if($this->dbinfo->engine != "sqlite") {
-      $sql = "insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime) " .
-             "values('$this->siteName', '$this->ip', '$this->agent', '1', now(), now()) ".
-             "on duplicate key update count=count+1, lasttime=now()";
+      $sql = "
+insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime)
+values('$this->siteName', '$this->ip', '$this->agent', '1', now(), now())
+on duplicate key update count=count+1, lasttime=now()";
 
       $this->sql($sql);
     } else {
-      $sql = "insert into logagent (site, ip, agent, count, created, lasttime) " .
-             "values('$this->siteName', '$this->ip', '$this->agent', '1', datetime('now'), datetime('now'))";
+      $sql = "
+insert into logagent (site, ip, agent, count, created, lasttime)
+values('$this->siteName', '$this->ip', '$this->agent', '1', datetime('now'), datetime('now'))";
+
       try {
         $this->sql($sql);
       } catch(Exception $e) {
         if(($err = $e->getCode()) == "23000") {
-          $this->sql("update logagent set count=count+1, lasttime=datetime('now') ".
-                     "where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
+          $this->sql("
+update logagent set count=count+1, lasttime=datetime('now')
+where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
         } else {
           $errmsg = $e->getMessage();
           throw new \Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);

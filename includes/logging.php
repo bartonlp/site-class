@@ -48,9 +48,10 @@ if($_POST) {
     // is not null. Again, the events should only happen once per $id because of the JavaScript
     // (logging.js).
 
-    $S->sql("insert into $S->masterdb.interaction (id, ip, site, page, event, time, created) ".
-            "values('$id', '$ip', '$site', '$page', '$event', '$ts', now()) ".
-            "on duplicate key update event=concat_ws(',', event, '$event'), count=count+1");
+    $S->sql("
+insert into $S->masterdb.interaction (id, ip, site, page, event, time, created)
+values('$id', '$ip', '$site', '$page', '$event', '$ts', now())
+on duplicate key update event=concat_ws(',', event, '$event'), count=count+1");
 
     // BLP 2025-04-18 - Use New logic to create a $db for updateBots3();
 

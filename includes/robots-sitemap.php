@@ -42,8 +42,10 @@ $page = basename($S->self);
 
 // Insert or update logagent
 
-$S->sql("insert into $S->masterdb.logagent (site, ip, agent, count, created, lasttime) values('$S->siteName', '$ip', '$agent', 1, now(), now()) ".
-        "on duplicate key update count=count+1, lasttime=now()");
+$S->sql("
+insert into $S->masterdb.logagent (site, ip, agent, count, created, lasttime)
+values('$S->siteName', '$ip', '$agent', 1, now(), now())
+on duplicate key update count=count+1, lasttime=now()");
 
 // Is this a bot? We know that the client looked at the robots.txt but this might not really be a
 // bot.
@@ -55,10 +57,11 @@ if($S->isBot($agent)) {
 
 // Add to tracker
 
-$S->sql("insert into $S->masterdb.tracker(site, ip, page, agent, botAsBits, isjavascript, starttime) ".
-        "values('$S->siteName', '$ip', '$file', '$agent', $botBits, $java, now()) ".
-        "on duplicate key update count=count+1, botAsBits=botAsBits|$botBits, ".
-        "isjavascript=isjavascript|$java"); 
+$S->sql("
+insert into $S->masterdb.tracker(site, ip, page, agent, botAsBits, isjavascript, starttime)
+values('$S->siteName', '$ip', '$file', '$agent', $botBits, $java, now())
+on duplicate key update count=count+1, botAsBits=botAsBits|$botBits,
+isjavascript=isjavascript|$java"); 
 
 $S->updateBots3($ip, $agent, $file, $S->siteName, $botBits);
 

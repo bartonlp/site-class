@@ -6,6 +6,7 @@
 
 namespace bartonlp\siteload;
 use SendGrid\Mail\Mail;
+use bartonlp\SiteClass\dbPdo;
 
 class SiteExceptionHandler {
   private static bool $initialized = false;
@@ -133,7 +134,8 @@ EOF;
     // BLP 2024-09-02 - Get dbPdo::$lastQuery
 
     if(\ErrorClass::getNoLastQuery() !== true) {
-      $last = \dbPdo::$lastQuery;
+      $last = dbPdo::$lastQuery;
+      $param = dbPdo::$lastParam;
     }
     
     // Callback to get the user ID if the callback exists
@@ -155,8 +157,12 @@ EOF;
     if(\ErrorClass::getNoBackTrace() !== true) {
       $stackTrace = ($x = self::formatStackTrace($e)) ? $x : null;
     }
+
+    $paramStr = $param ? "lastParam=$param\n" : null;
     
-    $error = "{$e->getMessage()} in {$e->getFile()} on line {$e->getLine()}, {$stackTrace}lastQuery=$last\n$userId";
+    $error = "{$e->getMessage()} in {$e->getFile()} on line {$e->getLine()},
+{$stackTrace}lastQuery=$last\n{$paramStr}$userId";
+    
     $err = $error; // for cli output
     
     // Should we send an email?

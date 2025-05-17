@@ -171,8 +171,9 @@ if($_GET['page'] == "csstest") {
     // I don't think I can ever have a duplicate key but just in case 'ignore' added to 'insert'.
     // Because we do not have ip etc. we use the default from tracker.php.
     
-    $S->sql("insert ignore into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime) ".
-            "values('$S->ip', '$S->siteName', '$S->self', '$msg', -980, 'NO_ID', '$S->agent', now(), now())");
+    $S->sql("
+insert ignore into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime)
+values('$S->ip', '$S->siteName', '$S->self', '$msg', -980, 'NO_ID', '$S->agent', now(), now())");
 
     header("Content-Type: text/css");
     echo "/* csstest.css-NO_ID */";
@@ -194,8 +195,9 @@ if($_GET['page'] == "csstest") {
   $js |= TRACKER_CSS;
   $botAsBits |= BOTS_COUNTED;
   
-  $S->sql("update $S->masterdb.tracker set isJavaScript=$js, ".
-          "botAsBits=botAsBits|$botAsBits, referer='$ref', count=count+1 where id=$id"); // BLP 2025-03-29 - 
+  $S->sql("
+update $S->masterdb.tracker set isJavaScript=$js,
+botAsBits=botAsBits|$botAsBits, referer='$ref', count=count+1 where id=$id"); // BLP 2025-03-29 - 
 
   // Now we can do the bots3 update because we have ip, agent, and page.
 
@@ -306,8 +308,9 @@ if($type = $_GET['page']) {
 
     // No id, and ip, site, page, and agent are not yet valid. Use $S->...
 
-    $sql = "insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime) ".
-           "values('$S->ip', '$S->siteName', '$S->self', '$msg', '$errno', '$errmsg', '$S->agent', now(), now())";
+    $sql = "
+insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime)
+values('$S->ip', '$S->siteName', '$S->self', '$msg', '$errno', '$errmsg', '$S->agent', now(), now())";
 
     $S->sql($sql);
     goaway("tracker GET ID_IS_NOT_NUMERIC: id=$id, ip=$S->ip, site=$S->siteName, errno=$errno, errmsg=$errmsg, agent=$S->agent", __LINE__, true);
@@ -328,7 +331,9 @@ if($type = $_GET['page']) {
 
   // Get information from tracker.
 
-  if($S->sql("select site, ip, page, finger, isJavaScript, agent, botAsBits, difftime from $S->masterdb.tracker where id=$id")) {
+  if($S->sql("
+select site, ip, page, finger, isJavaScript, agent, botAsBits, difftime
+from $S->masterdb.tracker where id=$id")) {
     [$site, $ip, $page, $finger, $js, $agent, $botAsBits, $difftime] = $S->fetchrow('num');
   } else {
     goaway("tracker GET, NO RECORD: id=$id, type=$type", __LINE__, true);
@@ -393,8 +398,9 @@ if($type = $_GET['page']) {
       }
     }
 
-    $S->sql("update $S->masterdb.tracker set count=count+1, botAsBits=botAsBits|$botAsBits, isJavaScript=isJavaScript|$js, referer='$ref' ".
-            "where id=$id");
+    $S->sql("
+update $S->masterdb.tracker set count=count+1, botAsBits=botAsBits|$botAsBits, isJavaScript=isJavaScript|$js, referer='$ref'
+where id=$id");
 
     $S->updateBots3($ip, $agent, $page, $site, $botAsBits);
   } else {
@@ -409,8 +415,9 @@ if($type = $_GET['page']) {
 
     $botAsBits |= BOTS_COUNTED; // BLP 2025-04-23 - 
     
-    $S->sql("update $S->masterdb.tracker set count=count+1, botAsBits=botAsBits|$botAsBits, isJavaScript=isJavaScript|$js, referer='$ref' ".
-            "where id=$id");
+    $S->sql("
+update $S->masterdb.tracker set count=count+1, botAsBits=botAsBits|$botAsBits, isJavaScript=isJavaScript|$js, referer='$ref'
+where id=$id");
 
     $S->updateBots3($ip, $agent, $page, $site, $botAsBits);
   }
@@ -584,7 +591,8 @@ if($_POST['page'] == 'start') {
     error_log("tracker START3: id=$id, ip=$ip, site=$site, page=$thepage, botAsBits=$hexBotAsBits, referer=$ref, jsin=$java, jsout=$js2, line=". __LINE__);
   }
 
-  $S->sql("update $S->masterdb.tracker set isJavaScript=$js, referer='$ref', count=count+1 where id=$id"); // BLP 2025-03-29 - 
+  $S->sql("
+update $S->masterdb.tracker set isJavaScript=$js, referer='$ref', count=count+1 where id=$id");
 
   echo "Start OK, java=$js";
   exit();
@@ -619,7 +627,9 @@ if($_POST['page'] == 'load') {
 
   // BLP 2023-03-25 - This should maybe be insert/update?
   $botAsBits |= BOTS_COUNTED;
-  $S->sql("update $S->masterdb.tracker set botAsBits=botAsBits|$botAsBits, isJavaScript=isJavaScript|$js, count=count+1 where id='$id'");
+  $S->sql("
+update $S->masterdb.tracker set botAsBits=botAsBits|$botAsBits, isJavaScript=isJavaScript|$js, count=count+1
+where id='$id'");
   $S->updateBots3($ip, $agent, $thepage, $site, $botAsBits);
   
   echo "Load OK, java=$js";
@@ -695,8 +705,9 @@ if($_POST['page'] == 'timer') {
 
   $botAsBits = BOTS_COUNTED | ($difftime ? BOTS_HAS_DIFFTIME : 0);
   
-  $S->sql("update $S->masterdb.tracker set botAsBits=botAsBits|$botAsBits, count=count+1, isJavaScript=$js, endtime=now(), ". // BLP 2025-03-29 - 
-          "difftime=timestampdiff(second, starttime, now()) where id=$id");
+  $S->sql("
+update $S->masterdb.tracker set botAsBits=botAsBits|$botAsBits, count=count+1, isJavaScript=$js, endtime=now(),
+difftime=timestampdiff(second, starttime, now()) where id=$id");
 
   if(!$S->isMyIp($ip) && $DEBUG_TIMER2) {
     $hexBotAsBits = dechex($botAsBits);
@@ -733,8 +744,9 @@ function goaway(string $msg, ?int $line=null, bool $type=false): void {
     // We don't have any real values. We instantiated Database from the tracker.php mysitemap.json
     // not from the $mysitemap variable because it was not there.
     
-    $S->sql("insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime) " .
-            "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAYNOW', '$errno', '$errmsg', '$S->agent', now(), now())");
+    $S->sql("
+insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime)
+values('$S->ip', '$S->siteName', '$S->self', 'GOAWAYNOW', '$errno', '$errmsg', '$S->agent', now(), now())");
 
     // This is the GOAWAYNOW logic.
 
@@ -750,8 +762,9 @@ function goaway(string $msg, ?int $line=null, bool $type=false): void {
 
       // No id
 
-      $S->sql("insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime) " .
-              "values('$S->ip', '$S->siteName', '$S->self', 'GOAWAY NO ID', '$errno', '$errmsg', '$S->agent', now(), now())");
+      $S->sql("
+insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime)
+values('$S->ip', '$S->siteName', '$S->self', 'GOAWAY NO ID', '$errno', '$errmsg', '$S->agent', now(), now())");
     } else {
       // If this ID is not in the tracker table, add it with TRACKER_GOAWAY.
       // Here $S->ip etc are from the $mysitemap.
@@ -759,16 +772,18 @@ function goaway(string $msg, ?int $line=null, bool $type=false): void {
       $trackerGoaway = TRACKER_GOAWAY;
       $botAsBits = BOTS_BOT;
       
-      $S->sql("insert into $S->masterdb.tracker (id, site, ip, agent, botAsBits, isJavaScript, starttime) ".
-              "values($id, '$S->ip', '$S->siteName', '$S->agent', $botAsBits, $trackerGoaway, now()) ".
-              "on duplicate key update count=count+1, botAsBits=botAsBits|$botAsBits, isJavaScript=isJavaScript|$trackerGoaway"); // BLP 2025-03-29 - 
+      $S->sql("
+insert into $S->masterdb.tracker (id, site, ip, agent, botAsBits, isJavaScript, starttime)
+values($id, '$S->ip', '$S->siteName', '$S->agent', $botAsBits, $trackerGoaway, now())
+on duplicate key update count=count+1, botAsBits=botAsBits|$botAsBits, isJavaScript=isJavaScript|$trackerGoaway");
 
       $errmsg = "$msg, No id. No tracker logic triggered";
 
       error_log("$errmsg, line=$line");
       
-      $S->sql("insert into $S->masterdb.badplayer (ip, id, site, page, type, errno, errmsg, agent, created, lasttime) " .
-              "values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg', '$S->agent', now(), now())");
+      $S->sql("
+insert into $S->masterdb.badplayer (ip, id, site, page, type, errno, errmsg, agent, created, lasttime)
+values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg', '$S->agent', now(), now())");
 
       $S->sql("select finger from tracker where id=$id");
       $finger = $S->fetchrow('num')[0] ?? "NONE";

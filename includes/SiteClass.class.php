@@ -1,5 +1,5 @@
-<?php
-// SITE_CLASS_VERSION must change when the GitHub Release version changes.
+<?SITE_CLASS_VERSION
+// php must change when the GitHub Release version changes.
 // Note that the constructor calls the Database constructor which in turn call the
 // dbPdoconstructor which does all of the heavy lifting.
 
@@ -159,7 +159,7 @@ class SiteClass extends Database {
   public function getPageHead():string {
     // Instantiate a stdClass so we can pass things to the headFile.
     
-    $h = new stdClass;
+    $h = new \stdClass;
 
     $h->base = $this->base ? "<base href='$this->base'>" : null;
 
@@ -177,7 +177,8 @@ class SiteClass extends Database {
     $h->meta = $this->meta; // This needs a fully filled out <meta ...>. The whole thing.
     
     // link tags
-    
+
+    // favicon may need a cacheBuster? Not sure yet.
     $h->favicon = $this->favicon ? "<link rel='shortcut icon' href='$this->favicon'>" :
                   "<link rel='shortcut icon' href='https://bartonphillips.net/images/favicon.ico'>";
 
@@ -188,17 +189,17 @@ class SiteClass extends Database {
     } else {
       $h->defaultCss = $this->defaultCss ?? "https://bartonphillips.net/css/blp.css";
         
-      [$css, $filetime] = $this->resolveCssAndFiletime($h->defaultCss);
+      [$css, $filetime] = $this->cacheBuster($h->defaultCss);
 
       $h->defaultCss = $css ? "<link rel='stylesheet' href='$css?v=$filetime' title='default'>" : null;
     }
 
-    // These need to have the <style> or <script> tabs added.
+    // The css and inlineScript need to have the <style> or <script> tabs added.
     
     $h->css = $this->css ? "<style>\n$this->css\n</style>" : null;
     $h->inlineScript = $this->h_inlineScript ? "<script nonce='$this->nonce'>\n$this->h_inlineScript\n</script>" : null;
 
-    // BLP 2025-05-01 - If I have $this->cssLink then create the external link
+    // If I have $this->cssLink then create the external link
     // The cssLink can be an string or an array of strings.
     // Like $S->cssLink = ['one.css', 'two.css']; or $S->css = 'one.css';
     
@@ -207,7 +208,7 @@ class SiteClass extends Database {
       $h->cssLink = '';
 
       foreach($cssLinks as $link) {
-        [$css, $filetime] = $this->resolveCssAndFiletime($link);
+        [$css, $filetime] = $this->cacheBuster($link);
         if($css) {
           $h->cssLink .= "<link rel='stylesheet' href='$css?v=$filetime'>\n";
         }
@@ -217,6 +218,8 @@ class SiteClass extends Database {
     // The rest, $h->link, $h->script and $h->extra need to have the full '<link' or '<script' tags
     // in the variables.
 
+    // These three probably do not need cacheBusters because they usually come from an external
+    // source. 'extra' isn't used much any more and is usually inline code.
     $h->script = $this->h_script;
     $h->link = $this->link;
     $h->extra = $this->extra;
@@ -245,8 +248,11 @@ EOF;
 
       // add the location of the logging.js and logging.php files.
       
-      $this->interactionLocationJs = $this->interactionLocationJs ?? "https://bartonlp.com/otherpages/js/logging.js"; // BLP 2025-03-26 - 
-      $this->interactionLocationPhp = $this->interactionLocationPhp ?? "https://bartonlp.com/otherpages/logging.php";  // BLP 2025-03-26 -
+      $this->interactionLocationJs = $this->interactionLocationJs ?? "https://bartonlp.com/otherpages/js/logging.js";
+
+      // Add a cache buster
+      [$tmp, $fletime] $this->defaultCss($this->
+      $this->interactionLocationPhp = $this->interactionLocationPhp ?? "https://bartonlp.com/otherpages/logging.php";
       
       // tracker.php and beacon.php MUST be symlinked in bartonlp.com/otherpages
       // to the SiteClass 'includes' directory. This is because /var/www/site-class does not have
@@ -453,7 +459,7 @@ EOF;
    * @see https://bartonlp.org/docs/banner.i.php
    */
   public function getPageBanner():string {
-    $b = new stdClass; // b is for banner
+    $b = new \stdClass; // b is for banner
 
     $b->bodytag = $this->bodytag ?? "<body>";
     $b->mainTitle = $this->banner ?? $this->mainTitle;
@@ -528,7 +534,7 @@ EOF;
 EOF;
     }
 
-    $f = new stdClass; // $f is for footer
+    $f = new \stdClass; // $f is for footer
 
     $f->ctrmsg = $this->ctrmsg;
     $f->msg = $this->msg;
@@ -651,42 +657,55 @@ EOF;
   }
 
   /**
-   * Adds a cache buster to the css file
+   * Adds a cache buster to a file
    *
-   * @param string $css
-   * @return array{0: string, 1: int} [$css, $filetime] $css is a string, $filetime is a UNIX timestamp
+   * @param string $file
+   * @return array{0: string, 1: int} [$file, $filetime] $file is a string, $filetime is a UNIX timestamp
    */
-  private function resolveCssAndFiletime(string $css): array {
-    // The default css should be a URL (relative or absolute) or if true or false it is set to null
-    // Else either add the value or the default.
-    // BLP 2025-05-01 - use $tmp, get filemtime($tmp) then make $h-defaultCss with the query
-    // v=$filetime. This is for cache busting.
-    // Restrictions: the file must either be from my bartonphillips.net direcotry or be a
-    // relative path within the host.
+  private function cacheBuster(string $file): string {
+    // The $file should be a URL (relative or absolute)
 
-    if(preg_match("~^(https://)?(bartonphillips\.net/)?(.*$)~", $css, $m) === 1) {
-      if(!$m[1]) {
-        $tmp = $m[3]; // This is $css
-      } elseif($m[1] && $m[2] && $m[3]) {
-        // If I have the whole line then /var/www/ plus $m[2] and $m[3]
-        $tmp = "/var/www/{$m[2]}{$m[3]}";
-      } else {
-        // This is an error.
-        error_log("SiteClass getPageHead invalid css=$css: ".
-                  "id=$this->id, ip=$this->ip, site=$this->siteName, page=$this->self, agent=$this->agent, line=". __LINE__);
-        exit();
+    if(preg_match("~^(https://)?(bartonphillips\.net/)?(.+)$~", $file, $m) === 1) {
+      // I must have $m[3] or an error.
+      // If !$m[1], !$m[2], !m[3]  Error.
+      // If $m[1],  !$m[2], !$m[3] Error.
+      // If $m[1],  !$m[2],  $m[3] Error. If $m[1] then must have $m[2] and $m[3]
+      // If !$m[1],  $m[2], !$m[3] Error. Can't just be the site name.
+      // If !$m[1],  $m[2],  $m[3] OK, but not a good URL
+      // If $m[1],   $m[2],  $m[3] Ok.
+
+      if($m[0]) { // Could be $m[1]===null, $m[2]===null but MUST have $m[3] because (.+) one or more charactes.
+        if(!$m[1] && !$m[2]) {
+          $tmp = "/var/www/{$m[3]}";
+        } elseif($m[2]) {
+          $tmp = "/var/www/{$m[2]}{$m[3]}";
+        } else {
+          // Invalid URL
+          
+          error_log("SiteClass cacheBuster invalid URL: file=$file");
+          throw new Exception(__CLASS__.", ".__METHOD__." Invalid URL file=$file, line=".  __LINE__);
+        }
       }
+      
       // Now we have the filesystem path, relative or absolute in $tmp
 
       if(file_exists($tmp)) {
         $filetime = filemtime($tmp);
       } else {
-        $css = null;
+        $file = null;
       }
     } else {
-      $css = null;
+      $file = null;
     }
 
-    return [$css, $filetime];
+    if(!$file) {
+      // Not sure what to do here. The file does not exist on our server.
+      error_log("SiteClass cacheBuster: Invalid file=$file, line=". __LINE__);
+
+      // I probably should thow and exception.
+      //throw new Exception(__CLASS__.", ".__METHOD__." Invalid file=$file");
+
+      return null;
+    } else return "$file?v=$filetime";
   }
 } // End of Class

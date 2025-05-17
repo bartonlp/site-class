@@ -4,11 +4,16 @@
 // BLP 2025-04-20 - at some point I may add more type hints to this file.
 
 namespace bartonlp\SiteClass;
-   
-define("PDO_CLASS_VERSION", "1.2.5pdo"); // BLP 2025-04-24 - new sql() method from ChatGpt
+use bartonlp\SiteClass\UserAgentTools;
+use bartonlp\SiteClass\WarningToExceptionHandler;
+use \PDO;
+use \PDOStatement;
+
+define("PDO_CLASS_VERSION", "1.2.6pdo"); // BLP 2025-04-24 - new sql() method from ChatGpt
                                          // BLP 2025-04-19 - add the trait.
                                          // BLP 2025-04-18 - add create() to allow me to use updateBot3() function when I do new dbPdo(...).
                                          // BLP 2025-04-13 - new version of $robotMap. Added SAPI in constructor
+                                         // BLP 2025-05-09 - removed sqlPrepare.
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -35,15 +40,18 @@ class dbPdo extends PDO {
    *
    * @var PDOStatement $result
    */
-  private \PDOStatement $result; // for select etc. a result set.
+  private PDOStatement $result; // for select etc. a result set.
 
   /**
    * The last query that was executed
    *
    * @var string $lastQuery
    */
-  static public ?string $lastQuery = null; // for debugging
-
+  static public ?string $lastQuery = null; // for Exception.class.php
+  static public ?string $lastParam = null; // same.
+  
+  private bool $Debug = false; // for debugging only
+  
   use UserAgentTools; // BLP 2025-04-19 - This is a trait for isMe(), isMyIp(), isBot(), setSiteCookie() and getIp().
                       // Putting it here means these are available to the entire hierarchy.
   use WarningToExceptionHandler; // BLP 2025-04-25 - New trait to fix E_WARNING to Exceptions.
@@ -107,13 +115,13 @@ class dbPdo extends PDO {
     } else {
       parent::__construct("$engine:dbname=$database; host=$host; user=$user; password=$password");
     }
-    $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+    $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $this->sql("set time_zone='America/New_York'"); 
     
     $this->database = $database;
 
-    if($this->ip != MY_IP)
+    if($this->Debug === true && $this->ip != MY_IP)
       error_log("dbPdo constructor: ip=$this->ip, site=$this->siteName, page=$this->self, line=". __LINE__);
   } // End of constructor.
 
@@ -179,9 +187,10 @@ class dbPdo extends PDO {
    * @site-effect       - For SELECT/SHOW/EXPLAIN sets $this->result.
    * NOTE: $query must be a single line with no newlines.
    */
-  public function sql($query, array $params = []): \PDOStatement|int|bool {
+  public function sql($query, array $params = []): PDOStatement|int|bool {
     self::$lastQuery = $query;
-
+    self::$lastParam = implode(",", $params ?? null);
+    
     // Extract the command type (first word in SQL)
     
     preg_match("~^(\w+).*$~", $query, $m); // This only works if $query is a single line.
@@ -252,92 +261,6 @@ class dbPdo extends PDO {
   }
 
   /**
-   * Does a SQL prepare
-   *
-   * BLP 2025-05-07 - OLD LOGIC
-   * This method works with fully formed queries! That is no :name or =? that need to be prepared!
-   * It also seems to work with =|<|>|<=|>=|!=|like. It also seems to work with 'between'.
-   * It only worked with ':named' parameters but not with '?' parameters.
-   * This method can be used with $this->fetchrow(..).
-   *
-   * If you have a complicated queries or '?' parameters use the RAW PDO prepare(), bind_params(), execute(), bind_result() and fetch().
-   * Used as follows with bound params:
-   * 1) $username="bob"; $query = "select one, two from test where name=?";
-   * 2) $stm = PDO::prepare($query);
-   * 3) $stm->bind_param("s", $username);
-   * 4) $stm->execute();
-   * 5) $stm->bind_result($one, $two);
-   * 6) $stm->fetch();
-   * 7) echo "one=$one, two=$two<br>";
-   * NOTE: we do not have a bind_param(), execute(), bind_result() or fetch() functions in this module.
-   * You will have to use the native PHP functions with the returned $stm.
-   * NOTE: As of PHP 8 PDO uses exception as the default: PDO::ERRMODE_EXCEPTION.
-   *
-   * @param string $query
-   * @param array $values Default null
-   * @return bool|int
-   * @throws Exception
-   */
-  
-  public function sqlPrepare(string $query, ?array $values=null): bool|int {
-    self::$lastQuery = $query; // for debugging
-    
-    try {
-      $stm = $this->prepare($query);
-    } catch(\Exception $e) {
-      throw $e;
-    }
-
-    if($values !== null) {
-      if(preg_match_all("~between\s*?(:.+?)\s*?\S+?\s*?(:.+?)(?:\s+|$)~", $query, $mm) === false) {
-        echo "Error1: " . preg_last_error_msg() . "<br>";
-        return false;
-      }
-
-      // remove the first element of the array
-      
-      array_shift($mm);
-      
-      $mm = array_merge(...$mm); // This fattens the array one layer.
-     
-      if(preg_match_all("~(?:=|<|>|<=|>=|!=|like).*?(:.+?)(?: |$)~", $query, $m) === false) {
-        echo "Error2 " . preg_last_error_msg() . "<br>";
-        return false;
-      }
-      $m = $m[1];
-
-      $m = array_merge($m, $mm); // both arrays should look the same so merge them.
-
-      // Check if we have the same number of named params as values.
-      
-      if(count($m) != count($values)) {
-        echo "Error3 Count error<br>";
-        return false;
-      }
-      for($i=0; $i<count($values); ++$i) {
-        $params[$m[$i]] = $values[$i];
-      }
-    }
-    
-    $stm->execute($params);
-
-    $this->result = $stm;
-
-    if($this->dbinfo->engine == 'mysql') {
-      $numrows = $stm->rowCount();
-    } elseif($m == 'select') {
-      $last = self::$lastQuery;
-      $last = preg_replace("~^(select) .*?(from .*)$~", "$1 count(*) $2", $last);
-      $stm = $this->query($last);
-      $numrows = $stm->fetchColumn();
-    } else {
-      $numrows = 0;
-    }
-
-    return $numrows;
-  }
-
-  /**
    * Does a sql query and returns all rows
    *
    * Dose a query and then fetches all the rows
@@ -357,12 +280,11 @@ class dbPdo extends PDO {
     }
 
     // queryfetch() can be
-    // 1) queryfetch(param1) only 1 param in which case $type is set to
-    // 'both'.
-    // 2) queryfetch(param1, param2) where param2 is a string like 'assoc', 'num', 'obj' or 'both'
-    // 3) queryfetch(param1, param2) where param2 is a boolian in which case $type is set to
-    // 'both' and $returnarray is set to the boolian value of param2.
-    // 4) queryfetch(param1, param2, param3) where the param values set the corisponding values.
+    // 1) queryfetch($query) only 1 param in which case $type is set to 'both'.
+    // 2) queryfetch($query, $type) if $type is a string ('assoc', 'num', 'obj' or 'both')
+    // 3) queryfetch($query, $type) if $type is a boolian ($type is set to 'both'
+    //    and $returnarray is set to the boolian value of $type.
+    // 4) queryfetch($query, $type, $returnarray) no defaults.
 
     if(is_null($type)) {
       $type = 'both';
@@ -371,7 +293,7 @@ class dbPdo extends PDO {
       $type = 'both';
     }  
     
-    $numrows = $this->query($query);
+    $numrows = $this->sql($query);
 
     while($row = $this->fetchrow($type)) {
       $rows[] = $row;
@@ -396,7 +318,7 @@ class dbPdo extends PDO {
    *   either an assoc or numeric array, or an array with both numeric indices and associative indices.
    * @throws Exception|PDOException On Sql error, $this->result is null or $type is not allowed.
    */
-  public function fetchrow(\PDOStatement|string|null $result=null, string $type="both"): array|null {
+  public function fetchrow(PDOStatement|string|null $result=null, string $type="both"): array|null {
     if(is_string($result)) { // a string like num, assoc, obj or both
       $type = $result;
       $result = $this->result; // was set in sql(...).

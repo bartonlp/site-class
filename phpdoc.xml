@@ -13,9 +13,12 @@
   </transformer>
 
   <files>
+    <directory>includes</directory>
     <!-- Manually listed files, incrementally add more as you refine them -->
-    <file>includes/SiteClass.class.php</file>
+<!--    <file>includes/SiteClass.class.php</file>
     <file>includes/database-engines/Database.class.php</file>
     <file>includes/database-engines/dbPdo.class.php</file>
+    <file>includes/database-engines/dbTables.class.php</file> -->
+    
   </files>
 </phpdoc>
