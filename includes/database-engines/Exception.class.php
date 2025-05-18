@@ -92,7 +92,7 @@ class SiteExceptionHandler {
             echo <<<EOF
 <div style="text-align: center; background-color: white; border: 1px solid black; width: 85%; margin: auto auto; padding: 10px;">
 <h1 style="color: red">Fatal Error</h1>
-<p> $errType, {$error['message']}<br>in {$error['file']} on line {$error['line']}</p>
+<p>$errType, {$error['message']}<br>in {$error['file']} on line {$error['line']}</p>
 </div>
 EOF;
           }
@@ -129,7 +129,7 @@ EOF;
    */
 
   public static function my_exceptionhandler(\Throwable $e): void {
-    $from = $e instanceof \Error ? 'Fatal Error' : ($e instanceof \Exception ? 'Exception' : 'Unknown Throwable');
+    $errorType = $e instanceof \Error ? 'Fatal Error' : ($e instanceof \Exception ? 'Exception' : 'Unknown Throwable');
 
     // BLP 2024-09-02 - Get dbPdo::$lastQuery
 
@@ -159,7 +159,7 @@ EOF;
     }
 
     $paramStr = $param ? "lastParam=$param\n" : null;
-    
+
     $error = "{$e->getMessage()} in {$e->getFile()} on line {$e->getLine()},
 {$stackTrace}lastQuery=$last\n{$paramStr}$userId";
     
@@ -173,7 +173,7 @@ EOF;
       $email = new Mail();
 
       $email->setFrom("ErrorMessage@bartonphillips.com");
-      $email->setSubject($from);
+      $email->setSubject($errorType);
       $email->addTo($s->EMAILADDRESS);
 
       $contents = preg_replace(["~\"~", "~\\n~"], ['','<br>'], "$error<br>lastQuery: $last<br>$userId");
@@ -198,7 +198,7 @@ EOF;
     // Log the raw error info.
     // This error_log should always stay in!! *****************
     $err = preg_replace("~\\n~", ", ", $error);
-    error_log("Exception.class $from: $err");
+    error_log("Exception.class $errorType: $err");
     // ********************************************************
 
     // Are we in development mode?
@@ -215,7 +215,7 @@ EOF;
     if(\ErrorClass::getNoHtml() === true) {
       // No HTML
       
-      $error = "$from: $error";
+      $error = "$errorType: $error";
     } else {
       // Yes send full HTML
       $error = <<<EOF
@@ -249,7 +249,7 @@ EOF;
 </style>
         
 <div class="error_message">
-<h1>$from</h1>
+<h1>$errorType</h1>
 <pre>
 $error
 </pre>

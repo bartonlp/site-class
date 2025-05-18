@@ -1,4 +1,4 @@
-<?SITE_CLASS_VERSION
+<?php
 // php must change when the GitHub Release version changes.
 // Note that the constructor calls the Database constructor which in turn call the
 // dbPdoconstructor which does all of the heavy lifting.
@@ -178,20 +178,16 @@ class SiteClass extends Database {
     
     // link tags
 
-    // favicon may need a cacheBuster? Not sure yet.
-    $h->favicon = $this->favicon ? "<link rel='shortcut icon' href='$this->favicon'>" :
-                  "<link rel='shortcut icon' href='https://bartonphillips.net/images/favicon.ico'>";
+    $h->favicon = $this->cacheBuster($this->favicon ?? 'https://bartonphillips.net/images/favicon.ico');
+    $h->favicon = "<link rel='shortcut icon' href='$h->favicon'>";
 
     // Get the defaultCss if available. It hust be a string or false or null.
 
     if($this->defaultCss === false) { 
       $h->defaultCss = null;
     } else {
-      $h->defaultCss = $this->defaultCss ?? "https://bartonphillips.net/css/blp.css";
-        
-      [$css, $filetime] = $this->cacheBuster($h->defaultCss);
-
-      $h->defaultCss = $css ? "<link rel='stylesheet' href='$css?v=$filetime' title='default'>" : null;
+      $h->defaultCss = $this->cacheBuster($this->defaultCss ?? "https://bartonphillips.net/css/blp.css");
+      $h->defaultCss = "<link rel='stylesheet' href='$h->defaultCss' title='default'>";
     }
 
     // The css and inlineScript need to have the <style> or <script> tabs added.
@@ -208,10 +204,8 @@ class SiteClass extends Database {
       $h->cssLink = '';
 
       foreach($cssLinks as $link) {
-        [$css, $filetime] = $this->cacheBuster($link);
-        if($css) {
-          $h->cssLink .= "<link rel='stylesheet' href='$css?v=$filetime'>\n";
-        }
+        $link = $this->cacheBuster($link);
+        $h->cssLink .= "<link rel='stylesheet' href='$link'>\n";
       }
     }
 
@@ -245,13 +239,14 @@ class SiteClass extends Database {
 EOF;
 
       $this->trackerLocationJs = $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
-
+      $this->trackerLocationJs = $this->cacheBuster($this->trackerLocationJs);
+      
       // add the location of the logging.js and logging.php files.
       
       $this->interactionLocationJs = $this->interactionLocationJs ?? "https://bartonlp.com/otherpages/js/logging.js";
-
+      $this->interactionLocationJs = $this->cacheBuster($this->interactionLocationJs);
       // Add a cache buster
-      [$tmp, $fletime] $this->defaultCss($this->
+
       $this->interactionLocationPhp = $this->interactionLocationPhp ?? "https://bartonlp.com/otherpages/logging.php";
       
       // tracker.php and beacon.php MUST be symlinked in bartonlp.com/otherpages
@@ -657,55 +652,35 @@ EOF;
   }
 
   /**
-   * Adds a cache buster to a file
+   * Generate a cache-busting URL based on the file's modification time.
+   * Only supports files hosted by this server and mapped to known domains.
    *
-   * @param string $file
-   * @return array{0: string, 1: int} [$file, $filetime] $file is a string, $filetime is a UNIX timestamp
+   * @param string $file Relative or absolute URL (must resolve under /var/www)
+   * @return string URL with ?v=timestamp, or on error the original filename.
    */
-  private function cacheBuster(string $file): string {
-    // The $file should be a URL (relative or absolute)
+  public function cacheBuster(string $file): ?string {
+    $parsed = parse_url($file);
+    $host = $parsed['host'] ?? $_SERVER['HTTP_HOST']; // fallback to current site
+    $path = $parsed['path'] ?? null;
 
-    if(preg_match("~^(https://)?(bartonphillips\.net/)?(.+)$~", $file, $m) === 1) {
-      // I must have $m[3] or an error.
-      // If !$m[1], !$m[2], !m[3]  Error.
-      // If $m[1],  !$m[2], !$m[3] Error.
-      // If $m[1],  !$m[2],  $m[3] Error. If $m[1] then must have $m[2] and $m[3]
-      // If !$m[1],  $m[2], !$m[3] Error. Can't just be the site name.
-      // If !$m[1],  $m[2],  $m[3] OK, but not a good URL
-      // If $m[1],   $m[2],  $m[3] Ok.
+    $host = str_replace("www.", '', $host);
 
-      if($m[0]) { // Could be $m[1]===null, $m[2]===null but MUST have $m[3] because (.+) one or more charactes.
-        if(!$m[1] && !$m[2]) {
-          $tmp = "/var/www/{$m[3]}";
-        } elseif($m[2]) {
-          $tmp = "/var/www/{$m[2]}{$m[3]}";
-        } else {
-          // Invalid URL
-          
-          error_log("SiteClass cacheBuster invalid URL: file=$file");
-          throw new Exception(__CLASS__.", ".__METHOD__." Invalid URL file=$file, line=".  __LINE__);
-        }
-      }
-      
-      // Now we have the filesystem path, relative or absolute in $tmp
-
-      if(file_exists($tmp)) {
-        $filetime = filemtime($tmp);
-      } else {
-        $file = null;
-      }
-    } else {
-      $file = null;
+    // Use the MY_HOSTS numeric array. See defines.php
+    
+    if(!$path || !in_array($host, MY_HOSTS)) {
+      error_log("SiteClass: Invalid or unknown domain in cacheBuster: $file");
+      return $file;
     }
 
-    if(!$file) {
-      // Not sure what to do here. The file does not exist on our server.
-      error_log("SiteClass cacheBuster: Invalid file=$file, line=". __LINE__);
+    $fullpath = "/var/www/{$host}/{$path}";
+    //echo "fullpath=$fullpath<br>";
 
-      // I probably should thow and exception.
-      //throw new Exception(__CLASS__.", ".__METHOD__." Invalid file=$file");
-
-      return null;
-    } else return "$file?v=$filetime";
+    if(file_exists($fullpath)) {
+      $version = filemtime($fullpath);
+      return "{$file}?v={$version}";
+    } else {
+      error_log("SiteClass: File not found in cacheBuster: $fullpath");
+      return $file;
+    }
   }
 } // End of Class
