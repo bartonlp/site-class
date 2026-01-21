@@ -175,7 +175,7 @@ trait UserAgentTools {
       // TRACKER_BOT. I am going to leave any of the three from above.
       
       if($this->botAsBits & BOTS_HAS_DIFFTIME) { // true if difftime was present
-        error_log("UserAgentTools isBot, remove bot bit: ip=$ip, agent=$agent, page=$page, line=". __LINE__);
+        logInfo("UserAgentTools isBot, remove bot bit: ip=$ip, agent=$agent, page=$page, line=". __LINE__);
         $this->trackerBotInfo &= ~TRACKER_BOT; // BLP 2025-04-14 - If we have difftime remove the bots bit from trackerBotInfo.
         $this->botAsBits &= ~BOTS_SITECLASS; // BLP 2025-04-14 - remove bot from botAsBits.
       } 
@@ -203,11 +203,12 @@ trait UserAgentTools {
 
   /**
    * setSiteCookie()
-   * @param: string $cookie.
-   * @param: string $value.
-   * @param: int $expire.
-   * @param: string $path. Defaults to '/'.
-   * @param: string $thedomain. Defaults to null.
+   *
+   * @param: string $cookie
+   * @param: string $value
+   * @param: int $expire
+   * @param: string $path Defaults to '/'.
+   * @param: string $thedomain Defaults to null.
    * @return bool true if OK else false.
    */
 

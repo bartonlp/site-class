@@ -80,17 +80,16 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "4.1.8tracker-pdo"); // BLP 2025-04-23 - Add BOTS_BOT
-                                               // BLP 2025-04-15 - remove some error logic and change how I update tracker and bots3
+define("TRACKER_VERSION", "4.1.9tracker-pdo"); // BLP 2025-05-23 - error_log changed to logInfo
 
-$DEBUG_START = true; // start
-$DEBUG_LOAD = true; // load
+//$DEBUG_START = true; // start
+//$DEBUG_LOAD = true; // load
 //$DEBUG_TIMER1 = true; // Timer
 //$DEBUG_TIMEE2 = true;
 //$DEBUG_DAYCOUNT = true; // Timer real+1
-$DEBUG_MSG = true; // AjaxMsg
+//$DEBUG_MSG = true; // AjaxMsg
 //$DEBUG_GET1 = true;
-$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
+//$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
 //$DEBUG_NOSCRIPT = true; // no script
 
 // If you want the version defined ONLY and no other information.
@@ -166,7 +165,7 @@ if($_GET['page'] == "csstest") {
   $S = new Database($_site);
 
   if(!is_numeric($id)) {
-    error_log("tracker NO_ID: \$_GET=" . print_r($_GET, true));
+    logInfo("tracker NO_ID: \$_GET=" . print_r($_GET, true));
 
     // I don't think I can ever have a duplicate key but just in case 'ignore' added to 'insert'.
     // Because we do not have ip etc. we use the default from tracker.php.
@@ -188,7 +187,7 @@ values('$S->ip', '$S->siteName', '$S->self', '$msg', -980, 'NO_ID', '$S->agent',
   } catch(Exception $e) {
     $errno = $e->getCode();
     $errmsg = $e->getMessage();
-    error_log("tracker $msg: id=$id, errno=$errno, errmsg=$errmsg, line=". __LINE__);
+    logInfo("tracker $msg: id=$id, errno=$errno, errmsg=$errmsg, line=". __LINE__);
     exit();
   }
 
@@ -249,7 +248,7 @@ if($type = $_GET['page']) {
       } catch(Exception $e) {
         $err = $e->getCode();
         $errmsg = $e->getMessage();
-        error_log("tracker.php updates failed: id=$id, err=$err, errmsg=$errmsg, line=". __LINE__);
+        logInfo("tracker.php updates failed: id=$id, err=$err, errmsg=$errmsg, line=". __LINE__);
       }
     }
     goaway("tracker GET $msg no mysitemap.json: id=$id", __LINE__); // GOAWAYNOW
@@ -348,7 +347,7 @@ from $S->masterdb.tracker where id=$id")) {
   $hexBotAsBits = dechex($botAsBits);
   
   if($DEBUG_GET1)
-     error_log("tracker GET: $id, $ip, $site, $page, $msg, botAsBits=$hexBotAsBits, java=$java, line=". __LINE__);
+     logInfo("tracker GET: $id, $ip, $site, $page, $msg, botAsBits=$hexBotAsBits, java=$java, line=". __LINE__);
 
   $ref = $_SERVER["HTTP_REFERER"];
 
@@ -370,9 +369,9 @@ from $S->masterdb.tracker where id=$id")) {
     // This is happening because of a NORMAL or NOSCRIPT. I don't think it should be set yet.
 
     if($difftime) {
-      error_log("***tracker HAS DIFFTIME: ip=$ip, line=". __LINE__);
+      logInfo("***tracker HAS DIFFTIME: ip=$ip, line=". __LINE__);
 /*    if($difftime) {
-      error_log("***tracker remove bot: ip=$ip, line=". __LINE__);
+      logInfo("***tracker remove bot: ip=$ip, line=". __LINE__);
       $botAsBits &= ~BOTS_SITECLASS;
       $botAsBits |= BOTS_HAS_DIFFTIME | BOTS_COUNTED;
       $js &= ~TRACKER_BOT;
@@ -391,10 +390,10 @@ from $S->masterdb.tracker where id=$id")) {
     if($DEBUG_ISABOT2) {
       $hexBotAsBits = dechex($botAsBits);
       if($type == "noscript") {
-        error_log("tracker GET ISABOT2_$msg: id=$id, botAsBits=$hexBotAsBits, java=$java, line=". __LINE__);
+        logInfo("tracker GET ISABOT2_$msg: id=$id, botAsBits=$hexBotAsBits, java=$java, line=". __LINE__);
       } else {
-        error_log("tracker GET ISABOT2_$msg: id=$id, ip=$ip, site=$site, page=$page, type=$type, ".
-                  "isBot=$S->isBot, botAsBits=$hexBotAsBits, java=$java, image=$image, agent=$agent, line=". __LINE__);
+        logInfo("tracker GET ISABOT2_$msg: id=$id, ip=$ip, site=$site, page=$page, type=$type, ".
+                "isBot=$S->isBot, botAsBits=$hexBotAsBits, java=$java, image=$image, agent=$agent, line=". __LINE__);
       }
     }
 
@@ -424,8 +423,8 @@ where id=$id");
 
   $hexBotAsBits = dechex($botAsBits);
   
-  if($DEBUG_GET2) error_log("tracker GET: id=$id, ip=$ip, site=$site, page=$page, ".
-                            "botAsBits=$hexBotAsBits, java=$java type=$msg, referer=$ref, line=". __LINE__);
+  if($DEBUG_GET2) logInfo("tracker GET: id=$id, ip=$ip, site=$site, page=$page, ".
+                          "botAsBits=$hexBotAsBits, java=$java type=$msg, referer=$ref, line=". __LINE__);
 
   // $S->defaultImage is from the mysitemap.json before anything in the original
   // page has done things to $_site. So NOTHING you do in the original page will affect these $S
@@ -458,8 +457,8 @@ where id=$id");
   // BLP 2024-12-30 - add $DEBUG_NOSCRIPT   
   
   if($msg == "NOSCRIPT" && $DEBUG_NOSCRIPT) {
-    error_log("tracker GET NOSCRIPT, difftime=$difftime: id=$id, ip=$ip, site=$site, page=$page, type=$msg, ".
-              "botAsBits=$hexBotAsBits, java=$java, agent=$agent, line=". __LINE__);
+    logInfo("tracker GET NOSCRIPT, difftime=$difftime: id=$id, ip=$ip, site=$site, page=$page, type=$msg, ".
+            "botAsBits=$hexBotAsBits, java=$java, agent=$agent, line=". __LINE__);
   }
   
   echo $imgFinal;
@@ -512,7 +511,7 @@ if($_POST) {
   $ip = $_SERVER['REMOTE_ADDR'];
 
   if($_site === null) {
-    error_log("tracker PRE-POST: \$_site is NULL, ip=$ip");
+    logInfo("tracker PRE-POST: \$_site is NULL, ip=$ip");
     echo "ERROR \$_site is NULL";
     exit();
   }
@@ -545,10 +544,10 @@ if($_POST['page'] == 'ajaxmsg') {
     $args .= ", arg2=$arg2";
   }
 
-  //error_log("tracker AJAXMSG: ip=$ip, site=$site, msg=$msg{$args}"); // Just for debugging on my system when
+  //logInfo("tracker AJAXMSG: ip=$ip, site=$site, msg=$msg{$args}"); // Just for debugging on my system when
   //isMyIp($ip) is me.
   
-  if(!$S->isMyIp($ip) && $DEBUG_MSG) error_log("tracker AJAXMSG: id=$id, ip=$ip, site=$site, msg=$msg{$args}");
+  if(!$S->isMyIp($ip) && $DEBUG_MSG) logInfo("tracker AJAXMSG: id=$id, ip=$ip, site=$site, msg=$msg{$args}");
   
   echo "AJAXMSG OK";
   exit();
@@ -566,7 +565,7 @@ if($_POST['page'] == 'start') {
   $ref = $_POST['referer'];
 
   if(!$id) {
-    error_log("tracker START1 NO ID: site=$site, page=$thepage, line=". __LINE__);
+    logInfo("tracker START1 NO ID: site=$site, page=$thepage, line=". __LINE__);
     exit();
   }
 
@@ -579,7 +578,7 @@ if($_POST['page'] == 'start') {
   if($S->sql("select hex(botAsBits), isJavaScript, agent from $S->masterdb.tracker where id=$id")) {
     [$hexBotAsBits, $js, $agent] = $S->fetchrow('num');
   } else { // BLP 2023-02-10 - add for debug
-    error_log("tracker START2: id=$id, ip=$ip, site=$site, page=$thispage,  Select of id=$id failed, line=". __LINE__);
+    logInfo("tracker START2: id=$id, ip=$ip, site=$site, page=$thispage,  Select of id=$id failed, line=". __LINE__);
     exit();
   }
 
@@ -588,7 +587,7 @@ if($_POST['page'] == 'start') {
   $js2 = dechex($js);
 
   if(!$S->isMyIp($ip) && $DEBUG_START) {
-    error_log("tracker START3: id=$id, ip=$ip, site=$site, page=$thepage, botAsBits=$hexBotAsBits, referer=$ref, jsin=$java, jsout=$js2, line=". __LINE__);
+    logInfo("tracker START3: id=$id, ip=$ip, site=$site, page=$thepage, botAsBits=$hexBotAsBits, referer=$ref, jsin=$java, jsout=$js2, line=". __LINE__);
   }
 
   $S->sql("
@@ -608,7 +607,7 @@ if($_POST['page'] == 'load') {
   $thepage = $_POST['thepage'];
   
   if(!$id) {
-    error_log("tracker LOAD NO ID: ip=$ip, site=$site, page=$thepage, line=". __LINE__);
+    logInfo("tracker LOAD NO ID: ip=$ip, site=$site, page=$thepage, line=". __LINE__);
     echo "Load Error: no id, exiting";
     exit();
   }
@@ -623,7 +622,7 @@ if($_POST['page'] == 'load') {
   $hexBotAsBits = dechex($botAsBits);
   
   if(!$S->isMyIp($ip) && $DEBUG_LOAD && $botAsBits & BOTS_COUNTED === 0)
-    error_log("tracker LOAD: id=$id, ip=$ip, site=$site, page=$thepage, botAsBits=$hexBotAsBits, jsin=$java, jsout=$js2, line=". __LINE__);
+    logInfo("tracker LOAD: id=$id, ip=$ip, site=$site, page=$thepage, botAsBits=$hexBotAsBits, jsin=$java, jsout=$js2, line=". __LINE__);
 
   // BLP 2023-03-25 - This should maybe be insert/update?
   $botAsBits |= BOTS_COUNTED;
@@ -651,7 +650,7 @@ if($_POST['page'] == 'onexit') {
   $thepage = $_POST['thepage'];
   $type = $_POST['type'];
 
-  error_log("tracker onexit: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, OLD BROWSER or TUR, agent=$agent, line=". __LINE__);
+  logInfo("tracker onexit: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, OLD BROWSER or TUR, agent=$agent, line=". __LINE__);
 }
 // END OF EXIT FUNCTIONS
 
@@ -668,13 +667,13 @@ if($_POST['page'] == 'timer') {
   $time = $_POST['difftime']; // number of seconds.
 
   if(!$id) {
-    error_log("tracker TIMER_NOID: ip=$ip,site=$site, difftime=$time, line=". __LINE__);
+    logInfo("tracker TIMER_NOID: ip=$ip,site=$site, difftime=$time, line=". __LINE__);
     echo "Timer Error: no id, exiting";
     exit();
   }
 
   if(!$S->sql("select botAsBits, isJavaScript, finger, agent, difftime from $S->masterdb.tracker where id=$id")) {
-    error_log("tracker TIMER: No record for id=$id, site=$site, page=$thispage, time=$time");
+    logInfo("tracker TIMER: No record for id=$id, site=$site, page=$thispage, time=$time");
     echo "Timer Error: no tracker record";
     exit();
   }
@@ -690,15 +689,15 @@ if($_POST['page'] == 'timer') {
       $hexBotAsBits = dechex($S->botAsBits);
 
       if($DEBUG_ISABOT)
-        error_log("tracker TIMER_ISABOT1: id=$id, ip=$ip, site=$site, page=$thepage, time=$time, difftime=$difftime, ".
-                  "botAsBits=$hexBotAsBits, visits=$visits, jsin=$java, jsout=$js2, agent=$agent, line=".__LINE__);
+        logInfo("tracker TIMER_ISABOT1: id=$id, ip=$ip, site=$site, page=$thepage, time=$time, difftime=$difftime, ".
+                "botAsBits=$hexBotAsBits, visits=$visits, jsin=$java, jsout=$js2, agent=$agent, line=".__LINE__);
       
       echo "Timer1: botAsBits=$hexBotAsBits. This is a BOT, $id, $ip, $site, $thepage";
       exit(); // If this is a bot don't bother
     }
   } else {
-    error_log("tracker TIMER_EMPTY_AGENT: id=$id, ip=$ip, site=$site, page=$thepage, time=$time, difftime=$difftime, ".
-              "java=$js2, botAsBits=$hexBotAsBits, line=". __LINE__);
+    logInfo("tracker TIMER_EMPTY_AGENT: id=$id, ip=$ip, site=$site, page=$thepage, time=$time, difftime=$difftime, ".
+            "java=$js2, botAsBits=$hexBotAsBits, line=". __LINE__);
     echo "Timer Error: no agent";
     exit();
   }
@@ -711,8 +710,8 @@ difftime=timestampdiff(second, starttime, now()) where id=$id");
 
   if(!$S->isMyIp($ip) && $DEBUG_TIMER2) {
     $hexBotAsBits = dechex($botAsBits);
-    error_log("tracker TIMER2: id=$id, ip-$ip, site=$site, page=$thepage, botAsBits=$hexBotAsBits, time=$time, ".
-              "difftime=$difftime, visits: $visits, jsin=$java, jsout=$js2, agent=$agent, line=". __LINE__);
+    logInfo("tracker TIMER2: id=$id, ip-$ip, site=$site, page=$thepage, botAsBits=$hexBotAsBits, time=$time, ".
+            "difftime=$difftime, visits: $visits, jsin=$java, jsout=$js2, agent=$agent, line=". __LINE__);
   }
   
   echo "Timer OK, visits: $visits, java=$js2, finger=$finger";
@@ -750,7 +749,7 @@ values('$S->ip', '$S->siteName', '$S->self', 'GOAWAYNOW', '$errno', '$errmsg', '
 
     // This is the GOAWAYNOW logic.
 
-    error_log("$msg, GOAWAYNOW, errno=$errno, errmsg=$errmsg, line=$line");
+    logInfo("$msg, GOAWAYNOW, errno=$errno, errmsg=$errmsg, line=$line");
   } else {
     // Here we have a valid mysitemap.json from the caller via $mysitemap.
     
@@ -779,7 +778,7 @@ on duplicate key update count=count+1, botAsBits=botAsBits|$botAsBits, isJavaScr
 
       $errmsg = "$msg, No id. No tracker logic triggered";
 
-      error_log("$errmsg, line=$line");
+      logInfo("$errmsg, line=$line");
       
       $S->sql("
 insert into $S->masterdb.badplayer (ip, id, site, page, type, errno, errmsg, agent, created, lasttime)
@@ -798,7 +797,7 @@ values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg',
     $req = $_REQUEST ? ", \$_REQUEST $req" : '';
     $id = $id ?? "NO_ID";
 
-    error_log("$msg, finger=$finger{$req}, line=$line");
+    logInfo("$msg, finger=$finger{$req}, line=$line");
 
     // Now try to update the tracker record (if it exists) with TRACKER_GOAWAY.
 
@@ -810,7 +809,7 @@ values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg',
 
       $err = $e->getCode();
       $errmsg = $e->getMessage();
-      error_log("$msg, No tracker record to update, line=$line");
+      logInfo("$msg, No tracker record to update, line=$line");
     }
   }
 

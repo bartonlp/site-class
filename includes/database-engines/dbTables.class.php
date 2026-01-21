@@ -108,49 +108,25 @@ class dbTables {
         }
 
         $newRowKey = $aliasClass = str_replace(" ", '_', $alias); // Sanitize spaces
-
+        
         $class = $prefix . $aliasClass;
-        $cells[$aliasClass] = "<td class='$class'>";
+        $cells[$aliasClass] = "<td class='$class'>$val</td>";
 
         $newRow[$newRowKey] = $val;
       }
 
       $row = $newRow;
-
+      $cellStr = $rowdesc . implode($cells) . "</tr>";
+      
       // Call callback before rendering
-
+      
       if(is_callable($callback)) {
-        $callback($cells, $row, $rowdesc); // Usually by reference in caller.
-        echo "callback rowdesc=".escapeltgt($rowdesc)."<br>";
-      } else {
-        echo "rowdesc=".escapeltgt($rowdesc)."<br>";
+        $callback($cellStr, $row); // Usually by reference in caller.
       }
+
       $tmp = '';
-
-      foreach($row as $key=>$val) {
-        //echo "value=".escapeltgt($cells[$key])."<br>";
-        // The cell item always looks like "<td class='{value}'>"
-        //           (<)(td/th)( class=')({value}'>)
-        //            1   2      3       4
-        preg_match("~(.)(.*?)( class=')(.*?)'~", $cells[$key], $m);
-        //                                <    td/th  " class='" info+  rest
-        //                                1      2      3        4       5
-        $tmp .= preg_replace_callback("~($m[1])($m[2])($m[3])($m[4].*?)(.*?)>~", function($m) use ($val) {
-
-          //       '<'   'td/th' "' class='" 
-          //        |      |       |      'class''extra''val' <     'th/td'
-          //        \/     \/      \/    \/       \/    \/    \/    \/
-          $line = "{$m[1]}{$m[2]}{$m[3]}{$m[4]}{$m[5]}>$val{$m[1]}/{$m[2]}>";
-          //echo "line=". escapeltgt($line) . "<br>";
-          return $line; // tmp is the new "<td ...>$val</td>
-        }, $cells[$key]);
-      }
-
-      //vardump("After regex tmp", $tmp);
-
-      $rows .= "$rowdesc{$tmp}</tr>";
-
-      //vardump("rows", $rows);
+      
+      $rows .= $cellStr;
 
       $firstTime = false;
     }

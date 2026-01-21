@@ -66,4 +66,4 @@ isjavascript=isjavascript|$java");
 $S->updateBots3($ip, $agent, $file, $S->siteName, $botBits);
 
 $hexBotBits = dechex($botBits);
-error_log("$file: ip=$ip, page=$file, site=$S->siteName, robots=$hexBotBits");
+logInfo("$file: ip=$ip, page=$file, site=$S->siteName, robots=$hexBotBits");

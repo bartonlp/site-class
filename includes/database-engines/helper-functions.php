@@ -1,8 +1,8 @@
 <?php
 /* HELPER FUNCTIONS. Well tested and maintained */
-// BLP 2023-10-04 - added varexport() functions.
+// BLP 2025-12-30 - added escapeOnlyScripts()
 
-define("HELPER_FUNCTION_VERSION", "1.2.0helper-pdo"); // BLP 2025-04-03 - add logic for decoding bitmap
+define("HELPER_FUNCTION_VERSION", "1.2.3helper-pdo"); 
 
 $DEBUG = true;
 
@@ -19,92 +19,87 @@ if(!function_exists("getVersion")) {
 }
 
 // vardump makes value readable
-// BLP 2024-05-24 - This now uses PHP_SAPI to determin if we should use <pre> for websites.
+// This now uses PHP_SAPI to determin if we should use <pre> for websites.
 
-if(!function_exists('vardump')) {
-  function vardump() {
-    $args = func_get_args();
+function vardump() {
+  $args = func_get_args();
 
-    if(count($args) > 1 && is_string($args[0])) {
-      $msg = array_shift($args);
-      //$msg = "<b>$msg:</b>\n";
-    }
-    for($i=0; $i < count($args); ++$i) {
-      $v .= print_r($args[$i], true);
-    }
-    if(PHP_SAPI === 'cli') {
-      echo "$msg:\n$v\n";
-    } else {
-      echo "<pre class='vardump'><b>$msg:</b><br>" . escapeltgt($v) . "</pre>";
-    }
+  if(count($args) > 1 && is_string($args[0])) {
+    $msg = array_shift($args);
+    //$msg = "<b>$msg:</b>\n";
   }
-} 
+  for($i=0; $i < count($args); ++$i) {
+    $v .= print_r($args[$i], true);
+  }
+  if(PHP_SAPI === 'cli') {
+    echo "$msg:\n$v\n";
+  } else {
+    echo "<pre class='vardump'><b>$msg:</b><br>" . escapeltgt($v) . "</pre>";
+  }
+}
 
 // As above but does not escape the lt/gt or do any HTML.
-// BLP 2024-05-24 - left this for backward compatability
 
-if(!function_exists('vardumpNoEscape')) {
-  function vardumpNoEscape() {
-    $args = func_get_args();
+function vardumpNoEscape() {
+  $args = func_get_args();
 
-    if(count($args) > 1 && is_string($args[0])) {
-      $msg = array_shift($args);
-      $msg = "$msg:\n";
-    }
-    for($i=0; $i < count($args); ++$i) {
-      $v .= print_r($args[$i], true);
-    }
-    echo "$msg$v\n";
+  if(count($args) > 1 && is_string($args[0])) {
+    $msg = array_shift($args);
+    $msg = "$msg:\n";
   }
+  for($i=0; $i < count($args); ++$i) {
+    $v .= print_r($args[$i], true);
+  }
+  echo "$msg$v\n";
 }
 
 // BLP 2023-10-04 - varexport makes value readable
 // BLP 2024-05-24 -
 
-if(!function_exists('varexport')) {
-  function varexport() {
-    $args = func_get_args();
+function varexport() {
+  $args = func_get_args();
 
-    if(count($args) > 1 && is_string($args[0])) {
-      $msg = array_shift($args);
-      //$msg = "<b>$msg:</b>\n";
-    }
-    for($i=0; $i < count($args); ++$i) {
-      $v .= var_export($args[$i], true);
-    }
-    if(PHP_SAPI === 'cli') {
-      echo "$msg:\n$v\n";
-    } else {
-      echo "<pre class='vardump'><b>$msg:</b><br>" . escapeltgt($v) . "</pre>";
-    }
+  if(count($args) > 1 && is_string($args[0])) {
+    $msg = array_shift($args);
+    //$msg = "<b>$msg:</b>\n";
   }
-} 
-
-// BLP 2023-10-04 - As above but does not escape the lt/gt or do any HTML.
-// BLP 2024-05-24 - left this for backward compatability
-
-if(!function_exists('varexportNoEscape')) {
-  function varexportNoEscape() {
-    $args = func_get_args();
-
-    if(count($args) > 1 && is_string($args[0])) {
-      $msg = array_shift($args);
-      $msg = "$msg:\n";
-    }
-    for($i=0; $i < count($args); ++$i) {
-      $v .= var_export($args[$i], true);
-    }
-    echo "$msg$v\n";
+  for($i=0; $i < count($args); ++$i) {
+    $v .= var_export($args[$i], true);
+  }
+  if(PHP_SAPI === 'cli') {
+    echo "$msg:\n$v\n";
+  } else {
+    echo "<pre class='vardump'><b>$msg:</b><br>" . escapeltgt($v) . "</pre>";
   }
 }
 
-// Strip Comments
+// As above but does not escape the lt/gt or do any HTML.
 
-if(!function_exists('stripComments')) {
-  function stripComments($x) {
-    $pat = '~".*?"(*SKIP)(*FAIL)|(?://[^\n]*)|(?:#[^\n]*)|(?:/\*.*?\*/)~s';
-    return preg_replace($pat, "", $x);
+function varexportNoEscape() {
+  $args = func_get_args();
+
+  if(count($args) > 1 && is_string($args[0])) {
+    $msg = array_shift($args);
+    $msg = "$msg:\n";
   }
+  for($i=0; $i < count($args); ++$i) {
+    $v .= var_export($args[$i], true);
+  }
+  echo "$msg$v\n";
+}
+
+/**
+ * Strip comments
+ *
+ * Used to strip C style comments. For example, my mysitemap.json
+ * which is not a real json file because it has comments.
+ *
+ * @param string $x
+ * @return string
+ */
+function stripComments($x) {
+  $pat = '~".*?"(*SKIP)(*FAIL)|(?://[^\n]*)|(?:#[^\n]*)|(?:/\*.*?\*/)~s';
+  return preg_replace($pat, "", $x);
 }
 
 // Put a line with escaping
@@ -160,83 +155,96 @@ if(!function_exists('objectToArrayDeep')) {
 
 // This does a deep conversion from an array to an object
 
-if(!function_exists('arrayToObjectDeep')) {
-  function arrayToObjectDeep($array) {
-    if(is_array($array)) {
-      $array = (object) $array;
-    }
-
-    if(is_object($array)) {
-      $new = new StdClass;
-      foreach($array as $key=>$val) {
-        $new->$key = arrayToObjectDeep($val);
-      }
-    } else {
-      $new = $array;
-    }
-    return $new;
+function arrayToObjectDeep($array) {
+  if(is_array($array)) {
+    $array = (object) $array;
   }
+
+  if(is_object($array)) {
+    $new = new StdClass;
+    foreach($array as $key=>$val) {
+      $new->$key = arrayToObjectDeep($val);
+    }
+  } else {
+    $new = $array;
+  }
+  return $new;
 }
 
 // Change < and > into "&lt;" and "&gt;" entities
 
-if(!function_exists('escapeltgt')) {
-  function escapeltgt($value) {
-    $value = preg_replace(array("/</", "/>/"), array("&lt;", "&gt;"), $value);
-    return $value;
-  }
+function escapeltgt($value) {
+  $value = preg_replace(array("/</", "/>/"), array("&lt;", "&gt;"), $value);
+  return $value;
+}
+
+// Change <script> etc to &lt; script &gt; etc.
+// BLP 2025-12-30 -
+
+function escapeOnlyScripts(string $text):string {
+    // 1. Define what we are looking for (The Patterns)
+    $search = [
+        '/<script/i',       // Case-insensitive <script
+        '/<\/script>/i',    // Case-insensitive </script>
+        '/<(script.*?)>/i'  // Handles attributes like <script type="text/javascript">
+    ];
+
+    // 2. Define what to put in their place (The Replacements)
+    $replace = [
+        '&lt;script',
+        '&lt;/script&gt;',
+        '&lt;$1&gt;'        // $1 keeps whatever attributes were inside the brackets
+    ];
+
+    // 3. Run it once using the arrays
+    return preg_replace($search, $replace, $text);
 }
 
 // This is called from dbPdo.class.php at my_exceptionhandler($e)
 
-if(!function_exists('ErrorGetId')) {
-  function ErrorGetId() {
-    if($_COOKIE['SiteId']) {
-      $siteId = $_COOKIE['SiteId'];
-    }
-
-    if(empty($siteId)) {
-      // This is the generic version
-      $id = "ip={$_SERVER['REMOTE_ADDR']}, agent={$_SERVER['HTTP_USER_AGENT']}";
-    } else {
-      // This is for members
-      $id = "SiteId=$siteId, ip={$_SERVER['REMOTE_ADDR']}, agent={$_SERVER['HTTP_USER_AGENT']}";
-    }
-    return $id;
+function ErrorGetId() {
+  if($_COOKIE['SiteId']) {
+    $siteId = $_COOKIE['SiteId'];
   }
+
+  if(empty($siteId)) {
+    // This is the generic version
+    $id = "ip={$_SERVER['REMOTE_ADDR']}, agent={$_SERVER['HTTP_USER_AGENT']}";
+  } else {
+    // This is for members
+    $id = "SiteId=$siteId, ip={$_SERVER['REMOTE_ADDR']}, agent={$_SERVER['HTTP_USER_AGENT']}";
+  }
+  return $id;
 }
 
 // BLP 2023-06-21 -
 // array_deep()
 
-if(!function_exists('array_deep')) {
-  // If it does not already exist define it here
-  function array_deep($a) {
-    if(is_array($a)) {
-      $a = array_map('array_deep', $a);
-      $ret = "";
-      foreach($a as $key=>$val) {
-        if(is_numeric($key)) {
-          $ret .= "$val, ";
-        } else {
-          $ret .= "$key=>$val";
-        }
-      }
-      $ret = rtrim($ret, ", ");
-      $a = "array($ret)";
-    } else {
-      if(is_string($a)) {
-        if(strpos($a, "'")) {
-          $a = "\"$a\"";
-        } else {
-          $a = "'$a', ";
-        }
-      } elseif(is_numeric($a)) {
-        $a = "$a, ";
+function array_deep($a) {
+  if(is_array($a)) {
+    $a = array_map('array_deep', $a);
+    $ret = "";
+    foreach($a as $key=>$val) {
+      if(is_numeric($key)) {
+        $ret .= "$val, ";
+      } else {
+        $ret .= "$key=>$val";
       }
     }
-    return $a;
+    $ret = rtrim($ret, ", ");
+    $a = "array($ret)";
+  } else {
+    if(is_string($a)) {
+      if(strpos($a, "'")) {
+        $a = "\"$a\"";
+      } else {
+        $a = "'$a', ";
+      }
+    } elseif(is_numeric($a)) {
+      $a = "$a, ";
+    }
   }
+  return $a;
 }
 
 // These two new function can encode and decode things like the site field in the new bots table.
@@ -496,30 +504,127 @@ function br2nl(string $input): string {
   return preg_replace('~<br\s*/?>~i', "\n", $input);
 }
 
-/**
- * Adds prefixed classes to <td> elements based on column names or numeric indices.
+/*
  *
- * @param: string $desc. The HTML table row string to modify.
- * @param: array $columns. Either a list of column names (ordered) or an index => class map.
- * @param: string $prefix. Optional prefix to namespace the class names.
- * @return: string
  */
+function addClassesToTableColumns_dom_x(string $desc, array $columns, string $prefix=''):string {
+  $map = [];
+  if(array_values($columns) === $columns) {
+    foreach($columns as $i=>$name) $map[$i+1] = $prefix.$name;
+  } else {
+    foreach($columns as $i=>$name) $map[$i] = $prefix.$name;
+  }
+
+  $html = '<table id="__wrap__">'.$desc.'</table>';
+  $dom = new DOMDocument('1.0', 'UTF-8');
+  @$dom->loadHTML($html, LIBXML_HTML_NOIMPLIED|LIBXML_HTML_NODEFDTD);
+  $xp = new DOMXPath($dom);
+
+  foreach($xp->query('//table[@id="__wrap__"]/tr') as $tr) {
+    $col = 1;
+    foreach($xp->query('./td|./th', $tr) as $cell) {
+      $span = $cell->hasAttribute('colspan') ? max(1,(int)$cell->getAttribute('colspan')) : 1;
+      if(isset($map[$col])) {
+        $target = $map[$col];               // e.g., 'tracker_id'
+        $base = $target;                     // e.g., 'tracker_id' -> 'id' if prefix present
+        if($prefix !== '' && str_starts_with($base, $prefix)) {
+          $base = substr($base, strlen($prefix)); // 'id'
+        }
+
+        // tokenize existing classes
+        $existing = preg_split('~\s+~', trim($cell->getAttribute('class')), -1, PREG_SPLIT_NO_EMPTY);
+        $existing = $existing ?: [];
+
+        // remove the base class (e.g., 'id') if present
+        $filtered = [];
+        foreach($existing as $c) if($c !== $base) $filtered[] = $c;
+
+        // add the target class and de-dupe
+        $filtered[] = $target;
+        $filtered = array_values(array_unique($filtered));
+
+        $cell->setAttribute('class', implode(' ', $filtered));
+      }
+      $col += $span;
+    }
+  }
+
+  $table = $xp->query('//table[@id="__wrap__"]')->item(0);
+  $out = '';
+  foreach($table->childNodes as $child) $out .= $dom->saveHTML($child);
+  return $out;
+}
+
+
+function addClassesToTableColumns_dom(string $desc, array $columns, string $prefix=''):string {
+  // Build two maps: base (unprefixed) and target (prefixed)
+  $baseMap   = []; // [colIndex => 'id' | 'site' | ...]
+  $targetMap = []; // [colIndex => 'tracker_id' | 'trk_site' | ...]
+  if(array_values($columns) === $columns) {
+    foreach($columns as $i=>$name) {
+      $baseMap[$i+1]   = $name;
+      $targetMap[$i+1] = $prefix.$name;
+    }
+  } else {
+    foreach($columns as $i=>$name) {
+      $baseMap[$i]   = $name;
+      $targetMap[$i] = $prefix.$name;
+    }
+  }
+
+  $html = '<table id="__wrap__">'.$desc.'</table>';
+
+  $dom = new DOMDocument('1.0', 'UTF-8');
+  @$dom->loadHTML($html, LIBXML_HTML_NOIMPLIED|LIBXML_HTML_NODEFDTD);
+  $xp = new DOMXPath($dom);
+
+  foreach($xp->query('//table[@id="__wrap__"]/tr') as $tr) {
+    $col = 1;
+    foreach($xp->query('./td|./th', $tr) as $cell) {
+      $span = $cell->hasAttribute('colspan') ? max(1,(int)$cell->getAttribute('colspan')) : 1;
+
+      if(isset($baseMap[$col])) {
+        $base   = $baseMap[$col];     // e.g., 'id'
+        $target = $targetMap[$col];   // e.g., 'tracker_id'
+
+        if($base === 'id') {
+          // EXACT RULE: for 'id' column, REPLACE classes with the prefixed one
+          $cell->setAttribute('class', $target);
+        } else {
+          // Default behavior: append prefixed class, de-dup + tidy spaces
+          $existing = preg_split('~\s+~', trim($cell->getAttribute('class')), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+          $existing[] = $target;
+          $existing = array_values(array_unique($existing));
+          $cell->setAttribute('class', implode(' ', $existing));
+        }
+      }
+
+      $col += $span; // respect colspan
+    }
+  }
+
+  // Extract innerHTML of wrapper
+  $table = $xp->query('//table[@id="__wrap__"]')->item(0);
+  $out = '';
+  foreach($table->childNodes as $child) $out .= $dom->saveHTML($child);
+  return $out;
+}
 
 function addClassesToTableColumns(string $desc, array $columns, string $prefix = ''): string {
   // Convert from list to 1-based map if needed
 
+  $map = [];
+
   if(array_values($columns) === $columns) {
-    $map = [];
     foreach($columns as $i => $name) {
       $map[$i + 1] = $prefix . $name;
     }
   } else {
-    $map = [];
     foreach($columns as $i => $name) {
       $map[$i] = $prefix . $name;
     }
   }
-
+  
   return preg_replace_callback('~<tr>(.*?)</tr>~s', function($matches) use ($map) {
     $tds = explode('</td>', $matches[1]);
     foreach($tds as $i => &$td) {
@@ -539,3 +644,38 @@ function addClassesToTableColumns(string $desc, array $columns, string $prefix =
   }, $desc);
 }
 
+function escapeapos($string) {
+    return str_replace("'", "\\'", $string);
+}
+
+/**
+ * A Deep replacement of apostrophies
+ *
+ * Replaces apostrophies in an array
+ * @param string
+ * @return string
+ */
+function escapeaposDeep(string $value): string {
+  if(is_array($value)) {
+    foreach($value as $k=>$v) {
+      $val[$k] = $this->escapeaposDeep($v);
+    }
+    return $val;
+  } else {
+    return $this->escapeapos($value);
+  }
+}
+
+/**
+ * Log important information
+ *
+ * @param string $info The information to log.
+ */
+function logInfo(string $info) {
+  if(!str_contains($info, ':')) {
+    $info = "MESSAGE: $info";
+  }
+  $date = date("[Y-m-d H:i:s]");
+  $info = "$date $info\n";
+  file_put_contents('/var/www/data/info.log', $info, FILE_APPEND);
+}

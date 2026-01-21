@@ -46,12 +46,14 @@ class dbPdo extends PDO {
    * The last query that was executed
    *
    * @var string $lastQuery
+   * @var string $lastParam
    */
   static public ?string $lastQuery = null; // for Exception.class.php
   static public ?string $lastParam = null; // same.
   
   private bool $Debug = false; // for debugging only
-  
+  public string $database; // The name of the database being used.
+
   use UserAgentTools; // BLP 2025-04-19 - This is a trait for isMe(), isMyIp(), isBot(), setSiteCookie() and getIp().
                       // Putting it here means these are available to the entire hierarchy.
   use WarningToExceptionHandler; // BLP 2025-04-25 - New trait to fix E_WARNING to Exceptions.
@@ -72,16 +74,30 @@ class dbPdo extends PDO {
 
     header("Accept-CH: Sec-Ch-Ua-Platform,Sec-Ch-Ua-Platform-Version,Sec-CH-UA-Full-Version-List,Sec-CH-UA-Arch,Sec-CH-UA-Model"); 
 
+    // We will map these WARNINGS to Exceptions. I may add more latter.
+    
     $mapWarnToException = [
                            "preg_match",
                            "preg_replace",
                            "preg_match_all",
                            "preg_split",
+                           "fopen",
+                           "file_get_contents",
+                           "file_put_contents",
+                           "unlink",
+                           "mkdir",
+                           "rmdir",
+                           "opendir",
+                           "filesize",
+                           "stat",
+                           "lstat",
                           ];
-                              
+
+    // Now register the new mapping.
+    
     $this->registerWarningHandlers($mapWarnToException);
     
-    // BLP 2025-04-13 - CLI has no REMOTE_ADDR or HTTP_USER_AGENT or REQUEST_URI
+    // CLI has no REMOTE_ADDR or HTTP_USER_AGENT or REQUEST_URI
 
     if(PHP_SAPI === 'cli') {
       $s->ip = MY_IP;
@@ -96,10 +112,12 @@ class dbPdo extends PDO {
       $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
     }
     
-    $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
+    $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']); // Be safe
 
+    // Move all of the arguments in $s to $this
+    
     foreach($s as $k=>$v) {
-      $this->$k = $v;
+      $this->$k = $v; // $this->$key = $value.
     }
 
     // Extract the items from dbinfo. This is $host, $user and maybe $password and $port.
@@ -107,22 +125,30 @@ class dbPdo extends PDO {
     extract((array)$s->dbinfo); // Cast the $dbinfo object into an array
       
     // $password is almost never present, but it can be under some conditions.
+    // If it is not present then get the database password from a safe place.
     
     $password = $password ?? require("/home/barton/database-password");
 
+    // I support 'sqlite' and 'mysql'
+    // 'sqlite' support is limited!
+    
     if($engine == "sqlite") {
       parent::__construct("$engine:$database");
     } else {
       parent::__construct("$engine:dbname=$database; host=$host; user=$user; password=$password");
     }
-    $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
+    // Set my local time zone. I am currently in North Carolina
+    
     $this->sql("set time_zone='America/New_York'"); 
+
+    // Save the database name.
     
     $this->database = $database;
 
     if($this->Debug === true && $this->ip != MY_IP)
-      error_log("dbPdo constructor: ip=$this->ip, site=$this->siteName, page=$this->self, line=". __LINE__);
+      logInfo("dbPdo constructor: ip=$this->ip, site=$this->siteName, page=$this->self, line=". __LINE__);
   } // End of constructor.
 
   /**
@@ -142,31 +168,11 @@ class dbPdo extends PDO {
   /*
    * Get the version of the dbPdo class
    *
-   * @return the version of the pdo class.
+   * @return string VERSION of the pdo class.
    */
   
   public static function getVersion(): string {
     return PDO_CLASS_VERSION;
-  }
-
-  /*
-   * Get the last database error
-   *
-   * @returns $this->db-errno from PDO.
-   */
-  
-  public function getDbErrno(): int {
-    return $this->errno;
-  }
-
-  /*
-   * Get the last database error message
-   *
-   * @returns $this->db->error from PDO
-   */
-  
-  public function getDbError(): string {
-    return $this->error;
   }
 
   /**
@@ -185,7 +191,6 @@ class dbPdo extends PDO {
    *                    - false only if something unusual occurs
    * @throws Exception  - On SQL preparation or execution failure.
    * @site-effect       - For SELECT/SHOW/EXPLAIN sets $this->result.
-   * NOTE: $query must be a single line with no newlines.
    */
   public function sql($query, array $params = []): PDOStatement|int|bool {
     self::$lastQuery = $query;
@@ -193,7 +198,9 @@ class dbPdo extends PDO {
     
     // Extract the command type (first word in SQL)
     
-    preg_match("~^(\w+).*$~", $query, $m); // This only works if $query is a single line.
+    if(!preg_match("~^\s*(\w+)~", $query, $m)) { // allow multi line queries.
+      throw new Exception(__METHOD__ . ": Invalid SQL query: '$query'");
+    }
     $m = strtolower($m[1]);
 
     // Classify SQL command types
@@ -207,7 +214,8 @@ class dbPdo extends PDO {
     try {
       // This array is basically $dml, $ddl and $dcl minus 'select'.
       
-      if(in_array($m, ['insert', 'update', 'delete', 'create', 'drop', 'alter', 'truncate', 'set', 'grant', 'revoke', 'use'])) {
+      if(in_array($m, ['insert', 'update', 'delete', 'create', 'drop', 'alter', 'truncate', 'set', 'grant', 'revoke', 'use']))
+      {
         if($params) {
           $stmt = $this->prepare($query);
           $stmt->execute($params);
@@ -253,7 +261,7 @@ class dbPdo extends PDO {
     } catch (\Exception $e) {
       // Optional targeted debug logic
       if(str_contains($query, "by+lasttime")) {
-        error_log("dbPdo, by+lasttime: ip=$this->ip, site=$this->siteName, page=$this->self, agent=$this->agent, line=". __LINE__);
+        logInfo("dbPdo, by+lasttime: ip=$this->ip, site=$this->siteName, page=$this->self, agent=$this->agent, line=". __LINE__);
         return true; // Did not process this query!
       }
       throw $e;
@@ -372,16 +380,15 @@ class dbPdo extends PDO {
   /**
    * Get the number of rows
    *
+   * Does not support SQLite!
+   *
    * @param PDOStatement|null $result.
-   * @return int Affected rows or number of rows
+   * @return int $result->rowCount(). Number of rows.
    */
   public function getNumRows($result=null): int {
     if(!$result) $result = $this->result;
-    if($result === true) {
-      return $this->affected_rows;
-    } else {
-      return $result->num_rows;
-    }
+
+    return $result->rowCount();
   }
 
   /**
@@ -394,42 +401,6 @@ class dbPdo extends PDO {
    */
   public function getResult() {
     return $this->result;
-  }
-
-  /**
-   * Get error information from most recent query
-   *
-   * @return string
-   */
-  public function getErrorInfo(): string {
-    return ['errno'=>$this->getDbErrno(), 'error'=>$this->getDbError()];
-  }
-  
-  /**
-   * Escape a string for PDO
-   *
-   * @param string $string
-   * @return string After apostrophes have been replaced with backslash apostrophes.
-   */
-  public function escape($string) {
-    return str_replace("'", "\\'", $string);
-  }
-
-  /**
-   * A Deep escape replacement of apostrophies
-   *
-   * @param string
-   * @return string
-   */
-  public function escapeDeep(string $value): string {
-    if(is_array($value)) {
-      foreach($value as $k=>$v) {
-        $val[$k] = $this->escapeDeep($v);
-      }
-      return $val;
-    } else {
-      return $this->escape($value);
-    }
   }
 
   /**

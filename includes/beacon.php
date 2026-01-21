@@ -21,16 +21,15 @@ CREATE TABLE `badplayer` (
 
 define("BEACON_VERSION", "4.0.18beacon-pdo"); // BLP 2025-04-24 - removed $bExit and error from the tracker select.
 
+// The normal beacon starts here.
+
+$_site = require_once getenv("SITELOADNAME");
 // If you want the version defined ONLY and no other information.
 // If we have $__VERSION_ONLY, then just return the version info.
 
 if($__VERSION_ONLY === true) {
   return BEACON_VERSION;
 }
-
-// The normal beacon starts here.
-
-$_site = require_once getenv("SITELOADNAME");
 
 // Don't track or do geo!
 
@@ -39,9 +38,9 @@ $_site->noGeo = true;
 
 $S = new Database($_site);
           
-$DEBUG = true; // if not me check visability
-$DEBUG_ISABOT = true;
-$DEBUG_ISABOT = true;
+//$DEBUG = true; // if not me check visability
+//$DEBUG_ISABOT = true;
+//$DEBUG_ISABOT = true;
 
 // The input comes via php as json data not $_GET or $_POST
 
@@ -68,7 +67,7 @@ $msg = strtoupper($type);
 if(!is_numeric($id)) {
   if(!$msg) {
     $msg = "ID_NOT_NUMERIC";
-    error_log("beacon ID_NOT_NUMERIC: id=$id, line=". __LINE__);
+    logInfo("beacon ID_NOT_NUMERIC: id=$id, line=". __LINE__);
   }
   
   $errno = "-200: No id";
@@ -78,8 +77,8 @@ insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, 
 values('$S->ip', '$site', '$S->self', '{$msg}_BEACON_GOAWAY', '$errno', '$msg', '$S->agent', now(), now())");
 
   $xip = $_SERVER['REMOTE_ADDR'];
-  error_log("beacon GO_AWAY NO_ID: id=$id,  xip=$xip, ip=$ip, site=$site, page=$thepage, ".
-            "type=$type, state=$state, prevstate=$prevState, agent=$agent, line=" . __LINE__);
+  logInfo("beacon GO_AWAY NO_ID: id=$id,  xip=$xip, ip=$ip, site=$site, page=$thepage, ".
+          "type=$type, state=$state, prevstate=$prevState, agent=$agent, line=" . __LINE__);
   
   echo "<h1>GO AWAY</h1><p>" . BEACON_VERSION . "</p>";
   exit();
@@ -90,7 +89,7 @@ values('$S->ip', '$site', '$S->self', '{$msg}_BEACON_GOAWAY', '$errno', '$msg', 
 if($S->sql("select botAsBits, isJavaScript, difftime, finger from $S->masterdb.tracker where id=$id")) {
   [$botAsBits, $js, $difftime, $finger] = $S->fetchrow('num'); 
 } else {
-  error_log("beacon: NO record for $id, line=" . __LINE__);
+  logInfo("beacon: NO record for $id, line=" . __LINE__);
 }
 
 // BLP 2023-08-08 - tracker.php does not do any 'exit' tracking any more!
@@ -113,7 +112,7 @@ switch($type) {
     $botAsBits |= BOTS_VISIBILITYCHANGE;
     break;
   default:
-    error_log("beacon Error: id=$id, ip=$ip, state=$site, page=$thepage, SWITCH_ERROR_{$type}, botAsBits=$botAsBits, java=$js, ".
+    logInfo("beacon Error: id=$id, ip=$ip, state=$site, page=$thepage, SWITCH_ERROR_{$type}, botAsBits=$botAsBits, java=$js, ".
               "-- \$S->ip=$S->ip, line=". __LINE__);
     exit();
 }
@@ -124,8 +123,8 @@ $js |= $beacon;
 $js2 = strtoupper(dechex($js));
 
 if($DEBUG_IPS && ($ip != $S->ip)) {
-  error_log("beacon Warning: id=$id, ip=$ip, site=$site, page=$thepage, IP_MISMATCH_{$msg}, ".
-            "\$ip != \$S->ip -- \$S->ip=$S->ip, botAsBits=$botAsBits, jsin=$java, jsout=$js2, line=". __LINE__);
+  logInfo("beacon Warning: id=$id, ip=$ip, site=$site, page=$thepage, IP_MISMATCH_{$msg}, ".
+          "\$ip != \$S->ip -- \$S->ip=$S->ip, botAsBits=$botAsBits, jsin=$java, jsout=$js2, line=". __LINE__);
 }
 
 $botAsBits |= BOTS_COUNTED;
@@ -136,12 +135,12 @@ $masked = dechex($js & (BEACON_PAGEHIDE | BEACON_UNLOAD | BEACON_BEFOREUNLOAD | 
 
 if(!$S->isMyIp($ip) && $DEBUG) {
   if($type == 'visibilitychange') {
-    error_log("beacon {$msg}2: id=$id, ip=$ip, site=$site, page=$thepage, state=$state, prevState=$prevState, ".
-              "botAsBits=$botAsBits, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
+    logInfo("beacon {$msg}2: id=$id, ip=$ip, site=$site, page=$thepage, state=$state, prevState=$prevState, ".
+            "botAsBits=$botAsBits, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
   } else {
     if(($js & (BEACON_PAGEHIDE | BEACON_UNLOAD | BEACON_BEFOREUNLOAD)) !== 0) {
-      error_log("beacon {$msg}3: id=$id, ip=$ip, site=$site, page=$thepage, state=$state, prevState=$prevState, ".
-                "botAsBits=$botAsBits, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
+      logInfo("beacon {$msg}3: id=$id, ip=$ip, site=$site, page=$thepage, state=$state, prevState=$prevState, ".
+              "botAsBits=$botAsBits, jsin=$java, jsout=$js2, difftime=$difftime, line=" . __LINE__);
     }
   }
 }
@@ -151,8 +150,8 @@ $botAsBits |= ($difftime ? BOTS_HAS_DIFFTIME : 0);
 // Is this a bot without a difftime?
 
 if($agent && $S->isBot($agent) && ($botAsBits & BOTS_HAS_DIFFTIME) === 0) {
-  if($DEBUG_ISABOT) error_log("beacon ISABOT_{$msg}1: id=$id, ip=$ip, state=$site, page=$thepage, state=$state, ".
-                              "botAsBits=$botAsBits, jsin=$java, jsout=$js2, line=" . __LINE__);
+  if($DEBUG_ISABOT) logInfo("beacon ISABOT_{$msg}1: id=$id, ip=$ip, state=$site, page=$thepage, state=$state, ".
+                            "botAsBits=$botAsBits, jsin=$java, jsout=$js2, line=" . __LINE__);
 
   $botAsBits |= BOTS_BOT;
 }

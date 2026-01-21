@@ -9,15 +9,12 @@ namespace bartonlp\SiteClass;
  * @file database/Database.class.php
  * @package SiteClass
  */
-define("DATABASE_CLASS_VERSION", "1.2.1database-pdo"); // BLP 2025-04-21 - enhance detection logic
-                                                       // BLP 2025-04-19 - moved setSiteCookie() to traits.
-                                                       // BLP 2025-04-12 - remove trackbots()
-                                                       // add it to tracker().
+define("DATABASE_CLASS_VERSION", "1.2.2database-pdo"); 
 /**
  * @file database/Database.class.php
  * @package SiteClass
  */
-define("DEBUG_TRACKER_BOTINFO", true); // Change this to false if you don't want the error
+define("DEBUG_TRACKER_BOTINFO", false); // Change this to false if you don't want the error
 
 /**
  * Database. Second in the SiteClass framework
@@ -153,7 +150,7 @@ class Database extends dbPdo {
    */
   public function updateBots3(string $ip, string $agent, string $page, string|int $site, int $botAsBits) {
     if($this->isMe()) return null; // BLP 2025-04-12 - Can not be me!
-    
+
     // $site can be either a string or a bitmapped integer.
     
     if(gettype($site) === 'string') {
@@ -163,13 +160,13 @@ class Database extends dbPdo {
     }
 
     try {
-      $this->sql("insert into $this->masterdb.bots3 (ip, agent, page, count, robots, site, created) ".
-                 "values('$ip', '$agent', '$page', 1, $botAsBits, $siteBit, now()) ".
-                 "on duplicate key update robots = robots|$botAsBits, site=site|$siteBit, count=count+1");
+      $this->sql("insert into $this->masterdb.bots3 (ip, agent, page, count, robots, site, created)
+                 values('$ip', '$agent', '$page', 1, $botAsBits, $siteBit, now())
+                 on duplicate key update robots = robots|$botAsBits, site=site|$siteBit, count=count+1");
     } catch(Exception $e) {
       $err = $e->getCode();
       $errmsg = $e->getMessage();
-      error_log("Database updateBots3: ip=$ip, agent=$agent, page=$page, robots=$botAsBits, err=$err, errmsg=$errmsg, line=". __LINE__);
+      logInfo("Database updateBots3: ip=$ip, agent=$agent, page=$page, robots=$botAsBits, err=$err, errmsg=$errmsg, line=". __LINE__);
       throw new \Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
     }
   }
@@ -213,7 +210,7 @@ class Database extends dbPdo {
     // BLP 2025-04-21 - we output this information below.
 
     $this->isBot = $isBot; // true | false = true. false | true = true.
-    $isBot = $isBot === true ? "true" : 'false'; // Now make $isBot 'true' or 'false' for error_log() below.
+    $isBot = $isBot === true ? "true" : 'false'; // Now make $isBot 'true' or 'false' for logInfo() below.
 
     // Explanation.
     // Here we set $java (isJavaScript) to TRACKER_BOT or zero.
@@ -244,8 +241,7 @@ class Database extends dbPdo {
 
     $name = "$browser,$engine";
     
-    $this->sql("
-insert into $this->masterdb.tracker
+    $this->sql("insert into $this->masterdb.tracker
 (site, page, ip, browser, agent, botAsBits, starttime, isJavaScript) 
 values('$this->siteName', '$page', '$this->ip', '$name',
 '$agent', $this->botAsBits, now(), $java)");
@@ -256,7 +252,7 @@ values('$this->siteName', '$page', '$this->ip', '$name',
 
     // Now update the bots3 table. 'site' can be either an integer or a string. This should also be
     // a NEW RECORD even though this method does an insert/update.
-    
+
     $this->updateBots3($this->ip, $agent, $page, $this->siteName, $this->botAsBits);
     
     if(DEBUG_TRACKER_BOTINFO === true && !$this->isMe()) {
@@ -265,8 +261,8 @@ values('$this->siteName', '$page', '$this->ip', '$name',
 
       // $isBot is 'true'/'false' from above.
       
-      error_log("Database browserInfo: id=$this->id, ip=$this->ip, site=$this->siteName, page=$this->self, ".
-                "botAsBits=$hexBotAsBits, java=$hexjava, browser=$browser, engine=$engine, isBot=$isBot, agent=$this->agent, line=". __LINE__);
+      logInfo("Database browserInfo: id=$this->id, ip=$this->ip, site=$this->siteName, page=$this->self, ".
+              "botAsBits=$hexBotAsBits, java=$hexjava, browser=$browser, engine=$engine, isBot=$isBot, agent=$this->agent, line=". __LINE__);
     }
   }
 
@@ -424,7 +420,7 @@ where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
     $n = $this->sql("show tables from $this->masterdb"); // Request all the tables
     $tbls = [];
 
-    while($tbl = $this->fetchrow('num')[0]) {
+    while([$tbl] = $this->fetchrow('num')) {
       $tbls[] = $tbl;
     }
 

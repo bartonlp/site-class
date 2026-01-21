@@ -214,9 +214,9 @@ class SiteClass extends Database {
 
     // These three probably do not need cacheBusters because they usually come from an external
     // source. 'extra' isn't used much any more and is usually inline code.
-    $h->script = $this->h_script;
-    $h->link = $this->link;
-    $h->extra = $this->extra;
+    $h->script = $this->h_script ? $this->cacheBustAssetTags($this->h_script) : null;
+    $h->extra = $this->h_extra ? $this->cacheBustAssetTags($this->h_extra) : null;
+    $h->link = $this->link ? $this->cacheBustAssetTags($this->link) : null;
     
     $preheadcomment = $this->preheadcomment; // Must be a real html comment ie <!-- ... -->
 
@@ -553,8 +553,11 @@ EOF;
     // Set the $b values from the b_ values
     
     $f->inlineScript = $this->b_inlineScript ? "<script nonce='$this->nonce'>\n$this->b_inlineScript\n</script>" : null;
-    $f->script = $this->b_script;
-    $f->extra = $this->b_extra; // BLP 2025-03-26 -
+
+    // Need to check each one of the scripts to see if it needs a cacheBuster.
+    
+    $f->script = $this->b_script ? $this->cacheBustAssetTags($this->b_script) : null;
+    $f->extra = $this->b_extra ? $this->cacheBustAssetTags($this->b_extra) : null;
     
     // counterWigget is available to the footerFile to use if wanted.
     
@@ -572,8 +575,9 @@ EOF;
 
     if($this->noGeo !== true && $this->noTrack !== true && $this->nodb !== true) {
       $geo = $this->geoLocation ?? "https://bartonphillips.net/js";
-      
-      $geo = "<script src='$geo/geo.js'></script>";
+
+      $geo = $this->cacheBuster("$geo/geo.js");
+      $geo = "<script src='$geo'></script>";
     }
 
     // BLP 2025-02-21 - $counterWigget, $lastmod and $geo are still available to old footer
@@ -660,27 +664,73 @@ EOF;
    */
   public function cacheBuster(string $file): ?string {
     $parsed = parse_url($file);
-    $host = $parsed['host'] ?? $_SERVER['HTTP_HOST']; // fallback to current site
     $path = $parsed['path'] ?? null;
 
-    $host = str_replace("www.", '', $host);
+    if(!$path) return $file;
 
-    // Use the MY_HOSTS numeric array. See defines.php
-    
-    if(!$path || !in_array($host, MY_HOSTS)) {
-      error_log("SiteClass: Invalid or unknown domain in cacheBuster: $file");
-      return $file;
+    // Try full physical path based on DOCUMENT_ROOT
+    if(str_starts_with($file, 'https://')) {
+      $fullpath = "/var/www/" . str_replace("https://", '', $file);
+    } else {
+      $fullpath = $_SERVER['DOCUMENT_ROOT'] . $path;
     }
+    
+    if(!file_exists($fullpath)) {
+      // If that doesn't work, maybe our docroot is inside a subdir (like /rivertownerentals)
+      $cwd = getcwd(); // e.g. /var/www/newbern-nc.info/rivertownerentals
+      if(!str_starts_with($path, '/')) $path = "/$path";
+      $fullpath = $cwd . $path;
 
-    $fullpath = "/var/www/{$host}/{$path}";
-    //echo "fullpath=$fullpath<br>";
+      if(!file_exists($fullpath)) {
+        //error_log("cacheBuster: ip=$this->ipfile, site=$this->siteName, page=$this->self, file=$file not found $fullpath");
+        return $file; // gracefully fallback
+      }
 
-    if(file_exists($fullpath)) {
+      // Remove the start of $fullpath and only use the what comes after .com
+      // This will be the $fullpath that we found.
+      
+      $file = preg_replace("~/var/www/.*?\.com~", '', $fullpath);
+
       $version = filemtime($fullpath);
       return "{$file}?v={$version}";
-    } else {
-      error_log("SiteClass: File not found in cacheBuster: $fullpath");
-      return $file;
     }
+
+    // If DOCUMENT_ROOT + path worked, use original file
+    $version = filemtime($fullpath);
+    return "{$file}?v={$version}";
+  }
+
+  /**
+   * Take apart the h_script and b_script and do cacheBusting.
+   *
+   * The string can be:
+   * `<script ... src='Url or path' ...></script>`
+   * and
+   * `<script>...</script>`
+   * So take each string and put it into an array.
+   * Note: The string could be `<script ... src='...' ...></script><script ...`
+   * Remove the relative or fully qualified URL and pass it to `cacheBuster()`.
+   * Take the return value from cacheBuster and put it back into the original 'src='
+   * location. Do not process `<script>...</script>`. These should not be touched.
+   * Convert the array back into a string and return it.
+   * @param string $script
+   * @return string Fixed up entries.
+   */
+  public function cacheBustAssetTags(string $html): string {
+    return preg_replace_callback(
+                                 '~<(?<tag>\w+)\b[^>]*(?<attr>\bsrc|\bhref)=["\'](?<url>[^"\']+)["\'][^>]*>(?:</\1>)?~i',
+                                 function($match) {
+      $tag = $match['tag'];
+      $attr = $match['attr'];
+      $url = $match['url'];
+      $originalTag = $match[0];
+
+      // Only process certain tags and attributes
+      $allowedTags = ['script', 'link', 'img', 'source', 'video', 'audio'];
+      if(!in_array(strtolower($tag), $allowedTags)) return $originalTag;
+
+      $busted = $this->cacheBuster($url);
+      return str_replace($url, $busted, $originalTag);
+    }, $html);
   }
 } // End of Class

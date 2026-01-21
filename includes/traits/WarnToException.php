@@ -6,8 +6,6 @@ namespace bartonlp\SiteClass;
  * Trait: WarningToExceptionHandler
  * Allows selective conversion of PHP warnings to exceptions,
  * based on registered function names that typically emit E_WARNING.
- *
- * BLP 2025-04-18
  */
 
 trait WarningToExceptionHandler {
@@ -48,7 +46,7 @@ trait WarningToExceptionHandler {
     if($errno === \E_WARNING) {
       foreach($this->exceptionTriggers as $fn) {
         if(str_contains($errstr, $fn)) {
-          throw new \Exception($errstr);
+          throw new \Exception("***Error: $errstr, $errfile, $errline");
         }
       }
     }
