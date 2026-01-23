@@ -27,8 +27,10 @@ class_alias(dbTables::class, 'dbTables');
 
 require_once(SITECLASS_DIR . "/database-engines/helper-functions.php");
 
-ob_start(); // Start buffering. We will stop buffering in the shutdown logic.
+// Output buffering is used to allow the exception handler
+// to discard partial output and render a clean error response.
 
+ob_start(); // Start buffering. We will stop buffering in the shutdown logic.
 SiteExceptionHandler::init(); // Initialize the exception handler.
 
 // If we only want the version info $__VERSION is set. We do this in whatisloaded.class.php.
@@ -181,5 +183,4 @@ EOF;
   }
   exit();
 }
-
 return $_site;
