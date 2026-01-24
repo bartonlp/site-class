@@ -9,7 +9,16 @@
 
 namespace bartonlp\siteload;
 
-error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_WARNING & ~E_NOTICE);
+// Standard mask for all versions
+$mask = E_ALL & ~E_DEPRECATED & ~E_WARNING & ~E_NOTICE;
+
+// E_STRICT was officially deprecated in 8.4.0
+// Only use it if we are on a version LOWER than 8.4.0
+if (PHP_VERSION_ID < 80400) {
+    $mask &= ~E_STRICT;
+}
+
+error_reporting($mask);
 
 define("SITELOAD_VERSION", "2.2.6siteload-pdo"); // BLP 2024-12-17 - add mysitemap to returned value
 define("SITECLASS_DIR", __DIR__);
