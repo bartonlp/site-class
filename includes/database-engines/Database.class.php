@@ -102,9 +102,11 @@ class Database extends dbPdo {
 
         $this->isBot($this->agent); // This set $this->isBot, it also does isMe() so I never get set as a bot!
 
-        // Now do all of the rest.
-
-        $this->tracker();    // This logs Me and everybody else but uses the $this->isBot bitmap! 
+        // BLP 2026-01-25 - If we do not have simpleSiteClass we will do FULL tracking.
+        if($this->simpleSiteClass !== true) {
+          $this->tracker();    // This logs Me and everybody else but uses the $this->isBot bitmap!
+        }
+        
         $this->updatemyip(); // Update myip if it is ME
 
         // If 'count' is false we don't do these counters
