@@ -80,7 +80,7 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "4.1.9tracker-pdo"); // BLP 2025-05-23 - error_log changed to logInfo
+define("TRACKER_VERSION", "5.0.0tracker-pdo");
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -92,54 +92,25 @@ define("TRACKER_VERSION", "4.1.9tracker-pdo"); // BLP 2025-05-23 - error_log cha
 //$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
 //$DEBUG_NOSCRIPT = true; // no script
 
+$_site = require_once getenv("SITELOADNAME"); // BLP 2025-04-04 - move to top.
+
 // If you want the version defined ONLY and no other information.
 
 if($__VERSION_ONLY === true) {
   return TRACKER_VERSION;
 }
 
-$_site = require_once getenv("SITELOADNAME"); // BLP 2025-04-04 - move to top.
+$_site->noTrack = true; // Don't track or do geo!
+$_site->noGeo = true;
 
-// START OF IMAGE and CSSTEST FUNCTIONS These are NOT javascript but rather use $_GET.
+$S = new Database($_site);
+
+// START OF IMAGE and CSSTEST FUNCTIONS. These are NOT javascript but rather use $_GET.
 // NOTE: The image functions are GET calls from the original php file.
 //       THESE ARE NOT DONE BY tracker.js!
 
-// Here is an example of the banner.i.php in bartonphillips.com/includes:
-/*
-if(!class_exists('Database')) header("location: https://bartonlp.com/otherpages/NotAuthorized.php");
-
-return <<<EOF
-<header>
-  <!-- bartonphillips.com/includes/banner.i.php -->
-  <a href="$h->logoAnchor">$image1</a>
-  $image2
-  $mainTitle
-  <noscript>
-    <p style='color: red; background-color: #FFE4E1; padding: 10px'>
-      $image3
-      Your browser either does not support <b>JavaScripts</b> or you have JavaScripts disabled, in either case your browsing
-      experience will be significantly impaired. If your browser supports JavaScripts but you have it disabled consider enabaling
-      JavaScripts conditionally if your browser supports that. Sorry for the inconvienence.</p>
-    <p>The rest of this page will not be displayed.</p>
-    <style>#content { display: none; }</style>
-  </noscript>
-</header>
-<div id="content"> <!-- BLP 2024-12-16 - See footer.i.php for ending </div>. -->
-EOF;
-*/
-//
-// In the 'ready' function tracker.js creates:
-// <picture id='logo'><source srcset={phoneImg} media='((hover: none) and
-// (pointer: course))' alt='photoImage'><img src={desktopImg} alt='desktopImage'></picture>
-//
-// The {phoneImg} and {disktopImg} are the two javascript variables.
-//
-// When tracker.php is called to get the image, 'page' has the values 'normal', 'noscript' or
-// 'csstest'.
-// 'csstest' happens via .htaccess REWRITERULE. See .htaccess for more details.
-
 // IMPORTANT *************************
-// BLP 2024-12-17 - $_GET['mysitemap'] is the mysitemap.json from the original page not from the tracker
+// $_GET['mysitemap'] is the mysitemap.json from the original page not from the tracker
 // location. That is, if the original page was https://bartonphillips.com, the mysitemap.json at
 // that location is passed as $_GET['mysitemap'], it is NOT from the location of tracker.php. This
 // is usually a symlink in https://bartonlp.com/otherpages.
@@ -158,11 +129,6 @@ EOF;
 if($_GET['page'] == "csstest") {
   $msg = strtoupper($_GET['page']);
   $id = $_GET['id'];
-
-  $_site->noTrack = true; // BLP 2025-01-06 - 
-  $_site->noGeo = true;   // BLP 2025-01-06 - 
-
-  $S = new Database($_site);
 
   if(!is_numeric($id)) {
     logInfo("tracker NO_ID: \$_GET=" . print_r($_GET, true));
@@ -219,13 +185,6 @@ if($type = $_GET['page']) {
   // If $mysitemap is empty we can't proceed.
 
   if(empty($mysitemap)) {
-    // We have $_site from the top. It is the $_site from this directory not the callers!
-    
-    $_site->noTrack = true; // Don't track
-    $_site->noGeo = true;   // No Geo
-
-    $S = new Database($_site); // This is for goaway which need $S
-
     // Do I have an $id?
     
     if(is_numeric($id)) {
@@ -235,7 +194,8 @@ if($type = $_GET['page']) {
       if($S->sql("select ip, page, site, agent, botAsBits, isJavaScript from $S->masterdb.tracker where id=$id")) {
         [$ip, $page, $site, $agent, $botAsBits, $java] = $S->fetchrow('num');
       } else {
-        goaway("tracker: No tracker entry for id=$id", __LINE__); // GOAWAYNOW
+        goaway($S, "tracker: No tracker entry for id=$id", __LINE__);
+        // GOAWAYNOW (exit)
       }
 
       // It looks like I have a real id and ip, page, site and agent my be real.
@@ -251,9 +211,11 @@ if($type = $_GET['page']) {
         logInfo("tracker.php updates failed: id=$id, err=$err, errmsg=$errmsg, line=". __LINE__);
       }
     }
-    goaway("tracker GET $msg no mysitemap.json: id=$id", __LINE__); // GOAWAYNOW
+    goaway($S, "tracker GET $msg no mysitemap.json: id=$id", __LINE__);
+    // GOAWAYNOW (exit)
   }    
 
+  // ****************************************************************************************
   // If we have $mysitemap get the mysitemap.json from the caller.
   // This should happend for both types.
   // Here I am looking for just the part that looks like the domain name.
@@ -271,11 +233,8 @@ if($type = $_GET['page']) {
 
     $id = $id ?? $S->LAST_ID;
     
-    // We have $_site from the very top of this file.
-    
-    $S = new Database($_site); // This is for goaway which need $S. This is the default $_site from tracker.php mysitemap.json
-
-    goaway("tracker $msg, require is not form my domains ($x): id=$id, type=$type, mysitemap=$mysitemap", __LINE__); // GOAWAYNOW.
+    goaway($S, "tracker $msg, require is not form my domains ($x): id=$id, type=$type, mysitemap=$mysitemap", __LINE__);
+    // GOAWAYNOW (exit)
   }
 
   // This is from one of my domains so get the mysitemap.json informaton from the passed in
@@ -286,18 +245,25 @@ if($type = $_GET['page']) {
   $tmp = ob_get_contents();
   ob_end_clean();
 
+  // -------------------------------------------------------------------------------------------
+  // IMPORTANT ***
   // Now that we have the actual value from the mysitemap.json use it to get our $_site and then
   // instanciate my $S with Database.
 
   $_site = json_decode(stripComments($tmp));
-  $_site->noTrack = true; // Don't track
-  $_site->noGeo = true;   // No Geo
 
-  //**************************************************************************************************
+  // -----------------------------------------------
+  // This is the second time we do noTrack and noGeo
+  $_site->noTrack = true; 
+  $_site->noGeo = true;   
+
+  $S = new Database($_site);
+  // -----------------------------------------------
+  
+  // *************************************************************************************************
   // Now after all the hoki-pokie we have a valid $_site with information form $mysitemap, the calling
   // sites mysitemap.json
-  
-  $S = new Database($_site);
+  // *************************************************************************************************  
 
   // If the $id is not numeric we can't go on.
   
@@ -312,7 +278,10 @@ insert into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, 
 values('$S->ip', '$S->siteName', '$S->self', '$msg', '$errno', '$errmsg', '$S->agent', now(), now())";
 
     $S->sql($sql);
-    goaway("tracker GET ID_IS_NOT_NUMERIC: id=$id, ip=$S->ip, site=$S->siteName, errno=$errno, errmsg=$errmsg, agent=$S->agent", __LINE__, true);
+    goaway($S,
+           "tracker GET ID_IS_NOT_NUMERIC: id=$id, ip=$S->ip, site=$S->siteName, ".
+           "errno=$errno, errmsg=$errmsg, agent=$S->agent", __LINE__, true);
+    // GOAWAY (exit)
   }
 
   // $S values are from the original pages mysitemap.json for every thing exept type 'csstest'..
@@ -324,8 +293,9 @@ values('$S->ip', '$S->siteName', '$S->self', '$msg', '$errno', '$errmsg', '$S->a
     case "noscript":
       $or = TRACKER_NOSCRIPT;
       break;
-     default:
-      goaway("tracker GET: Switch Error: ip=$S->ip, site=$S->siteName, type=$type", __LINE__, true);
+    default:
+      goaway($S, "tracker GET: Switch Error: ip=$S->ip, site=$S->siteName, type=$type", __LINE__, true);
+      // GOAWAY (exit) 
   }
 
   // Get information from tracker.
@@ -335,7 +305,8 @@ select site, ip, page, finger, isJavaScript, agent, botAsBits, difftime
 from $S->masterdb.tracker where id=$id")) {
     [$site, $ip, $page, $finger, $js, $agent, $botAsBits, $difftime] = $S->fetchrow('num');
   } else {
-    goaway("tracker GET, NO RECORD: id=$id, type=$type", __LINE__, true);
+    goaway($S, "tracker GET, NO RECORD: id=$id, type=$type", __LINE__, true);
+    // GOAWAY (exit)
   }
   
   // I HAVE A VALID 'tracker' RECORD, with $id, $ip, $site, $page, $finger, $js, $agent,
@@ -370,12 +341,6 @@ from $S->masterdb.tracker where id=$id")) {
 
     if($difftime) {
       logInfo("***tracker HAS DIFFTIME: ip=$ip, line=". __LINE__);
-/*    if($difftime) {
-      logInfo("***tracker remove bot: ip=$ip, line=". __LINE__);
-      $botAsBits &= ~BOTS_SITECLASS;
-      $botAsBits |= BOTS_HAS_DIFFTIME | BOTS_COUNTED;
-      $js &= ~TRACKER_BOT;
-*/      
     } else {
       //$botAsBits |= BOTS_COUNTED | BOTS_BOT;
       $botAsBits |= BOTS_COUNTED; // BLP 2025-04-23 -  
@@ -519,13 +484,6 @@ if($_POST) {
   $_site->dbinfo->host = $tmp; // Still use the original dbinfo->host
 }
 
-// We have set up $_site from the passed in $mysitemap.
-
-$_site->noTrack = true; // Don't track or do geo!
-$_site->noGeo = true;
-
-$S = new Database($_site); // BLP 2023-10-02 - because we use Database noTrack and noGeo are set and we do not do any tracking.
-
 // Post an ajax error message
 
 if($_POST['page'] == 'ajaxmsg') {
@@ -569,9 +527,9 @@ if($_POST['page'] == 'start') {
     exit();
   }
 
-  if($S->isMyIp($ip)) {
-    $visits = 0;
-  }
+//  if($S->isMyIp($ip)) {
+//    $visits = 0;
+//  }
 
   // BLP 2024-12-04 - use hex value for $js, remove $java.
   
@@ -722,17 +680,16 @@ difftime=timestampdiff(second, starttime, now()) where id=$id");
 // *********************************************
 
 // GOAWAY is only used by the GET logic.
-// goaway($msg, $type). if $type is true enter into badplayer.
+// goaway($S, $msg, $type). if $type is true enter into badplayer.
 // GOAWAYNOW.
+// @param: $S SiteClass. The site class
 // @param: $msg string.  $msg should have a full header plus a message. That is it should have "tracker ...: other info.
 // @param: $line int. The line number where this occured. Default is null
 // @param: $type bool. False if $S is from the tracker mysitemap.json, true if from callers
 // mysitemap.json. Default to false.
 // @return: does not return it does an exit().
 
-function goaway(string $msg, ?int $line=null, bool $type=false): void {
-  global $S;
-  
+function goaway(Database $S, string $msg, ?int $line=null, bool $type=false): void {
   // If $type === true then skip the first part and do the GOAWAYNON logic only.
   // The information is from the tracker.php mysitemap.json NOT the site that called this.
 
@@ -835,5 +792,7 @@ EOF;
 
 header("Location: NotAuthorized.php");
 exit();
+
+// This is the end of PHP '?>'  
 ?>
 <h1>Go Away</h1>

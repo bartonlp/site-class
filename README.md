@@ -1,10 +1,9 @@
-# SiteClass Verion 5+ PDO
+# SiteClass Verion 6+ PDO
 
 **SiteClass** is a PHP mini framework for my websites. It is customized for my websites and will be hard for someone else to use.
-I have a new class, **SimpleSiteClass** that is designed for anyone. 
-It is at [https://github.com/bartonlp/simple-site-class](https://github.com/bartonlp/simple-site-class). 
-Documentation for the [SimpleSiteClass](https://bartonlp.github.io/simple-site-class/).
-
+I have a new class, **Simple SiteClass** that is designed for anyone. 
+To add the *mysitemap.json* you only make sure that the *Simple* version has no **doSiteClass**.
+If you remove this value it is **Simple**.
 If you are still interested in exploring **SiteClass**, read on.
 
 **SiteClass** can be esaly combined with other frameworks or templeting engines if needed. 
@@ -30,5 +29,5 @@ This project has several parts that can function standalone or combined.
 Barton Phillips : [bartonphillips@gmail.com](mailto://bartonphillips@gmail.com)  
 [My Website](http://www.bartonphillips.com)  
 Copyright &copy; 2025 Barton Phillips  
-Last Modified January 1, 2025
+Last Modified January 31, 2026
 

@@ -9,7 +9,7 @@ namespace bartonlp\SiteClass;
  * @file database/Database.class.php
  * @package SiteClass
  */
-define("DATABASE_CLASS_VERSION", "1.2.2database-pdo"); 
+define("DATABASE_CLASS_VERSION", "2.0.0database-pdo"); 
 /**
  * @file database/Database.class.php
  * @package SiteClass
@@ -31,10 +31,9 @@ define("DEBUG_TRACKER_BOTINFO", false); // Change this to false if you don't wan
  */
 class Database extends dbPdo {
   protected $hitCount = 0;
-  public array $myIp;
-  public $nodb;
-  public $noTrack;
-  public $noGeo;
+  public $nodb;     // If $nodb we have non database. 
+  public $noTrack;  // This will stop everything except $logagent
+  public $noGeo;    // If $noGeo we do not Google location
   
   /**
    * Database constructor.
@@ -59,9 +58,9 @@ class Database extends dbPdo {
       // Because $s->nodb or $s->dbinfo is null, set up the rest of these
       
       $s->count = false;
-      $s->noTrack = true; // If nodb then noTrack is true also.
-      $s->nodb = true;    // Maybe $this->dbinfo was null
-      $s->dbinfo = null;  // Maybe nodb was set
+      $s->noTrack = true;   // No tracking 
+      $s->nodb = true;      // Maybe $this->dbinfo was null
+      $s->dbinfo = null;    // Maybe nodb was set
 
       // Put all of the $s values into $this.
     
@@ -76,47 +75,31 @@ class Database extends dbPdo {
     
     parent::__construct($s); // dbPdo constructor.
 
-    // If the user is not 'barton' then noTrack should be set.
+    // If we are doSiteClass is true we will do FULL database.
     
-    if($this->dbinfo->engine != "sqlite" && $this->dbinfo->user == "barton") { // make sure its the 'barton' user!
-      $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
-    } else {
-      $this->myIp = ['195.252.232.86'];
-    }
-
-    // These all use database 'barton' ($this->masterdb)
-    // and are always done regardless of 'count'!
-    // If $this->nodb or there is no $this->dbinfo we have made $this->noTrack true and
-    // $this->count false
-
-    if($this->dbinfo->engine == "sqlite") {
+    if($this->doSiteClass) {
       if($this->noTrack !== true) {
-        $this->logagent();
-      }
-    } else {
-      // The enbine is NOT 'sqlite' so this must be 'mysql'.
-      // Check if we allow tracking.
-      
-      if($this->noTrack !== true) {
-        $this->logagent();   // This logs Me and everybody else! This is done regardless of $this->isBot() or $this->isMe().
+        // If we do have doSiteClass we will do FULL tracking.
 
+        $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
         $this->isBot($this->agent); // This set $this->isBot, it also does isMe() so I never get set as a bot!
-
-        // BLP 2026-01-25 - If we do not have simpleSiteClass we will do FULL tracking.
-        if($this->simpleSiteClass !== true) {
-          $this->tracker();    // This logs Me and everybody else but uses the $this->isBot bitmap!
-        }
-        
+        $this->tracker();    // This logs Me and everybody else but uses the $this->isBot bitmap!
         $this->updatemyip(); // Update myip if it is ME
 
         // If 'count' is false we don't do these counters
 
-        if($this->count) {
+        if($this->count === true) {
           // Get the count for hitCount. The hitCount is always
           // updated (unless the counter table does not exist).
 
           $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
         }
+      } 
+    } else {
+      // If we do NOT have doSiteClass
+      
+      if($this->noTrack !== true) {
+        $this->logagent();
       }
     }
   } // END Construct
@@ -168,7 +151,8 @@ class Database extends dbPdo {
     } catch(Exception $e) {
       $err = $e->getCode();
       $errmsg = $e->getMessage();
-      logInfo("Database updateBots3: ip=$ip, agent=$agent, page=$page, robots=$botAsBits, err=$err, errmsg=$errmsg, line=". __LINE__);
+      logInfo("Database updateBots3: ip=$ip, agent=$agent, page=$page, robots=$botAsBits, err=$err, errmsg=$errmsg, line=".
+              __LINE__);
       throw new \Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
     }
   }
@@ -207,12 +191,7 @@ class Database extends dbPdo {
     $agent = $this->agent;
     $java = 0;
     
-    [$browser, $engine, $botbits, $trackerbits, $isBot] = getBrowserInfo($agent); // from helper-functions.php
-
-    // BLP 2025-04-21 - we output this information below.
-
-    $this->isBot = $isBot; // true | false = true. false | true = true.
-    $isBot = $isBot === true ? "true" : 'false'; // Now make $isBot 'true' or 'false' for logInfo() below.
+    [$browser, $engine, $botbits, $trackerbits, $this->isBot] = getBrowserInfo($agent); // from helper-functions.php
 
     // Explanation.
     // Here we set $java (isJavaScript) to TRACKER_BOT or zero.
@@ -261,10 +240,11 @@ values('$this->siteName', '$page', '$this->ip', '$name',
       $hexjava = dechex($java);
       $hexBotAsBits = dechex($this->botAsBits);
 
-      // $isBot is 'true'/'false' from above.
+      $trueFalse = $this->isBot === true ? "true" : 'false';
       
       logInfo("Database browserInfo: id=$this->id, ip=$this->ip, site=$this->siteName, page=$this->self, ".
-              "botAsBits=$hexBotAsBits, java=$hexjava, browser=$browser, engine=$engine, isBot=$isBot, agent=$this->agent, line=". __LINE__);
+              "botAsBits=$hexBotAsBits, java=$hexjava, browser=$browser, engine=$engine, isBot=$trueFalse, ".
+              "agent=$this->agent, line=". __LINE__);
     }
   }
 

@@ -9,11 +9,7 @@ use bartonlp\SiteClass\WarningToExceptionHandler;
 use \PDO;
 use \PDOStatement;
 
-define("PDO_CLASS_VERSION", "1.2.6pdo"); // BLP 2025-04-24 - new sql() method from ChatGpt
-                                         // BLP 2025-04-19 - add the trait.
-                                         // BLP 2025-04-18 - add create() to allow me to use updateBot3() function when I do new dbPdo(...).
-                                         // BLP 2025-04-13 - new version of $robotMap. Added SAPI in constructor
-                                         // BLP 2025-05-09 - removed sqlPrepare.
+define("PDO_CLASS_VERSION", "2.0.0pdo");
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -54,9 +50,13 @@ class dbPdo extends PDO {
   private bool $Debug = false; // for debugging only
   public string $database; // The name of the database being used.
 
-  use UserAgentTools; // BLP 2025-04-19 - This is a trait for isMe(), isMyIp(), isBot(), setSiteCookie() and getIp().
+  // These two are needed on 8.4!!
+  public array $myIp = [];
+  public array $isMyIp = [];
+  
+  use UserAgentTools; // This is a trait for isMe(), isMyIp(), isBot(), setSiteCookie() and getIp().
                       // Putting it here means these are available to the entire hierarchy.
-  use WarningToExceptionHandler; // BLP 2025-04-25 - New trait to fix E_WARNING to Exceptions.
+  use WarningToExceptionHandler; 
   
   /**
    * Constructor
@@ -170,7 +170,6 @@ class dbPdo extends PDO {
    *
    * @return string VERSION of the pdo class.
    */
-  
   public static function getVersion(): string {
     return PDO_CLASS_VERSION;
   }

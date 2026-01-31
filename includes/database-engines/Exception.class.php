@@ -8,7 +8,7 @@ namespace bartonlp\siteload;
 use SendGrid\Mail\Mail;
 use bartonlp\SiteClass\dbPdo;
 
-define("EXCEPTION_VERSION", "1.0exception");
+define("EXCEPTION_VERSION", "2.0.0exception");
 
 class SiteExceptionHandler {
   private static bool $initialized = false;
@@ -16,7 +16,6 @@ class SiteExceptionHandler {
   /*
    * init. Initialize my exception handler
    */
-  
   public static function init(): void {
     if(self::$initialized) {
       return;
@@ -35,7 +34,6 @@ class SiteExceptionHandler {
   /*
    * handle. When the system shuts down, handle any outstanding errors.
    */
-  
   public static function shutdownHandler(): void {
     $error = error_get_last();
 
@@ -73,7 +71,6 @@ EOF;
    * @param: Throwable $e. Exception or Error
    * @return: void
    */
-
   public static function my_exceptionhandler(\Throwable $e): void {
     if (php_sapi_name() !== 'cli' && ob_get_level() > 0) {
       ob_clean();
@@ -240,7 +237,6 @@ EOF;
    * @param: Throwable $e.
    * @return: string. The full trace formated.
    */
-
   private static function formatStackTrace(\Throwable $e): string {
     $trace = $e->getTrace();
     $output = '';

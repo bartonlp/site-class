@@ -3,7 +3,7 @@
 
 'use strict';
 
-const TRACKERJS_VERSION = "3.1.11trackerjs-pdo"; // BLP 2025-04-26 - fix csstest
+//const TRACKERJS_VERSION = "3.1.11trackerjs-pdo"; // BLP 2025-04-26 - fix csstest
                                                  
 // SiteClass places a <script> tag in the head.i.php file via
 // $h->tracjerStr. That variable has a full list of JavaScript
@@ -35,17 +35,18 @@ EOF;
 // *************************
 // These are here in case you want to edit these here rather than via a
 // $S->b_inlineScript.
-var isMeFalse;
-var doState; 
-var forceBot; 
+let isMeFalse;
+let doState; 
+let forceBot; 
 //isMeFalse = true; // For Debugging
 //doState = true; // For Debugging
 //forceBot = true; // For Debugging
 // *************************
 
 function makeTime() {
-  let x = new Date;
-  return x.getHours()+":"+String(x.getMinutes()).padStart(2, '0')+":"+String(x.getSeconds()).padStart(2, '0')+":"+ String(x.getMilliseconds()).padStart(3, '0');
+  const x = new Date;
+  return x.getHours()+":"+String(x.getMinutes()).padStart(2, '0')+":"+
+      String(x.getSeconds()).padStart(2, '0')+":"+ String(x.getMilliseconds()).padStart(3, '0');
 }
 
 // **************************************************
@@ -56,7 +57,7 @@ function makeTime() {
 // await postFormData('json', {...});
 
 async function postFormData(data, type='form') {
-  let body, headers;
+  const body, headers;
 
   if (type === 'json') {
     headers = { 'Content-Type': 'application/json' };

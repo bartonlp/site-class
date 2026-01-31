@@ -1,6 +1,5 @@
 <?php
-//$_site = require_once(getenv("SITELOADNAME"));
-$_site = require_once("/var/www/site-class/includes/autoload.php");
+$_site = require_once(getenv("SITELOADNAME"));
 $_site->noTrack = $_site->noGeo = true;
 
 $tbl = (require(SITECLASS_DIR . "/whatisloaded.php"))[0];
@@ -12,7 +11,7 @@ $S->css = "td { padding: 0 10px; }";
 
 $class = $S->__toString();
 
-[$top, $footer] = $S->getPageTopBottom();
+[$top, $bottom] = $S->getPageTopBottom();
 
 foreach($ret as $k=>$v) {
   $msg .= "<tr><td>$k</td><td>$v</td></tr>";
@@ -24,5 +23,5 @@ $top
 $class
 $tbl
 <hr>
-$footer
+$bottom
 EOF;

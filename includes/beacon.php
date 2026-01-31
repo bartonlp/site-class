@@ -19,7 +19,7 @@ CREATE TABLE `badplayer` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2141 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("BEACON_VERSION", "4.0.18beacon-pdo"); // BLP 2025-04-24 - removed $bExit and error from the tracker select.
+define("BEACON_VERSION", "4.0.19beacon-pdo");
 
 // The normal beacon starts here.
 
@@ -112,8 +112,9 @@ switch($type) {
     $botAsBits |= BOTS_VISIBILITYCHANGE;
     break;
   default:
-    logInfo("beacon Error: id=$id, ip=$ip, state=$site, page=$thepage, SWITCH_ERROR_{$type}, botAsBits=$botAsBits, java=$js, ".
-              "-- \$S->ip=$S->ip, line=". __LINE__);
+    logInfo("beacon Error: id=$id, ip=$ip, state=$site, page=$thepage, SWITCH_ERROR_{$type}, ".
+            "botAsBits=$botAsBits, java=$js, ".
+            "-- \$S->ip=$S->ip, line=". __LINE__);
     exit();
 }
 

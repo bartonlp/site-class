@@ -44,7 +44,7 @@ CREATE TABLE `bots3` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("USER_AGENT_TOOLS_VERSION", "1.0.0uat-pdo");
+define("USER_AGENT_TOOLS_VERSION", "1.1.0uat-pdo");
 
 trait UserAgentTools {
   /*
@@ -56,13 +56,13 @@ trait UserAgentTools {
    * else true.
    * @side-effect: can set $this->botAsBits.
    */
-  
   public function isMyIp(string $ip): bool {
     if ($this->isMeFalse === true) {
       $this->botAsBits |= BOTS_ISMEFALSE;
       return false;
     }
-    return in_array($ip, $this->myIp);
+    
+    return in_array($ip, $this->myIp ?? [], true);
   }
 
   /*
@@ -71,7 +71,6 @@ trait UserAgentTools {
    * @return: bool.
    * calls $this->isMyIp($this->ip or blank.
    */
-  
   public function isMe(): bool {
     return $this->isMyIp($this->ip ?? '');
   }
@@ -86,7 +85,6 @@ trait UserAgentTools {
    * NOTE: Database::tracker() is run from the constructor before anything else is done.
    * This method is NOT called from Database::tracker()!
    */
-  
   public function isBot(?string $agent = null): bool {
     // If forceBot is true anything is a robot.
     
@@ -137,7 +135,7 @@ trait UserAgentTools {
     
     // Look at ALL of the bots3 records for this ip, agent, page (table unique keys).
     
-    if($this->sql("select robots from $this->masterdb.bots3 where ip='$ip' and agent='$agent' and page='$page'")) { // Found some.
+    if($this->sql("select robots from $this->masterdb.bots3 where ip='$ip' and agent='$agent' and page='$page'")) {
       // Get each record
 
       while([$robots] = $this->fetchrow('num')) {
@@ -211,7 +209,6 @@ trait UserAgentTools {
    * @param: string $thedomain Defaults to null.
    * @return bool true if OK else false.
    */
-
   public function setSiteCookie(string $cookie, string $value, int $expire, string $path="/", ?string $thedomain=null,
                                 bool $secure=true, bool $httponly=false, string $samesite='Lax'):bool
   {
@@ -239,7 +236,6 @@ trait UserAgentTools {
    * Get the ip address
    * @return int ip address
    */
-
   public function getIp():string {
     return $this->ip;
   }

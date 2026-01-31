@@ -4,11 +4,9 @@
 define("DO_SERVER", "192.241.132.229"); // My server IP address through DigitalOcean
 define("MY_IP", "195.252.232.86"); // My personal static IP address through MetroNet
 
-define("DEFINES_VERSION", "1.2.5defines-pdo"); // BLP 2025-05-01 - add MY_HOSTS
-                                               // BLP 2025-04-22 - add BOTS_BOT
-                                               // BLP 2025-04-16 - changed to TRACKER_CHECKTRACKER
-                                               // BLP 2025-04-15 - removed BOTSAS_...
-                                               // BLP 2025-04-10 - new BOTS_... for NO_MYSITEMAP and HAS_INTEACTION. NO_SITE.
+define("DEFINES_VERSION", "1.3.0defines-pdo");
+
+// Only if doSiteClass is true we do FULL database
 
 // These are the values for the bots3 table and the tracker table field botAsBits.
 
@@ -33,7 +31,8 @@ define("BOTS_NO_MYSITEMAP", 0x10000); // No mysitemap.json passed to tracker.php
 define("BOTS_HAS_INTERACTION", 0x20000); // has interaction from events like scroll, mousemove, click etc.
 define("BOTS_ISMEFALSE", 0x40000); // used the $this-isMeFalse === true. BLP 2025-04-04 - 
 define("BOTS_FORCE", 0x80000); // used the $this->forceBot === true. BLP 2025-04-04 - 
-define("BOTS_BOT", 0x100000); // If a bot detected in files other than my class files (tracker.php, beacon.php, robots-sitemap.php etc)
+define("BOTS_BOT", 0x100000); // If a bot detected in files other than my class files
+                              //(tracker.php, beacon.php, robots-sitemap.php etc)
 
 // The values for site in bots3 table 'site' field.
 // Used to encode and decode the 'site' field.
@@ -63,7 +62,8 @@ define("BEACON_VISIBILITYCHANGE", 0x10); // via javascript. Just ran out of bits
 define("BEACON_PAGEHIDE", 0x20); // via javascript
 define("BEACON_UNLOAD", 0x40); // via javascript
 define("BEACON_BEFOREUNLOAD", 0x80); // via javascript
-define("TRACKER_TIMER", 0x100); // via javascript. Recurring every interval via setTimer(). Increses by 10 seconds for 50 intervals, about 8 min at end.
+define("TRACKER_TIMER", 0x100); // via javascript. Recurring every interval via setTimer().
+                                // Increses by 10 seconds for 50 intervals, about 8 min at end.
 define("TRACKER_BOT", 0x200); // via SiteClass if isBot is true
 define("TRACKER_CSS", 0x400); // via .htaccess ReWriteRule. This is a GET.
 define("TRACKER_ME", 0x800); // via SiteClass if isMe() is true.
@@ -111,3 +111,4 @@ define("MY_HOSTS", [
                     "jt-lawnservice.com",
                     "swam.us"
                    ]);
+

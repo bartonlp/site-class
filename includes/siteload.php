@@ -20,7 +20,7 @@ if (PHP_VERSION_ID < 80400) {
 
 error_reporting($mask);
 
-define("SITELOAD_VERSION", "2.2.6siteload-pdo"); // BLP 2024-12-17 - add mysitemap to returned value
+define("SITELOAD_VERSION", "2.3.0siteload-pdo");
 define("SITECLASS_DIR", __DIR__);
 require_once("/var/www/vendor/autoload.php");
 

@@ -9,8 +9,7 @@ namespace bartonlp\SiteClass;
  * @file SiteClass.class.php
  * @package SiteClass
  */
-define("SITE_CLASS_VERSION", "5.2.2pdo"); // BLP 2025-05-01 - new cssLink and defaultCss. Both do filetime().
-                                          // BLP 2025-04-26 - add id to jQuery insert.
+define("SITE_CLASS_VERSION", "6.0.0pdo");
 
 // One class for all my sites
 /**
@@ -101,9 +100,9 @@ class SiteClass extends Database {
    * Get the top and bottom of the page
    *
    * Get the top of the page i.e. `<head>` information,
-   * and the bottom bottom of the page i.e. `<footer>` and JavaScrip that apears just before `</body>`
-   * The method is usually used like this: `'[$top, $bottom] = $S->getPageTopBottom()'`.
-   * When the page is rendered with an `'echo <<<EOF'`, the first line is $top,
+   * and the bottom of the page i.e. JavaScrip just before `</body>`
+   * The method is usually used like this: `[$top, $bottom] = $S->getPageTopBottom();`.
+   * When the page is rendered with an `echo <<<EOF`, the first line is $top,
    * and the last line is $bottom followed by EOF;
    * The content is usually placed between these two variables.
    *
@@ -405,7 +404,8 @@ EOF;
       } else {
         // require returned 1 which is wrong!!
         
-        throw new Exception(__CLASS__ . " " . __LINE__ .": $this->siteName, getPageHead() headFile '$this->headFile' returned 1");
+        throw new Exception(__CLASS__ . " " . __LINE__ .
+                            ": $this->siteName, getPageHead() headFile '$this->headFile' returned 1");
       }
     } else {
       // Make a default <head>
@@ -434,7 +434,7 @@ $h->css
 EOF;
     } // End default head.
 
-    // Add tthe preheadcomment and doctype and the pageHeadText
+    // Add the preheadcomment and doctype and the pageHeadText
     
     $pageHead = <<<EOF
 {$preheadcomment}{$this->doctype}
