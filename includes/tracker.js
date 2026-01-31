@@ -33,12 +33,12 @@ var isMeFalse = "$S->isFalse", doState = "$S->doState", forceBot = "$S->forceBot
 EOF;
 */
 // *************************
+// We need 'var' as it may be added in a php.
+var isMeFalse;
+var doState; 
+var forceBot; 
 // These are here in case you want to edit these here rather than via a
-// $S->b_inlineScript.
-let isMeFalse;
-let doState; 
-let forceBot; 
-//isMeFalse = true; // For Debugging
+// $S->b_inlineScript.//isMeFalse = true; // For Debugging
 //doState = true; // For Debugging
 //forceBot = true; // For Debugging
 // *************************
