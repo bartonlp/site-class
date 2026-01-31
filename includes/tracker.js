@@ -57,15 +57,13 @@ function makeTime() {
 // await postFormData('json', {...});
 
 async function postFormData(data, type='form') {
-  const body, headers;
-
   if (type === 'json') {
-    headers = { 'Content-Type': 'application/json' };
-    body = JSON.stringify(data);
+    const headers = { 'Content-Type': 'application/json' };
+    const body = JSON.stringify(data);
   } else {
     // Default to x-www-form-urlencoded
-    headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-    body = new URLSearchParams(data);
+    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    const body = new URLSearchParams(data);
   }
 
   const response = await fetch(trackerUrl, {
