@@ -83,6 +83,7 @@ class Database extends dbPdo {
 
         $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
         $this->isBot($this->agent); // This set $this->isBot, it also does isMe() so I never get set as a bot!
+        $this->logagent();   // Log the agent
         $this->tracker();    // This logs Me and everybody else but uses the $this->isBot bitmap!
         $this->updatemyip(); // Update myip if it is ME
 
@@ -98,9 +99,8 @@ class Database extends dbPdo {
     } else {
       // If we do NOT have doSiteClass
       
-      if($this->noTrack !== true) {
-        $this->logagent();
-      }
+      $this->noTrack = true;
+      $this->noCounter = true;
     }
   } // END Construct
 

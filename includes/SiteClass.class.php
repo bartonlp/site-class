@@ -253,8 +253,8 @@ EOF;
       // its own and therefore we can't get to it directly. https://bartonlp has its own
       // domain and we can get to it.
 
-      $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php"; // BLP 2023-08-09 - a symlink
-      $beaconLocation = $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php"; // BLP 2023-08-09 - a symlink
+      $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php"; // a symlink
+      $beaconLocation = $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php"; // a symlink
 
       $logoImgLocation = $this->logoImgLocation ?? "https://bartonphillips.net";
       $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation;
@@ -283,17 +283,43 @@ EOF;
         $phoneImg2 = $this->trackerImgPhone2 ? "$headerImg2Location$this->trackerImgPhone2" : null; // BLP 2023-08-10 - 
       }
 
-      // Should we track and do we actually want a database ?
+      // Should we track?
       
-      if($this->noTrack !== true && $this->nodb !== true) {
+      if($this->noTrack !== true) {
         $mysitemap = $this->mysitemap;
 
         // If we are 'tracking' users add tracker.js and logging.js
         
         $trackerStr = "<script nonce='$this->nonce' src='$this->trackerLocationJs'></script>\n"; 
 
-        if($this->nointeraction !== true)
+        // Now fill in the rest of $trackerStr.
+        // If noTrack or nodb then many of the items will be empty.
+
+        $page = basename($this->self); // BLP 2025-04-12 - get rid of the slash.
+      
+        $xtmp = <<<EOF
+  <script nonce="$this->nonce">
+  var thesite = "$this->siteName",
+      theagent = "$this->agent", // BLP 2025-04-08 - 
+      theip = "$this->ip",
+      thepage = "$page",
+      trackerUrl = "$trackerLocation",
+      beaconUrl = "$beaconLocation",
+      noCssLastId = "$this->noCssLastId",
+      desktopImg = "$desktopImg", 
+      phoneImg = "$phoneImg"; 
+      desktopImg2 = "$desktopImg2";
+      phoneImg2 = "$phoneImg2", 
+      mysitemap = "$mysitemap",
+      lastId = "$this->LAST_ID", // BLP 2025-03-25 -
+      loggingphp = "$this->interactionLocationPhp" // BLP 2025-03-26 - 
+  </script>
+EOF;
+        $trackerStr = "$xtmp\n$trackerStr";
+
+        if($this->nointeraction !== true) {
           $trackerStr .= "<script nonce='$this->nonce' src='$this->interactionLocationJs'></script>\n";
+        }
       } else {
         // Either or both noTrack and nodb were set.
         // This is the code we use instead of tracker.js if noTrack or nodb are true.
@@ -361,31 +387,6 @@ jQuery(document).ready(function($) {
 </script>
 EOF;
       } // End of logic is noTrack or nodb is true.
-
-      // Now fill in the rest of $trackerStr.
-      // If noTrack or nodb then many of the items will be empty.
-
-      $page = basename($this->self); // BLP 2025-04-12 - get rid of the slash.
-      
-      $xtmp = <<<EOF
-  <script nonce="$this->nonce">
-  var thesite = "$this->siteName",
-      theagent = "$this->agent", // BLP 2025-04-08 - 
-      theip = "$this->ip",
-      thepage = "$page",
-      trackerUrl = "$trackerLocation",
-      beaconUrl = "$beaconLocation",
-      noCssLastId = "$this->noCssLastId",
-      desktopImg = "$desktopImg", 
-      phoneImg = "$phoneImg"; 
-      desktopImg2 = "$desktopImg2";
-      phoneImg2 = "$phoneImg2", 
-      mysitemap = "$mysitemap",
-      lastId = "$this->LAST_ID", // BLP 2025-03-25 -
-      loggingphp = "$this->interactionLocationPhp" // BLP 2025-03-26 - 
-  </script>
-EOF;
-      $trackerStr = "$xtmp\n$trackerStr";
     } // End of $this->nojquery !=== true. That is we want jQuery.
 
     // Add language and things like a manafest etc. to the <html> tag.

@@ -47,16 +47,16 @@ if($S->isMe()) {
 $agent = $S->agent;
 $ip = $S->ip;
 
-// Insert or update logagent
-
-$S->sql("
-  insert into $S->masterdb.logagent (site, ip, agent, count, created, lasttime)
-  values('$S->siteName', '$ip', '$agent', 1, now(), now())
-  on duplicate key update count=count+1, lasttime=now()");
-
 // Now ONLY use if doSiteClass true.
 
 if($S->doSiteClass === true) {
+  // Insert or update logagent
+
+  $S->sql("
+insert into $S->masterdb.logagent (site, ip, agent, count, created, lasttime)
+values('$S->siteName', '$ip', '$agent', 1, now(), now())
+on duplicate key update count=count+1, lasttime=now()");
+
   switch(basename($S->self)) {
     case 'robots.php':
       $botBits = BOTS_ROBOTS;
