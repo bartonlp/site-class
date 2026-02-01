@@ -299,20 +299,20 @@ EOF;
       
         $xtmp = <<<EOF
   <script nonce="$this->nonce">
-  var thesite = "$this->siteName",
-      theagent = "$this->agent", // BLP 2025-04-08 - 
-      theip = "$this->ip",
-      thepage = "$page",
-      trackerUrl = "$trackerLocation",
-      beaconUrl = "$beaconLocation",
-      noCssLastId = "$this->noCssLastId",
-      desktopImg = "$desktopImg", 
-      phoneImg = "$phoneImg"; 
-      desktopImg2 = "$desktopImg2";
-      phoneImg2 = "$phoneImg2", 
-      mysitemap = "$mysitemap",
-      lastId = "$this->LAST_ID", // BLP 2025-03-25 -
-      loggingphp = "$this->interactionLocationPhp" // BLP 2025-03-26 - 
+  let thesite      = "$this->siteName",
+      theagent     = "$this->agent", // BLP 2025-04-08 - 
+      theip        = "$this->ip",
+      thepage      = "$page",
+      trackerUrl   = "$trackerLocation",
+      beaconUrl    = "$beaconLocation",
+      noCssLastId  = "$this->noCssLastId",
+      desktopImg   = "$desktopImg", 
+      phoneImg     = "$phoneImg"; 
+      desktopImg2  = "$desktopImg2";
+      phoneImg2    = "$phoneImg2", 
+      mysitemap    = "$mysitemap",
+      lastId       = "$this->LAST_ID", // BLP 2025-03-25 -
+      loggingphp   = "$this->interactionLocationPhp";
   </script>
 EOF;
         $trackerStr = "$xtmp\n$trackerStr";
@@ -332,14 +332,19 @@ EOF;
 
 const TRACKERJS_VERSION = "default_tracker.js_from_site_class_getPageHead";
 
-// The very first thing we do is get the lastId from the script tag.
+let noCssLastId = "$this->noCssLastId",
+    desktopImg  = "$desktopImg",
+    phoneImg    = "$phoneImg",
+    desktopImg2 = "$desktopImg2",
+    phoneImg2   = "$phoneImg2";
 
 const lastId = $("script[data-lastid]").attr("data-lastid");
 console.log("navigator.userAgentData: ", navigator.userAgentData);
 
 jQuery(document).ready(function($) {
   if(noCssLastId !== '1') {
-    $("script[data-lastid]").before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
+    $("script[data-lastid]")
+    .before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
   }
   
   let picture = '';
@@ -380,8 +385,7 @@ jQuery(document).ready(function($) {
     $("header a:first-of-type").after(picture);
   }
   
-  console.log("VARIABLES -- thesite: " + thesite + ", theip: " + theip + ", thepage: " + thepage + 
-              ", phoneImg: " + phoneImg + ", desktopImg: " + desktopImg +
+  console.log("VARIABLES -- phoneImg: " + phoneImg + ", desktopImg: " + desktopImg +
               ", phoneImg2: " + phoneImg2 + ", desktopImg2: " + desktopImg2);
 });
 </script>
