@@ -47,21 +47,21 @@ class Database extends dbPdo {
   public function __construct(object $s) {
     // If no 'dbinfo' (no database) in mysitemap.json set everything so the database is not loaded.
 
-    if($s->nodb === true || is_null($s->dbinfo)) {
+    if($s->nodb === true) {
       // Use the $s values or defaults
-      
+
       $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
       $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'];
       $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
       $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
 
-      // Because $s->nodb or $s->dbinfo is null, set up the rest of these
+      // Because $s->nodb, set up the rest of these.
       
       $s->count = false;
       $s->noTrack = true;   // No tracking 
-      $s->nodb = true;      // Maybe $this->dbinfo was null
       $s->dbinfo = null;    // Maybe nodb was set
-
+      $s->noCounter = true; // No counter
+      
       // Put all of the $s values into $this.
     
       foreach($s as $k=>$v) {
@@ -71,17 +71,21 @@ class Database extends dbPdo {
       return; // If we have NO DATABASE just return.
     }
 
-    // We pass $s which is esentially $_site with some stuff added.
-    
-    parent::__construct($s); // dbPdo constructor.
-
     // If we are doSiteClass is true we will do FULL database.
     
-    if($this->doSiteClass) {
-      if($this->noTrack !== true) {
+    if($s->doSiteClass && $s->dbinfo->engine == "mysql") {
+      if($s->noTrack !== true) {
+        // We pass $s which is esentially $_site with some stuff added.
+    
+        parent::__construct($s); // dbPdo constructor.
+
         // If we do have doSiteClass we will do FULL tracking.
 
-        $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
+        try {
+          $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
+        } catch(\Exception $e) {
+          throw new \Exception(__CLASS__ . " " . __LINE__ . ": CheckIfTablesExist=" . $e->getMessage());
+        }
         $this->isBot($this->agent); // This set $this->isBot, it also does isMe() so I never get set as a bot!
         $this->logagent();   // Log the agent
         $this->tracker();    // This logs Me and everybody else but uses the $this->isBot bitmap!
@@ -98,9 +102,32 @@ class Database extends dbPdo {
       } 
     } else {
       // If we do NOT have doSiteClass
-      
-      $this->noTrack = true;
-      $this->noCounter = true;
+
+      if(is_null($s->dbinfo->engine)) {
+        // We pass $s which is esentially $_site with some stuff added.
+
+        $s->dbinfo = new \stdClass;
+        
+        $s->dbinfo->database = "barton";
+        $s->dbinfo->engine = "sqlite";
+        
+        parent::__construct($s); // dbPdo constructor.
+
+        $this->noCounter = false;
+      } elseif($s->dbinfo->engine == "sqlite") {
+        // We pass $s which is esentially $_site with some stuff added.
+    
+        parent::__construct($s); // dbPdo constructor.
+
+        if($this->noTrack !== true) {
+          $this->noCounter = false;
+        } else {
+          $this->noCounter = true;
+        }
+      } else {
+        throw new \Exception(__CLASS__ . " " . __LINE__ . ": ENGINE=" . $this->dbinfo->engine);
+      }
+      $this->logagent();
     }
   } // END Construct
 
@@ -148,7 +175,7 @@ class Database extends dbPdo {
       $this->sql("insert into $this->masterdb.bots3 (ip, agent, page, count, robots, site, created)
                  values('$ip', '$agent', '$page', 1, $botAsBits, $siteBit, now())
                  on duplicate key update robots = robots|$botAsBits, site=site|$siteBit, count=count+1");
-    } catch(Exception $e) {
+    } catch(\Exception $e) {
       $err = $e->getCode();
       $errmsg = $e->getMessage();
       logInfo("Database updateBots3: ip=$ip, agent=$agent, page=$page, robots=$botAsBits, err=$err, errmsg=$errmsg, line=".
@@ -308,38 +335,43 @@ on duplicate key update count=count+1, realcnt=realcnt+$realcnt");
    * @see sql() Framework method used to execute database queries
    */
   protected function logagent():void {
-    // site, ip and agent(256) are the primary key. Note, agent is a text field so we look at the
-    // first 256 characters here (I don't think this will make any difference).
-
+    // Key is 'site', 'ip', 'agent'.
+    
     if($this->dbinfo->engine != "sqlite") {
-      $sql = "
+      // This is the mysql logic.
+      
+      $this->sql("
 insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime)
 values('$this->siteName', '$this->ip', '$this->agent', '1', now(), now())
-on duplicate key update count=count+1, lasttime=now()";
-
-      $this->sql($sql);
+on duplicate key update count=count+1, lasttime=now()");
     } else {
-      $sql = "
-insert into logagent (site, ip, agent, count, created, lasttime)
-values('$this->siteName', '$this->ip', '$this->agent', '1', datetime('now'), datetime('now'))";
-
+      // This is the sqlite locic.
+      
       try {
-        $this->sql($sql);
-      } catch(Exception $e) {
+        $this->sql("
+insert into logagent (site, ip, agent, count, created, lasttime)
+values('$this->siteName', '$this->ip', '$this->agent', '1', datetime('now', 'localtime'), datetime('now', 'localtime'))");
+      } catch(\Exception $e) {
         if(($err = $e->getCode()) == "23000") {
           $this->sql("
-update logagent set count=count+1, lasttime=datetime('now')
+select count from logagent where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
+
+          $count = $this->fetchrow('num')[0] +1;
+
+          $this->sql("
+update logagent set count=$count, lasttime=datetime('now', 'localtime')
 where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
         } else {
           $errmsg = $e->getMessage();
           throw new \Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
         }
+        $this->hitCount = $count;
       }
     }
   }
 
   // ************
-  // End Counters
+  // End Trackers
   // ************
 
   /**
@@ -387,15 +419,8 @@ where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
    *
    * @internal
    * @return array List of known IPs, including `DO_SERVER`
-   * @throws \Exception If SQLite is used, or required tables are missing
    */
   private function CheckIfTablesExist(): array {
-    // If we are NOT using the sqlite driver we can do a show.
-    
-    if($this->dbinfo->engine == "sqlite") {
-      throw new \Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
-    }
-
     // Do all of the table checks once here.
     // We look at the tables and compare them to a list of tables we should have.
     

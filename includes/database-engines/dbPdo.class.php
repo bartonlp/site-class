@@ -120,9 +120,17 @@ class dbPdo extends PDO {
       $this->$k = $v; // $this->$key = $value.
     }
 
+    // **************************************************
+    // If we do not have dbinfo that is it and we return.
+
+    if(is_null($this->dbinfo)) {
+      // If we do not have a dbinfo we return
+      return;
+    }
+
     // Extract the items from dbinfo. This is $host, $user and maybe $password and $port.
 
-    extract((array)$s->dbinfo); // Cast the $dbinfo object into an array
+    extract((array)$this->dbinfo); // Cast the $dbinfo object into an array
       
     // $password is almost never present, but it can be under some conditions.
     // If it is not present then get the database password from a safe place.
@@ -134,14 +142,12 @@ class dbPdo extends PDO {
     
     if($engine == "sqlite") {
       parent::__construct("$engine:$database");
+      // The localtime must be done by sqlite (datetime('now', 'localtime'));
     } else {
       parent::__construct("$engine:dbname=$database; host=$host; user=$user; password=$password");
+      $this->sql("set time_zone='America/New_York'"); 
     }
     $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-
-    // Set my local time zone. I am currently in North Carolina
-    
-    $this->sql("set time_zone='America/New_York'"); 
 
     // Save the database name.
     
@@ -260,7 +266,8 @@ class dbPdo extends PDO {
     } catch (\Exception $e) {
       // Optional targeted debug logic
       if(str_contains($query, "by+lasttime")) {
-        logInfo("dbPdo, by+lasttime: ip=$this->ip, site=$this->siteName, page=$this->self, agent=$this->agent, line=". __LINE__);
+        logInfo("dbPdo, by+lasttime: ip=$this->ip, site=$this->siteName, page=$this->self, agent=$this->agent, line=".
+                __LINE__);
         return true; // Did not process this query!
       }
       throw $e;
@@ -373,21 +380,6 @@ class dbPdo extends PDO {
    */
   public function getLastInsertId(): int {
     return $this->lastInsertId();
-  }
-
-  // BLP 2025-05-07 - I don't think this works!
-  /**
-   * Get the number of rows
-   *
-   * Does not support SQLite!
-   *
-   * @param PDOStatement|null $result.
-   * @return int $result->rowCount(). Number of rows.
-   */
-  public function getNumRows($result=null): int {
-    if(!$result) $result = $this->result;
-
-    return $result->rowCount();
   }
 
   /**

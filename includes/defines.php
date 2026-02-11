@@ -3,6 +3,8 @@
 
 define("DO_SERVER", "192.241.132.229"); // My server IP address through DigitalOcean
 define("MY_IP", "195.252.232.86"); // My personal static IP address through MetroNet
+define("SITECLASS_DEFAULT_NAME", "https://bartonphillips.net");
+define("SITECLASS_OTHERPAGES", "https://bartonlp.com/otherpages");
 
 define("DEFINES_VERSION", "1.3.0defines-pdo");
 
@@ -111,4 +113,3 @@ define("MY_HOSTS", [
                     "jt-lawnservice.com",
                     "swam.us"
                    ]);
-

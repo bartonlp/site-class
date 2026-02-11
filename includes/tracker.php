@@ -406,7 +406,7 @@ where id=$id");
     if(str_contains($image, 'http')) { 
       $img = $image; // $image has the full url starting with http (could be https)
     } else {
-      $trackerLocation = $S->trackerLocation ?? "https://bartonphillips.net/";
+      $trackerLocation = $S->trackerLocation ?? SITECLASS_DEFAULT_NAME;
       $img = "$trackerLocation/$image";
     }
   }
@@ -455,22 +455,6 @@ if($_POST) {
 
   unset($_site);
 
-  // BLP 2024-07-29 - extend logic for my Acer Spin3 and my RPI.
-  
-  if(str_contains($mysite, "bartonphillips.org")) {
-    $port = null;
-
-    if(str_contains($mysite, ":8000")) {
-      $port = ":8000";
-    } elseif(str_contains($mystie, ":8080")) {
-      $port = ":8080";
-    } // BLP 2024-11-06 - removed the else with a throw.
-    
-    $mysite = preg_replace("~/var/www/(.*?)/~", "https://bartonphillips.org$port/", $mysite);
-  }
-
-  if($mysite == "mysitemap.json") $mysite = "https://bartonphillips.org/$mysite";
-  
   $_site = json_decode(stripComments(file_get_contents($mysite)));
 
   $ip = $_SERVER['REMOTE_ADDR'];

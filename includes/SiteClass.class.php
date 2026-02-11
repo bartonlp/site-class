@@ -177,7 +177,7 @@ class SiteClass extends Database {
     
     // link tags
 
-    $h->favicon = $this->cacheBuster($this->favicon ?? 'https://bartonphillips.net/images/favicon.ico');
+    $h->favicon = $this->cacheBuster($this->favicon ?? SITECLASS_DEFAULT_NAME."/images/favicon.ico");
     $h->favicon = "<link rel='shortcut icon' href='$h->favicon'>";
 
     // Get the defaultCss if available. It hust be a string or false or null.
@@ -185,7 +185,7 @@ class SiteClass extends Database {
     if($this->defaultCss === false) { 
       $h->defaultCss = null;
     } else {
-      $h->defaultCss = $this->cacheBuster($this->defaultCss ?? "https://bartonphillips.net/css/blp.css");
+      $h->defaultCss = $this->cacheBuster($this->defaultCss ?? SITECLASS_DEFAULT_NAME."/css/blp.css");
       $h->defaultCss = "<link rel='stylesheet' href='$h->defaultCss' title='default'>";
     }
 
@@ -237,26 +237,26 @@ class SiteClass extends Database {
   <script nonce="$this->nonce">jQuery.migrateMute = false; jQuery.migrateTrace = false;</script>
 EOF;
 
-      $this->trackerLocationJs = $this->trackerLocationJs ?? "https://bartonlp.com/otherpages/js/tracker.js";
+      $this->trackerLocationJs = $this->trackerLocationJs ?? SITECLASS_OTHERPAGES."/js/tracker.js";
       $this->trackerLocationJs = $this->cacheBuster($this->trackerLocationJs);
       
       // add the location of the logging.js and logging.php files.
       
-      $this->interactionLocationJs = $this->interactionLocationJs ?? "https://bartonlp.com/otherpages/js/logging.js";
+      $this->interactionLocationJs = $this->interactionLocationJs ?? SITECLASS_OTHERPAGES."/js/logging.js";
       $this->interactionLocationJs = $this->cacheBuster($this->interactionLocationJs);
       // Add a cache buster
 
-      $this->interactionLocationPhp = $this->interactionLocationPhp ?? "https://bartonlp.com/otherpages/logging.php";
+      $this->interactionLocationPhp = $this->interactionLocationPhp ?? SITECLASS_OTHERPAGES."/logging.php";
       
       // tracker.php and beacon.php MUST be symlinked in bartonlp.com/otherpages
       // to the SiteClass 'includes' directory. This is because /var/www/site-class does not have
       // its own and therefore we can't get to it directly. https://bartonlp has its own
       // domain and we can get to it.
 
-      $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php"; // a symlink
-      $beaconLocation = $this->beaconLocation ?? "https://bartonlp.com/otherpages/beacon.php"; // a symlink
+      $trackerLocation = $this->trackerLocation ?? SITECLASS_OTHERPAGES."/tracker.php"; // a symlink
+      $beaconLocation = $this->beaconLocation ?? SITECLASS_OTHERPAGES."/beacon.php"; // a symlink
 
-      $logoImgLocation = $this->logoImgLocation ?? "https://bartonphillips.net";
+      $logoImgLocation = $this->logoImgLocation ?? SITECLASS_DEFAULT_NAME;
       $headerImg2Location = $this->headerImg2Location ?? $logoImgLocation;
 
       // The trackerImg... can start with http or https. If so use the full url.
@@ -272,7 +272,7 @@ EOF;
       } else {
         $phoneImg = $this->trackerImgPhone ? "$logoImgLocation$this->trackerImgPhone" : null; // BLP 2023-08-08 - 
       }
-      if(strpos($this->trackerImg2, "http") === 0 ) {
+      if(strpos($this->trackerImg2, "http") === 0) {
         $desktopImg2 = $this->trackerImg2;
       } else {
         $desktopImg2 = $this->trackerImg2 ? "$headerImg2Location$this->trackerImg2" : null; // BLP 2023-08-10 -
@@ -283,9 +283,9 @@ EOF;
         $phoneImg2 = $this->trackerImgPhone2 ? "$headerImg2Location$this->trackerImgPhone2" : null; // BLP 2023-08-10 - 
       }
 
-      // Should we track?
+      // Should we track and have doSiteClass true?
       
-      if($this->noTrack !== true) {
+      if($this->noTrack !== true && $this->doSiteClass === true && $this->dbinfo->engine == 'mysql') {
         $mysitemap = $this->mysitemap;
 
         // If we are 'tracking' users add tracker.js and logging.js
@@ -293,14 +293,13 @@ EOF;
         $trackerStr = "<script nonce='$this->nonce' src='$this->trackerLocationJs'></script>\n"; 
 
         // Now fill in the rest of $trackerStr.
-        // If noTrack or nodb then many of the items will be empty.
 
-        $page = basename($this->self); // BLP 2025-04-12 - get rid of the slash.
+        $page = basename($this->self); 
       
         $xtmp = <<<EOF
   <script nonce="$this->nonce">
   let thesite      = "$this->siteName",
-      theagent     = "$this->agent", // BLP 2025-04-08 - 
+      theagent     = "$this->agent", 
       theip        = "$this->ip",
       thepage      = "$page",
       trackerUrl   = "$trackerLocation",
@@ -311,7 +310,7 @@ EOF;
       desktopImg2  = "$desktopImg2";
       phoneImg2    = "$phoneImg2", 
       mysitemap    = "$mysitemap",
-      lastId       = "$this->LAST_ID", // BLP 2025-03-25 -
+      lastId       = "$this->LAST_ID",
       loggingphp   = "$this->interactionLocationPhp";
   </script>
 EOF;
@@ -321,8 +320,9 @@ EOF;
           $trackerStr .= "<script nonce='$this->nonce' src='$this->interactionLocationJs'></script>\n";
         }
       } else {
-        // Either or both noTrack and nodb were set.
-        // This is the code we use instead of tracker.js if noTrack or nodb are true.
+        // doSiteClass is false or not there.
+        // We can have noTrack true if we want the simple to use logagent.
+        // This is the code we use instead of tracker.js.
 
         $trackerStr =<<<EOF
 <script nonce='$this->nonce'>
@@ -332,16 +332,16 @@ EOF;
 
 const TRACKERJS_VERSION = "default_tracker.js_from_site_class_getPageHead";
 
-let noCssLastId = "$this->noCssLastId",
-    desktopImg  = "$desktopImg",
-    phoneImg    = "$phoneImg",
-    desktopImg2 = "$desktopImg2",
-    phoneImg2   = "$phoneImg2";
-
 const lastId = $("script[data-lastid]").attr("data-lastid");
 console.log("navigator.userAgentData: ", navigator.userAgentData);
 
 jQuery(document).ready(function($) {
+  let noCssLastId = "$this->noCssLastId",
+      desktopImg  = "$desktopImg",
+      phoneImg    = "$phoneImg",
+      desktopImg2 = "$desktopImg2",
+      phoneImg2   = "$phoneImg2";
+
   if(noCssLastId !== '1') {
     $("script[data-lastid]")
     .before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
@@ -350,7 +350,7 @@ jQuery(document).ready(function($) {
   let picture = '';
 
   if(!phoneImg) {
-    picture += "<img id='logo' src=" + desktopImg + " alt='desktopImage'>";
+    picture = "<img id='logo' src=" + desktopImg + " alt='desktopImage'>";
   } else if(!desktopImg) {
     picture += "<img id='logo' src=" + phoneImg + " alt='phoneImage'>";
   } else { // We have a phone and desktop image.
@@ -370,7 +370,7 @@ jQuery(document).ready(function($) {
   picture = '';
   
   if(!phoneImg2) {
-    picture += "<img id='headerImage2' src=" + desktopImg2 + " alt='desktopImage2'>";
+    picture = "<img id='headerImage2' src=" + desktopImg2 + " alt='desktopImage2'>";
   } else if(!desktopImg2) {
     picture += "<img id='headerImage2' src=" + phoneImg2 + " alt='phoneImage2'>";
   } else {
@@ -390,7 +390,7 @@ jQuery(document).ready(function($) {
 });
 </script>
 EOF;
-      } // End of logic is noTrack or nodb is true.
+      } // End of logic No doSiteClass
     } // End of $this->nojquery !=== true. That is we want jQuery.
 
     // Add language and things like a manafest etc. to the <html> tag.
@@ -464,24 +464,23 @@ EOF;
     $b->bodytag = $this->bodytag ?? "<body>";
     $b->mainTitle = $this->banner ?? $this->mainTitle;
 
-    // If we have nodb or noTrack then there will be no tracker.js or tracker.php
+    // If noTrack then there will be no tracker.js or tracker.php
     // so we can't set the images at all.
 
-    if($this->nodb !== true && $this->noTrack !== true) {
-      $trackerLocation = $this->trackerLocation ?? "https://bartonlp.com/otherpages/tracker.php";
+    if($this->noTrack !== true) {
+      $trackerLocation = $this->trackerLocation ?? SITECLASS_OTHERPAGES."/tracker.php";
 
-      // BLP 2024-12-17 - 
-      $b->image1 = "<!-- Image1 is provided by tracker.js if JavaScropt is not disabled -->\n";
+      $b->image1 = "<!-- Image1 is provided by tracker.js -->\n";
 
       // We start out with the <img id='headerImage2'> having the NO SCRIPT logo, because this will
       // be changed by tracker.js if the user has Javascript.
       
-      $b->image2 = "<!-- This is originally set to noscript.svg in SiteClass via 'image=noscriript.svg'. ".
-                "If JavaScript is enabled then tracker.js add the images from mysitemap.json, 'trackerImg1 or 2 etc. -->\n".
-                "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal".
-                "&amp;id=$this->LAST_ID&amp;image=/images/noscript.svg&amp;mysitemap=$this->mysitemap' alt='NO SCRIPT'>";
+      $b->image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal".
+                   "&amp;id=$this->LAST_ID&amp;image=/images/noscript.svg&amp;".
+                   "mysitemap=$this->mysitemap' alt='NO SCRIPT'>";
 
-      $b->image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?page=noscript&amp;id=$this->LAST_ID&amp;mysitemap=$this->mysitemap'>";
+      $b->image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?page=noscript&amp;".
+                   "id=$this->LAST_ID&amp;mysitemap=$this->mysitemap'>";
     }
 
     $b->logoAnchor = $this->logoAnchor ?? "https://www.$this->siteDomain";
@@ -578,8 +577,8 @@ EOF;
 
     // Add noGeo
 
-    if($this->noGeo !== true && $this->noTrack !== true && $this->nodb !== true) {
-      $geo = $this->geoLocation ?? "https://bartonphillips.net/js";
+    if($this->noGeo !== true && $this->noTrack !== true) {
+      $geo = $this->geoLocation ?? SITECLASS_DEFAULT_NAME."/js";
 
       $geo = $this->cacheBuster("$geo/geo.js");
       $geo = "<script src='$geo'></script>";

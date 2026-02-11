@@ -22,7 +22,7 @@ error_reporting($mask);
 
 define("SITELOAD_VERSION", "2.3.0siteload-pdo");
 define("SITECLASS_DIR", __DIR__);
-require_once("/var/www/vendor/autoload.php");
+require_once(__DIR__."/../../../autoload.php");
 
 use bartonlp\SiteClass\SiteClass;
 use bartonlp\SiteClass\Database;

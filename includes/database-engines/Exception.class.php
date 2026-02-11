@@ -114,7 +114,7 @@ EOF;
 
     $paramStr = $param ? "lastParam=$param\n" : null;
 
-    $error = "{$e->getMessage()} in {$e->getFile()} on line {$e->getLine()},".
+    $error = "{$e->getMessage()} in {$e->getFile()} on line {$e->getLine()},\n".
              "{$stackTrace}lastQuery=$last\n{$paramStr}$userId";
 
     // $err is for CLI
@@ -179,10 +179,7 @@ EOF;
       // Yes send full HTML
       $displayError = <<<EOF
 <style>
-@font-face {
-  font-family: 'FontFace'; /* This my custome name for the font-family. */
-  src: url(https://bartonphillips.net/fonts/ibm-plex-otf/IBMPlexSans-Regular.otf) format('opentype');
-}
+body { font-family: system-ui, sans-serif; }        
 .error_message {
   margin: 2em auto;
   padding: 1em;
@@ -191,7 +188,6 @@ EOF;
   background: #f8f8f8;
   border: 1px solid #ccc;
   border-radius: 8px;
-  font-family: 'FontFace', sans-serif;
   overflow-x: auto;
 }
 .error_message h1 {
@@ -210,7 +206,7 @@ EOF;
 <div class="error_message">
 <h1>$errorType</h1>
 <pre>
-$err
+$error
 </pre>
 </div>
 EOF;
