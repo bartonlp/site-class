@@ -124,8 +124,11 @@ class Database extends dbPdo {
         } else {
           $this->noCounter = true;
         }
+      } elseif($s->dbinfo->engine == "mysql") {
+        $s->noGeo = true;
+        parent::__construct($s);
       } else {
-        throw new \Exception(__CLASS__ . " " . __LINE__ . ": ENGINE=" . $this->dbinfo->engine);
+        throw new \Exception(__CLASS__ . " " . __LINE__ . ": ENGINE=" . $s->dbinfo->engine);
       }
       $this->logagent();
     }

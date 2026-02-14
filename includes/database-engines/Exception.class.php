@@ -112,10 +112,25 @@ EOF;
       $stackTrace = self::formatStackTrace($e);
     }
 
+    if($e->getPrevious()) {
+      $previous = "\nPrevious: " . $e->getPrevious()->getMessage() . "\n";
+    }
+                 
     $paramStr = $param ? "lastParam=$param\n" : null;
 
-    $error = "{$e->getMessage()} in {$e->getFile()} on line {$e->getLine()},\n".
-             "{$stackTrace}lastQuery=$last\n{$paramStr}$userId";
+    $file = $e->getFile();
+    $line = $e->getLine();
+    $message = $e->getMessage();
+    
+    $output = sprintf("#0 %s(%s) thrown in %s on line %s\n",
+                  get_class($e),
+                  $message,
+                  $file,
+                  $line
+                 );
+
+    $error = $output .
+             "{$stackTrace}{$previous}lastQuery=$last\n{$paramStr}$userId";
 
     // $err is for CLI
     
@@ -238,6 +253,7 @@ EOF;
     $output = '';
 
     foreach($trace as $index => $frame) {
+      $num = $index + 1;
       $func = $frame['function'] ?? 'unknown_function';
       $class = $frame['class'] ?? '';
       $type = $frame['type'] ?? '';
@@ -266,7 +282,7 @@ EOF;
       }
 
       $output .= sprintf("#%d %s%s%s(%s) called at [%s:%s]\n",
-                         $index,
+                         $num,
                          $class,
                          $type,
                          $func,

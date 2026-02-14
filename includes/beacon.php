@@ -19,7 +19,7 @@ CREATE TABLE `badplayer` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2141 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("BEACON_VERSION", "4.0.19beacon-pdo");
+define("BEACON_VERSION", "4.1.0beacon-pdo");
 
 // The normal beacon starts here.
 
@@ -92,8 +92,6 @@ if($S->sql("select botAsBits, isJavaScript, difftime, finger from $S->masterdb.t
   logInfo("beacon: NO record for $id, line=" . __LINE__);
 }
 
-// BLP 2023-08-08 - tracker.php does not do any 'exit' tracking any more!
-
 switch($type) {
   case "pagehide":
     $beacon =  BEACON_PAGEHIDE;
@@ -162,6 +160,6 @@ update $S->masterdb.tracker set botAsBits=botAsBits|$botAsBits, endtime=now(), c
 difftime=timestampdiff(second, starttime, now()),
 isJavaScript='$js' where id=$id");
 
-// BLP 2025-04-11 - update bots3 table.
+// Update bots3 table.
 
 $S->updateBots3($ip, $agent, $thepage, $site, $botAsBits);

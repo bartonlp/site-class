@@ -80,7 +80,7 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "5.0.0tracker-pdo");
+define("TRACKER_VERSION", "5.0.1tracker-pdo");
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -92,7 +92,7 @@ define("TRACKER_VERSION", "5.0.0tracker-pdo");
 //$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
 //$DEBUG_NOSCRIPT = true; // no script
 
-$_site = require_once getenv("SITELOADNAME"); // BLP 2025-04-04 - move to top.
+//$_site = require_once getenv("SITELOADNAME");
 
 // If you want the version defined ONLY and no other information.
 
@@ -100,10 +100,9 @@ if($__VERSION_ONLY === true) {
   return TRACKER_VERSION;
 }
 
+$_site = require_once getenv("SITELOADNAME");
 $_site->noTrack = true; // Don't track or do geo!
 $_site->noGeo = true;
-
-$S = new Database($_site);
 
 // START OF IMAGE and CSSTEST FUNCTIONS. These are NOT javascript but rather use $_GET.
 // NOTE: The image functions are GET calls from the original php file.
@@ -127,6 +126,8 @@ $S = new Database($_site);
 // table, and it does not have 'mysitemap'!
 
 if($_GET['page'] == "csstest") {
+  $S = new Database($_site);
+
   $msg = strtoupper($_GET['page']);
   $id = $_GET['id'];
 
@@ -185,6 +186,8 @@ if($type = $_GET['page']) {
   // If $mysitemap is empty we can't proceed.
 
   if(empty($mysitemap)) {
+    $S = new Database($_site);
+
     // Do I have an $id?
     
     if(is_numeric($id)) {
@@ -227,12 +230,12 @@ if($type = $_GET['page']) {
   // Is this from one of my domains?
 
   if(!in_array($x, ["bartonphillips.com", "bonnieburch.com", "bartonlp.com", "bartonphillips.net", "bartonlp.org",
-                    "newbernzig.com", "jt-lawnservice.com", "newbern-nc.info", "swam.us"]))
+                    "newbernzig.com", "jt-lawnservice.com", "newbern-nc.info", "swam.us",
+                    "bartonphillips.org", "bartonphillips.org:8000"
+                   ]))
   {
     // NOT one of my domains.
 
-    $id = $id ?? $S->LAST_ID;
-    
     goaway($S, "tracker $msg, require is not form my domains ($x): id=$id, type=$type, mysitemap=$mysitemap", __LINE__);
     // GOAWAYNOW (exit)
   }
@@ -336,7 +339,7 @@ from $S->masterdb.tracker where id=$id")) {
       $botAsBits |= BOTS_NOAGENT;
     }
 
-    // BLP 2025-04-23 - Do I expect $difftime to ever be true?
+    // Do I expect $difftime to ever be true?
     // This is happening because of a NORMAL or NOSCRIPT. I don't think it should be set yet.
 
     if($difftime) {
@@ -431,12 +434,12 @@ where id=$id");
 }
 // END OF GET LOGIC
 
-// BLP 2024-12-17 - Moved all of the JavaScript POST logic after the GET.
+// Moved all of the JavaScript POST logic after the GET.
 // ****************************************************************
 // All of the following are the result of a javascript interactionl
 // ****************************************************************
 
-// BLP 2023-09-10 - If this is a POST from tracker.js via ajax get the $_site via a
+// If this is a POST from tracker.js via ajax get the $_site via a
 // file_get_contents($_POST['mysitemap']) but use the host from $_site->dbinfo->host above. See
 // SiteClass::getPageHead(), siteload.php. 
 
@@ -466,7 +469,9 @@ if($_POST) {
   }
   
   $_site->dbinfo->host = $tmp; // Still use the original dbinfo->host
-}
+  $S = new Database($_site);
+} // This is not exit!! We save $S in Database.
+  // Now everything will be set to $S.
 
 // Post an ajax error message
 
@@ -511,15 +516,11 @@ if($_POST['page'] == 'start') {
     exit();
   }
 
-//  if($S->isMyIp($ip)) {
-//    $visits = 0;
-//  }
-
-  // BLP 2024-12-04 - use hex value for $js, remove $java.
+  // Use hex value for $js, remove $java.
   
   if($S->sql("select hex(botAsBits), isJavaScript, agent from $S->masterdb.tracker where id=$id")) {
     [$hexBotAsBits, $js, $agent] = $S->fetchrow('num');
-  } else { // BLP 2023-02-10 - add for debug
+  } else { 
     logInfo("tracker START2: id=$id, ip=$ip, site=$site, page=$thispage,  Select of id=$id failed, line=". __LINE__);
     exit();
   }
@@ -539,7 +540,7 @@ update $S->masterdb.tracker set isJavaScript=$js, referer='$ref', count=count+1 
   exit();
 }
 
-// load is an ajax call from tracker.js
+// 'load' is an ajax call from tracker.js
 
 if($_POST['page'] == 'load') {
   $id = $_POST['id'];
@@ -580,9 +581,9 @@ where id='$id'");
 // ON EXIT FUNCTION
 // NOTE: There will be very few clients that do not support beacon. Only very old versions of
 // browsers and of course MS-Ie. Therefore these should not happen often.
-// BLP 2022-10-27 - I have not seen one in several months so I am removing this logic and replacing
+// I have not seen one in several months so I am removing this logic and replacing
 // it with an error message!
-// BLP 2023-1-006 - Tor does not support 'beacon' so Tor comes here.
+// Tor does not support 'beacon' so Tor comes here.
 
 if($_POST['page'] == 'onexit') {
   $id = $_POST['id'];
@@ -593,6 +594,7 @@ if($_POST['page'] == 'onexit') {
   $type = $_POST['type'];
 
   logInfo("tracker onexit: id=$id, ip=$ip, site=$site, page=$thepage, type=$type, OLD BROWSER or TUR, agent=$agent, line=". __LINE__);
+  exit;
 }
 // END OF EXIT FUNCTIONS
 
