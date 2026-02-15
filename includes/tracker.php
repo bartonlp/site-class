@@ -101,8 +101,8 @@ if($__VERSION_ONLY === true) {
 }
 
 $_site = require_once getenv("SITELOADNAME");
-$_site->noTrack = true; // Don't track or do geo!
-$_site->noGeo = true;
+//$_site->noTrack = true; // Don't track or do geo!
+//$_site->noGeo = true;
 
 // START OF IMAGE and CSSTEST FUNCTIONS. These are NOT javascript but rather use $_GET.
 // NOTE: The image functions are GET calls from the original php file.
@@ -257,10 +257,13 @@ if($type = $_GET['page']) {
 
   // -----------------------------------------------
   // This is the second time we do noTrack and noGeo
-  $_site->noTrack = true; 
-  $_site->noGeo = true;   
+  //$_site->noTrack = true; 
+  //$_site->noGeo = true;   
 
   $S = new Database($_site);
+  $S->noTrack = true; // Don't track or do geo!
+  $S->noGeo = true;
+
   // -----------------------------------------------
   
   // *************************************************************************************************
@@ -447,14 +450,12 @@ if($_POST) {
   // Here isMeFalse is a string '1'.
   if($_POST['isMeFalse']) $_site->isMeFalse = true;
 
-  // BLP 2023-08-11 - This allow us to keep the tracker.php at bartonlp.com/otherpages with a
+  // This allow us to keep the tracker.php at bartonlp.com/otherpages with a
   // symlink to vendor/bartonlp/site-class/includes/tracker.php
   // There are two remote sites where I have to do a get_file_contentes(): HP-Envy and RPI.
-  // Every thing on the server can use require.
+  // Everything on the server can use require.
 
   $mysite = $_POST['mysitemap'];
-
-  $tmp = $_site->dbinfo->host; // BLP 2023-09-10 -
 
   unset($_site);
 
@@ -468,10 +469,12 @@ if($_POST) {
     exit();
   }
   
-  $_site->dbinfo->host = $tmp; // Still use the original dbinfo->host
   $S = new Database($_site);
-} // This is not exit!! We save $S in Database.
+  // This is not exit!! We save $S in Database.
   // Now everything will be set to $S.
+} 
+
+// $S is now valid!
 
 // Post an ajax error message
 

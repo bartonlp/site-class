@@ -57,7 +57,7 @@ class dbPdo extends PDO {
   use UserAgentTools; // This is a trait for isMe(), isMyIp(), isBot(), setSiteCookie() and getIp().
                       // Putting it here means these are available to the entire hierarchy.
   use WarningToExceptionHandler; 
-  
+
   /**
    * Constructor
    *
@@ -113,6 +113,16 @@ class dbPdo extends PDO {
     }
     
     $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']); // Be safe
+
+    if(is_null($s->dbinfo->engine)) {
+      // We pass $s which is esentially $_site with some stuff added.
+
+      $s->dbinfo = new \stdClass;
+        
+      $s->dbinfo->database = "barton";
+      $s->dbinfo->engine = "sqlite";
+      $s->noCounter = false;        
+    }
 
     // Move all of the arguments in $s to $this
     

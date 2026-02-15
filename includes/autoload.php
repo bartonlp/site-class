@@ -2,7 +2,7 @@
 // NOT WORKING!!!
 // Auto load classes for SiteClass
 
-namespace bartonlp\siteload;
+namespace bartonlp\autoload;
 
 // Standard mask for all versions
 $mask = E_ALL & ~E_DEPRECATED & ~E_WARNING & ~E_NOTICE;
@@ -25,52 +25,45 @@ function getSiteloadVersion() {
 function _callback($class) {
   switch($class) {
     case "SiteClass":
+      echo "autoload: ".__DIR__."/$class.class.php<br>";
       require(__DIR__."/$class.class.php");
       break;
     default:
+      echo "autoload: ".__DIR__."/database-engines/$class.class.php<br>";
       require(__DIR__."/database-engines/$class.class.php");
       break;
   }
 }
 
-if(spl_autoload_register("\bartonlp\siteload\_callback") === false) exit("Can't Autoload");
+if(spl_autoload_register("\bartonlp\autoload\_callback") === false) exit("Can't Autoload");
 
 require(__DIR__."/database-engines/helper-functions.php");
 
 \ErrorClass::setDevelopment(true);
 
-SiteExceptionHandler::init(); // Initialize the exception handler.
+\SiteExceptionHandler::init(); // Initialize the exception handler.
 
 date_default_timezone_set('America/New_York'); // Done here and in dbPdo.class.php constructor.
 
 // BLP 2024-01-31 -  If this is /var/www/html just return and get the info from mysitemap.json.
 
-if($_SERVER['HTTP_HOST'] == "195.252.232.86") return; 
+//if($_SERVER['HTTP_HOST'] == "195.252.232.86") return; 
 
 //vardump("server", $_SERVER);
 
 $mydir = dirname($_SERVER['SCRIPT_FILENAME']);
 //echo "script_filename: $mydir<br>";
-
+echo "here<br>";
 if($__VERSION_ONLY) {
   return SITELOAD_VERSION;
 } else {
-/*  if($_SERVER['HTTP_HOST'] == "bartonphillips.org") {
-    if(file_exists("../bartonphillips.org:8000")) $port = ":8000";
-    return json_decode(stripComments(file_get_contents("https://bartonphillips.org$port/mysitemap.json")));
-  } else {
-    return findsitemap(); // BLP 2024-10-30 - use ne findsitmap() function borowed from siteload.php with modifications
-  }
-*/
-  return findsitemap();
+  return findsitemap($mydir);
 }
 
 // Find the mysitemap.json. $mydir is a global. This is borrowed from siteload.php with
 // modification.
 
-function findsitemap() {
-  global $mydir;
-
+function findsitemap($mydir) {
   if(file_exists($mydir . "/mysitemap.json")) {
     // BLP 2023-08-17 - use the stripComments() from the helperfunctions.php
 

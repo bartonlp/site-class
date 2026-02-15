@@ -6,7 +6,7 @@ define("MY_IP", "195.252.232.86"); // My personal static IP address through Metr
 define("SITECLASS_DEFAULT_NAME", "https://bartonphillips.net");
 define("SITECLASS_OTHERPAGES", "https://bartonlp.com/otherpages");
 
-define("DEFINES_VERSION", "1.3.0defines-pdo");
+define("DEFINES_VERSION", "1.4.0defines-pdo");
 
 // Only if doSiteClass is true we do FULL database
 

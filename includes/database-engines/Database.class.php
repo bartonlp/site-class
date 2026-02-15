@@ -71,64 +71,38 @@ class Database extends dbPdo {
       return; // If we have NO DATABASE just return.
     }
 
+    parent::__construct($s); // After the constructor we have our $this.
+    
     // If we are doSiteClass is true we will do FULL database.
     
-    if($s->doSiteClass && $s->dbinfo->engine == "mysql") {
-      if($s->noTrack !== true) {
-        // We pass $s which is esentially $_site with some stuff added.
-    
-        parent::__construct($s); // dbPdo constructor.
+    if($this->doSiteClass && $this->dbinfo->engine == "mysql") {
+      // If we do have doSiteClass we will do FULL tracking.
 
-        // If we do have doSiteClass we will do FULL tracking.
+      try {
+        $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
+      } catch(\Exception $e) {
+        throw new \Exception(__CLASS__ . " " . __LINE__ . ": CheckIfTablesExist=" . $e->getMessage());
+      }
+      $this->isBot($this->agent); // This set $this->isBot, it also does isMe() so I never get set as a bot!
+      $this->logagent();   // Log the agent
+      $this->tracker();    // This logs Me and everybody else but uses the $this->isBot bitmap!
+      $this->updatemyip(); // Update myip if it is ME
 
-        try {
-          $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
-        } catch(\Exception $e) {
-          throw new \Exception(__CLASS__ . " " . __LINE__ . ": CheckIfTablesExist=" . $e->getMessage());
-        }
-        $this->isBot($this->agent); // This set $this->isBot, it also does isMe() so I never get set as a bot!
-        $this->logagent();   // Log the agent
-        $this->tracker();    // This logs Me and everybody else but uses the $this->isBot bitmap!
-        $this->updatemyip(); // Update myip if it is ME
+      // If 'count' is false we don't do these counters
 
-        // If 'count' is false we don't do these counters
+      if($this->count === true) {
+        // Get the count for hitCount. The hitCount is always
+        // updated (unless the counter table does not exist).
 
-        if($this->count === true) {
-          // Get the count for hitCount. The hitCount is always
-          // updated (unless the counter table does not exist).
-
-          $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
-        }
-      } 
+        $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
+      }
     } else {
-      // If we do NOT have doSiteClass
+      // NO doSiteClass
 
-      if(is_null($s->dbinfo->engine)) {
-        // We pass $s which is esentially $_site with some stuff added.
-
-        $s->dbinfo = new \stdClass;
-        
-        $s->dbinfo->database = "barton";
-        $s->dbinfo->engine = "sqlite";
-        
-        parent::__construct($s); // dbPdo constructor.
-
-        $this->noCounter = false;
-      } elseif($s->dbinfo->engine == "sqlite") {
-        // We pass $s which is esentially $_site with some stuff added.
-    
-        parent::__construct($s); // dbPdo constructor.
-
-        if($this->noTrack !== true) {
-          $this->noCounter = false;
-        } else {
-          $this->noCounter = true;
-        }
-      } elseif($s->dbinfo->engine == "mysql") {
-        $s->noGeo = true;
-        parent::__construct($s);
+      if($this->dbinfo->engine == "mysql" || $this->dbinfo->engine == "sqlite") {
+        $this->noGeo = true;
       } else {
-        throw new \Exception(__CLASS__ . " " . __LINE__ . ": ENGINE=" . $s->dbinfo->engine);
+        throw new \Exception(__CLASS__ . " " . __LINE__ . ": DATABASE-ENGINE=$this->dbinfo->database, $this->dbinfo->engine");
       }
       $this->logagent();
     }
