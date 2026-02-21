@@ -4,8 +4,7 @@
 // BLP 2025-04-20 - at some point I may add more type hints to this file.
 
 namespace bartonlp\SiteClass;
-use bartonlp\SiteClass\UserAgentTools;
-use bartonlp\SiteClass\WarningToExceptionHandler;
+
 use \PDO;
 use \PDOStatement;
 
@@ -56,7 +55,7 @@ class dbPdo extends PDO {
   
   use UserAgentTools; // This is a trait for isMe(), isMyIp(), isBot(), setSiteCookie() and getIp().
                       // Putting it here means these are available to the entire hierarchy.
-  use WarningToExceptionHandler; 
+  use WarnToExceptionHandler; 
 
   /**
    * Constructor

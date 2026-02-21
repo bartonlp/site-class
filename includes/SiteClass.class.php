@@ -9,7 +9,7 @@ namespace bartonlp\SiteClass;
  * @file SiteClass.class.php
  * @package SiteClass
  */
-define("SITE_CLASS_VERSION", "6.0.0pdo");
+define("SITE_CLASS_VERSION", "6.0.1pdo");
 
 // One class for all my sites
 /**
@@ -324,6 +324,9 @@ EOF;
         // We can have noTrack true if we want the simple to use logagent.
         // This is the code we use instead of tracker.js.
 
+        $trackerLocation = $trackerLocationJs = " ";
+        $beaconLocatin = " ";
+        
         $trackerStr =<<<EOF
 <script nonce='$this->nonce'>
 /* Minimal tracker.js logic if noTrack */
@@ -332,20 +335,13 @@ EOF;
 
 const TRACKERJS_VERSION = "default_tracker.js_from_site_class_getPageHead";
 
-const lastId = $("script[data-lastid]").attr("data-lastid");
 console.log("navigator.userAgentData: ", navigator.userAgentData);
 
 jQuery(document).ready(function($) {
-  let noCssLastId = "$this->noCssLastId",
-      desktopImg  = "$desktopImg",
-      phoneImg    = "$phoneImg",
-      desktopImg2 = "$desktopImg2",
-      phoneImg2   = "$phoneImg2";
-
-  if(noCssLastId !== '1') {
-    $("script[data-lastid]")
-    .before('<link rel="stylesheet" href="csstest-' + lastId + '.css" title="blp test">');
-  }
+  let desktopImg        = "$desktopImg",
+      phoneImg          = "$phoneImg",
+      desktopImg2       = "$desktopImg2",
+      phoneImg2         = "$phoneImg2";
   
   let picture = '';
 

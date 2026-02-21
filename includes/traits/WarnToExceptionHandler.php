@@ -8,7 +8,7 @@ namespace bartonlp\SiteClass;
  * based on registered function names that typically emit E_WARNING.
  */
 
-trait WarningToExceptionHandler {
+trait WarnToExceptionHandler {
   protected array $exceptionTriggers = [];
   protected bool $handlerRegistered = false;
 

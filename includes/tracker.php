@@ -100,7 +100,10 @@ if($__VERSION_ONLY === true) {
   return TRACKER_VERSION;
 }
 
-$_site = require_once getenv("SITELOADNAME");
+//$_site = require_once getenv("SITELOADNAME");
+$_site = require_once "/home/barton/site-class/includes/autoload.php";
+
+// I don't think I should do it.
 //$_site->noTrack = true; // Don't track or do geo!
 //$_site->noGeo = true;
 
@@ -141,6 +144,8 @@ if($_GET['page'] == "csstest") {
 insert ignore into $S->masterdb.badplayer (ip, site, page, type, errno, errmsg, agent, created, lasttime)
 values('$S->ip', '$S->siteName', '$S->self', '$msg', -980, 'NO_ID', '$S->agent', now(), now())");
 
+    logInfo("tracker.php: csstest.css-NO_ID, line=".__LINE__);
+    
     header("Content-Type: text/css");
     echo "/* csstest.css-NO_ID */";
     exit();
@@ -695,7 +700,7 @@ values('$S->ip', '$S->siteName', '$S->self', 'GOAWAYNOW', '$errno', '$errmsg', '
 
     // This is the GOAWAYNOW logic.
 
-    logInfo("$msg, GOAWAYNOW, errno=$errno, errmsg=$errmsg, line=$line");
+    logInfo("tracker.php: $msg, GOAWAYNOW, errno=$errno, errmsg=$errmsg, line=$line");
   } else {
     // Here we have a valid mysitemap.json from the caller via $mysitemap.
     
@@ -724,7 +729,7 @@ on duplicate key update count=count+1, botAsBits=botAsBits|$botAsBits, isJavaScr
 
       $errmsg = "$msg, No id. No tracker logic triggered";
 
-      logInfo("$errmsg, line=$line");
+      logInfo("tracker.php: $errmsg, line=$line");
       
       $S->sql("
 insert into $S->masterdb.badplayer (ip, id, site, page, type, errno, errmsg, agent, created, lasttime)
@@ -743,7 +748,7 @@ values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg',
     $req = $_REQUEST ? ", \$_REQUEST $req" : '';
     $id = $id ?? "NO_ID";
 
-    logInfo("$msg, finger=$finger{$req}, line=$line");
+    logInfo("tracker.php: $msg, finger=$finger{$req}, line=$line");
 
     // Now try to update the tracker record (if it exists) with TRACKER_GOAWAY.
 
@@ -755,7 +760,7 @@ values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg',
 
       $err = $e->getCode();
       $errmsg = $e->getMessage();
-      logInfo("$msg, No tracker record to update, line=$line");
+      logInfo("tracker.php: $msg, No tracker record to update, line=$line");
     }
   }
 

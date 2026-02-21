@@ -4,7 +4,7 @@
 // Set the namespace the same as in includes/siteload.php
 // NOTE: this means that all non namespace item must have a \ prefix!
 
-namespace bartonlp\siteload;
+namespace bartonlp\SiteClass;
 use SendGrid\Mail\Mail;
 use bartonlp\SiteClass\dbPdo;
 

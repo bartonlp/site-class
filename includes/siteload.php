@@ -7,7 +7,7 @@
 // So we take this and if we do not find the files at first we do a $mysite = dirname($mysite) and
 // then do a chdir($mysite); This may not be DOCUMENT_ROOT + ... but may the REAL path.
 
-namespace bartonlp\siteload;
+namespace bartonlp\SiteClass; // We have used SiteClass instead of siteload.
 
 // Standard mask for all versions
 $mask = E_ALL & ~E_DEPRECATED & ~E_WARNING & ~E_NOTICE;
@@ -22,17 +22,11 @@ error_reporting($mask);
 
 define("SITELOAD_VERSION", "2.3.0siteload-pdo");
 define("SITECLASS_DIR", __DIR__);
-require_once(__DIR__."/../../../autoload.php");
+require_once(SITECLASS_DIR."/../../../autoload.php");
 
-use bartonlp\SiteClass\SiteClass;
-use bartonlp\SiteClass\Database;
-use bartonlp\SiteClass\dbPdo;
-use bartonlp\SiteClass\dbTables;
-
-class_alias(SiteClass::class, 'SiteClass');
-class_alias(Database::class, 'Database');
-class_alias(dbPdo::class, 'dbPdo');
-class_alias(dbTables::class, 'dbTables');
+class_alias('\bartonlp\SiteClass\SiteClass', 'SiteClass');
+class_alias('\bartonlp\SiteClass\Database', 'Database');
+class_alias('\bartonlp\SiteClass\dbPdo', 'dbPdo');
 
 require_once(SITECLASS_DIR . "/database-engines/helper-functions.php");
 
@@ -56,8 +50,6 @@ if(!class_exists("getinfo")) {
     private $docroot;
     private $mydir;
     private $_site;
-    // BLP 2024-12-17 - remove static
-    //public static $mysitemap; // BLP 2023-08-11 - This is used by tracker.js and tracker.php to get the right $_site.
     
     public function __construct() {
       // Now check to see if we have a DOCUMENT_ROOT or VIRTUALHOST_DOCUMENT_ROOT.
@@ -175,7 +167,7 @@ EOF;
 
 $_site = (new getinfo())->getSite();
 
-// BLP 2022-01-12 -- If $_site is NULL that means the json_decode() failed.
+// If $_site is NULL that means the json_decode() failed.
 
 if(is_null($_site)) {
   echo <<<EOF

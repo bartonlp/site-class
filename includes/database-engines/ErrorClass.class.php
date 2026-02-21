@@ -1,9 +1,11 @@
 <?php
 /* MAINTAINED and WELL TESTED */
 
-//namespace bartonlp\SiteClass;
+// I am not doing 'namespace bartonlp\SiteClass';.
+// I use \ErrorClass::... like \Exception etc.
+// These all require \... .
 
-define("ERROR_CLASS_VERSION", "4.0.2.1error-pdo"); // BLP 2025-04-29 - removed errLast and added noLastQuery
+define("ERROR_CLASS_VERSION", "4.0.2.1error-pdo");
 
 // Error class.
 
