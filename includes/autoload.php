@@ -18,31 +18,38 @@ if (PHP_VERSION_ID < 80400) {
 error_reporting($mask);
 define("SITELOAD_VERSION", "1.0.0autoload-pdo");
 define("SITECLASS_DIR", __DIR__);
+//$myfile = basename(__FILE__);
 
-function _callback($class) {
-  $class = ltrim($class, '\\');
-  $parts = explode('\\', $class);
-  $className = end($parts);
-  //error_log("dir: ".__DIR__);
-  $base = SITECLASS_DIR . "/"; 
+//if($myfile === 'autoload.php') {
+if($mysiteload !== true) {
+  // Do autoload
+  function _callback($class) {
+    $class = ltrim($class, '\\');
+    $parts = explode('\\', $class);
+    $className = end($parts);
+    //error_log("dir: ".__DIR__);
+    $base = SITECLASS_DIR . "/"; 
 
-  $paths = [
-            $base . $className . ".class.php",
-            $base . "database-engines/" . $className . ".class.php",
-            $base . "traits/" . $className . ".php",
-           ];
+    $paths = [
+              $base . $className . ".class.php",
+              $base . "database-engines/" . $className . ".class.php",
+              $base . "traits/" . $className . ".php",
+             ];
 
-  foreach($paths as $file) {
-    //echo "file: $file<br>";
-    if(file_exists($file)) {
-      require $file;
-      return;
+    foreach($paths as $file) {
+      //echo "file: $file<br>";
+      if(file_exists($file)) {
+        require $file;
+        return;
+      }
     }
+    echo "Not Done. paths=" . print_r($paths, true) ."<br>";
   }
-  echo "Not Done. paths=" . print_r($paths, true) ."<br>";
-}
 
-if(spl_autoload_register('bartonlp\SiteClass\_callback') === false) exit("Can't Autoload");
+  if(spl_autoload_register('bartonlp\SiteClass\_callback') === false) exit("Can't Autoload");
+} //else {
+  //require_once(SITECLASS_DIR."/../../../autoload.php");
+//}
 
 require(SITECLASS_DIR ."/database-engines/helper-functions.php");
 
@@ -103,36 +110,6 @@ class getinfo {
 
     $this->_site->siteloadVersion = SITELOAD_VERSION;
     $this->_site->siteClassDir = SITECLASS_DIR;
-
-    if($mode = $this->_site->errorMode) {
-      if($mode->development === true) { // true we are in development
-        \ErrorClass::setDevelopment(true); // Do this first because it sets NoEmailErrs to true.
-      }
-
-      // If this is true set it if it is false unset it but if it is null don't do anything! 
-
-      if($mode->noEmail === true) { // true means let there be emails
-        \ErrorClass::setNoEmail(true); 
-      } elseif($mode->noEmail === false) { // only if false, a null does nothing here.
-        \ErrorClass::setNoEmail(false); 
-      } 
-
-      if($mode->noHtml === true) { 
-        \ErrorClass::setNoHtml(true); // NO HTML Tags
-      }
-
-      if($mode->noOutput === true) {
-        \ErrorClass::setNoOutput(true);
-      }
-
-      if($mode->noBacktrace === true) {
-        \ErrorClass::setNobacktrace(true);
-      }
-
-      if($mode->errLast == true) {
-        \ErrorClass::setErrlast(true);
-      }
-    }
   }
 
   public static function getVersion() {
