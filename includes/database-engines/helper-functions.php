@@ -676,6 +676,6 @@ function logInfo(string $info) {
     $info = "(MESSAGE) $info";
   }
   $date = date("[Y-m-d H:i:s]");
-  $info = "$date $info\n";
-  error_log("helper-functions, logInfo: $info");
+  $info = "$date $info";
+  error_log("$info");
 }
