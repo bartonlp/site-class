@@ -47,9 +47,7 @@ if($mysiteload !== true) {
   }
 
   if(spl_autoload_register('bartonlp\SiteClass\_callback') === false) exit("Can't Autoload");
-} //else {
-  //require_once(SITECLASS_DIR."/../../../autoload.php");
-//}
+}
 
 require(SITECLASS_DIR ."/database-engines/helper-functions.php");
 

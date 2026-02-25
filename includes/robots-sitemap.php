@@ -89,5 +89,5 @@ on duplicate key update count=count+1, lasttime=now()");
   $S->updateBots3($ip, $agent, $file, $S->siteName, $botBits);
 
   $hexBotBits = dechex($botBits);
-  logInfo("$file: ip=$ip, page=$file, site=$S->siteName, robots=$hexBotBits");
+  logInfo("$file: ip=$ip, page=$file, site=$S->siteName, robots=$hexBotBits, line=".__LINE__);
 }

@@ -4,10 +4,9 @@
 // which does the logging.
 // I have created a new table.
 /*
-BLP 2025-03-29 - 
-  `event` is a string of name1,name2... These is the $event value. It is concatinated onto the
-  value if there is a value. These events should only happen once per $id, so you could have
-  scroll,click,...
+`event` is a string of name1,name2... This is the $event value. It is concatinated onto the
+value, if there is a value. These events should only happen once per $id, so you could have
+scroll,click,...
 
 CREATE TABLE `interaction` (
 `index` int NOT NULL AUTO_INCREMENT,
@@ -26,6 +25,8 @@ UNIQUE KEY `id_ip_site_page` (`id`,`ip`,`site`,`page`)
 */
 
 $_site = require_once getenv("SITELOADNAME");
+//$_site = require_once getenv("AUTOLOADNAME");
+
 $_site->noTrack = true;
 $S = new dbPdo($_site);
 
@@ -52,8 +53,6 @@ if($_POST) {
 insert into $S->masterdb.interaction (id, ip, site, page, event, time, created)
 values('$id', '$ip', '$site', '$page', '$event', '$ts', now())
 on duplicate key update event=concat_ws(',', event, '$event'), count=count+1");
-
-    // BLP 2025-04-18 - Use New logic to create a $db for updateBots3();
 
     $_site->nojquery = true;
 

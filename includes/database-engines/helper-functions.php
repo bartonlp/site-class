@@ -673,9 +673,9 @@ function escapeaposDeep(string $value): string {
  */
 function logInfo(string $info) {
   if(!str_contains($info, ':')) {
-    $info = "MESSAGE: $info";
+    $info = "(MESSAGE) $info";
   }
   $date = date("[Y-m-d H:i:s]");
   $info = "$date $info\n";
-  file_put_contents('/var/www/data/info.log', $info, FILE_APPEND);
+  error_log("helper-functions, logInfo: $info");
 }
