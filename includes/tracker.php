@@ -287,7 +287,7 @@ values('$S->ip', '$S->siteName', '$S->self', '$msg', '$errno', '$errmsg', '$S->a
     $S->sql($sql);
     goaway($S,
            "tracker GET ID_IS_NOT_NUMERIC: id=$id, ip=$S->ip, site=$S->siteName, ".
-           "errno=$errno, errmsg=$errmsg, agent=$S->agent", __LINE__, true);
+           "errno=$errno, errmsg=$errmsg, agent=$S->agent, line=", __LINE__, true);
     // GOAWAY (exit)
   }
 
@@ -696,7 +696,7 @@ values('$S->ip', '$S->siteName', '$S->self', 'GOAWAYNOW', '$errno', '$errmsg', '
 
     // This is the GOAWAYNOW logic.
 
-    logInfo("tracker.php: $msg, GOAWAYNOW, errno=$errno, errmsg=$errmsg, myline=$myline, line=".__LINE__);
+    logInfo("tracker.php: $msg, GOAWAYNOW, errno=$errno, errmsg=$errmsg, line=$myline");
   } else {
     // Here we have a valid mysitemap.json from the caller via $mysitemap.
     
@@ -704,7 +704,7 @@ values('$S->ip', '$S->siteName', '$S->self', 'GOAWAYNOW', '$errno', '$errmsg', '
 
     if(!is_numeric($id)) {
       $errno = "-103";  
-      $errmsg = "$msg, NO ID, No tracker logic triggered, myline=$myline";
+      $errmsg = "$msg, NO ID, No tracker logic triggered";
 
       // No id
 
@@ -725,7 +725,7 @@ on duplicate key update count=count+1, botAsBits=botAsBits|$botAsBits, isJavaScr
 
       $errmsg = "$msg, No id. No tracker logic triggered";
 
-      logInfo("tracker.php: $errmsg, myline=$myline, line=".__LINE__);
+      logInfo("tracker.php: $errmsg, line=$myline");
       
       $S->sql("
 insert into $S->masterdb.badplayer (ip, id, site, page, type, errno, errmsg, agent, created, lasttime)
@@ -744,7 +744,7 @@ values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg',
     $req = $_REQUEST ? ", \$_REQUEST $req" : '';
     $id = $id ?? "NO_ID";
 
-    logInfo("tracker.php: $msg, finger=$finger{$req}, myline=$myline, line=".__LINE__);
+    logInfo("tracker.php: $msg, finger=$finger{$req}, line=$myline");
 
     // Now try to update the tracker record (if it exists) with TRACKER_GOAWAY.
 
@@ -756,7 +756,7 @@ values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg',
 
       $err = $e->getCode();
       $errmsg = $e->getMessage();
-      logInfo("tracker.php: $msg, No tracker record to update, myline=$myline, line=".__LINE__);
+      logInfo("tracker.php: No tracker record to update, $errmsg, line=$myline");
     }
   }
 
