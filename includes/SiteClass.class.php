@@ -470,12 +470,15 @@ EOF;
 
       // We start out with the <img id='headerImage2'> having the NO SCRIPT logo, because this will
       // be changed by tracker.js if the user has Javascript.
+
+      $mypage = $this->doSiteClass ? "page=normal&amp;" : null;
+      $myscript = $this->doSiteClass ? "page=noscript&amp;" : null;
       
-      $b->image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?page=normal".
-                   "&amp;id=$this->LAST_ID&amp;image=/images/noscript.svg&amp;".
+      $b->image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?$mypage".
+                   "id=$this->LAST_ID&amp;image=/images/noscript.svg&amp;".
                    "mysitemap=$this->mysitemap' alt='NO SCRIPT'>";
 
-      $b->image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?page=noscript&amp;".
+      $b->image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?$myscript".
                    "id=$this->LAST_ID&amp;mysitemap=$this->mysitemap'>";
     }
 
