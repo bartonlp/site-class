@@ -741,14 +741,10 @@ values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg',
     }
     $req = rtrim($req, ', ');
     
-    //$req = $_REQUEST ? "\$_REQUEST $req" : '';
     $id = $id ?? "NO_ID";
 
-    logInfo("tracker.php: $msg, finger=$finger{$req}, line=$myline");
+    logInfo("tracker.php: $msg, finger=$finger, req=$req, line=$myline");
 
-    error_log("***tracker.php: req=$req, line=$myline");
-    error_log("***tracker.php: $msg, finger=$fingere, req=$req, line=$myline");
-    
     // Now try to update the tracker record (if it exists) with TRACKER_GOAWAY.
 
     try {
