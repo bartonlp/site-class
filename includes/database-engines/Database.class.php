@@ -9,7 +9,7 @@ namespace bartonlp\SiteClass;
  * @file database/Database.class.php
  * @package SiteClass
  */
-define("DATABASE_CLASS_VERSION", "2.0.0database-pdo"); 
+define("DATABASE_CLASS_VERSION", "2.0.2database-pdo"); 
 /**
  * @file database/Database.class.php
  * @package SiteClass
@@ -99,6 +99,8 @@ class Database extends dbPdo {
     } else {
       // NO doSiteClass
 
+      $this->trackerLocationJs = $this->trackerLocation = $this->beaconLocation = " ";
+      
       if($this->dbinfo->engine == "mysql" || $this->dbinfo->engine == "sqlite") {
         $this->noGeo = true;
       } else {

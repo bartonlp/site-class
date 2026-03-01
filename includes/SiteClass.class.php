@@ -9,7 +9,7 @@ namespace bartonlp\SiteClass;
  * @file SiteClass.class.php
  * @package SiteClass
  */
-define("SITE_CLASS_VERSION", "6.0.1pdo");
+define("SITE_CLASS_VERSION", "6.0.2pdo");
 
 // One class for all my sites
 /**
@@ -324,9 +324,6 @@ EOF;
         // We can have noTrack true if we want the simple to use logagent.
         // This is the code we use instead of tracker.js.
 
-        $trackerLocation = $trackerLocationJs = " ";
-        $beaconLocatin = " ";
-        
         $trackerStr =<<<EOF
 <script nonce='$this->nonce'>
 /* Minimal tracker.js logic if noTrack */
