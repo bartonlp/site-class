@@ -47,6 +47,9 @@ if($mysiteload !== true) {
   }
 
   if(spl_autoload_register('bartonlp\SiteClass\_callback') === false) exit("Can't Autoload");
+} else {
+  // I do composer.
+  require __DIR__."/../../../autoload.php";
 }
 
 require(SITECLASS_DIR ."/database-engines/helper-functions.php");

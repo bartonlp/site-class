@@ -402,7 +402,7 @@ where id=$id");
   // page has done things to $_site. So NOTHING you do in the original page will affect these $S
   // values!!!
   
-  $img = $S->defaultImage ?? "/var/www/bartonphillips.net/images/blank.png";
+  $img = $S->defaultImage ?? SITECLASS_DEFAULT_NAME."/images/blank.png";
 
   // $type='noscript' has NO $image so it uses the default image above which is normally blank.png.
   // $type='normal' has an $image
@@ -414,14 +414,20 @@ where id=$id");
       $img = $image; // $image has the full url starting with http (could be https)
     } else {
       $trackerLocation = $S->trackerLocation ?? SITECLASS_DEFAULT_NAME;
-      $img = "$trackerLocation/$image";
+      $img = "$trackerLocation$image";
     }
   }
     
   $imageType = pathinfo($img, PATHINFO_EXTENSION); //preg_replace("~.*\.(.*)$~", "$1", $img);
 
-  $imgFinal = file_get_contents($img);
+  // If this $img is not existing.
+  
+  if(!file_exists($img)) {
+    exit;
+  }
 
+  $imgFinal = file_get_contents($img);
+  
   if($imageType == 'svg') $imageType = "image/svg+xml";
 
   header("Content-Type: $imageType");

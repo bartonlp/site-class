@@ -154,7 +154,7 @@ jQuery(document).ready(function($) {
   } else if(!desktopImg) {
     picture += "<img id='logo' src=" + phoneImg + " alt='phoneImage'>";
   } else { // We have a phone and desktop image.
-    picture = "<picture id='logo'>";
+    picture += "<picture id='logo'>";
     picture += "<source srcset=" + phoneImg + " media='((hover: none) and (pointer: coarse))' alt='phoneImage'>";
     picture += "<source srcset=" + desktopImg + " media='((hover: hover) and (pointer: fine))' alt='desktopImage'>";
     picture += "<img src=" + phoneImg + " alt='phoneImage'>";
