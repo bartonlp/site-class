@@ -325,6 +325,19 @@ values('$this->siteName', '$this->ip', '$this->agent', '1', now(), now())
 on duplicate key update count=count+1, lasttime=now()");
     } else {
       // This is the sqlite locic.
+
+      // We always try to write the lobagent
+
+      $this->sql("
+CREATE TABLE IF NOT EXISTS logagent (`site` varchar(25) NOT NULL DEFAULT '',
+`ip` varchar(40) NOT NULL DEFAULT '',
+`agent` varchar(254) NOT NULL,
+`count` int DEFAULT NULL,
+`created` datetime DEFAULT NULL,
+`lasttime` datetime DEFAULT NULL,
+PRIMARY KEY (`site`,`ip`,`agent`))
+");
+      // Now do an insert
       
       try {
         $this->sql("
