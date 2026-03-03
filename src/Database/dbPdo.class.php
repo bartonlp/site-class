@@ -3,12 +3,12 @@
 // BLP 2024-04-20 - set mysql timezone!
 // BLP 2025-04-20 - at some point I may add more type hints to this file.
 
-namespace bartonlp\SiteClass;
+namespace bartonlp\SiteClass\Database;
 
 use \PDO;
 use \PDOStatement;
 
-define("PDO_CLASS_VERSION", "2.0.0pdo");
+define("PDO_CLASS_VERSION", "7.0.0");
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 

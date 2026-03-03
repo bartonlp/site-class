@@ -80,7 +80,7 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "5.1.0tracker-pdo");
+define("TRACKER_VERSION", "7.0.0");
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load

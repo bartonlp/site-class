@@ -5,7 +5,7 @@
 
 namespace bartonlp\whatisloaded;
 
-define("WHATISLOADED_VERSION", "1.0.2whatis-pdo"); // BLP 2024-01-12 - Pdo back to Sql
+define("WHATISLOADED_VERSION", "7.0.0"); // BLP 2024-01-12 - Pdo back to Sql
 
 (function() {
   class WhatIsLoaded {

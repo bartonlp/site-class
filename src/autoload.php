@@ -16,7 +16,7 @@ if (PHP_VERSION_ID < 80400) {
 }
 
 error_reporting($mask);
-define("SITELOAD_VERSION", "1.0.0autoload-pdo");
+define("SITELOAD_VERSION", "1.0.0");
 define("SITECLASS_DIR", __DIR__);
 //$myfile = basename(__FILE__);
 

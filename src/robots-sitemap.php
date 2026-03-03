@@ -6,7 +6,7 @@
 // saves it in the bots3 table.
 // NOTE: this file can only be run using PDO with the mysql engine!
 
-define("ROBOT_SITEMAP_VERSION", '4.0.1');
+define("ROBOT_SITEMAP_VERSION", '7.0.0');
 
 $_site = require_once(getenv("SITELOADNAME"));
 // Do not do Google's Geo mapping products (Maps, Earth, Street View)

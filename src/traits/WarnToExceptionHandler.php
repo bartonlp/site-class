@@ -1,6 +1,6 @@
 <?php
 
-namespace bartonlp\SiteClass;
+namespace bartonlp\SiteClass\traits;
 
 /**
  * Trait: WarningToExceptionHandler

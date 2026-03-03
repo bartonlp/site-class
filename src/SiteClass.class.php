@@ -9,7 +9,7 @@ namespace bartonlp\SiteClass;
  * @file SiteClass.class.php
  * @package SiteClass
  */
-define("SITE_CLASS_VERSION", "6.0.2pdo");
+define("SITE_CLASS_VERSION", "7.0.0");
 
 // One class for all my sites
 /**

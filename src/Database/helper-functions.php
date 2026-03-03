@@ -1,8 +1,7 @@
 <?php
 /* HELPER FUNCTIONS. Well tested and maintained */
-// BLP 2025-12-30 - added escapeOnlyScripts()
 
-define("HELPER_FUNCTION_VERSION", "1.2.3helper-pdo"); 
+define("HELPER_FUNCTION_VERSION", "7.0.0"); 
 
 $DEBUG = true;
 
@@ -104,19 +103,15 @@ function stripComments($x) {
 
 // Put a line with escaping
 
-if(!function_exists('put')) {
-  function put($msg) {
-    $msg = escapeltgt($msg);
-    echo "<pre>$msg</pre>\n";
-  }
+function put($msg) {
+  $msg = escapeltgt($msg);
+  echo "<pre>$msg</pre>\n";
 }
 
 // Put a line with no escaping
 
-if(!function_exists('putNoEscape')) {
-  function putNoEscape($msg) {
-    echo "<pre>$msg</pre>";
-  }
+function putNoEscape($msg) {
+  echo "<pre>$msg</pre>";
 }
 
 /**
@@ -127,30 +122,26 @@ if(!function_exists('putNoEscape')) {
  * @return original $value stripped clean of slashes.
  */
 
-if(!function_exists('stripSlashesDeep')) {
-  function stripSlashesDeep($value) {
-    $value = is_array($value) ? array_map('stripSlashesDeep', $value) : stripslashes($value); 
-    return $value;
-  }
+function stripSlashesDeep($value) {
+  $value = is_array($value) ? array_map('stripSlashesDeep', $value) : stripslashes($value); 
+  return $value;
 }
 
 // This does a deep conversion from an object to an array
 
-if(!function_exists('objectToArrayDeep')) {
-  function objectToArrayDeep($obj) {
-    if(is_object($obj)) {
-      $obj = (array) $obj;
-    }
-    if(is_array($obj)) {
-      $new = array();
-      foreach($obj as $key => $val) {
-        $new[$key] = objectToArrayDeep($val);
-      }
-    } else {
-      $new = $obj;
-    }
-    return $new;       
+function objectToArrayDeep($obj) {
+  if(is_object($obj)) {
+    $obj = (array) $obj;
   }
+  if(is_array($obj)) {
+    $new = array();
+    foreach($obj as $key => $val) {
+      $new[$key] = objectToArrayDeep($val);
+    }
+  } else {
+    $new = $obj;
+  }
+  return $new;       
 }
 
 // This does a deep conversion from an array to an object
@@ -554,7 +545,6 @@ function addClassesToTableColumns_dom_x(string $desc, array $columns, string $pr
   foreach($table->childNodes as $child) $out .= $dom->saveHTML($child);
   return $out;
 }
-
 
 function addClassesToTableColumns_dom(string $desc, array $columns, string $prefix=''):string {
   // Build two maps: base (unprefixed) and target (prefixed)

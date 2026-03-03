@@ -3,13 +3,13 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-namespace bartonlp\SiteClass;
+namespace bartonlp\SiteClass\Database;
 
 /**
  * @file database/Database.class.php
  * @package SiteClass
  */
-define("DATABASE_CLASS_VERSION", "2.0.2database-pdo"); 
+define("DATABASE_CLASS_VERSION", "7.0.0"); 
 /**
  * @file database/Database.class.php
  * @package SiteClass

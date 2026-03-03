@@ -4,11 +4,11 @@
 // Set the namespace the same as in includes/siteload.php
 // NOTE: this means that all non namespace item must have a \ prefix!
 
-namespace bartonlp\SiteClass;
+namespace bartonlp\SiteClass\Database;
 use SendGrid\Mail\Mail;
-use bartonlp\SiteClass\dbPdo;
+use bartonlp\SiteClass\Database\dbPdo;
 
-define("EXCEPTION_VERSION", "2.0.0exception");
+define("EXCEPTION_VERSION", "7.0.0");
 
 class SiteExceptionHandler {
   private static bool $initialized = false;

@@ -1,7 +1,9 @@
 <?php
 // ChatCPT BLP 2025-05-11
 
-define("DBTABLE_CLASS_VERSION", "1.0.2dbTables-pdo");  
+namespace bartonlp\SiteClass\Database;
+
+define("DBTABLE_CLASS_VERSION", "7.0.0");  
 
 // Make database tables given either a SiteClass or Database class object.
 
