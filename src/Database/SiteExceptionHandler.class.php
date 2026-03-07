@@ -1,14 +1,13 @@
 <?php
-// Exception Class.
+// SiteExceptionHandler Class.
 // Handle all exceptions and errors
 // Set the namespace the same as in includes/siteload.php
 // NOTE: this means that all non namespace item must have a \ prefix!
 
-namespace bartonlp\SiteClass;
+namespace bartonlp\SiteClass\Database;
 use SendGrid\Mail\Mail;
-use bartonlp\SiteClass\dbPdo;
 
-define("EXCEPTION_VERSION", "2.0.0exception");
+define("EXCEPTION_VERSION", "7.0.0");
 
 class SiteExceptionHandler {
   private static bool $initialized = false;
@@ -52,7 +51,7 @@ class SiteExceptionHandler {
           header('Content-Type: text/html; charset=utf-8');
         }
 
-        if(\ErrorClass::getNoHtml() === true) {
+        if(ErrorClass::getNoHtml() === true) {
           echo "FATAL ERROR: {$error['message']} in {$error['file']} on line {$error['line']}";
         } else {
           echo <<<EOF
@@ -84,7 +83,7 @@ EOF;
 
     $last = $param = null;
 
-    if(\ErrorClass::getNoLastQuery() !== true && class_exists('dbPdo', false)) {
+    if(ErrorClass::getNoLastQuery() !== true && class_exists('dbPdo', false)) {
       $last  = dbPdo::$lastQuery ?? null;
       $param = dbPdo::$lastParam ?? null;
     }
@@ -93,7 +92,7 @@ EOF;
 
     $userId = '';
 
-    if(\ErrorClass::getNoErrorId() !== true) {
+    if(ErrorClass::getNoErrorId() !== true) {
       if(function_exists('ErrorGetId')) {
         $userId = "User: " . \ErrorGetId();
       }
@@ -108,7 +107,7 @@ EOF;
       }
     }
 
-    if(\ErrorClass::getNoBackTrace() !== true) {
+    if(ErrorClass::getNoBackTrace() !== true) {
       $stackTrace = self::formatStackTrace($e);
     }
 
@@ -138,7 +137,7 @@ EOF;
     
     // Should we send an email?
 
-    if(\ErrorClass::getNoEmail() !== true) {
+    if(ErrorClass::getNoEmail() !== true) {
       $s = $GLOBALS["_site"];
       error_log("SENDGRID");
       $email = new Mail();
@@ -177,7 +176,7 @@ EOF;
 
     // Are we in development mode?
     
-    if(\ErrorClass::getDevelopment() !== true) {
+    if(ErrorClass::getDevelopment() !== true) {
       // Not in development mod. Minimal error message
       $displayError = <<<EOF
 <p>The webmaster has been notified of this error and it should be fixed shortly. Please try again in a couple of hours.</p>
@@ -186,7 +185,7 @@ EOF;
 
     // Should we send HTML output?
     
-    if(\ErrorClass::getNoHtml() === true) {
+    if(ErrorClass::getNoHtml() === true) {
       // No HTML
       
       $displayError = "$errorType: $err"; // No HTML means /n only
@@ -229,7 +228,7 @@ EOF;
 
     // Should we output this message to the screen?
     
-    if(\ErrorClass::getNoOutput() !== true) {
+    if(ErrorClass::getNoOutput() !== true) {
       // Yes, output it.
       
       //************************

@@ -3,7 +3,7 @@
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
-namespace bartonlp\SiteClass;
+namespace bartonlp\SiteClass\Database;
 
 /**
  * @file database/Database.class.php
@@ -80,8 +80,8 @@ class Database extends dbPdo {
 
       try {
         $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
-      } catch(\Exception $e) {
-        throw new \Exception(__CLASS__ . " " . __LINE__ . ": CheckIfTablesExist=" . $e->getMessage());
+      } catch(\Throwable $e) {
+        throw new \Throwable(__CLASS__ . " " . __LINE__ . ": CheckIfTablesExist=" . $e->getMessage());
       }
       $this->isBot($this->agent); // This set $this->isBot, it also does isMe() so I never get set as a bot!
       $this->logagent();   // Log the agent
@@ -104,7 +104,7 @@ class Database extends dbPdo {
       if($this->dbinfo->engine == "mysql" || $this->dbinfo->engine == "sqlite") {
         $this->noGeo = true;
       } else {
-        throw new \Exception(__CLASS__ . " " . __LINE__ . ": DATABASE-ENGINE=$this->dbinfo->database, $this->dbinfo->engine");
+        throw new \Throwable(__CLASS__ . " " . __LINE__ . ": DATABASE-ENGINE=$this->dbinfo->database, $this->dbinfo->engine");
       }
       $this->logagent();
     }
@@ -154,12 +154,12 @@ class Database extends dbPdo {
       $this->sql("insert into $this->masterdb.bots3 (ip, agent, page, count, robots, site, created)
                  values('$ip', '$agent', '$page', 1, $botAsBits, $siteBit, now())
                  on duplicate key update robots = robots|$botAsBits, site=site|$siteBit, count=count+1");
-    } catch(\Exception $e) {
+    } catch(\Throwable $e) {
       $err = $e->getCode();
       $errmsg = $e->getMessage();
       logInfo("Database updateBots3: ip=$ip, agent=$agent, page=$page, robots=$botAsBits, err=$err, errmsg=$errmsg, line=".
               __LINE__);
-      throw new \Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
+      throw new \Throwable(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
     }
   }
 
@@ -343,7 +343,7 @@ PRIMARY KEY (`site`,`ip`,`agent`))
         $this->sql("
 insert into logagent (site, ip, agent, count, created, lasttime)
 values('$this->siteName', '$this->ip', '$this->agent', '1', datetime('now', 'localtime'), datetime('now', 'localtime'))");
-      } catch(\Exception $e) {
+      } catch(\Throwable $e) {
         if(($err = $e->getCode()) == "23000") {
           $this->sql("
 select count from logagent where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
@@ -355,7 +355,7 @@ update logagent set count=$count, lasttime=datetime('now', 'localtime')
 where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
         } else {
           $errmsg = $e->getMessage();
-          throw new \Exception(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
+          throw new \Throwable(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
         }
         $this->hitCount = $count;
       }
@@ -392,7 +392,7 @@ where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
     $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
 
     if(!$this->sql($sql)) {
-      throw new \Exception(__CLASS__. " ". __LINE__. ": site=$this->siteName, update of myip failed, ip: $this->ip"); // this should not happen
+      throw new \Throwable(__CLASS__. " ". __LINE__. ": site=$this->siteName, update of myip failed, ip: $this->ip"); // this should not happen
     }
   }
 
@@ -427,7 +427,7 @@ where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
     if(!empty($ar)) {
       [$err, $errmsg, $errfile, $errline] = error_get_last();
       
-      throw new \Exception("Database.class.php: Missing tables -- $errmsg, $errfile, $errline", $err);
+      throw new \Throwable("Database.class.php: Missing tables -- $errmsg, $errfile, $errline", $err);
     }
     
     $this->sql("select myIp from $this->masterdb.myip");

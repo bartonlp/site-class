@@ -2,7 +2,7 @@
 /* HELPER FUNCTIONS. Well tested and maintained */
 // BLP 2025-12-30 - added escapeOnlyScripts()
 
-define("HELPER_FUNCTION_VERSION", "1.2.3helper-pdo"); 
+define("HELPER_FUNCTION_VERSION", "2.0.0"); 
 
 $DEBUG = true;
 

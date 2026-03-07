@@ -8,7 +8,9 @@
 
 define("ROBOT_SITEMAP_VERSION", '4.0.1');
 
-$_site = require_once(getenv("SITELOADNAME"));
+//$_site = require_once(getenv("SITELOADNAME"));
+$_site = require_once "/home/barton/site-class/src/autoload.php";
+
 // Do not do Google's Geo mapping products (Maps, Earth, Street View)
 $_site->noGeo = true;
 // Set Development true.
@@ -26,7 +28,7 @@ switch($self) {
     $file = "Sitemap.xml";
     break;
   default:
-    throw new Exception("robots-setemap.php: Invalid value, line=". __LINE__);
+    throw new \Throwabe("robots-setemap.php: Invalid value, line=". __LINE__);
     break;
 }
 
@@ -65,7 +67,7 @@ switch(basename($S->self)) {
     $java = TRACKER_SITEMAP;
     break;
   default:
-    throw new Exception("robots-setemap.php: Invalid valid, line=". __LINE__);
+    throw new \Throwable("robots-setemap.php: Invalid valid, line=". __LINE__);
 }
 
 // Is this a bot? We know that the client looked at the robots.txt but this might not really be a

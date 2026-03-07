@@ -3,7 +3,7 @@
 // BLP 2025-04-19 - moved setSiteCookie() here from Database. Also getIp()
 // BLP 2025-04-19 - Change botAs to botAsBits
 
-namespace bartonlp\SiteClass;
+namespace bartonlp\SiteClass\traits;
 
 /*
 CREATE TABLE `tracker` (
@@ -44,7 +44,7 @@ CREATE TABLE `bots3` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("USER_AGENT_TOOLS_VERSION", "1.1.0uat-pdo");
+define("USER_AGENT_TOOLS_VERSION", "7.0.0");
 
 trait UserAgentTools {
   /*

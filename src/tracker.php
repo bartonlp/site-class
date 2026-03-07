@@ -80,7 +80,7 @@ CREATE TABLE `badplayer` (
    -105 = tracker: NO RECORD for id=$id, type=$msg
 */
 
-define("TRACKER_VERSION", "5.1.0tracker-pdo");
+define("TRACKER_VERSION", "7.0.0");
 
 //$DEBUG_START = true; // start
 //$DEBUG_LOAD = true; // load
@@ -92,8 +92,9 @@ define("TRACKER_VERSION", "5.1.0tracker-pdo");
 //$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
 //$DEBUG_NOSCRIPT = true; // no script
 
-$_site = require_once getenv("SITELOADNAME");
+//$_site = require_once getenv("SITELOADNAME");
 //$_site = require_once getenv("AUTOLOADNAME");
+$_site = require_once "/home/barton/site-class/src/autoload.php";
 
 // If you want the version defined ONLY and no other information.
 
@@ -152,7 +153,7 @@ values('$S->ip', '$S->siteName', '$S->self', '$msg', -980, 'NO_ID', '$S->agent',
   try { // BLP 2025-03-29 - try/catch
     $S->sql("select ip, site, page, botAsBits, agent, referer, isJavaScript from $S->masterdb.tracker where id=$id");
     [$ip, $site, $page, $botAsBits, $agent, $ref, $js] = $S->fetchrow('num');
-  } catch(Exception $e) {
+  } catch(\Throwable $e) {
     $errno = $e->getCode();
     $errmsg = $e->getMessage();
     logInfo("tracker $msg: id=$id, errno=$errno, errmsg=$errmsg, line=". __LINE__);
@@ -209,7 +210,7 @@ if($type = $_GET['page']) {
         $S->sql("update $S->masterdb.tracker set botAsBits=$botAsBits, isJavaScript=$java where id=$id");
 
         $S->updateBots3($ip, $agent, $page, $site, BOTS_NO_MYSITEMAP);
-      } catch(Exception $e) {
+      } catch(\Throwable $e) {
         $err = $e->getCode();
         $errmsg = $e->getMessage();
         logInfo("tracker.php updates failed: id=$id, err=$err, errmsg=$errmsg, line=". __LINE__);
@@ -417,18 +418,20 @@ where id=$id");
       $img = "$trackerLocation$image";
     }
   }
-    
-  $imageType = pathinfo($img, PATHINFO_EXTENSION); //preg_replace("~.*\.(.*)$~", "$1", $img);
 
   // If this $img is not existing.
   
   if(!file_exists($img)) {
+    header("Content-Type: text/plain");
     exit;
   }
 
+  $imageType = mime_content_type($img);
+  //$imageType = "image/". pathinfo($img, PATHINFO_EXTENSION); //preg_replace("~.*\.(.*)$~", "$1", $img);
+
   $imgFinal = file_get_contents($img);
   
-  if($imageType == 'svg') $imageType = "image/svg+xml";
+  //if($imageType == 'svg') $imageType = "image/svg+xml";
 
   header("Content-Type: $imageType");
 
@@ -439,7 +442,8 @@ where id=$id");
             "botAsBits=$hexBotAsBits, java=$java, agent=$agent, line=". __LINE__);
   }
   
-  echo $imgFinal;
+  //echo $imgFinal;
+  readfile($imgFinal);
   exit();
 }
 // END OF GET LOGIC
@@ -756,7 +760,7 @@ values('$S->ip', $id ,'$S->siteName', '$S->self', 'GOAWAY', '$errno', '$errmsg',
     try {
       $java = TRACKER_GOAWAY;
       $S->sql("update $S->masterdb.tracker set isJavaScript=isJavaScript|$java where id=$id");
-    } catch(Exception $e) {
+    } catch(\Throwable $e) {
       // There may not be a tracker record for this id or id may be empty.
 
       $err = $e->getCode();

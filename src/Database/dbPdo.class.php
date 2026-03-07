@@ -3,12 +3,13 @@
 // BLP 2024-04-20 - set mysql timezone!
 // BLP 2025-04-20 - at some point I may add more type hints to this file.
 
-namespace bartonlp\SiteClass;
-
+namespace bartonlp\SiteClass\Database;
+use bartonlp\SiteClass\traits\UserAgentTools;
+use bartonlp\SiteClass\traits\WarnToExceptionHandler;
 use \PDO;
 use \PDOStatement;
 
-define("PDO_CLASS_VERSION", "2.0.0pdo");
+define("PDO_CLASS_VERSION", "7.0.0");
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -213,7 +214,7 @@ class dbPdo extends PDO {
     // Extract the command type (first word in SQL)
     
     if(!preg_match("~^\s*(\w+)~", $query, $m)) { // allow multi line queries.
-      throw new Exception(__METHOD__ . ": Invalid SQL query: '$query'");
+      throw new \Throwable(__METHOD__ . ": Invalid SQL query: '$query'");
     }
     $m = strtolower($m[1]);
 
@@ -272,7 +273,7 @@ class dbPdo extends PDO {
 
         return $numrows;
       }
-    } catch (\Exception $e) {
+    } catch (\Throwable $e) {
       // Optional targeted debug logic
       if(str_contains($query, "by+lasttime")) {
         logInfo("dbPdo, by+lasttime: ip=$this->ip, site=$this->siteName, page=$this->self, agent=$this->agent, line=".
@@ -299,7 +300,7 @@ class dbPdo extends PDO {
    */
   public function queryfetch($query, $type=null, $returnarray=null) {
     if(stripos($query, 'select') === false) { // Can't be anything but 'select'
-      throw new \Exception(__CLASS__ . " ". __LINE__ .": Query must be a select: $query");
+      throw new \Throwable(__CLASS__ . " ". __LINE__ .": Query must be a select: $query");
     }
 
     // queryfetch() can be
@@ -348,7 +349,7 @@ class dbPdo extends PDO {
     }
     
     if(!$result) {
-      throw new \Exception(__METHOD__ .", PDOStatment 'result' is null, line=". __LINE__);
+      throw new \Throwable(__METHOD__ .", PDOStatment 'result' is null, line=". __LINE__);
     }
 
     switch($type) {
@@ -365,7 +366,7 @@ class dbPdo extends PDO {
         $row = $result->fetch(PDO::FETCH_BOTH); // This is the default
         break;
       default:
-        throw new \Exception(__METHOD__. ", invalid type=$type, line=". __LINE__);
+        throw new \Throwable(__METHOD__. ", invalid type=$type, line=". __LINE__);
     }
 
     if($row === false) $row = null;

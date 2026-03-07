@@ -24,8 +24,9 @@ UNIQUE KEY `id_ip_site_page` (`id`,`ip`,`site`,`page`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-$_site = require_once getenv("SITELOADNAME");
+//$_site = require_once getenv("SITELOADNAME");
 //$_site = require_once getenv("AUTOLOADNAME");
+$_site = require_once "/home/barton/site-class/src/autoload.php";
 
 $_site->noTrack = true;
 $S = new dbPdo($_site);

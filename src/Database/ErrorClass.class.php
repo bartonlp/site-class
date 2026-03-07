@@ -1,11 +1,12 @@
 <?php
 /* MAINTAINED and WELL TESTED */
+namespace bartonlp\SiteClass\Database;
 
 // I am not doing 'namespace bartonlp\SiteClass';.
 // I use \ErrorClass::... like \Exception etc.
 // These all require \... .
 
-define("ERROR_CLASS_VERSION", "4.0.2.1error-pdo");
+define("ERROR_CLASS_VERSION", "7.0.0");
 
 // Error class.
 

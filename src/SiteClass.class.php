@@ -4,12 +4,13 @@
 // dbPdoconstructor which does all of the heavy lifting.
 
 namespace bartonlp\SiteClass;
+use bartonlp\SiteClass\Database\Database;
    
 /**
  * @file SiteClass.class.php
  * @package SiteClass
  */
-define("SITE_CLASS_VERSION", "6.0.2pdo");
+define("SITE_CLASS_VERSION", "7.0.0");
 
 // One class for all my sites
 /**
@@ -152,7 +153,7 @@ class SiteClass extends Database {
    * which is (usually) in the includes directory of the document root of the website.
    *
    * @return string
-   * @throws \Exception If require headfile returns 1.
+   * @throws \Throwable If require headfile returns 1.
    * @see https://bartonlp.org/docs/head.i.php.
    */
   public function getPageHead():string {
@@ -402,7 +403,7 @@ EOF;
       } else {
         // require returned 1 which is wrong!!
         
-        throw new Exception(__CLASS__ . " " . __LINE__ .
+        throw new \Throwable(__CLASS__ . " " . __LINE__ .
                             ": $this->siteName, getPageHead() headFile '$this->headFile' returned 1");
       }
     } else {

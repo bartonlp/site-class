@@ -19,11 +19,12 @@
     "php": ">=8.0"
   },
   "minimum-stability": "stable",
-  "autoload" : {
-    "classmap": [
-      "includes",
-      "includes/database-engines",
-      "includes/traits"           
-    ]
+  "autoload": {
+    "psr-4": {
+      "bartonlp\\SiteClass\\": "src/"
+    },
+    "files": [
+              "src/Database/helper-functions.php"
+             ]
   }    
 }

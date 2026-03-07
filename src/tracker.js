@@ -3,8 +3,6 @@
 
 'use strict';
 
-//const TRACKERJS_VERSION = "3.1.11trackerjs-pdo"; // BLP 2025-04-26 - fix csstest
-                                                 
 // SiteClass places a <script> tag in the head.i.php file via
 // $h->tracjerStr. That variable has a full list of JavaScript
 // variables like this for bartonphillips.com. The values come from the

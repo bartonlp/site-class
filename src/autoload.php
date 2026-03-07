@@ -18,11 +18,25 @@ if (PHP_VERSION_ID < 80400) {
 error_reporting($mask);
 define("SITELOAD_VERSION", "1.0.0autoload-pdo");
 define("SITECLASS_DIR", __DIR__);
-//$myfile = basename(__FILE__);
 
-//if($myfile === 'autoload.php') {
 if($mysiteload !== true) {
   // Do autoload
+  function _callback($class) {
+    $prefix = __NAMESPACE__ . '\\';
+    $base = '/home/barton/site-class/src/';
+
+    if(strncmp($class, $prefix, strlen($prefix)) !== 0)
+      return;
+
+    $relative = substr($class, strlen($prefix));
+    $path = $base . str_replace('\\', '/', $relative);
+
+    if(is_file($path . '.class.php'))
+      require $path . '.class.php';
+    elseif(is_file($path . '.php'))
+      require $path . '.php';
+  }
+/*
   function _callback($class) {
     $class = ltrim($class, '\\');
     $parts = explode('\\', $class);
@@ -32,38 +46,38 @@ if($mysiteload !== true) {
 
     $paths = [
               $base . $className . ".class.php",
-              $base . "database-engines/" . $className . ".class.php",
+              $base . "Database/" . $className . ".class.php",
               $base . "traits/" . $className . ".php",
              ];
 
     foreach($paths as $file) {
-      //echo "file: $file<br>";
       if(file_exists($file)) {
-        require $file;
+        require_once $file;
+        //echo "file: $file<br>";
         return;
       }
     }
     echo "Not Done. paths=" . print_r($paths, true) ."<br>";
   }
-
+*/
   if(spl_autoload_register('bartonlp\SiteClass\_callback') === false) exit("Can't Autoload");
+  require(SITECLASS_DIR ."/Database/helper-functions.php");
 } else {
   // I do composer.
-  require __DIR__."/../../../autoload.php";
+  require SITECLASS_DIR."/../../../autoload.php";
 }
-
-require(SITECLASS_DIR ."/database-engines/helper-functions.php");
 
 // Here are used 'class_alias' to make our site look like no having \bartonlp\SiteClass\...
 
+class_alias('\bartonlp\SiteClass\Database\dbPdo', 'dbPdo');
 class_alias('\bartonlp\SiteClass\SiteClass', 'SiteClass');
-class_alias('\bartonlp\SiteClass\Database', 'Database');
-class_alias('\bartonlp\SiteClass\dbPdo', 'dbPdo');
+class_alias('\bartonlp\SiteClass\Database\Database', 'Database');
+class_alias('\bartonlp\SiteClass\Database\ErrorClass', 'ErrorClass');
 
 // Now add ob_start. It is removed in SiteExceptionHandler.
 
 ob_start();
-SiteExceptionHandler::init();
+Database\SiteExceptionHandler::init();
 
 //if(!class_exists("getinfo")) {
 class getinfo {

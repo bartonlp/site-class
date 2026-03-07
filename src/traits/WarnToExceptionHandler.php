@@ -1,6 +1,6 @@
 <?php
 
-namespace bartonlp\SiteClass;
+namespace bartonlp\SiteClass\traits;
 
 /**
  * Trait: WarningToExceptionHandler
@@ -46,7 +46,7 @@ trait WarnToExceptionHandler {
     if($errno === \E_WARNING) {
       foreach($this->exceptionTriggers as $fn) {
         if(str_contains($errstr, $fn)) {
-          throw new \Exception("***Error: $errstr, $errfile, $errline");
+          throw new \Throwable("***Error: $errstr, $errfile, $errline");
         }
       }
     }
