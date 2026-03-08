@@ -128,41 +128,6 @@ class Database extends dbPdo {
     return DATABASE_CLASS_VERSION;
   }
   
-  /**
-   * Insert/Update the MySql bots3 table.
-   *
-   * @param string $ip
-   * @param string $agent
-   * @param string $page
-   * @param string|int $site Either a string or a bitmapped integer
-   * @param int $botAsBits A bitmapped value
-   * @return int|null A bitmapped integer or void if it is ME.
-   * @throws Exception If a sql error.
-   */
-  public function updateBots3(string $ip, string $agent, string $page, string|int $site, int $botAsBits) {
-    if($this->isMe()) return null; // BLP 2025-04-12 - Can not be me!
-
-    // $site can be either a string or a bitmapped integer.
-    
-    if(gettype($site) === 'string') {
-      $siteBit = BOTS_SITEBITMAP[$site] | 0; // get bitmap. Supports NO_SITE.
-    } else {
-      $siteBit = $site;
-    }
-
-    try {
-      $this->sql("insert into $this->masterdb.bots3 (ip, agent, page, count, robots, site, created)
-                 values('$ip', '$agent', '$page', 1, $botAsBits, $siteBit, now())
-                 on duplicate key update robots = robots|$botAsBits, site=site|$siteBit, count=count+1");
-    } catch(\Throwable $e) {
-      $err = $e->getCode();
-      $errmsg = $e->getMessage();
-      logInfo("Database updateBots3: ip=$ip, agent=$agent, page=$page, robots=$botAsBits, err=$err, errmsg=$errmsg, line=".
-              __LINE__);
-      throw new \Throwable(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
-    }
-  }
-
   // ********************************************************************************
   // Private and protected methods.
   // Protected methods can be overridden in child classes so most things that would be private
