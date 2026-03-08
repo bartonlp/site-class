@@ -23,7 +23,7 @@ if($mysiteload !== true) {
   // Do autoload
   function _callback($class) {
     $prefix = __NAMESPACE__ . '\\';
-    $base = '/home/barton/site-class/src/';
+    $base = SITECLASS_DIR .'/';
 
     if(strncmp($class, $prefix, strlen($prefix)) !== 0)
       return;
@@ -36,30 +36,6 @@ if($mysiteload !== true) {
     elseif(is_file($path . '.php'))
       require $path . '.php';
   }
-/*
-  function _callback($class) {
-    $class = ltrim($class, '\\');
-    $parts = explode('\\', $class);
-    $className = end($parts);
-    //error_log("dir: ".__DIR__);
-    $base = SITECLASS_DIR . "/"; 
-
-    $paths = [
-              $base . $className . ".class.php",
-              $base . "Database/" . $className . ".class.php",
-              $base . "traits/" . $className . ".php",
-             ];
-
-    foreach($paths as $file) {
-      if(file_exists($file)) {
-        require_once $file;
-        //echo "file: $file<br>";
-        return;
-      }
-    }
-    echo "Not Done. paths=" . print_r($paths, true) ."<br>";
-  }
-*/
   if(spl_autoload_register('bartonlp\SiteClass\_callback') === false) exit("Can't Autoload");
   require(SITECLASS_DIR ."/Database/helper-functions.php");
 } else {

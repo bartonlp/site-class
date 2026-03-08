@@ -208,7 +208,7 @@ class dbPdo extends PDO {
    * @site-effect       - For SELECT/SHOW/EXPLAIN sets $this->result.
    */
   public function sql($query, array $params = []): PDOStatement|int|bool {
-    self::$lastQuery = $query;
+    self::$lastQuery = trim(preg_replace('/\s+/', ' ', $query));
     self::$lastParam = implode(",", $params ?? null);
     
     // Extract the command type (first word in SQL)
