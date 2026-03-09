@@ -37,11 +37,12 @@ if($mysiteload !== true) {
       require $path . '.php';
   }
   if(spl_autoload_register('bartonlp\SiteClass\_callback') === false) exit("Can't Autoload");
-  require(SITECLASS_DIR ."/Database/helper-functions.php");
 } else {
   // I do composer.
   require SITECLASS_DIR."/../../../autoload.php";
 }
+
+require(SITECLASS_DIR ."/Database/helper-functions.php");
 
 // Here are used 'class_alias' to make our site look like no having \bartonlp\SiteClass\...
 
