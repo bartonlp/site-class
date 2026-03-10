@@ -19,7 +19,7 @@ CREATE TABLE `badplayer` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2141 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("BEACON_VERSION", "4.1.0beacon-pdo");
+define("BEACON_VERSION", "7.0.0");
 
 // The normal beacon starts here.
 
