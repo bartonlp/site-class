@@ -675,7 +675,5 @@ function logInfo(string $info) {
   if(!str_contains($info, ':')) {
     $info = "(MESSAGE) $info";
   }
-  $date = date("[Y-m-d H:i:s]");
-  $info = "$date $info";
   error_log("$info");
 }
