@@ -1,5 +1,5 @@
 <?php
-$_site = require_once(getenv("SITELOADNAME"));
+$_site = require_once getenv("SITELOADNAME");
 $_site->noTrack = $_site->noGeo = true;
 
 $tbl = (require(SITECLASS_DIR . "/whatisloaded.php"))[0];

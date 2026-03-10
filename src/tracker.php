@@ -92,9 +92,9 @@ define("TRACKER_VERSION", "7.0.0");
 //$DEBUG_ISABOT2 = true; // This is in the 'image' GET logic
 //$DEBUG_NOSCRIPT = true; // no script
 
-//$_site = require_once getenv("SITELOADNAME");
+$_site = require_once getenv("SITELOADNAME");
 //$_site = require_once getenv("AUTOLOADNAME");
-$_site = require_once "/home/barton/site-class/src/autoload.php";
+//$_site = require_once "/home/barton/site-class/src/autoload.php";
 
 // If you want the version defined ONLY and no other information.
 

@@ -1,0 +1,16 @@
+# Example of is the minimal .htaccess file.
+# You can add many more features.
+
+Require all granted
+Header set Access-Control-Allow-Origin *
+SetEnv SITELOADNAME /var/www/vendor/bartonlp/site-class/src/siteload.php
+
+# BEGIN RewriteRules
+# 11/3/10 hack attempts
+RewriteEngine on
+# direct robots.txt to robots.php and Sitemap.xml to sitemap.php
+# NOTE the [[...]] SHOULD BE CHANGED TO YOUR CODE. If you need 'https://' it should added.
+RewriteRule ^robots\.txt$ [[MUST SUPPLY YOUR VESIONS]].robots-sitemap.php [L,NC]
+RewriteRule ^Sitemap\.xml$ [[MUST SUPPLY YOUR VESIONS]].robots-sitemap.php  [L,NC]
+# rewrite the address of csstest.css to tracker.php?csstest
+RewriteRule ^csstest-(.*)\.css$ [[MUST SUPPLY YOUR VESIONS]].tracker.php?id=$1&page=csstest [L,QSA]

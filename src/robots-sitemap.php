@@ -8,8 +8,8 @@
 
 define("ROBOT_SITEMAP_VERSION", '4.0.1');
 
-//$_site = require_once(getenv("SITELOADNAME"));
-$_site = require_once "/home/barton/site-class/src/autoload.php";
+$_site = require_once(getenv("SITELOADNAME"));
+//$_site = require_once "/home/barton/site-class/src/autoload.php";
 
 // Do not do Google's Geo mapping products (Maps, Earth, Street View)
 $_site->noGeo = true;

@@ -23,8 +23,8 @@ define("BEACON_VERSION", "4.1.0beacon-pdo");
 
 // The normal beacon starts here.
 
-//$_site = require_once getenv("SITELOADNAME");
-$_site = require_once "/home/barton/site-class/src/autoload.php";
+$_site = require_once getenv("SITELOADNAME");
+//$_site = require_once "/home/barton/site-class/src/autoload.php";
 
 // If you want the version defined ONLY and no other information.
 // If we have $__VERSION_ONLY, then just return the version info.
