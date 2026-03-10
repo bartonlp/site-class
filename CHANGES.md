@@ -1,4 +1,6 @@
 # CHANGES
+BLP 2026-03-10 - New PSR-4 'siteload.php' and 'autoload.php' with no '.class'.
+Composer now runs 'composer require bartonlp/site-class dev-psr'. 
 
 BLP 2025-03-31 - Added logging.php and logging.js. These look at JavaScript events other than exit events.
 A number of updates and fixes have been done in the past month.
@@ -10,8 +12,8 @@ A number of updates and fixes have been done in the past month.
 <ul>
 <li>bartonphillips.com: my main domain</li>
 <li>bartonlp.org: default that links to my main page at /var/www/html</li>
-<li>newbern-nc.info: The Tyson Group</li>
-<li>newbernzig.com: The Ziegler Suites</li>
+<li>**OLD**newbern-nc.info: The Tyson Group</li>
+<li>**OLD**newbernzig.com: The Ziegler Suites</li>
 <li>bartonphillips.net: my CookiLess domain</li>
 <li>bartonphillips.org: my home HP-Envy disktop which is served from my home. With port 8000 it is my RPI</li>
 <li>bonnieburch.com: my wife's website</li>
