@@ -49,6 +49,7 @@ class_alias('\bartonlp\SiteClass\Database\dbPdo', 'dbPdo');
 class_alias('\bartonlp\SiteClass\SiteClass', 'SiteClass');
 class_alias('\bartonlp\SiteClass\Database\Database', 'Database');
 class_alias('\bartonlp\SiteClass\Database\ErrorClass', 'ErrorClass');
+class_alias('\bartonlp\SiteClass\Database\dbTables', 'dbTables');
 
 // Now add ob_start. It is removed in SiteExceptionHandler.
 
