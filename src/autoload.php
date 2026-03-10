@@ -31,10 +31,9 @@ if($mysiteload !== true) {
     $relative = substr($class, strlen($prefix));
     $path = $base . str_replace('\\', '/', $relative);
 
-    if(is_file($path . '.class.php'))
-      require $path . '.class.php';
-    elseif(is_file($path . '.php'))
+    if(is_file($path . '.php')) {
       require $path . '.php';
+    }
   }
   if(spl_autoload_register('bartonlp\SiteClass\_callback') === false) exit("Can't Autoload");
   require SITECLASS_DIR ."/Database/helper-functions.php";
