@@ -233,7 +233,7 @@ if($type = $_GET['page']) {
 
   if(!in_array($x, ["bartonphillips.com", "bonnieburch.com", "bartonlp.com", "bartonphillips.net", "bartonlp.org",
                     "newbernzig.com", "jt-lawnservice.com", "newbern-nc.info", "swam.us",
-                    "bartonphillips.org", "bartonphillips.org:8000"
+                    "bartonphillips.org", "rpi.bartonphillips"
                    ]))
   {
     // NOT one of my domains.
