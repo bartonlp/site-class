@@ -101,6 +101,8 @@ class dbPdo extends PDO {
 
     if(PHP_SAPI === 'cli') {
       $s->ip = MY_IP;
+      $s->xip = $s->xip ?? $_SERVER['SERVER_ADDR']; // Server addr
+      $s->realip = $s->realip ?? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
       $s->agent = "CLI_NO_AGENT";
       $s->requestUri = "CLI_NO_REQUEST_URI";
     } else {
