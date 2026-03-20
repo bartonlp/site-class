@@ -101,14 +101,14 @@ class dbPdo extends PDO {
 
     if(PHP_SAPI === 'cli') {
       $s->ip = MY_IP;
-      $s->xip = $s->xip ?? $_SERVER['SERVER_ADDR']; // Server addr
-      $s->realip = $s->realip ?? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
       $s->agent = "CLI_NO_AGENT";
       $s->requestUri = "CLI_NO_REQUEST_URI";
     } else {
       // Web Based
       
       $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
+      $s->xip = $s->xip ?? $_SERVER['SERVER_ADDR']; // Server addr
+      $s->realip = $s->realip ?? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
       $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'];
       $s->agent = preg_replace("~'~", "", $s->agent); // BLP 2024-10-29 - remove appostrophies.
       $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
