@@ -6,7 +6,7 @@
 // saves it in the bots3 table.
 // NOTE: this file can only be run using PDO with the mysql engine!
 
-define("ROBOT_SITEMAP_VERSION", '4.0.1');
+define("ROBOT_SITEMAP_VERSION", '4.0.2'); // BLP 2026-04-23 - see date
 
 $_site = require_once(getenv("SITELOADNAME"));
 //$_site = require_once "/home/barton/site-class/src/autoload.php";
@@ -43,7 +43,7 @@ echo $info . "\n# From $file\n";
 
 // If I have me return or doSiteClass !== true.
 
-if($S->isMe() || $S->doSiteClass !== true) {
+if($S->isMe() || $S->doSiteClass !== true || $S->dbinfo->engine == 'sqlite') {  // BLP 2026-04-23 - add sqlite
   return;
 }
 

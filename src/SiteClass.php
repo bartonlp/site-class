@@ -10,7 +10,7 @@ use bartonlp\SiteClass\Database\Database;
  * @file SiteClass.class.php
  * @package SiteClass
  */
-define("SITE_CLASS_VERSION", "7.0.0");
+define("SITE_CLASS_VERSION", "7.0.1"); // BLP 2026-04-23 - move from SiteClass to Database getHitCount.
 
 // One class for all my sites
 /**
@@ -77,15 +77,6 @@ class SiteClass extends Database {
    */
   public static function getVersion():string {
     return SITE_CLASS_VERSION;
-  }
-
-  /**
-   * getHitCount() Gets the number of times someone visited our page
-   *
-   * @return int
-   */
-  public function getHitCount():int {
-    return $this->hitCount;
   }
 
   /**

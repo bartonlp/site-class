@@ -107,6 +107,12 @@ class Database extends dbPdo {
         throw new \Throwable(__CLASS__ . " " . __LINE__ . ": DATABASE-ENGINE=$this->dbinfo->database, $this->dbinfo->engine");
       }
       $this->logagent();
+      
+      if($this->count === true) {
+        $this->sql("select count from logagent where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
+        $count = $this->fetchrow('num')[0];
+        $this->hitCount = $count;
+      }
     }
   } // END Construct
 
@@ -128,6 +134,15 @@ class Database extends dbPdo {
     return DATABASE_CLASS_VERSION;
   }
   
+  /**
+   * getHitCount() Gets the number of times someone visited our page
+   *
+   * @return int
+   */
+  public function getHitCount():int {
+    return $this->hitCount;
+  }
+
   // ********************************************************************************
   // Private and protected methods.
   // Protected methods can be overridden in child classes so most things that would be private

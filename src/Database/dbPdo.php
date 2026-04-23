@@ -1,7 +1,5 @@
 <?php
 /* MAINTAINED and WELL TESTED. This is the default Database and has received extensive testing */
-// BLP 2024-04-20 - set mysql timezone!
-// BLP 2025-04-20 - at some point I may add more type hints to this file.
 
 namespace bartonlp\SiteClass\Database;
 use bartonlp\SiteClass\traits\UserAgentTools;
@@ -9,7 +7,7 @@ use bartonlp\SiteClass\traits\WarnToExceptionHandler;
 use \PDO;
 use \PDOStatement;
 
-define("PDO_CLASS_VERSION", "7.0.0");
+define("PDO_CLASS_VERSION", "7.0.1"); // BLP 2026-04-22 - add fetchrow add object|array|null
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -344,7 +342,7 @@ class dbPdo extends PDO {
    *   either an assoc or numeric array, or an array with both numeric indices and associative indices.
    * @throws Exception|PDOException On Sql error, $this->result is null or $type is not allowed.
    */
-  public function fetchrow(PDOStatement|string|null $result=null, string $type="both"): array|null {
+  public function fetchrow(PDOStatement|string|null $result=null, string $type="both"): object|array|null {
     if(is_string($result)) { // a string like num, assoc, obj or both
       $type = $result;
       $result = $this->result; // was set in sql(...).
