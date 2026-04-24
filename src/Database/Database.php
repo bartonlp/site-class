@@ -321,7 +321,7 @@ PRIMARY KEY (`site`,`ip`,`agent`))
       
       $this->sql("
 INSERT INTO logagent (site, ip, agent, count, created, lasttime)
-VALUES('$this->siteName', '$this->ip', '$$this->agent', 1, datetime('now','localtime'), datetime('now','localtime'))
+VALUES('$this->siteName', '$this->ip', '$this->agent', 1, datetime('now','localtime'), datetime('now','localtime'))
 ON CONFLICT(site, ip, agent)
 DO UPDATE SET count = count +1, lasttime = datetime('now','localtime')");
     }
