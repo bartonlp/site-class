@@ -6,12 +6,12 @@
 namespace bartonlp\SiteClass\Database;
 
 /**
- * @file database/Database.class.php
+ * @file database/Database.php
  * @package SiteClass
  */
-define("DATABASE_CLASS_VERSION", "2.0.2database-pdo"); 
+define("DATABASE_CLASS_VERSION", "7.0.2"); // BLP 2026-04-23 - see date 
 /**
- * @file database/Database.class.php
+ * @file database/Database.php
  * @package SiteClass
  */
 define("DEBUG_TRACKER_BOTINFO", false); // Change this to false if you don't want the error
@@ -215,7 +215,7 @@ values('$this->siteName', '$page', '$this->ip', '$name',
 
     // Get the id of this insert.
     
-    $this->LAST_ID = $this->id = $this->getLastInsertId(); // BLP 2025-04-25 - new $this->id
+    $this->LAST_ID = $this->id = $this->getLastInsertId(); 
 
     // Now update the bots3 table. 'site' can be either an integer or a string. This should also be
     // a NEW RECORD even though this method does an insert/update.
@@ -305,7 +305,6 @@ values('$this->siteName', '$this->ip', '$this->agent', '1', now(), now())
 on duplicate key update count=count+1, lasttime=now()");
     } else {
       // This is the sqlite locic.
-
       // We always try to write the lobagent
 
       $this->sql("
@@ -318,27 +317,13 @@ CREATE TABLE IF NOT EXISTS logagent (`site` varchar(25) NOT NULL DEFAULT '',
 PRIMARY KEY (`site`,`ip`,`agent`))
 ");
       // Now do an insert
+      // BLP 2026-04-23 - use new on conflict logic.
       
-      try {
-        $this->sql("
-insert into logagent (site, ip, agent, count, created, lasttime)
-values('$this->siteName', '$this->ip', '$this->agent', '1', datetime('now', 'localtime'), datetime('now', 'localtime'))");
-      } catch(\Throwable $e) {
-        if(($err = $e->getCode()) == "23000") {
-          $this->sql("
-select count from logagent where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
-
-          $count = $this->fetchrow('num')[0] +1;
-
-          $this->sql("
-update logagent set count=$count, lasttime=datetime('now', 'localtime')
-where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
-        } else {
-          $errmsg = $e->getMessage();
-          throw new \Throwable(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
-        }
-        $this->hitCount = $count;
-      }
+      $S->sql("
+INSERT INTO logagent (site, ip, agent, count, created, lasttime)
+VALUES('$siteName', '$ip', '$agent', 1, datetime('now','localtime'), datetime('now','localtime'))
+ON CONFLICT(site, ip, agent)
+DO UPDATE SET count = count +1, lasttime = datetime('now','localtime')");
     }
   }
 
@@ -366,7 +351,7 @@ where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
       return; // This is not me.
     }
 
-    // BLP 2022-01-16 -- NOTE there are only two places where the ip address is added:
+    // NOTE there are only two places where the ip address is added:
     // bartonphillips.com/register.php and bonnieburch.com/addcookie.com.
     
     $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
@@ -407,7 +392,7 @@ where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
     if(!empty($ar)) {
       [$err, $errmsg, $errfile, $errline] = error_get_last();
       
-      throw new \Throwable("Database.class.php: Missing tables -- $errmsg, $errfile, $errline", $err);
+      throw new \Throwable("Database.php: Missing tables -- $errmsg, $errfile, $errline", $err);
     }
     
     $this->sql("select myIp from $this->masterdb.myip");
@@ -416,7 +401,7 @@ where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
       $myIp[] = $ip;
     }
     
-    $myIp[] = DO_SERVER; // BLP 2022-04-30 - Add my server.
+    $myIp[] = DO_SERVER; // Add my server.
 
     return $myIp;
   }
