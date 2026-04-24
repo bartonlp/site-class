@@ -319,7 +319,7 @@ PRIMARY KEY (`site`,`ip`,`agent`))
       // Now do an insert
       // BLP 2026-04-23 - use new on conflict logic.
       
-      $S->sql("
+      $this->sql("
 INSERT INTO logagent (site, ip, agent, count, created, lasttime)
 VALUES('$siteName', '$ip', '$agent', 1, datetime('now','localtime'), datetime('now','localtime'))
 ON CONFLICT(site, ip, agent)
