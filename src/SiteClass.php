@@ -614,15 +614,20 @@ EOF;
     // Counter at bottom of page
     // hitCount is updated by 'counter()' in Database.
 
-    $hits = number_format($this->hitCount);
-
+    if($server = $this->webServer()) {
+      $hits = number_format($server);
+      $this->hitCount = number_format($hits);
+    } else {
+      $hits = number_format($this->hitCount);
+    }
+    
     // Let the appearance be up to the pages css!
     // However, the defaultCss is bartonphillips.net/css/blp.css it includes hitcounter.css which
     // sets the following values.
     // #hitCounter, #hitCountertbl, #hitCountertr and #hitCounterth.
     // See bartonphillips.net/css/hitcounter.css for all the info.
     // So to override the values enter the css AFTER the defaultCss and change the values of the ids.
-    
+
     return <<<EOF
 <div id="hitCounter">
 $msg
@@ -635,6 +640,87 @@ $hits
 </table>
 </div>
 EOF;
+  }
+
+  /**
+   * webServer
+   * If the "webServer": true
+   *  we do it. Otherwise just a normal method.
+   */
+  private function webServer():int {
+    if($this->webServer === true) {
+      $url = "https://bartonphillips.com/api.php";
+
+      $site = $this->siteName;
+      $agent = $this->agent;
+      $ip = $this->ip;
+      
+      $this->addInsert($url, $site, $ip, $agent);
+      $result = $this->getSelect($url, $site, $ip, $agent);
+
+      return $result;
+    }
+    return 0;
+  }
+
+  /**
+   * Helper functions
+   * addInsert
+   */
+  private function addInsert($url, $site, $ip, $agent) {
+    $type = 'insert';
+
+    $payload = ['type' => $type,
+                'table'=> 'logagent',
+                'site' => $site,
+                'ip'   => $ip,
+                'agent'=> $agent,
+               ];
+
+    $options = [
+                'http' => [
+                           'method'  => 'POST',
+                           'header'  => "Content-Type: application/json\r\n",
+                           'content' => json_encode($payload),
+                          ],
+               ];
+
+    $result = file_get_contents($url, false, stream_context_create($options));
+
+    $result = json_decode($result, true);
+
+    if($result->num === 0) exit("Error Insert");
+  }
+
+  /**
+   * Helper function
+   * getSelect
+   */
+  private function getSelect($url, $site, $ip, $agent) {
+    $type = "select";
+
+    $payload = ['type' => $type,
+                'table' => 'logagent',
+                'site' => $site,
+                'ip'    => $ip,
+                'agent' => $agent,
+                //'limit' => 5,
+               ];
+
+    $options = [
+                'http' => [
+                           'method'  => 'POST',
+                           'header'  => "Content-Type: application/json\r\n",
+                           'content' => json_encode($payload),
+                          ],
+               ];
+
+    $result = file_get_contents($url, false, stream_context_create($options));
+    $result = json_decode($result, true);
+
+    // look at data
+    $data = $result['data'][0]['count'];
+    return $data;
   }
 
   /**
