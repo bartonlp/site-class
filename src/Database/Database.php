@@ -45,37 +45,11 @@ class Database extends dbPdo {
    * @see https://bartonlp.org/docs/mysitemap.json for full details
    */
   public function __construct(object $s) {
-    // If no 'dbinfo' (no database) in mysitemap.json set everything so the database is not loaded.
-
-    if($s->nodb === true) {
-      // Use the $s values or defaults
-
-      $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
-      $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'];
-      $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
-      $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
-
-      // Because $s->nodb, set up the rest of these.
-      
-      $s->count = false;
-      $s->noTrack = true;   // No tracking 
-      $s->dbinfo = null;    // Maybe nodb was set
-      $s->noCounter = true; // No counter
-      
-      // Put all of the $s values into $this.
-    
-      foreach($s as $k=>$v) {
-        $this->$k = $v;
-      }
-    
-      return; // If we have NO DATABASE just return.
-    }
-
     parent::__construct($s); // After the constructor we have our $this.
     
     // If we are doSiteClass is true we will do FULL database.
     
-    if($this->doSiteClass && $this->dbinfo->engine == "mysql") {
+    if($this->doSiteClass === true && $this->dbinfo->engine === "mysql") {
       // If we do have doSiteClass we will do FULL tracking.
 
       try {
@@ -103,6 +77,7 @@ class Database extends dbPdo {
       
       if($this->dbinfo->engine == "mysql" || $this->dbinfo->engine == "sqlite") {
         $this->noGeo = true;
+        $this->noTrack = true;
       } else {
         throw new \Throwable(__CLASS__ . " " . __LINE__ . ": DATABASE-ENGINE=$this->dbinfo->database, $this->dbinfo->engine");
       }

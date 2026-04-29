@@ -59,10 +59,41 @@ class SiteClass extends Database {
    * @see https://bartonlp.org/docs/mysitemap.json for full details
    */
   public function __construct(object $s) {
-    // Do the parent Database constructor which does the dbPdo constructor.
-    
-    parent::__construct($s); // Turns everything in $s into $this.
+    // If 'nodb' or 'webServer' in mysitemap.json set everything so the database is not loaded.
 
+    if($s->nodb === true || $s->webServer === true) {
+      $s->nodb = true;
+      if($s->webServer === true) {
+        $s->noCounter = false; // If webServer allow counter
+      } else {
+        $s->noCounter = true; // No counter
+      }
+      
+      // Use the $s values or defaults
+
+      $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
+      $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'];
+      $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
+      $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
+
+      // Because $s->nodb, set up the rest of these.
+      
+      $s->count = false;
+      $s->noTrack = true;   // No tracking 
+      $s->dbinfo = null;    // Maybe nodb was set
+      
+      // Put all of the $s values into $this.
+    
+      foreach($s as $k=>$v) {
+        $this->$k = $v;
+      }
+    } else {
+      // Do the parent Database constructor which does the dbPdo constructor.
+      // For everything else we do Database and dbPdo
+      
+      parent::__construct($s); // Turns everything in $s into $this.
+    }
+    
     // Add the date to the copyright notice if one exists
 
     if($this->copyright) {
@@ -277,7 +308,7 @@ EOF;
 
       // Should we track and have doSiteClass true?
       
-      if($this->noTrack !== true && $this->doSiteClass === true && $this->dbinfo->engine == 'mysql') {
+      if($this->doSiteClass === true && $this->dbinfo->engine == 'mysql') {
         $mysitemap = $this->mysitemap;
 
         // If we are 'tracking' users add tracker.js and logging.js
