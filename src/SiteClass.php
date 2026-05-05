@@ -10,7 +10,7 @@ use bartonlp\SiteClass\Database\Database;
  * @file SiteClass.class.php
  * @package SiteClass
  */
-define("SITE_CLASS_VERSION", "7.0.1"); // BLP 2026-04-23 - move from SiteClass to Database getHitCount.
+define("SITE_CLASS_VERSION", "7.0.2"); // BLP 2026-05-05 - BLP 2026-04-23 - move from SiteClass to Database getHitCount.
 
 // One class for all my sites
 /**
@@ -686,7 +686,8 @@ EOF;
       $agent = $this->agent;
       $ip = $this->ip;
       
-      $this->addInsert($url, $site, $ip, $agent);
+      $n = $this->addInsert($url, $site, $ip, $agent);
+
       $result = $this->getSelect($url, $site, $ip, $agent);
 
       return $result;
@@ -727,7 +728,7 @@ EOF;
    * Helper function
    * getSelect
    */
-  private function getSelect($url, $site, $ip, $agent) {
+  private function getSelect($url, $site, $ip, $agent):int {
     $type = "select";
 
     $payload = ['type' => $type,

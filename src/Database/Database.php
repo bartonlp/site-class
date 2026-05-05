@@ -294,14 +294,16 @@ PRIMARY KEY (`site`,`ip`,`agent`))
       // Now do an insert
       // BLP 2026-04-23 - use new on conflict logic.
       
-      $this->sql("
-INSERT INTO logagent (site, ip, agent, count, created, lasttime)
-VALUES('$this->siteName', '$this->ip', '$this->agent', 1, datetime('now','localtime'), datetime('now','localtime'))
+      $this->sql("INSERT INTO logagent (site, ip, agent, count, lasttime)
+VALUES ('$this->siteName', '$this->ip', '$this->agent', 1, datetime('now','localtime'))
 ON CONFLICT(site, ip, agent)
-DO UPDATE SET count = count +1, lasttime = datetime('now','localtime')");
+DO UPDATE SET
+  count = count + 1,
+  lasttime = datetime('now','localtime'))
+");
     }
   }
-
+  
   // ************
   // End Trackers
   // ************
