@@ -647,7 +647,7 @@ EOF;
 
     if($server = $this->webServer()) {
       $hits = number_format($server);
-      $this->hitCount = number_format($hits);
+      $this->hitCount = $hits;
     } else {
       $hits = number_format($this->hitCount);
     }
