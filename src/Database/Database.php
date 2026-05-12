@@ -299,7 +299,7 @@ VALUES ('$this->siteName', '$this->ip', '$this->agent', 1, datetime('now','local
 ON CONFLICT(site, ip, agent)
 DO UPDATE SET
   count = count + 1,
-  lasttime = datetime('now','localtime'))
+  lasttime = datetime('now','localtime')
 ");
     }
   }
