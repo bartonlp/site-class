@@ -7,7 +7,7 @@ use bartonlp\SiteClass\traits\WarnToExceptionHandler;
 use \PDO;
 use \PDOStatement;
 
-define("PDO_CLASS_VERSION", "7.0.1"); // BLP 2026-04-22 - add fetchrow add object|array|null
+define("PDO_CLASS_VERSION", "7.0.3"); // BLP 2026-05-13 - see code
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -228,7 +228,7 @@ class dbPdo extends PDO {
 
     try {
       // This array is basically $dml, $ddl and $dcl minus 'select'.
-      
+      // BLP 2026-05-13 - changed $stmt to $result.
       if(in_array($m, ['insert', 'update', 'delete', 'create', 'drop', 'alter', 'truncate', 'set', 'grant', 'revoke', 'use']))
       {
         if($params) {
@@ -245,28 +245,34 @@ class dbPdo extends PDO {
         if($params) {
           $stmt = $this->prepare($query);
           $stmt->execute($params);
-          $this->result = $stmt;
         } else {
-          $this->result = $this->query($query);
+          $stmt = $this->query($query);
         }
 
-        $result = $this->result;
+        $this->result = $stmt;
 
         // Row counting logic
         
         if($this->dbinfo->engine == 'mysql') {
-          $numrows = $result->rowCount();
+          $numrows = $stmt->rowCount();
         } elseif($m == 'select') {
           // If engine is not 'mysql' then it is 'sqlite' as those are the only two databases I
           // support. So use count(*) to get the number of lines.
+          // BLP 2026-05-13 - added $params and $stmt.
           
           $last = self::$lastQuery; // Get the query back
 
           // No remove 'select' the 'from ...' and create 'select count(*) from ...
           
-          $last = preg_replace("~^(select) .*?(from .*)$~i", "$1 count(*) $2", $last);
-          $stm = $this->query($last);
-          $numrows = $stm->fetchColumn();
+          $last = preg_replace("~^(select) .*? (from .*)$~i", "$1 count(*) $2", $last);
+          if($params) {
+            $stmt = $this->prepare($last);
+            $stmt->execute($params);
+          } else {
+            $stmt = $this->query($last);
+          }
+          
+          $numrows = $stmt->fetchColumn();
         } else {
           $numrows = 0;
         }
