@@ -50,6 +50,12 @@ class SiteClass extends Database {
   public $doctype = "<!DOCTYPE html>";
 
   /**
+   * webServerUrl in webServer is true is Error.
+   * If webServer is false this can be null.
+   */
+  public $webServerUrl = null;
+  
+  /**
    * SiteClass constructor.
    *
    * The object passed in is usually from mysitemap.json, which contains all
@@ -63,6 +69,12 @@ class SiteClass extends Database {
 
     if($s->nodb === true || $s->webServer === true) {
       $s->nodb = true;
+/*      if(($this->url = $s->webServerUrl) === null) {
+        throw new \Throwable(__CLASS__ . " " . __LINE__ .
+                             ": $this->siteName, webServerUrl is null");
+        exit;
+      }
+*/
       if($s->webServer === true) {
         $s->noCounter = false; // If webServer allow counter
       } else {
@@ -90,7 +102,7 @@ class SiteClass extends Database {
     } else {
       // Do the parent Database constructor which does the dbPdo constructor.
       // For everything else we do Database and dbPdo
-      
+      $this->url = $s->webServerUrl; // This can be null
       parent::__construct($s); // Turns everything in $s into $this.
     }
     
@@ -680,16 +692,15 @@ EOF;
    */
   private function webServer():int {
     if($this->webServer === true) {
-      $url = "https://bartonphillips.com/api.php";
+      $url = "https://bartonlp.com/otherpages/myapi.php"; 
 
       $site = $this->siteName;
       $agent = $this->agent;
       $ip = $this->ip;
+
+      $this->addInsert($url, $site, $ip, $agent); // addInsert will return exit.
       
-      $n = $this->addInsert($url, $site, $ip, $agent);
-
       $result = $this->getSelect($url, $site, $ip, $agent);
-
       return $result;
     }
     return 0;
@@ -721,7 +732,10 @@ EOF;
 
     $result = json_decode($result, true);
 
-    if($result->num === 0) exit("Error Insert");
+    if($result->num === 0) {
+      error_log("webServer addInsert: Error=0");
+      exit;
+    }
   }
 
   /**
@@ -736,7 +750,6 @@ EOF;
                 'site' => $site,
                 'ip'    => $ip,
                 'agent' => $agent,
-                //'limit' => 5,
                ];
 
     $options = [
@@ -748,6 +761,7 @@ EOF;
                ];
 
     $result = file_get_contents($url, false, stream_context_create($options));
+    
     $result = json_decode($result, true);
 
     // look at data
@@ -792,7 +806,6 @@ EOF;
       $fullpath = $cwd . $path;
 
       if(!file_exists($fullpath)) {
-        //error_log("cacheBuster: ip=$this->ipfile, site=$this->siteName, page=$this->self, file=$file not found $fullpath");
         return $file; // gracefully fallback
       }
 

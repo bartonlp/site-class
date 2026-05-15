@@ -7,7 +7,7 @@ use bartonlp\SiteClass\traits\WarnToExceptionHandler;
 use \PDO;
 use \PDOStatement;
 
-define("PDO_CLASS_VERSION", "7.0.3"); // BLP 2026-05-13 - see code
+define("PDO_CLASS_VERSION", "7.0.4"); // BLP 2026-05-15 - see code
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -518,6 +518,146 @@ class dbPdo extends PDO {
 
     return "<table $features>\n$hdr$lines</tbody>\n$ftr</table>\n";
   }
+
+  /**
+   * This does the server side of doWebServer. It is added myapi.php as a symlink
+   * DigitalOcean server /var/www/bartonlp/otherpages. It is a very small (five lines of code)
+   * piece that does doWebServer().
+   *
+   * @params: none
+   * @return: void
+   * Everything uses the $url and file_get_contents('php://input') to get the $input,
+   * $this->sql($query, $params), and then does echo encode(...) and exit;
+   */
+  public function doWebServer(): void {
+    $url = "https://bartonlp.com/otherpages/myapi.php"; // This is a symline to SiteClass.
+    
+    $engine = $this->dbinfo->engine; // Detemin which server we use in JSON
+
+    header('Content-Type: application/json'); // Make it application/json.
+
+    // --- read JSON input ---
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    // --- basic validation ---
+    if(!is_array($input)) {
+      http_response_code(400);
+      error_log("doWebServer: error=invalid from \$input");
+      exit;
+    }
+
+    $type = $input['type']; // Get the $type, 'select' or 'insert'
+
+    // --- whitelist tables --- 'logagent' is the only one we really use.
+    $allowedTables = ['logagent', 'tracker', 'counter']; // I have added several tables.
+
+    $table = $input['table'];
+    
+    if(!in_array($table, $allowedTables)) {
+      http_response_code(400);
+      error_log("doWebServer: error=invalid table.");
+      exit;
+    }
+
+    switch($type) {
+      case 'select':
+        // These may have other items later!
+        // I may use an array to make this more user friendly.
+        $site = $input['site'];
+        $ip = $input['ip'];
+        $agent = $input['agent'];
+
+        $where = "where site=? and ip=? and agent=?";
+
+        $query = "SELECT * FROM $table $where ORDER BY lasttime DESC";
+
+        $n = $this->sql($query, [$site, $ip, $agent]);
+
+        if(!$n) {
+          error_log("doWebServer select: select Error=$n");
+          exit;
+        }
+
+        $data = [];
+
+        while($row = $this->fetchrow('assoc')) {
+          $data[] = $row;
+        }
+
+        $count = count($data);
+        
+        echo json_encode([
+                          'query' => $query,
+                          'count' => $count,
+                          'params'=> $params,
+                          'data'  => $data,
+                         ]);
+        break;
+      case 'insert':
+        $site  = $input['site'];
+        $ip    = $input['ip'];
+        $agent = $input['agent'];
+
+        $params = [$site,
+                   $ip,
+                   $agent,
+                  ];
+
+        if(!$site || !$ip || !$agent) { 
+          http_response_code(400);
+          error_log("doWebServer: error=Error missing fields. site or ip or agent");
+          exit;
+        }
+
+        switch($engine) {
+          case "mysql":
+            $query = "INSERT INTO $table (site, ip, agent, count, lasttime)
+VALUES (?, ?, ?, 1, NOW())
+ON DUPLICATE KEY UPDATE
+count = count + 1,
+lasttime = NOW()";
+            break;
+          case "sqlite":
+            $query = "CREATE TABLE IF NOT EXISTS $table (`site` varchar(25) NOT NULL DEFAULT '',
+`ip` varchar(40) NOT NULL DEFAULT '',
+`agent` varchar(254) NOT NULL,
+`count` int DEFAULT NULL,
+`created` text NOT NULL DEFAULT CURRENT_TIMESTAMP,
+`lasttime` text DEFAULT NULL,
+PRIMARY KEY (`site`,`ip`,`agent`))";
+
+            $n = $this->sql($query);
+            if(!$n) {
+              error_log("doWebServer: create error");
+              exit;
+            }
+
+            $query = "insert into $table (site, ip, agent, count, lasttime)
+values (?, ?, ?, 1, datetime('now','localtime'))
+on conflict(site, ip, agent)
+do update set
+count = count + 1,
+lasttime = datetime('now','localtime')";
+            break;
+          default:
+            error_log("doWebServer SWITCH: engine=$engine, type=$type");
+            exit;
+        }
+
+        $n = $this->sql($query, $params);
+
+        if(!$n) {
+          error_log("doWebServer: Error insert=$n");
+          exit;
+        }
+
+        echo json_encode(['query' => $query, 'params' => [$site, $ip, $agent], 'num' => $n,]);
+        break;
+      default:
+        error_log("doWebServer SWITCH ERROR: type=$type");
+        exit;
+    }
+    exit;
+  }
 }
 // End of class
-  
