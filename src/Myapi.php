@@ -2,8 +2,7 @@
 $_site = require_once getenv("SITELOADNAME");
 // Because bartonlp.com/otherpages have mysitemap.json dbinfo->database = 'barton' we don't need
 // the special $_site->dbinfo->database!
-$_site->dbinfo->database = '/var/www/bartonphillips.com/barton';
-$_site->dbinfo->engine = 'sqlite';
+
 $db = new dbPdo($_site);
 
 header('Content-Type: application/json'); // Make it application/json.
