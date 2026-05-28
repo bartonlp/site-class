@@ -46,7 +46,7 @@ trait WarnToExceptionHandler {
     if($errno === \E_WARNING) {
       foreach($this->exceptionTriggers as $fn) {
         if(str_contains($errstr, $fn)) {
-          throw new \Throwable("***Error: $errstr, $errfile, $errline");
+          throw new \InvalidArgumentException("***Error: $errstr, $errfile, $errline");
         }
       }
     }

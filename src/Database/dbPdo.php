@@ -207,14 +207,14 @@ class dbPdo extends PDO {
    * @throws Exception  - On SQL preparation or execution failure.
    * @site-effect       - For SELECT/SHOW/EXPLAIN sets $this->result.
    */
-  public function sql($query, array $params = []): PDOStatement|int|bool {
+  public function sql(string $query, array $params = []): PDOStatement|int|bool {
     self::$lastQuery = trim(preg_replace('/\s+/', ' ', $query));
     self::$lastParam = implode(",", $params ?? null);
     
     // Extract the command type (first word in SQL)
     
     if(!preg_match("~^\s*(\w+)~", $query, $m)) { // allow multi line queries.
-      throw new \Throwable(__METHOD__ . ": Invalid SQL query: '$query'");
+      throw new \InvalidArgumentException(__METHOD__ . ": Invalid SQL query: '$query'");
     }
     $m = strtolower($m[1]);
 
@@ -306,7 +306,7 @@ class dbPdo extends PDO {
    */
   public function queryfetch($query, $type=null, $returnarray=null) {
     if(stripos($query, 'select') === false) { // Can't be anything but 'select'
-      throw new \Throwable(__CLASS__ . " ". __LINE__ .": Query must be a select: $query");
+      throw new \InvalidArgumentException(__CLASS__ . " ". __LINE__ .": Query must be a select: $query");
     }
 
     // queryfetch() can be
@@ -353,9 +353,10 @@ class dbPdo extends PDO {
       $type = $result;
       $result = $this->result; // was set in sql(...).
     }
-    
+
+    error_log("dbPdo fetchrow result: " . print_r($result, true));
     if(!$result) {
-      throw new \Throwable(__METHOD__ .", PDOStatment 'result' is null, line=". __LINE__);
+      throw new \InvalidArgumentException(__METHOD__ .", PDOStatment 'result' is null, line=". __LINE__);
     }
 
     switch($type) {
@@ -372,11 +373,11 @@ class dbPdo extends PDO {
         $row = $result->fetch(PDO::FETCH_BOTH); // This is the default
         break;
       default:
-        throw new \Throwable(__METHOD__. ", invalid type=$type, line=". __LINE__);
+        throw new \InvalidArgumentException(__METHOD__. ", invalid type=$type, line=". __LINE__);
     }
 
     if($row === false) $row = null;
-    
+    error_log("dbPdo fetchrow at end row: " . print_r($row, true));
     return $row;
   }
   
@@ -530,7 +531,7 @@ class dbPdo extends PDO {
    * $this->sql($query, $params), and then does echo encode(...) and exit;
    */
   public function doWebServer(): void {
-    $url = "https://bartonlp.com/otherpages/myapi.php"; // This is a symline to SiteClass.
+    $url = "https://bartonlp.com/otherpages/doWebServer.php"; // This is a symline to SiteClass.
     
     $engine = $this->dbinfo->engine; // Detemin which server we use in JSON
 
@@ -549,7 +550,7 @@ class dbPdo extends PDO {
     $type = $input['type']; // Get the $type, 'select' or 'insert'
 
     // --- whitelist tables --- 'logagent' is the only one we really use.
-    $allowedTables = ['logagent', 'tracker', 'counter']; // I have added several tables.
+    $allowedTables = ['logagent']; //, 'tracker', 'counter']; // I have added several tables.
 
     $table = $input['table'];
     
@@ -659,5 +660,32 @@ lasttime = datetime('now','localtime')";
     }
     exit;
   }
+
+  /**
+   * WebServerApi
+   */
+  public function WebServerApi(string $sql, ?array $params=[]):array|int|stdClass {
+    $payload = $params === null ? ['sql'=>$sql] : ['sql'=>$sql, 'params'=>$params];
+
+    $options = [
+                'http' => [
+                           'method'  => 'POST',
+                           'header'  => "Content-Type: application/json",
+                           'content' => json_encode($payload),
+                           'timeout' => 10,
+                          ],
+               ];
+
+    try {
+      $url  = "https://bartonlp.com/otherpages/Myapi.php";
+      $result = json_decode(file_get_contents($url, false, stream_context_create($options)));
+    } catch(\InvalidArgumentException $e) {
+      echo "<pre>{$e->getMessage()}\n{$e->getFile()}\n{$e->getLine()}</pre>";
+      exit;
+    }
+
+    return $result;
+  }
 }
 // End of class
+

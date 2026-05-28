@@ -55,7 +55,7 @@ class Database extends dbPdo {
       try {
         $this->myIp = $this->CheckIfTablesExist(); // Check if tables exit and get myIp
       } catch(\Throwable $e) {
-        throw new \Throwable(__CLASS__ . " " . __LINE__ . ": CheckIfTablesExist=" . $e->getMessage());
+        throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ . ": CheckIfTablesExist=" . $e->getMessage());
       }
       $this->isBot($this->agent); // This set $this->isBot, it also does isMe() so I never get set as a bot!
       $this->logagent();   // Log the agent
@@ -79,7 +79,7 @@ class Database extends dbPdo {
         $this->noGeo = true;
         $this->noTrack = true;
       } else {
-        throw new \Throwable(__CLASS__ . " " . __LINE__ . ": DATABASE-ENGINE=$this->dbinfo->database, $this->dbinfo->engine");
+        throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ . ": DATABASE-ENGINE=$this->dbinfo->database, $this->dbinfo->engine");
       }
       $this->logagent();
       
@@ -334,7 +334,7 @@ DO UPDATE SET
     $sql = "update $this->masterdb.myip set count=count+1, lasttime=now() where myIp='$this->ip'";
 
     if(!$this->sql($sql)) {
-      throw new \Throwable(__CLASS__. " ". __LINE__. ": site=$this->siteName, update of myip failed, ip: $this->ip"); // this should not happen
+      throw new \InvalidArgumentException(__CLASS__. " ". __LINE__. ": site=$this->siteName, update of myip failed, ip: $this->ip"); // this should not happen
     }
   }
 
@@ -369,7 +369,7 @@ DO UPDATE SET
     if(!empty($ar)) {
       [$err, $errmsg, $errfile, $errline] = error_get_last();
       
-      throw new \Throwable("Database.php: Missing tables -- $errmsg, $errfile, $errline", $err);
+      throw new \InvalidArgumentException("Database.php: Missing tables -- $errmsg, $errfile, $errline", $err);
     }
     
     $this->sql("select myIp from $this->masterdb.myip");

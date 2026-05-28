@@ -10,7 +10,7 @@ use bartonlp\SiteClass\Database\Database;
  * @file SiteClass.class.php
  * @package SiteClass
  */
-define("SITE_CLASS_VERSION", "7.0.2"); // BLP 2026-05-05 - BLP 2026-04-23 - move from SiteClass to Database getHitCount.
+define("SITE_CLASS_VERSION", "7.0.3");
 
 // One class for all my sites
 /**
@@ -50,12 +50,6 @@ class SiteClass extends Database {
   public $doctype = "<!DOCTYPE html>";
 
   /**
-   * webServerUrl in webServer is true is Error.
-   * If webServer is false this can be null.
-   */
-  public $webServerUrl = null;
-  
-  /**
    * SiteClass constructor.
    *
    * The object passed in is usually from mysitemap.json, which contains all
@@ -69,12 +63,6 @@ class SiteClass extends Database {
 
     if($s->nodb === true || $s->webServer === true) {
       $s->nodb = true;
-/*      if(($this->url = $s->webServerUrl) === null) {
-        throw new \Throwable(__CLASS__ . " " . __LINE__ .
-                             ": $this->siteName, webServerUrl is null");
-        exit;
-      }
-*/
       if($s->webServer === true) {
         $s->noCounter = false; // If webServer allow counter
       } else {
@@ -101,8 +89,7 @@ class SiteClass extends Database {
       }
     } else {
       // Do the parent Database constructor which does the dbPdo constructor.
-      // For everything else we do Database and dbPdo
-      $this->url = $s->webServerUrl; // This can be null
+
       parent::__construct($s); // Turns everything in $s into $this.
     }
     
@@ -187,7 +174,7 @@ class SiteClass extends Database {
    * which is (usually) in the includes directory of the document root of the website.
    *
    * @return string
-   * @throws \Throwable If require headfile returns 1.
+   * @throws \InvalidArgumentException If require headfile returns 1.
    * @see https://bartonlp.org/docs/head.i.php.
    */
   public function getPageHead():string {
@@ -437,7 +424,7 @@ EOF;
       } else {
         // require returned 1 which is wrong!!
         
-        throw new \Throwable(__CLASS__ . " " . __LINE__ .
+        throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ .
                             ": $this->siteName, getPageHead() headFile '$this->headFile' returned 1");
       }
     } else {
@@ -692,7 +679,7 @@ EOF;
    */
   private function webServer():int {
     if($this->webServer === true) {
-      $url = "https://bartonlp.com/otherpages/myapi.php"; 
+      $url = "https://bartonlp.com/otherpages/doWebserver.php"; 
 
       $site = $this->siteName;
       $agent = $this->agent;
