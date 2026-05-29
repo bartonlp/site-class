@@ -521,9 +521,9 @@ class dbPdo extends PDO {
   }
 
   /**
-   * This does the server side of doWebServer. It is added myapi.php as a symlink
+   * This does the server side of doWebServer. It is added doWebServer.php as a symlink
    * DigitalOcean server /var/www/bartonlp/otherpages. It is a very small (five lines of code)
-   * piece that does doWebServer().
+   * piece that does this public function doWebServer().
    *
    * @params: none
    * @return: void
@@ -550,7 +550,7 @@ class dbPdo extends PDO {
     $type = $input['type']; // Get the $type, 'select' or 'insert'
 
     // --- whitelist tables --- 'logagent' is the only one we really use.
-    $allowedTables = ['logagent']; //, 'tracker', 'counter']; // I have added several tables.
+    $allowedTables = ['logagent']; // This is the only one currently.
 
     $table = $input['table'];
     

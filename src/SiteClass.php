@@ -10,7 +10,7 @@ use bartonlp\SiteClass\Database\Database;
  * @file SiteClass.class.php
  * @package SiteClass
  */
-define("SITE_CLASS_VERSION", "7.0.3");
+define("SITE_CLASS_VERSION", "7.0.4");
 
 // One class for all my sites
 /**
@@ -477,7 +477,9 @@ EOF;
     $b = new \stdClass; // b is for banner
 
     $b->bodytag = $this->bodytag ?? "<body>";
-    $b->mainTitle = $this->banner ?? $this->mainTitle;
+    // BLP 2026-05-29 - 
+    $b->mainTitle = $this->banner ?? ($this->mainTitle !==null ? $this->mainTitle :
+                                      ($this->mainTitle != "" ? $this->mainTitle : "<h1>$this->title</h1>"));
 
     // If noTrack then there will be no tracker.js or tracker.php
     // so we can't set the images at all.

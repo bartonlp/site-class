@@ -23,7 +23,7 @@ try {
   $sql = $input['sql']; // select or insert
   $params = $input['params'];
 
-  error_log("Myapi.php sql=$sql\nparams: " . print_r($params, true));
+  //error_log("Myapi.php sql=$sql\nparams: " . print_r($params, true));
   
   $result = $db->sql($sql, $params);
 
