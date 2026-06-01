@@ -10,7 +10,7 @@ use bartonlp\SiteClass\Database\Database;
  * @file SiteClass.class.php
  * @package SiteClass
  */
-define("SITE_CLASS_VERSION", "7.0.4");
+define("SITE_CLASS_VERSION", "7.0.5");
 
 // One class for all my sites
 /**
@@ -92,7 +92,7 @@ class SiteClass extends Database {
 
       parent::__construct($s); // Turns everything in $s into $this.
     }
-    
+
     // Add the date to the copyright notice if one exists
 
     if($this->copyright) {
@@ -722,7 +722,7 @@ EOF;
     $result = json_decode($result, true);
 
     if($result->num === 0) {
-      error_log("webServer addInsert: Error=0");
+      error_log("SiteClass addInsert: Error=0, line=" . __LINE__);
       exit;
     }
   }

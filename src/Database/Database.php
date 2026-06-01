@@ -9,7 +9,7 @@ namespace bartonlp\SiteClass\Database;
  * @file database/Database.php
  * @package SiteClass
  */
-define("DATABASE_CLASS_VERSION", "7.0.2"); // BLP 2026-04-23 - see date 
+define("DATABASE_CLASS_VERSION", "7.0.5");
 /**
  * @file database/Database.php
  * @package SiteClass
@@ -57,8 +57,8 @@ class Database extends dbPdo {
       } catch(\Throwable $e) {
         throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ . ": CheckIfTablesExist=" . $e->getMessage());
       }
+
       $this->isBot($this->agent); // This set $this->isBot, it also does isMe() so I never get set as a bot!
-      $this->logagent();   // Log the agent
       $this->tracker();    // This logs Me and everybody else but uses the $this->isBot bitmap!
       $this->updatemyip(); // Update myip if it is ME
 
@@ -81,6 +81,7 @@ class Database extends dbPdo {
       } else {
         throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ . ": DATABASE-ENGINE=$this->dbinfo->database, $this->dbinfo->engine");
       }
+      
       $this->logagent();
       
       if($this->count === true) {
@@ -282,25 +283,28 @@ on duplicate key update count=count+1, lasttime=now()");
       // This is the sqlite locic.
       // We always try to write the lobagent
 
-      $this->sql("
-CREATE TABLE IF NOT EXISTS logagent (`site` varchar(25) NOT NULL DEFAULT '',
-`ip` varchar(40) NOT NULL DEFAULT '',
-`agent` varchar(254) NOT NULL,
-`count` int DEFAULT NULL,
-`created` datetime DEFAULT NULL,
-`lasttime` datetime DEFAULT NULL,
-PRIMARY KEY (`site`,`ip`,`agent`))
-");
+      $this->sql("CREATE TABLE IF NOT EXISTS logagent ".
+                 "(`site` varchar(25) NOT NULL DEFAULT '', ".
+                 "`ip` varchar(40) NOT NULL DEFAULT '', ".
+                 "`agent` varchar(254) NOT NULL, ".
+                 "`count` int DEFAULT NULL, ".
+                 "`created` text DEFAULT NULL, ".
+                 "`lasttime` text DEFAULT NULL, ".
+                 "PRIMARY KEY (`site`,`ip`,`agent`))");
+
       // Now do an insert
       // BLP 2026-04-23 - use new on conflict logic.
-      
-      $this->sql("INSERT INTO logagent (site, ip, agent, count, lasttime)
-VALUES ('$this->siteName', '$this->ip', '$this->agent', 1, datetime('now','localtime'))
-ON CONFLICT(site, ip, agent)
-DO UPDATE SET
-  count = count + 1,
-  lasttime = datetime('now','localtime')
-");
+
+      $site = $this->siteName;
+      $ip = $this->ip;
+      $agent = $this->agent;
+
+      $this->sql("INSERT INTO logagent (site, ip, agent, count, lasttime) ".
+                 "VALUES (?, ?, ?, 1, datetime('now','localtime')) ".
+                 "ON CONFLICT(site, ip, agent) ".
+                 "DO UPDATE SET ".
+                 "count = count + 1, ".
+                 "lasttime = datetime('now','localtime')", [$site, $ip, $agent]);
     }
   }
   
@@ -358,7 +362,7 @@ DO UPDATE SET
     // Do all of the table checks once here.
     // We look at the tables and compare them to a list of tables we should have.
     
-    $n = $this->sql("show tables from $this->masterdb"); // Request all the tables
+    $this->sql("show tables from $this->masterdb"); // Request all the tables
     $tbls = [];
 
     while([$tbl] = $this->fetchrow('num')) {

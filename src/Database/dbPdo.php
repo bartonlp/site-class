@@ -7,7 +7,7 @@ use bartonlp\SiteClass\traits\WarnToExceptionHandler;
 use \PDO;
 use \PDOStatement;
 
-define("PDO_CLASS_VERSION", "7.0.4"); // BLP 2026-05-15 - see code
+define("PDO_CLASS_VERSION", "7.0.5");
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -113,7 +113,6 @@ class dbPdo extends PDO {
     }
     
     $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']); // Be safe
-
     if(is_null($s->dbinfo->engine)) {
       // We pass $s which is esentially $_site with some stuff added.
 
@@ -348,13 +347,12 @@ class dbPdo extends PDO {
    *   either an assoc or numeric array, or an array with both numeric indices and associative indices.
    * @throws Exception|PDOException On Sql error, $this->result is null or $type is not allowed.
    */
-  public function fetchrow(PDOStatement|string|null $result=null, string $type="both"): object|array|null {
+  public function fetchrow(PDOStatement|string|null $result=null, string $type="both"): mixed { //object|array|null {
     if(is_string($result)) { // a string like num, assoc, obj or both
       $type = $result;
       $result = $this->result; // was set in sql(...).
     }
 
-    error_log("dbPdo fetchrow result: " . print_r($result, true));
     if(!$result) {
       throw new \InvalidArgumentException(__METHOD__ .", PDOStatment 'result' is null, line=". __LINE__);
     }
@@ -375,9 +373,8 @@ class dbPdo extends PDO {
       default:
         throw new \InvalidArgumentException(__METHOD__. ", invalid type=$type, line=". __LINE__);
     }
-
+    
     if($row === false) $row = null;
-    error_log("dbPdo fetchrow at end row: " . print_r($row, true));
     return $row;
   }
   
@@ -521,148 +518,14 @@ class dbPdo extends PDO {
   }
 
   /**
-   * This does the server side of doWebServer. It is added doWebServer.php as a symlink
-   * DigitalOcean server /var/www/bartonlp/otherpages. It is a very small (five lines of code)
-   * piece that does this public function doWebServer().
-   *
-   * @params: none
-   * @return: void
-   * Everything uses the $url and file_get_contents('php://input') to get the $input,
-   * $this->sql($query, $params), and then does echo encode(...) and exit;
-   */
-  public function doWebServer(): void {
-    $url = "https://bartonlp.com/otherpages/doWebServer.php"; // This is a symline to SiteClass.
-    
-    $engine = $this->dbinfo->engine; // Detemin which server we use in JSON
-
-    header('Content-Type: application/json'); // Make it application/json.
-
-    // --- read JSON input ---
-    $input = json_decode(file_get_contents('php://input'), true);
-
-    // --- basic validation ---
-    if(!is_array($input)) {
-      http_response_code(400);
-      error_log("doWebServer: error=invalid from \$input");
-      exit;
-    }
-
-    $type = $input['type']; // Get the $type, 'select' or 'insert'
-
-    // --- whitelist tables --- 'logagent' is the only one we really use.
-    $allowedTables = ['logagent']; // This is the only one currently.
-
-    $table = $input['table'];
-    
-    if(!in_array($table, $allowedTables)) {
-      http_response_code(400);
-      error_log("doWebServer: error=invalid table.");
-      exit;
-    }
-
-    switch($type) {
-      case 'select':
-        // These may have other items later!
-        // I may use an array to make this more user friendly.
-        $site = $input['site'];
-        $ip = $input['ip'];
-        $agent = $input['agent'];
-
-        $where = "where site=? and ip=? and agent=?";
-
-        $query = "SELECT * FROM $table $where ORDER BY lasttime DESC";
-
-        $n = $this->sql($query, [$site, $ip, $agent]);
-
-        if(!$n) {
-          error_log("doWebServer select: select Error=$n");
-          exit;
-        }
-
-        $data = [];
-
-        while($row = $this->fetchrow('assoc')) {
-          $data[] = $row;
-        }
-
-        $count = count($data);
-        
-        echo json_encode([
-                          'query' => $query,
-                          'count' => $count,
-                          'params'=> $params,
-                          'data'  => $data,
-                         ]);
-        break;
-      case 'insert':
-        $site  = $input['site'];
-        $ip    = $input['ip'];
-        $agent = $input['agent'];
-
-        $params = [$site,
-                   $ip,
-                   $agent,
-                  ];
-
-        if(!$site || !$ip || !$agent) { 
-          http_response_code(400);
-          error_log("doWebServer: error=Error missing fields. site or ip or agent");
-          exit;
-        }
-
-        switch($engine) {
-          case "mysql":
-            $query = "INSERT INTO $table (site, ip, agent, count, lasttime)
-VALUES (?, ?, ?, 1, NOW())
-ON DUPLICATE KEY UPDATE
-count = count + 1,
-lasttime = NOW()";
-            break;
-          case "sqlite":
-            $query = "CREATE TABLE IF NOT EXISTS $table (`site` varchar(25) NOT NULL DEFAULT '',
-`ip` varchar(40) NOT NULL DEFAULT '',
-`agent` varchar(254) NOT NULL,
-`count` int DEFAULT NULL,
-`created` text NOT NULL DEFAULT CURRENT_TIMESTAMP,
-`lasttime` text DEFAULT NULL,
-PRIMARY KEY (`site`,`ip`,`agent`))";
-
-            $n = $this->sql($query);
-            if(!$n) {
-              error_log("doWebServer: create error");
-              exit;
-            }
-
-            $query = "insert into $table (site, ip, agent, count, lasttime)
-values (?, ?, ?, 1, datetime('now','localtime'))
-on conflict(site, ip, agent)
-do update set
-count = count + 1,
-lasttime = datetime('now','localtime')";
-            break;
-          default:
-            error_log("doWebServer SWITCH: engine=$engine, type=$type");
-            exit;
-        }
-
-        $n = $this->sql($query, $params);
-
-        if(!$n) {
-          error_log("doWebServer: Error insert=$n");
-          exit;
-        }
-
-        echo json_encode(['query' => $query, 'params' => [$site, $ip, $agent], 'num' => $n,]);
-        break;
-      default:
-        error_log("doWebServer SWITCH ERROR: type=$type");
-        exit;
-    }
-    exit;
-  }
-
-  /**
    * WebServerApi
+   * This can be run in WebServerApi on Rpi, Spin and HP-envy (and anywhere).
+   * This is used with the $url that is in the src and is symlinked to
+   * https://bartonlp.com/otherpages/Myapi.php.
+   *
+   * @params string $sql
+   * @params ?array $params or empty
+   * @return array|int|stdClass
    */
   public function WebServerApi(string $sql, ?array $params=[]):array|int|stdClass {
     $payload = $params === null ? ['sql'=>$sql] : ['sql'=>$sql, 'params'=>$params];
