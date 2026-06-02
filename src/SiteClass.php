@@ -651,6 +651,7 @@ EOF;
       $this->hitCount = $hits;
     } else {
       $hits = number_format($this->hitCount);
+      $this->logagent();
     }
     
     // Let the appearance be up to the pages css!

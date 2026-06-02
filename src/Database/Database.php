@@ -82,7 +82,7 @@ class Database extends dbPdo {
         throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ . ": DATABASE-ENGINE=$this->dbinfo->database, $this->dbinfo->engine");
       }
       
-      $this->logagent();
+      $this->logagent(); // We do logagent because we don't do it in SiteClass::webServer.
       
       if($this->count === true) {
         $this->sql("select count from logagent where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
@@ -227,22 +227,24 @@ values('$this->siteName', '$page', '$this->ip', '$name',
    * @throws \PDOException If the SQL insert or select fails
    */
   protected function counter():void {
+    if($this->dbinfo->engine === 'sqlite') return;
+    
+    $site = $this->siteName;
     $filename = $this->self; // get the name of the file
     $realcnt = 0;
     
     if(!$this->isMe()) {
       $realcnt = $this->isBot ? 0 : 1; // $realcnt is the number of NON robots
     }
-    
-    $this->sql("
-insert into $this->masterdb.counter
-(site, filename, count) values('$this->siteName', '$filename', 1)
-on duplicate key update count=count+1, realcnt=realcnt+$realcnt");
 
+    $this->sql("insert into $this->masterdb.counter
+(site, filename, count) values('$site', '$filename', 1)
+on duplicate key update count=count+1, realcnt=realcnt+$realcnt");
+        
     // Now retreive the hit count value after it may have been incremented above. NOTE, I am NOT
     // included here.
 
-    $this->sql("select realcnt from $this->masterdb.counter where site='$this->siteName' and filename='$filename'");
+    $this->sql("select realcnt from $this->masterdb.counter where site='$site' and filename='$filename'");
 
     $this->hitCount = ($this->fetchrow('num')[0]) ?? 0; // This is the number of REAL (non BOT) accesses and NOT Me.
   }
@@ -272,7 +274,7 @@ on duplicate key update count=count+1, realcnt=realcnt+$realcnt");
   protected function logagent():void {
     // Key is 'site', 'ip', 'agent'.
     
-    if($this->dbinfo->engine != "sqlite") {
+    if($this->dbinfo->engine !== "sqlite") {
       // This is the mysql logic.
       
       $this->sql("
