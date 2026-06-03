@@ -78,7 +78,6 @@ class SiteClass extends Database {
 
       // Because $s->nodb, set up the rest of these.
       
-      $s->count = false;
       $s->noTrack = true;   // No tracking 
       $s->dbinfo = null;    // Maybe nodb was set
       
@@ -647,11 +646,14 @@ EOF;
     // hitCount is updated by 'counter()' in Database.
 
     if($server = $this->webServer()) {
+      $this->hitCount = $server;
       $hits = number_format($server);
-      $this->hitCount = $hits;
-    } else {
+    } elseif($this->doSiteClass === true) {
       $hits = number_format($this->hitCount);
+    } else {
+      // If not doSiteClass
       $this->logagent();
+      $hits = number_format($this->hitCount);
     }
     
     // Let the appearance be up to the pages css!

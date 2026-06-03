@@ -81,14 +81,6 @@ class Database extends dbPdo {
       } else {
         throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ . ": DATABASE-ENGINE=$this->dbinfo->database, $this->dbinfo->engine");
       }
-      
-      $this->logagent(); // We do logagent because we don't do it in SiteClass::webServer.
-      
-      if($this->count === true) {
-        $this->sql("select count from logagent where site='$this->siteName' and ip='$this->ip' and agent='$this->agent'");
-        $count = $this->fetchrow('num')[0];
-        $this->hitCount = $count;
-      }
     }
   } // END Construct
 
@@ -274,12 +266,16 @@ on duplicate key update count=count+1, realcnt=realcnt+$realcnt");
   protected function logagent():void {
     // Key is 'site', 'ip', 'agent'.
     
+    $site = $this->siteName;
+    $ip = $this->ip;
+    $agent = $this->agent;
+    $masterdb = "{$this->masterdb}.";
+    
     if($this->dbinfo->engine !== "sqlite") {
       // This is the mysql logic.
       
-      $this->sql("
-insert into $this->masterdb.logagent (site, ip, agent, count, created, lasttime)
-values('$this->siteName', '$this->ip', '$this->agent', '1', now(), now())
+      $this->sql("insert into {$masterdb}logagent (site, ip, agent, count, created, lasttime)
+values('$site', '$ip', '$agent', '1', now(), now())
 on duplicate key update count=count+1, lasttime=now()");
     } else {
       // This is the sqlite locic.
@@ -294,12 +290,7 @@ on duplicate key update count=count+1, lasttime=now()");
                  "`lasttime` text DEFAULT NULL, ".
                  "PRIMARY KEY (`site`,`ip`,`agent`))");
 
-      // Now do an insert
-      // BLP 2026-04-23 - use new on conflict logic.
-
-      $site = $this->siteName;
-      $ip = $this->ip;
-      $agent = $this->agent;
+      // Now do an sqlite insert
 
       $this->sql("INSERT INTO logagent (site, ip, agent, count, lasttime) ".
                  "VALUES (?, ?, ?, 1, datetime('now','localtime')) ".
@@ -307,6 +298,14 @@ on duplicate key update count=count+1, lasttime=now()");
                  "DO UPDATE SET ".
                  "count = count + 1, ".
                  "lasttime = datetime('now','localtime')", [$site, $ip, $agent]);
+
+      $masterdb = null; // If we are SQLITE make $masterdb null.
+    }
+
+    if($this->count === true) {
+      $this->sql("select count from {$masterdb}logagent where site='$site' and ip='$ip' and agent='$agent'");
+      $count = $this->fetchrow('num')[0];
+      $this->hitCount = $count;
     }
   }
   
