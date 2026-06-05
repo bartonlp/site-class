@@ -1,5 +1,6 @@
 <?php
-/* Well tested and maintained */
+// Database.php
+
 // All of the tracking and counting logic that is in this file.
 // BLP 2023-12-13 - NOTE: the PDO error for dup key is '23000' not '1063' as in mysqli.
 
@@ -9,7 +10,7 @@ namespace bartonlp\SiteClass\Database;
  * @file database/Database.php
  * @package SiteClass
  */
-define("DATABASE_CLASS_VERSION", "7.0.5");
+define("DATABASE_CLASS_VERSION", "7.0.6");
 /**
  * @file database/Database.php
  * @package SiteClass
@@ -45,7 +46,9 @@ class Database extends dbPdo {
    * @see https://bartonlp.org/docs/mysitemap.json for full details
    */
   public function __construct(object $s) {
-    parent::__construct($s); // After the constructor we have our $this.
+    parent::__construct($s); // parent::constructor $s is made dbPdo.php. Now $this is done. 
+
+    // SiteClass.php does the 'webServer'!
     
     // If we are doSiteClass is true we will do FULL database.
     
@@ -74,13 +77,8 @@ class Database extends dbPdo {
       // NO doSiteClass
 
       $this->trackerLocationJs = $this->trackerLocation = $this->beaconLocation = " ";
-      
-      if($this->dbinfo->engine == "mysql" || $this->dbinfo->engine == "sqlite") {
-        $this->noGeo = true;
-        $this->noTrack = true;
-      } else {
-        throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ . ": DATABASE-ENGINE=$this->dbinfo->database, $this->dbinfo->engine");
-      }
+      $this->noGeo = true;
+      $this->noTrack = true;
     }
   } // END Construct
 

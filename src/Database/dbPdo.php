@@ -1,5 +1,5 @@
 <?php
-/* MAINTAINED and WELL TESTED. This is the default Database and has received extensive testing */
+// dbPdo.php
 
 namespace bartonlp\SiteClass\Database;
 use bartonlp\SiteClass\traits\UserAgentTools;
@@ -7,7 +7,7 @@ use bartonlp\SiteClass\traits\WarnToExceptionHandler;
 use \PDO;
 use \PDOStatement;
 
-define("PDO_CLASS_VERSION", "7.0.5");
+define("PDO_CLASS_VERSION", "7.0.6");
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -103,7 +103,7 @@ class dbPdo extends PDO {
       $s->requestUri = "CLI_NO_REQUEST_URI";
     } else {
       // Web Based
-      
+
       $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
       $s->xip = $s->xip ?? $_SERVER['SERVER_ADDR']; // Server addr
       $s->realip = $s->realip ?? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
@@ -113,28 +113,27 @@ class dbPdo extends PDO {
     }
     
     $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']); // Be safe
-    if(is_null($s->dbinfo->engine)) {
-      // We pass $s which is esentially $_site with some stuff added.
 
-      $s->dbinfo = new \stdClass;
-        
-      $s->dbinfo->database = "barton";
-      $s->dbinfo->engine = "sqlite";
-      $s->noCounter = false;        
+    if(is_null($s->dbinfo)) {
+      throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ .
+                                          ": dbinfo has either no database of engine");
     }
 
+    if(is_null($s->dbinfo->database) && $s->dbinfo->engine !== "sqlite") {
+      throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ .
+                                          ": dbinfo no database and engine is not sqlite");
+    }
+    if($s->dbinfo->engine === "mysql") {
+      if(is_null($s->dbinfo->host) && is_null($s->dbinfo->user)) {
+        throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ .
+                                            ": dbinfo not host or user in mysql");
+      }
+    }
+    
     // Move all of the arguments in $s to $this
     
     foreach($s as $k=>$v) {
       $this->$k = $v; // $this->$key = $value.
-    }
-
-    // **************************************************
-    // If we do not have dbinfo that is it and we return.
-
-    if(is_null($this->dbinfo)) {
-      // If we do not have a dbinfo we return
-      return;
     }
 
     // Extract the items from dbinfo. This is $host, $user and maybe $password and $port.

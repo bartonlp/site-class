@@ -1,7 +1,8 @@
 <?php
-// php must change when the GitHub Release version changes.
+// SiteClass.php
+// PHP must change when the GitHub Release version changes.
 // Note that the constructor calls the Database constructor which in turn call the
-// dbPdoconstructor which does all of the heavy lifting.
+// dbPdo constructor which does all of the heavy lifting.
 
 namespace bartonlp\SiteClass;
 use bartonlp\SiteClass\Database\Database;
@@ -10,7 +11,7 @@ use bartonlp\SiteClass\Database\Database;
  * @file SiteClass.class.php
  * @package SiteClass
  */
-define("SITE_CLASS_VERSION", "7.0.5");
+define("SITE_CLASS_VERSION", "7.0.6");
 
 // One class for all my sites
 /**
@@ -59,38 +60,9 @@ class SiteClass extends Database {
    * @see https://bartonlp.org/docs/mysitemap.json for full details
    */
   public function __construct(object $s) {
-    // If 'nodb' or 'webServer' in mysitemap.json set everything so the database is not loaded.
+    // Do the parent Database constructor which does the dbPdo constructor.
 
-    if($s->nodb === true || $s->webServer === true) {
-      $s->nodb = true;
-      if($s->webServer === true) {
-        $s->noCounter = false; // If webServer allow counter
-      } else {
-        $s->noCounter = true; // No counter
-      }
-      
-      // Use the $s values or defaults
-
-      $s->ip = $s->ip ?? $_SERVER['REMOTE_ADDR'];
-      $s->agent = $s->agent ?? $_SERVER['HTTP_USER_AGENT'];
-      $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']);
-      $s->requestUri = $s->requestUri ?? $_SERVER['REQUEST_URI'];
-
-      // Because $s->nodb, set up the rest of these.
-      
-      $s->noTrack = true;   // No tracking 
-      $s->dbinfo = null;    // Maybe nodb was set
-      
-      // Put all of the $s values into $this.
-    
-      foreach($s as $k=>$v) {
-        $this->$k = $v;
-      }
-    } else {
-      // Do the parent Database constructor which does the dbPdo constructor.
-
-      parent::__construct($s); // Turns everything in $s into $this.
-    }
+    parent::__construct($s); // Turns everything in $s into $this.
 
     // Add the date to the copyright notice if one exists
 
