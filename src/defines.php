@@ -1,12 +1,12 @@
 <?php
 // Defines for tables.
 
-define("DO_SERVER", "192.241.132.229"); // My server IP address through DigitalOcean
+define("DO_SERVER", "204.48.29.54"); // My server IP address through DigitalOcean ("192.241.132.229" old version) 
 define("MY_IP", "195.252.232.86"); // My personal static IP address through MetroNet
 define("SITECLASS_DEFAULT_NAME", "https://bartonphillips.net");
 define("SITECLASS_OTHERPAGES", "https://bartonlp.com/otherpages");
 
-define("DEFINES_VERSION", "1.4.0defines-pdo");
+define("DEFINES_VERSION", "2.0.0defines-pdo");
 
 // Only if doSiteClass is true we do FULL database
 
@@ -45,8 +45,8 @@ define("BOTS_SITEBITMAP", [
                           'bartonlp.com' => 4,
                           'bartonlp.org' => 8,
                           'bonnieburch.com' => 0x10,
-                          'newbernzig.com' => 0x20,
-                          'newbern-nc.info' => 0x40,
+                          //'newbernzig.com' => 0x20, // Not used
+                          //'newbern-nc.info' => 0x40,// Not used
                           'jt-lawnservice.com' => 0x80,
                           'swam.us' => 0x100,
                           'NO_SITE' => 0x10000, // This is for entries that have NO_SITE info. 
@@ -108,8 +108,8 @@ define("MY_HOSTS", [
                     "bartonlp.com",
                     "bartonlp.org",
                     "bonnieburch.com",
-                    "newbernzig.com",
-                    "newbern-nc.info",
+                    //"newbernzig.com", // Not used
+                    //"newbern-nc.info",// Not used
                     "jt-lawnservice.com",
                     "swam.us"
                    ]);
