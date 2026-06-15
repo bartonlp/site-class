@@ -1,10 +1,9 @@
-<?php
-ob_start();
-?>
 <pre>
 // bottom area
 
-if(!class_exists('dbPdo')) header("location://https://YOUR_DOMAIN/NotAuthorized.php?site=YOUR_DOMAIN&page=footer.i.php");
+if(!class_exists('dbPdo')) {
+  header("location://https://YOUR_DOMAIN/NotAuthorized.php?site=YOUR_DOMAIN&page=footer.i.php");
+}
 
 return &lt;&lt;&lt;EOF
 &lt;footer&gt;
@@ -32,5 +31,3 @@ $f-&gt;inlineScript
 &lt;/html&gt;
 EOF;
 </pre>
-<?php
-ob_end_flush();
