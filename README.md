@@ -10,7 +10,7 @@ This project has several parts that can function standalone or combined.
 
 ## SiteClass Documentation 
 
-[SiteClass Documentation](https://bartonlp.github.io/site-class)
+[SiteClass Documentation](https://bartonphillips.org/docs)
 
 ## Contact Me
 

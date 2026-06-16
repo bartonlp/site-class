@@ -1,6 +1,9 @@
 <pre>
 &lt;?php
-if(!class_exists('dbPdo')) header("location://https://YOUR_DOMAIN/NotAuthorized.php?site=YOUR_DOMAIN&page=banner.i.php");
+
+if(!class_exists('dbPdo')) {
+  header("location://https://YOUR_DOMAIN/NotAuthorized.php?site=YOUR_DOMAIN&page=banner.i.php");
+}
 
 return &lt;&lt;&lt;EOF
 &lt;header&gt;
