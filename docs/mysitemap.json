@@ -1,0 +1,46 @@
+{
+  //"doSiteClass": true,
+
+  "webServer": true,
+  "siteDomain": "bartonphillips.org",
+  "siteName": "HP-envy",
+  "mainTitle": "<h1>Bartonphillips.org on HP-envy</h1>",
+  "title": "SiteClass", // this is the <title> item
+  "desc": "SiteClass with dbPdo",
+  "keywords": "My SiteClass Documentation", // meta keywords
+  "path": "/var/www/bartonphillips.org/docs",
+  "className": "SiteClass",
+  "copyright": "Barton L. Phillips",
+  "author": "Barton L. Phillips, mailto:bartonphillips@gmail.com",
+  "address": "New Bern, North Carolina",
+  "masterdb": "barton",
+
+  "dbinfo": {
+    "host": "localhost", // USE local database on bartonphillips.org
+    "user": "barton", 
+    "database": "barton",
+    "engine": "mysql",
+    //"engine": "sqlite", 
+    "DUMMY": null 
+  },
+
+  "errorMode": {
+    "development": false, // development automatically sets email to true.
+                         // If development is true then noEmail will be
+                         // set to true unless noEmail is set to false!
+                         // Only false not null or just missing.
+    "noEmail": null, 
+    "noHtml": false,
+    "noOutput": false,
+    "DUMMY": null
+  },
+  "aboutwebsite": "<h2><a target='_blank' href='https://bartonlp.com/otherpages/aboutwebsite.php?site=bartonphillips.org&domain=bartonphillips.org'>About This Site</a></h2>",
+  // Our local 'includes'
+  "headFile": "/var/www/bartonphillips.org/includes/head.i.php",
+  "bannerFile": "/var/www/bartonphillips.org/includes/banner.i.php",
+  "footerFile": "/var/www/bartonphillips.org/includes/footer.i.php",
+  "trackerImg1": "/images/blp-image.png",
+  "EMAILADDRESS": "bartonphillips@gmail.com",
+  "EMAILRETURN": "bartonphillips@gmail.com",
+  "EMAILFROM": "bartonphillips@gmail.com"
+}

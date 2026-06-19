@@ -1,3 +1,23 @@
+<?php
+$_site = require_once getenv("SITELOADNAME");
+$S = new SiteClass($_site);
+$S->banner = "<h1>Banner</h1>";
+$S->msg2 = "<br>Contact me <a href='mailto:bartonphillips@gmail.com'>bartonphillips@gmail.com</a>";
+$S->css =<<<EOF
+@media (max-width: 700px) {
+  pre {
+    font-size: 12px; 
+    white-space: pre-wrap;
+    overflow-wrap: break-word; /* wrap only when needed */
+  }
+}
+EOF;
+
+[$top, $bottom] = $S->getPageTopBottom();
+
+echo <<<EOF
+$top
+<hr>
 <pre>
 &lt;?php
 
@@ -22,6 +42,9 @@ return &lt;&lt;&lt;EOF
   &lt;/noscript&gt;
 &lt;/header&gt;
 &lt;div id="content"&gt; &lt;!-- See footer.i.php for ending </div>. --&gt;
-EOF;
+&#69;OF;
 </pre>
+<hr>
+$bottom
+EOF;
 

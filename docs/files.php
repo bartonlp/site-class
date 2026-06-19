@@ -1,12 +1,23 @@
-<!DOCTYPE html>
-<html html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>Additional Files</title>
-</head>
-<body>
-<h1>Additional Files User by SiteClass</h1>
+<?php
+$_site = require_once getenv("SITELOADNAME");
+$S = new SiteClass($_site);
+
+$S->banner = "<h1>Additional Files by SiteClass</h1>";
+$S->msg2 = "<br>Contact me <a href='mailto:bartonphillips@gmail.com'>bartonphillips@gmail.com</a>";
+$S->css =<<<EOF
+@media (max-width: 700px) {
+  pre {
+    font-size: 12px; 
+    white-space: pre-wrap;
+    overflow-wrap: break-word; /* wrap only when needed */
+  }
+}
+EOF;
+
+[$top, $bottom] = $S->getPageTopBottom();
+
+echo <<<EOF
+$top
 <hr>
 <h2>The 'mysitemap.json' File</h2>
 <pre>
@@ -80,14 +91,10 @@
   <a href="footer.i.html">Footer File</a> (footer.i.php)</p>
 <hr>
 <p>
-  <a href="siteclass.html">SiteClass Methods</a><br>  
-  <a href="files.html">Additional Files</a><br>
+  <a href="siteclass.php">SiteClass Methods</a><br>  
+  <a href="files.php">Additional Files</a><br>
   <a href="index.php">Main SiteClass</a></p>
+<hr>
+$bottom
+EOF;
 
-<h2 id="contact-me">Contact Me</h2>
-<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com">bartonphillips@gmail.com</a><br />
-Copyright © {$S->copyrigth)<br />
-Project maintained by <a href="https://github.com/bartonlp">bartonlp</a><br />
-Last Modified June 15, 2026</p>
-</body>
-</html>

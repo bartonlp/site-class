@@ -1,12 +1,14 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>SiteClass Methods</title>
-</head>
-<body>
-<h1>SiteClass (version 7+ Psr-4 and PDO), Database and dbPdo Methods</h1>
+<?php
+$_site = require_once getenv("SITELOADNAME");
+$S = new SiteClass($_site);
+
+$S->banner = "<h1>SiteClass (version 7+ Psr-4 and PDO), Database and dbPdo Methods</h1>";
+$S->title = "SiteClass";
+$S->msg2 = "<br>Contact me <a href='mailto:bartonphillips@gmail.com'>bartonphillips@gmail.com</a>";
+[$top, $bottom] = $S->getPageTopBottom();
+
+echo <<<EOF
+$top
 <hr>
 <h2 id="siteclass-methods">SiteClass methods:</h2>
 <p>While there are a number of methods for each of the major classes there are really only a small
@@ -46,14 +48,9 @@ Returns the result object from the last sql statement. Usually not needed.</li>
 </ul>
 <hr>
 <p>
-<a href="siteclass.html">SiteClass Methods</a><br>  
-<a href="files.html">Additional Files</a><br>
+<a href="siteclass.php">SiteClass Methods</a><br>  
+<a href="files.php">Additional Files</a><br>
 <a href="index.php">Main SiteClass</a></p>
-<h2 id="contact-me">Contact Me</h2>
-<p>Barton Phillips : <a href="mailto://bartonphillips@gmail.com">
-  <a href="mailto:bartonphillips@gmail.com">bartonphillips@gmail.com</a></a>
-Copyright © 2026 Barton Phillips<br>
-Project maintained by <a href="https://github.com/bartonlp">bartonlp</a><br>
-Last modified June 15, 2026</p>
-</body>
-</html>
+<hr>
+$bottom
+EOF;
