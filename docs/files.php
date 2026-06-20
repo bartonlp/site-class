@@ -86,9 +86,9 @@ $top
 <p>You can add or remove items. See SiteClass for getPageTopBottom(), getPageHead(), getPageBanner()
   and getPageFooter(). The 'mysitemap.json is put in your directory along with the 'includes' along
   with the
-  <a href="head.i.html">Head File</a> (head.i.php),
-  <a href="banner.i.html">Banner File</a> (banner.i.php),
-  <a href="footer.i.html">Footer File</a> (footer.i.php)</p>
+  <a href="head.i.php">Head File</a> (head.i.php),
+  <a href="banner.i.php">Banner File</a> (banner.i.php),
+  <a href="footer.i.php">Footer File</a> (footer.i.php)</p>
 <hr>
 <p>
   <a href="siteclass.php">SiteClass Methods</a><br>  
