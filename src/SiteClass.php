@@ -540,7 +540,7 @@ EOF;
 
     $f->aboutwebsite = $this->aboutwebsite ??
                        "<h2><a target='_blank' href='https://bartonlp.com/otherpages/aboutwebsite.php?" .
-                       "site=$this->siteName&domain=$this->siteDomain'>About This Site</a></h2>";
+                       "domain=$this->siteDomain'>About This Site</a></h2>";
     
     $f->emailAddress = $this->noEmailAddress ? null : ($this->emailAddress ?? $this->EMAILADDRESS);
     $f->emailAddress = $this->emailAddress ? "<a href='mailto:$this->emailAddress'>$this->emailAddress</a>" : null;

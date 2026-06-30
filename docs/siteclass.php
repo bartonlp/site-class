@@ -2,7 +2,7 @@
 $_site = require_once getenv("SITELOADNAME");
 $S = new SiteClass($_site);
 
-$S->banner = "<h1>SiteClass (version 7+ Psr-4 and PDO), Database and dbPdo Methods</h1>";
+$S->banner = "<h1>SiteClass (version 7+ Psr-4 and PDO),<br>Database and dbPdo Methods</h1>";
 $S->title = "SiteClass";
 $S->msg2 = "<br>Contact me <a href='mailto:bartonphillips@gmail.com'>bartonphillips@gmail.com</a>";
 [$top, $bottom] = $S->getPageTopBottom();
@@ -23,13 +23,13 @@ $top
 <li>public function __toString():string</li>
 <li>There are a number of 'protected' methods and properties that can be used in a child class.</li>
 </ul>
-<h2>Database and dbPdo methods:</h2>
+<h2>dbPdo Database methods:</h2>
 <ul>
 <li>public function sql($query)<br>
   This is the workhourse of the database.
   It is used for 'select', 'update', 'insert' and basically anything you need to do
   like 'drop', 'alter' etc.</li>
-<li>public function fetchrow($result=null, $type="both")<br>
+<li>public function fetchrow(\$result=null, \$type="both")<br>
   Probably the second most used method.
   If it follows the sql statment the $result is not needed.
   The only time $result is needed is if there are other queries in a 'while' loop.
@@ -39,7 +39,7 @@ $top
   while 'num' return a numeric array.<br>
   I usually use a numeric array: 
 <code>
-  while([...] = $S-&gt;fetchrow(&#39;num&#39;) { ... }
+  while([...] = \$S-&gt;fetchrow(&#39;num&#39;) { ... }
 </code></li>
 <li>public function getLastInsertId()<br>
 After an 'insert' this method returns the new row's primary key id.</li>

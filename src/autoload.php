@@ -16,7 +16,7 @@ if (PHP_VERSION_ID < 80400) {
 }
 
 error_reporting($mask);
-define("SITELOAD_VERSION", "1.0.0autoload-pdo");
+define("SITELOAD_VERSION", "1.1.0autoload-pdo"); // BLP 2026-06-30 - Add change
 define("SITECLASS_DIR", __DIR__);
 
 if($mysiteload !== true) {
@@ -36,11 +36,12 @@ if($mysiteload !== true) {
     }
   }
   if(spl_autoload_register('bartonlp\SiteClass\_callback') === false) exit("Can't Autoload");
-  require SITECLASS_DIR ."/Database/helper-functions.php";
 } else {
-  // I do composer.
-  require SITECLASS_DIR."/../../../autoload.php";
+  // I do composer. BLP 2026-06-30 - 
+  require_once SITECLASS_DIR."/../../../autoload.php";
 }
+// BLP 2026-06-30 - 
+require_once SITECLASS_DIR ."/Database/helper-functions.php";
 
 // Here are used 'class_alias' to make our site look like no having \bartonlp\SiteClass\...
 

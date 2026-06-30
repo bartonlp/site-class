@@ -20,6 +20,7 @@ echo <<<EOF
 $top
 <hr>
 <h2>The 'mysitemap.json' File</h2>
+<p>This file should be in your <b>DocumentRoot</b> or one of its sub-domains.</p>
 <pre>
 /*
  * SPECIAL NOTE: Normal json will not allow comments.
