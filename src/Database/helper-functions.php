@@ -680,25 +680,24 @@ function logInfo(string $info) {
 
 /**
  * This get the secrets for PASSWORDS/...
- * This is used in PASSWORDS/secrets.php and I makes an array "name" => "value"/
+ * This is used in PASSWORDS/secrets.php and I makes an string of your value
  *
- * @function array
+ * @params string $key
+ * @function ?string $cacge[$key] or null
  */
 
-function getsecrets():array {
-  $config = null;
+function getsecrets(string $key): ?string {
+    static $cache = [];
 
-  if($config !== null) {
-    return $config;
-  }
+    if(isset($cache[$key])) {
+        return $cache[$key];
+    }
 
-  if(file_exists("/home/barton/PASSWORDS/secrets.php")) {
-    $config = require "/home/barton/PASSWORDS/secrets.php";
-  } else {
-    $json = file_get_contents("https://bartonphillips.net/secrets.php");
-    $config = json_decode($json, true);
-  }
+    $json = file_get_contents(
+        "https://bartonphillips.net/secrets.php?key=" . urlencode($key)
+    );
 
-  return $config;
+    $data = json_decode($json, true);
+
+    return $cache[$key] = $data['value'] ?? null;
 }
-  
