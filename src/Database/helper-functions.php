@@ -2,7 +2,7 @@
 /* HELPER FUNCTIONS. Well tested and maintained */
 // BLP 2025-12-30 - added escapeOnlyScripts()
 
-define("HELPER_FUNCTION_VERSION", "2.0.0"); 
+define("HELPER_FUNCTION_VERSION", "2.0.1"); 
 
 $DEBUG = true;
 
@@ -677,3 +677,28 @@ function logInfo(string $info) {
   }
   error_log("$info");
 }
+
+/**
+ * This get the secrets for PASSWORDS/...
+ * This is used in PASSWORDS/secrets.php and I makes an array "name" => "value"/
+ *
+ * @function array
+ */
+
+function getsecrets():array {
+  $config = null;
+
+  if($config !== null) {
+    return $config;
+  }
+
+  if(file_exists("/home/barton/PASSWORDS/secrets.php")) {
+    $config = require "/home/barton/PASSWORDS/secrets.php";
+  } else {
+    $json = file_get_contents("https://bartonphillips.net/secrets.php");
+    $config = json_decode($json, true);
+  }
+
+  return $config;
+}
+  
