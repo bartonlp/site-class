@@ -42,3 +42,14 @@ else
 fi
 
 echo
+echo "PUSH"
+if git show-ref --verify --quiet "refs/remotes/$remote"; then
+    git diff-tree \
+        --root \
+        --no-commit-id \
+        --name-status \
+        -r "$remote" |
+        show_files
+else
+    echo "  Remote information is unavailable"
+fi
