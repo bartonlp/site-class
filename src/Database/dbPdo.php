@@ -7,7 +7,7 @@ use bartonlp\SiteClass\traits\WarnToExceptionHandler;
 use \PDO;
 use \PDOStatement;
 
-define("PDO_CLASS_VERSION", "7.0.6");
+define("PDO_CLASS_VERSION", "7.1.0");
 
 require_once(__DIR__ . "/../defines.php"); // This has the constants for TRACKER, BOTS, BOTS2, and BEACON
 
@@ -114,9 +114,16 @@ class dbPdo extends PDO {
     
     $s->self = $s->self ?? htmlentities($_SERVER['PHP_SELF']); // Be safe
 
+    // Move all of the arguments in $s to $this
+    
+    foreach($s as $k=>$v) {
+      $this->$k = $v; // $this->$key = $value.
+    }
+
     if(is_null($s->dbinfo)) {
-      throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ .
-                                          ": dbinfo has either no database of engine");
+      error_log(__CLASS__ . " " / __LINE__ .
+                ": dbinfo has no database");
+      return; // All done if no database
     }
 
     if(is_null($s->dbinfo->database) && $s->dbinfo->engine !== "sqlite") {
@@ -130,12 +137,6 @@ class dbPdo extends PDO {
       }
     }
     
-    // Move all of the arguments in $s to $this
-    
-    foreach($s as $k=>$v) {
-      $this->$k = $v; // $this->$key = $value.
-    }
-
     // Extract the items from dbinfo. This is $host, $user and maybe $password and $port.
 
     extract((array)$this->dbinfo); // Cast the $dbinfo object into an array

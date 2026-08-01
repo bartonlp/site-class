@@ -10,6 +10,7 @@
 // BLP 2023-08-08 - Move the 'script' type to 'start'.
 // BLP 2023-09-10 - add if($_POST) right after the require_once(). We need to get the host from the
 // first $_site->dbinfo and replace the value form the file_get_contents().
+// BLP 2026-08-01 - logInfo() is helper-functions.php. It uses error_log(). It dose not exit.
 
 /*
 Modified tracker to make id a bigint.
@@ -93,18 +94,12 @@ define("TRACKER_VERSION", "7.0.0");
 //$DEBUG_NOSCRIPT = true; // no script
 
 $_site = require_once getenv("SITELOADNAME");
-//$_site = require_once getenv("AUTOLOADNAME");
-//$_site = require_once "/home/barton/site-class/src/autoload.php";
 
 // If you want the version defined ONLY and no other information.
 
 if($__VERSION_ONLY === true) {
   return TRACKER_VERSION;
 }
-
-// I don't think I should do it.
-//$_site->noTrack = true; // Don't track or do geo!
-//$_site->noGeo = true;
 
 // START OF IMAGE and CSSTEST FUNCTIONS. These are NOT javascript but rather use $_GET.
 // NOTE: The image functions are GET calls from the original php file.
@@ -232,8 +227,8 @@ if($type = $_GET['page']) {
   // Is this from one of my domains?
 
   if(!in_array($x, ["bartonphillips.com", "bonnieburch.com", "bartonlp.com", "bartonphillips.net", "bartonlp.org",
-                    "newbernzig.com", "jt-lawnservice.com", "newbern-nc.info", "swam.us",
-                    "bartonphillips.org", "rpi.bartonphillips"
+                    "jt-lawnservice.com", "swam.us",
+                    "bartonphillips.org", "rpi.bartonphillips.org, spin.bartonphillips.org"
                    ]))
   {
     // NOT one of my domains.
@@ -259,8 +254,6 @@ if($type = $_GET['page']) {
 
   // -----------------------------------------------
   // This is the second time we do noTrack and noGeo
-  //$_site->noTrack = true; 
-  //$_site->noGeo = true;   
 
   $S = new Database($_site);
   $S->noTrack = true; // Don't track or do geo!
@@ -458,7 +451,7 @@ where id=$id");
 // SiteClass::getPageHead(), siteload.php. 
 
 if($_POST) {
-  // Here isMeFalse is a string '1'.
+  // Here $_POST['isMeFalse'] is a string '1'.
   if($_POST['isMeFalse']) $_site->isMeFalse = true;
 
   // This allow us to keep the tracker.php at bartonlp.com/otherpages with a
@@ -477,6 +470,7 @@ if($_POST) {
   if($_site === null) {
     logInfo("tracker PRE-POST: \$_site is NULL, ip=$ip, line=".__LINE__);
     echo "ERROR \$_site is NULL";
+    throw new \RuntimeException(__CLASS__ . " " . __LINE__ . ": ERROR \$_site is NULL");
     exit();
   }
   

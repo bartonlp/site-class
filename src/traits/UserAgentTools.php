@@ -44,7 +44,7 @@ CREATE TABLE `bots3` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 */
 
-define("USER_AGENT_TOOLS_VERSION", "7.0.0");
+define("USER_AGENT_TOOLS_VERSION", "7.0.1");
 
 trait UserAgentTools {
   /*
@@ -248,7 +248,7 @@ trait UserAgentTools {
    * @param string $page
    * @param string|int $site Either a string or a bitmapped integer
    * @param int $botAsBits A bitmapped value
-   * @return int|null A bitmapped integer or void if it is ME.
+   * @return null void if it is ME.
    * @throws Exception If a sql error.
    */
   public function updateBots3(string $ip, string $agent, string $page, string|int $site, int $botAsBits) {
@@ -271,7 +271,8 @@ trait UserAgentTools {
       $errmsg = $e->getMessage();
       logInfo("Database updateBots3: ip=$ip, agent=$agent, page=$page, robots=$botAsBits, err=$err, errmsg=$errmsg, line=".
               __LINE__);
-      throw new \Throwable(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
+      // BLP 2026-08-01 - RuntimeException not Throwable.
+      throw new \RuntimeException(__CLASS__ . " " . __LINE__ . ": $errmsg", $err);
     }
   }
 }

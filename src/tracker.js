@@ -300,7 +300,10 @@ jQuery(document).ready(function($) {
   // Check for pagehide unload beforeunload and visibilitychange
   // These are the exit codes as the page disapears.
 
-  $(window).on("visibilitychange pagehide unload beforeunload", function(e) {
+  //**** BLP 2026-07-31 - remove unload
+  //$(window).on("visibilitychange pagehide unload beforeunload",
+  //function(e) {
+  $(window).on("visibilitychange pagehide beforeunload", function(e) {
     // Can we use beacon?
 
     if(navigator.sendBeacon) { // If beacon is supported by this client we will always do beacon.

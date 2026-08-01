@@ -2,7 +2,7 @@
 /* HELPER FUNCTIONS. Well tested and maintained */
 // BLP 2025-12-30 - added escapeOnlyScripts()
 
-define("HELPER_FUNCTION_VERSION", "2.0.1"); 
+define("HELPER_FUNCTION_VERSION", "2.0.0"); 
 
 $DEBUG = true;
 
@@ -676,28 +676,4 @@ function logInfo(string $info) {
     $info = "(MESSAGE) $info";
   }
   error_log("$info");
-}
-
-/**
- * This get the secrets for PASSWORDS/...
- * This is used in PASSWORDS/secrets.php and I makes an string of your value
- *
- * @params string $key
- * @function ?string $cacge[$key] or null
- */
-
-function getsecrets(string $key): ?string {
-    static $cache = [];
-
-    if(isset($cache[$key])) {
-        return $cache[$key];
-    }
-
-    $json = file_get_contents(
-        "https://bartonphillips.net/secrets.php?key=" . urlencode($key)
-    );
-
-    $data = json_decode($json, true);
-
-    return $cache[$key] = $data['value'] ?? null;
 }

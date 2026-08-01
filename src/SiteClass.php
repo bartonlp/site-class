@@ -224,9 +224,9 @@ class SiteClass extends Database {
       // BLP 2025-04-26 - Add id to jQuery so I can locate it in tracker.js and add the csstest.
       
       $jQuery = <<<EOF
-  <!-- BLP 2024-12-31 - Latest version 3.7.1 and migrate 3.5.2 -->
-  <script nonce="$this->nonce" id='jQuery' src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-  <script nonce="$this->nonce" src="https://code.jquery.com/jquery-migrate-3.5.2.min.js" integrity="sha256-ocUeptHNod0gW2X1Z+ol3ONVAGWzIJXUmIs+4nUeDLI=" crossorigin="anonymous"></script>
+  <!-- BLP 2026-07-31 - Latest version 4.0.0 and migrate 4.0.2-->
+  <script src="https://code.jquery.com/jquery-4.0.0.min.js" integrity="sha256-OaVG6prZf4v69dPg6PhVattBXkcOWQB62pdZ3ORyrao=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-migrate-4.0.2.min.js" integrity="sha256-LzsJUf1meVLJnOtz5tjDaNu/2+KYX4BI6ytmi4nkEQU=" crossorigin="anonymous"></script>
   <script nonce="$this->nonce">jQuery.migrateMute = false; jQuery.migrateTrace = false;</script>
 EOF;
 
