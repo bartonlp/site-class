@@ -16,7 +16,7 @@ if (PHP_VERSION_ID < 80400) {
 }
 
 error_reporting($mask);
-define("SITELOAD_VERSION", "1.1.0autoload-pdo"); // BLP 2026-06-30 - Add change
+define("SITELOAD_VERSION", "1.1.1autoload-pdo"); // BLP 2026-06-30 - Add change
 define("SITECLASS_DIR", __DIR__);
 
 if($mysiteload !== true) {
@@ -96,7 +96,9 @@ class getinfo {
 
     $this->_site = json_decode($this->findsitemap());
 
-    $this->_site->mysitemap = "$this->mydir/mysitemap.json";
+    // BLP 2026-08-01 - We are changing /var/www/ to https:// so we can use file_get_contents();
+    $tmp = str_replace("/var/www/", "https://", $this->mydir);
+    $this->_site->mysitemap = "$tmp/mysitemap.json";
 
     // Set the siteloadVersion and siteClassDir
 

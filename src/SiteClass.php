@@ -280,7 +280,7 @@ EOF;
       
       if($this->doSiteClass === true && $this->dbinfo->engine == 'mysql') {
         $mysitemap = $this->mysitemap;
-
+        
         // If we are 'tracking' users add tracker.js and logging.js
         
         $trackerStr = "<script nonce='$this->nonce' src='$this->trackerLocationJs'></script>\n"; 
