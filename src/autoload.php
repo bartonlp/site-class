@@ -96,10 +96,10 @@ class getinfo {
 
     $this->_site = json_decode($this->findsitemap());
 
-    // BLP 2026-08-01 - We are changing /var/www/ to https:// so we can use file_get_contents();
-    $tmp = str_replace("/var/www/", "https://", $this->mydir);
-    $this->_site->mysitemap = "$tmp/mysitemap.json";
-
+    // BLP 2026-08-02 - use https:// . $this->_sitte->siteDomain
+    $tmp = "https://" . $this->_site->siteDomain;
+    $this->_site->mysitemap = "$tmp/mysitemap.json"; // Add the full name.
+    
     // Set the siteloadVersion and siteClassDir
 
     $this->_site->siteloadVersion = SITELOAD_VERSION;

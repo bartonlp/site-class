@@ -3,6 +3,8 @@
 // PHP must change when the GitHub Release version changes.
 // Note that the constructor calls the Database constructor which in turn call the
 // dbPdo constructor which does all of the heavy lifting.
+// BLP 2026-08-04 - using the hppts://bartonphillips.com/includes/*.html. Uses function
+// renderHtmlTemplate(...).
 
 namespace bartonlp\SiteClass;
 use bartonlp\SiteClass\Database\Database;
@@ -11,7 +13,7 @@ use bartonlp\SiteClass\Database\Database;
  * @file SiteClass.class.php
  * @package SiteClass
  */
-define("SITE_CLASS_VERSION", "7.0.6");
+define("SITE_CLASS_VERSION", "7.0.7"); // BLP 2026-08-04 - Using private function renderHtmlTemplate
 
 // One class for all my sites
 /**
@@ -389,14 +391,18 @@ EOF;
     // What if headFile is null? Use the Default Head.
 
     if(!is_null($this->headFile)) {
-      if(($p = require($this->headFile)) !== 1) {
-        // $p has the contents of the header file.
-        $pageHeadText = "{$html}\n$p";
-      } else {
-        // require returned 1 which is wrong!!
+      try {
+        if(($p = require($this->headFile)) !== 1) {
+          // $p has the contents of the header file.
+          $pageHeadText = "{$html}\n$p";
+        } else {
+          // require returned 1 which is wrong!!
         
-        throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ .
-                            ": $this->siteName, getPageHead() headFile '$this->headFile' returned 1");
+          throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ .
+                                              ": $this->siteName, getPageHead() headFile '$this->headFile' returned 1");
+        }
+      } catch(\Throwable $e) {
+        $pageHeadText = "{$html}\n" . $this->renderHtmlTemplate("https://bartonphillips.com/includes/head.i.html", $h, "h");
       }
     } else {
       // Make a default <head>
@@ -426,10 +432,14 @@ EOF;
     } // End default head.
 
     // Add the preheadcomment and doctype and the pageHeadText
+    // BLP 2026-08-04 - move bodytag to getPageBanner.
+    $bodytag = $this->bodytag ?? "<body>";
     
     $pageHead = <<<EOF
 {$preheadcomment}{$this->doctype}
 $pageHeadText
+$bodytag
+
 EOF;
 
     return $pageHead;
@@ -447,7 +457,6 @@ EOF;
   public function getPageBanner():string {
     $b = new \stdClass; // b is for banner
 
-    $b->bodytag = $this->bodytag ?? "<body>";
     // BLP 2026-05-29 - 
     $b->mainTitle = $this->banner ?? ($this->mainTitle !==null ? $this->mainTitle :
                                       ($this->mainTitle != "" ? $this->mainTitle : "<h1>$this->title</h1>"));
@@ -470,17 +479,31 @@ EOF;
                    "image=/images/noscript.svg&amp;".
                    "mysitemap=$this->mysitemap' alt='NO SCRIPT'>";
 
+      /* BLP 2026-08-04 - Remove image3
       $b->image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?$myscript".
                    "mysitemap=$this->mysitemap'>";
+      */    
     }
 
     $b->logoAnchor = $this->logoAnchor ?? "https://www.$this->siteDomain";
     
     if(!is_null($this->bannerFile)) {
-      $b->pageBannerText = require($this->bannerFile);
+      try {
+        if(($p = require($this->bannerFile)) !== 1) {
+          // $p has the contents of the header file.
+          $pageBannerText = $p;
+        } else {
+          // require returned 1 which is wrong!!
+        
+          throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ .
+                                              ": $this->siteName, getPageBanner() bannerFile '$this->bannerFile' returned 1");
+        }
+      } catch(\Throwable $e) {
+        $pageBannerText = $this->renderHtmlTemplate("https://bartonphillips.com/includes/banner.i.html", $b, "b");
+      }
     } else {
       // a default banner
-      $b->pageBannerText =<<<EOF
+      $pageBannerText =<<<EOF
 <!-- Default Header/Banner -->
 <header>
 <div id='pagetitle'>
@@ -497,8 +520,7 @@ EOF;
     // Return the Banner
 
     return <<<EOF
-$b->bodytag
-$b->pageBannerText
+$pageBannerText
 
 EOF;
   }
@@ -522,7 +544,7 @@ EOF;
 </body>
 </html>
 EOF;
-    }
+    } // This is done.
 
     $f = new \stdClass; // $f is for footer
 
@@ -584,9 +606,21 @@ EOF;
     // We can put the footerFile into $S or use it from mysitemap.json
     // If either is set to 'false' then use the default footer, else use $this->footerFile unless
     // it is false.
-    
-    if($this->footerFile !== false && $this->footerFile !== null) {
-      $pageFooterText = require($this->footerFile);
+
+    if(!is_null($this->footerFile)) {
+      try {
+        if(($p = require($this->footerFile)) !== 1) {
+          // $p has the contents of the header file.
+          $pageFooterText = $p;
+        } else {
+          // require returned 1 which is wrong!!
+        
+          throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ .
+                                              ": $this->siteName, getPageFootter() footerFile '$this->footerFile' returned 1");
+        }
+      } catch(\Throwable $e) {
+        $pageFooterText = $this->renderHtmlTemplate("https://bartonphillips.com/includes/footer.i.html", $f, "f");
+      }
     } else {
       $pageFooterText = <<<EOF
 <!-- Default Footer -->
@@ -647,6 +681,39 @@ $hits
 </table>
 </div>
 EOF;
+  }
+
+  /**
+   * Render the HTML Template
+   * This works head.i.html, banner.i.html and footer.i.html.
+   *
+   * @param string $url
+   * @param object $value
+   * @param string $prefix
+   * @retun string
+   */
+  private function renderHtmlTemplate(
+                                      string $url,
+                                      object $values,
+                                      string $prefix
+                                     ): string {
+    $template = file_get_contents($url);
+
+    if($template === false) {
+      throw new \RuntimeException(
+                                  "Could not retrieve template: $url"
+                                 );
+    }
+
+    $replace = [];
+
+    foreach(get_object_vars($values) as $name => $value) {
+      $placeholder = '{$' . $prefix . '->' . $name . '}';
+
+      $replace[$placeholder] = (string)($value ?? "");
+    }
+
+    return strtr($template, $replace);
   }
 
   /**
