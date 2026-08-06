@@ -1,5 +1,7 @@
 <?php
 $_site = require_once getenv("SITELOADNAME");
+$_site->headFile = $_site->bannerFile = $_site->footerFile = '1';
+$_site->siteDomain = "bartonphillips.org/docs";
 $S = new SiteClass($_site);
 $S->banner =<<<EOF
 <h1 id="siteclass">SiteClass</h1>

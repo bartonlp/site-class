@@ -2,7 +2,7 @@
   //"doSiteClass": true,
 
   "webServer": true,
-  "siteDomain": "bartonphillips.org",
+  "siteDomain": "bartonphillips.org/docs",
   "siteName": "HP-envy",
   "mainTitle": "<h1>Bartonphillips.org on HP-envy</h1>",
   "title": "SiteClass", // this is the <title> item
@@ -40,6 +40,7 @@
   "bannerFile": "/var/www/bartonphillips.org/includes/banner.i.php",
   "footerFile": "/var/www/bartonphillips.org/includes/footer.i.php",
   "trackerImg1": "/images/blp-image.png",
+  "trackerImg2": null,
   "EMAILADDRESS": "bartonphillips@gmail.com",
   "EMAILRETURN": "bartonphillips@gmail.com",
   "EMAILFROM": "bartonphillips@gmail.com"

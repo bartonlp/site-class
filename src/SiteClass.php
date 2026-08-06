@@ -278,21 +278,11 @@ EOF;
         $phoneImg2 = $this->trackerImgPhone2 ? "$headerImg2Location$this->trackerImgPhone2" : null; // BLP 2023-08-10 - 
       }
 
-      // Should we track and have doSiteClass true?
+      $mysitemap = $this->mysitemap;
+      $page = basename($this->self); 
       
-      if($this->doSiteClass === true && $this->dbinfo->engine == 'mysql') {
-        $mysitemap = $this->mysitemap;
-        
-        // If we are 'tracking' users add tracker.js and logging.js
-        
-        $trackerStr = "<script nonce='$this->nonce' src='$this->trackerLocationJs'></script>\n"; 
-
-        // Now fill in the rest of $trackerStr.
-
-        $page = basename($this->self); 
-      
-        $xtmp = <<<EOF
-  <script nonce="$this->nonce">
+      $xtmp = <<<EOF
+<script nonce="$this->nonce">
   let thesite      = "$this->siteName",
       theagent     = "$this->agent", 
       theip        = "$this->ip",
@@ -307,21 +297,39 @@ EOF;
       mysitemap    = "$mysitemap",
       lastId       = "$this->LAST_ID",
       loggingphp   = "$this->interactionLocationPhp";
-  </script>
+</script>
 EOF;
+
+      // Should we track and have doSiteClass true?
+      
+      if($this->doSiteClass === true && $this->dbinfo->engine == 'mysql') {
+        // If we are 'tracking' users add tracker.js and logging.js
+        
+        $trackerStr = "<script nonce='$this->nonce' src='$this->trackerLocationJs'></script>\n"; 
+
+        // Now fill in the rest of $trackerStr.
+        // This has $xtmp and $trackerStr.
+        
         $trackerStr = "$xtmp\n$trackerStr";
 
         if($this->nointeraction !== true) {
           $trackerStr .= "<script nonce='$this->nonce' src='$this->interactionLocationJs'></script>\n";
         }
-      } else {
+      } elseif($this->dbinfo->engine == 'mysql') {
         // doSiteClass is false or not there.
         // We can have noTrack true if we want the simple to use logagent.
         // This is the code we use instead of tracker.js.
 
+        $this->trackerLocationJs = $this->trackerLocation = $this->beaconLocation = " ";
+        $this->interactionLocationJs = $this->interactionLocationPhp = " ";
+        $this->noGeo = true;
+        $this->noTrack = true;
+
+        // This code supplies only $trackerStr with no $xtmp
+        
         $trackerStr =<<<EOF
 <script nonce='$this->nonce'>
-/* Minimal tracker.js logic if noTrack */
+/* Default trackerStr. Minimal inline \$traclerStr logic */
 
 'use strict';
 
@@ -373,12 +381,16 @@ jQuery(document).ready(function($) {
     $("header a:first-of-type").after(picture);
   }
   
-  console.log("VARIABLES -- phoneImg: " + phoneImg + ", desktopImg: " + desktopImg +
+  console.log("DEFAULT-TRACKERJS -- phoneImg: " + phoneImg + ", desktopImg: " + desktopImg +
               ", phoneImg2: " + phoneImg2 + ", desktopImg2: " + desktopImg2);
 });
 </script>
 EOF;
-      } // End of logic No doSiteClass
+      } else {
+        // This is not engine == 'mysql' so this is an error
+        throw new \InvalidArgumentException(__CLASS__ . " " . __LINE__ .
+                                            ": $this->siteName, engine is NOT 'mysql'");
+      }
     } // End of $this->nojquery !=== true. That is we want jQuery.
 
     // Add language and things like a manafest etc. to the <html> tag.
@@ -467,26 +479,21 @@ EOF;
     if($this->noTrack !== true) {
       $trackerLocation = $this->trackerLocation ?? SITECLASS_OTHERPAGES."/tracker.php";
 
-      $b->image1 = "<!-- Image1 is provided by tracker.js -->\n";
+      // BLP 2026-08-05 - removed $b->image{1,2}
+      //$b->image1 = "<!-- Image1 is provided by tracker.js -->\n";
+      /*$b->image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?$mypage".
+                   "image=/images/noscript.svg&amp;".
+                   "mysitemap=$this->mysitemap' alt='NO SCRIPT'>";*/
 
       // We start out with the <img id='headerImage2'> having the NO SCRIPT logo, because this will
       // be changed by tracker.js if the user has Javascript.
 
       $mypage = $this->doSiteClass ? "page=normal&amp;id=$this->LAST_ID&amp;" : null;
       $myscript = $this->doSiteClass ? "page=noscript&amp;$this->LAST_ID&amp;" : null;
-      
-      $b->image2 = "<img id='headerImage2' alt='headerImage2' src='$trackerLocation?$mypage".
-                   "image=/images/noscript.svg&amp;".
-                   "mysitemap=$this->mysitemap' alt='NO SCRIPT'>";
-
-      /* BLP 2026-08-04 - Remove image3
-      $b->image3 = "<img id='noscript' alt='noscriptImage' src='$trackerLocation?$myscript".
-                   "mysitemap=$this->mysitemap'>";
-      */    
     }
 
     $b->logoAnchor = $this->logoAnchor ?? "https://www.$this->siteDomain";
-    
+
     if(!is_null($this->bannerFile)) {
       try {
         if(($p = require($this->bannerFile)) !== 1) {

@@ -65,20 +65,14 @@ class Database extends dbPdo {
       $this->tracker();    // This logs Me and everybody else but uses the $this->isBot bitmap!
       $this->updatemyip(); // Update myip if it is ME
 
-      // If 'count' is false we don't do these counters
+    }
+    // If 'count' is false we don't do these counters
 
-      if($this->count === true) {
-        // Get the count for hitCount. The hitCount is always
-        // updated (unless the counter table does not exist).
+    if($this->count === true) {
+      // Get the count for hitCount. The hitCount is always
+      // updated (unless the counter table does not exist).
 
-        $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
-      }
-    } else {
-      // NO doSiteClass
-
-      $this->trackerLocationJs = $this->trackerLocation = $this->beaconLocation = " ";
-      $this->noGeo = true;
-      $this->noTrack = true;
+      $this->counter(); // in 'masterdb' database. Does not count Me but always set $this->hitCount.
     }
   } // END Construct
 
